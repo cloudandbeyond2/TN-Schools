@@ -642,6 +642,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Teacher Deployment", href: "/block-education-officer/teachers", icon: "User" },
       { label: "Dropouts Tracking", href: "/block-education-officer/dropouts", icon: "TrendingDown" },
       { label: "Schemes Update", href: "/block-education-officer/schemes", icon: "ScrollText" },
+      { label: "Mid-Day Meal", href: "/block-education-officer/midday-meal", icon: "Utensils" },
       { label: "Grievances", href: "/block-education-officer/grievances", icon: "Scale" },
       { label: "Financial Reports", href: "/block-education-officer/financials", icon: "Banknote" },
       { label: "Circulars", href: "/block-education-officer/circulars", icon: "Megaphone" },

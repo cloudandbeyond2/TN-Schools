@@ -298,6 +298,98 @@ model MidDayMeal {
   @@index([recordedByUserId])
 }
 
+// ─── Mid-Day Meal Extended Models ─────────────────────────────────────────────
+
+model MdmDailyRecord {
+  id               String   @id @default(uuid())
+  schoolId         String
+  date             String   // ISO date string YYYY-MM-DD
+  menuItem         String
+  studentsPresent  Int      @default(0)
+  mealsServed      Int      @default(0)
+  eggsServed       Int      @default(0)
+  bananasServed    Int      @default(0)
+  riceUsedKg       Float    @default(0)
+  status           String   @default("Pending Sync") // "Submitted" | "Pending Sync" | "Verified"
+  remarks          String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([schoolId, date])
+}
+
+model MdmBeneficiary {
+  id              String   @id @default(uuid())
+  schoolId        String
+  name            String
+  classSection    String
+  emisId          String
+  category        String   @default("Regular Meal") // "Regular Meal" | "Egg Alternative" | "Special Diet"
+  mealsThisMonth  Int      @default(0)
+  status          String   @default("Active")        // "Active" | "Inactive" | "Transferred"
+  lastAvailed     String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+model MdmStockItem {
+  id             String   @id @default(uuid())
+  schoolId       String
+  item           String
+  category       String   // "Grains" | "Pulses" | "Oil & Condiments" | "Perishables" | "Fuel"
+  quantity       Float    @default(0)
+  unit           String
+  dailyUsage     Float    @default(0)
+  reorderLevel   Float    @default(0)
+  lastRefilled   String   @default("")
+  supplier       String   @default("")
+  reorderPlaced  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+model MdmMenuDay {
+  id             String   @id @default(uuid())
+  schoolId       String
+  day            String   // "Monday" … "Friday"
+  menuItem       String
+  accompaniment  String   @default("")
+  eggDay         Boolean  @default(true)
+  calories       Int      @default(0)
+  proteinGm      Int      @default(0)
+  compliance     String   @default("Pending") // "Pending" | "Compliant" | "Deviation"
+  deviationNote  String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([schoolId, day])
+  @@index([schoolId])
+}
+
+model MdmQualityReport {
+  id              String   @id @default(uuid())
+  schoolId        String
+  date            String   // ISO date string YYYY-MM-DD
+  inspector       String
+  role            String
+  tasteRating     Int      @default(3)
+  quantityRating  Int      @default(3)
+  hygieneRating   Int      @default(3)
+  issues          String   @default("None.")
+  actionTaken     String   @default("—")
+  status          String   @default("Satisfactory") // "Satisfactory" | "Needs Attention" | "Escalated"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([schoolId, date])
+}
+
 model Reward {
   id        String   @id @default(uuid())
   schoolId  String

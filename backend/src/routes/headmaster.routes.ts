@@ -2199,4 +2199,353 @@ router.delete('/rewards/:id', async (req: Request, res: Response) => {
   }
 });
 
+
+// ─── Mid-Day Meal (MDM) Routes ─────────────────────────────────────────────
+
+// GET /api/headmaster/mdm/overview — Aggregated stats for overview tab
+router.get('/mdm/overview', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const sid = String(schoolId);
+
+    const [records, beneficiaries, stock, quality, menu] = await Promise.all([
+      prisma.mdmDailyRecord.findMany({ where: { schoolId: sid }, orderBy: { date: 'desc' } }),
+      prisma.mdmBeneficiary.findMany({ where: { schoolId: sid } }),
+      prisma.mdmStockItem.findMany({ where: { schoolId: sid } }),
+      prisma.mdmQualityReport.findMany({ where: { schoolId: sid } }),
+      prisma.mdmMenuDay.findMany({ where: { schoolId: sid } }),
+    ]);
+
+    const activeBens = beneficiaries.filter(b => b.status === 'Active').length;
+    const monthMeals = records.reduce((a, r) => a + r.mealsServed, 0);
+    const avgCoverage = records.length
+      ? Math.round(records.reduce((a, r) => a + (r.studentsPresent > 0 ? Math.round((r.mealsServed / r.studentsPresent) * 100) : 0), 0) / records.length)
+      : 0;
+    const openIssues = quality.filter(q => q.status !== 'Satisfactory').length;
+    const avgQuality = quality.length
+      ? Math.round((quality.reduce((a, q) => a + (q.tasteRating + q.quantityRating + q.hygieneRating) / 3, 0) / quality.length) * 10) / 10
+      : 0;
+    const compliantDays = menu.filter(m => m.compliance === 'Compliant').length;
+    const markedDays = menu.filter(m => m.compliance !== 'Pending').length;
+
+    res.json({
+      success: true, data: {
+        activeBens, monthMeals, avgCoverage, openIssues, avgQuality,
+        menuCompliance: markedDays ? Math.round((compliantDays / markedDays) * 100) : 0,
+        pendingSync: records.filter(r => r.status !== 'Verified').length,
+        totalOnRoll: activeBens,
+        todayRecord: records[0] || null,
+        stockAlerts: stock.filter(s => s.quantity <= s.reorderLevel),
+        recentActivity: records.slice(0, 5).map(r => ({
+          id: r.id, time: r.date, icon: '🍛',
+          text: `Daily meal log posted — ${r.mealsServed} of ${r.studentsPresent} present students served.`,
+        })),
+      }
+    });
+  } catch (err) {
+    console.error('MDM overview error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/records
+router.get('/mdm/records', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const records = await prisma.mdmDailyRecord.findMany({
+      where: { schoolId: String(schoolId) },
+      orderBy: { date: 'desc' },
+    });
+    res.json({ success: true, data: records });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/mdm/records
+router.post('/mdm/records', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, date, menuItem, studentsPresent, mealsServed, eggsServed, bananasServed, riceUsedKg, remarks } = req.body;
+    if (!schoolId || !date || !menuItem) return res.status(400).json({ success: false, error: 'schoolId, date, menuItem are required' });
+    const record = await prisma.mdmDailyRecord.create({
+      data: { schoolId, date, menuItem, studentsPresent: Number(studentsPresent) || 0, mealsServed: Number(mealsServed) || 0, eggsServed: Number(eggsServed) || 0, bananasServed: Number(bananasServed) || 0, riceUsedKg: Number(riceUsedKg) || 0, remarks: remarks || '', status: 'Submitted' },
+    });
+    res.status(201).json({ success: true, data: record });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/mdm/records/:id — update status
+router.patch('/mdm/records/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const record = await prisma.mdmDailyRecord.update({ where: { id }, data: req.body });
+    res.json({ success: true, data: record });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/beneficiaries
+router.get('/mdm/beneficiaries', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const data = await prisma.mdmBeneficiary.findMany({ where: { schoolId: String(schoolId) }, orderBy: { createdAt: 'desc' } });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/mdm/beneficiaries
+router.post('/mdm/beneficiaries', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, name, classSection, emisId, category } = req.body;
+    if (!schoolId || !name || !emisId) return res.status(400).json({ success: false, error: 'schoolId, name, emisId are required' });
+    const data = await prisma.mdmBeneficiary.create({
+      data: { schoolId, name, classSection: classSection || '', emisId, category: category || 'Regular Meal', mealsThisMonth: 0, status: 'Active', lastAvailed: '' },
+    });
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/mdm/beneficiaries/:id
+router.patch('/mdm/beneficiaries/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = await prisma.mdmBeneficiary.update({ where: { id }, data: req.body });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/stock
+router.get('/mdm/stock', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const data = await prisma.mdmStockItem.findMany({ where: { schoolId: String(schoolId) }, orderBy: { category: 'asc' } });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/mdm/stock
+router.post('/mdm/stock', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, item, category, quantity, unit, dailyUsage, reorderLevel, supplier } = req.body;
+    if (!schoolId || !item || !unit) return res.status(400).json({ success: false, error: 'schoolId, item, unit are required' });
+    const data = await prisma.mdmStockItem.create({
+      data: { schoolId, item, category: category || 'Grains', quantity: Number(quantity) || 0, unit, dailyUsage: Number(dailyUsage) || 0, reorderLevel: Number(reorderLevel) || 0, supplier: supplier || '', lastRefilled: new Date().toISOString().slice(0, 10) },
+    });
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/mdm/stock/:id — refill or update stock
+router.patch('/mdm/stock/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = await prisma.mdmStockItem.update({ where: { id }, data: req.body });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/menu
+router.get('/mdm/menu', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const data = await prisma.mdmMenuDay.findMany({ where: { schoolId: String(schoolId) }, orderBy: { day: 'asc' } });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/mdm/menu/:day — upsert a day's menu
+router.put('/mdm/menu/:day', async (req: Request, res: Response) => {
+  try {
+    const { day } = req.params;
+    const { schoolId, menuItem, accompaniment, eggDay, calories, proteinGm, compliance, deviationNote } = req.body;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+
+    const existing = await prisma.mdmMenuDay.findFirst({
+      where: { schoolId, day },
+    });
+
+    let data;
+    if (existing) {
+      data = await prisma.mdmMenuDay.update({
+        where: { id: existing.id },
+        data: {
+          menuItem: menuItem !== undefined ? menuItem : existing.menuItem,
+          accompaniment: accompaniment !== undefined ? accompaniment : existing.accompaniment,
+          eggDay: eggDay !== undefined ? eggDay : existing.eggDay,
+          calories: calories !== undefined ? Number(calories) : existing.calories,
+          proteinGm: proteinGm !== undefined ? Number(proteinGm) : existing.proteinGm,
+          compliance: compliance !== undefined ? compliance : existing.compliance,
+          deviationNote: deviationNote !== undefined ? deviationNote : existing.deviationNote,
+        },
+      });
+    } else {
+      data = await prisma.mdmMenuDay.create({
+        data: {
+          schoolId,
+          day,
+          menuItem: menuItem || '',
+          accompaniment: accompaniment || '',
+          eggDay: eggDay ?? true,
+          calories: Number(calories) || 0,
+          proteinGm: Number(proteinGm) || 0,
+          compliance: compliance || 'Compliant',
+          deviationNote: deviationNote || '',
+        },
+      });
+    }
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('MDM Menu PUT error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/quality
+router.get('/mdm/quality', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const data = await prisma.mdmQualityReport.findMany({ where: { schoolId: String(schoolId) }, orderBy: { date: 'desc' } });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/mdm/quality
+router.post('/mdm/quality', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, date, inspector, role, tasteRating, quantityRating, hygieneRating, issues, actionTaken, status } = req.body;
+    if (!schoolId || !inspector || !date) return res.status(400).json({ success: false, error: 'schoolId, date, inspector are required' });
+    const data = await prisma.mdmQualityReport.create({
+      data: { schoolId, date, inspector, role: role || 'Teacher on Duty', tasteRating: Number(tasteRating) || 3, quantityRating: Number(quantityRating) || 3, hygieneRating: Number(hygieneRating) || 3, issues: issues || 'None.', actionTaken: actionTaken || '—', status: status || 'Satisfactory' },
+    });
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/mdm/beneficiaries/:id
+router.delete('/mdm/beneficiaries/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.mdmBeneficiary.delete({ where: { id } });
+    res.json({ success: true, message: 'Beneficiary deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/mdm/records/:id
+router.delete('/mdm/records/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.mdmDailyRecord.delete({ where: { id } });
+    res.json({ success: true, message: 'Daily record deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/mdm/stock/:id
+router.delete('/mdm/stock/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.mdmStockItem.delete({ where: { id } });
+    res.json({ success: true, message: 'Stock item deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/mdm/quality/:id
+router.delete('/mdm/quality/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.mdmQualityReport.delete({ where: { id } });
+    res.json({ success: true, message: 'Quality report deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/mdm/quality/:id — update status / action taken by BEO or HM
+router.patch('/mdm/quality/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, actionTaken } = req.body;
+    const updated = await prisma.mdmQualityReport.update({
+      where: { id },
+      data: {
+        ...(status ? { status } : {}),
+        ...(actionTaken ? { actionTaken } : {}),
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/mdm/block-overview — block-level aggregated reports for BEO & DEO
+router.get('/mdm/block-overview', async (req: Request, res: Response) => {
+  try {
+    const [qualityRaw, deviationsRaw, stockAlertsRaw, schoolsRaw] = await Promise.all([
+      prisma.mdmQualityReport.findMany({ orderBy: { date: 'desc' }, take: 50 }),
+      prisma.mdmMenuDay.findMany({ where: { compliance: 'Deviation' }, orderBy: { updatedAt: 'desc' } }),
+      prisma.mdmStockItem.findMany({ where: { quantity: { lte: 50 } }, orderBy: { quantity: 'asc' } }),
+      prisma.school.findMany({ select: { id: true, name: true, dise: true } }),
+    ]);
+
+    const schoolMap = new Map(schoolsRaw.map(s => [s.id, { schoolName: s.name, diseCode: s.dise || '50001' }]));
+
+    const quality = qualityRaw.map(q => ({
+      ...q,
+      schoolName: schoolMap.get(q.schoolId)?.schoolName || 'Holy Cross Higher Secondary School',
+      diseCode: schoolMap.get(q.schoolId)?.diseCode || '50001',
+    }));
+
+    const deviations = deviationsRaw.map(d => ({
+      ...d,
+      schoolName: schoolMap.get(d.schoolId)?.schoolName || 'Holy Cross Higher Secondary School',
+      diseCode: schoolMap.get(d.schoolId)?.diseCode || '50001',
+    }));
+
+    const stockAlerts = stockAlertsRaw.map(s => ({
+      ...s,
+      schoolName: schoolMap.get(s.schoolId)?.schoolName || 'Holy Cross Higher Secondary School',
+      diseCode: schoolMap.get(s.schoolId)?.diseCode || '50001',
+    }));
+
+    const schools = schoolsRaw.map(s => ({ id: s.id, name: s.name, diseCode: s.dise }));
+
+    res.json({ success: true, data: { quality, deviations, stockAlerts, schools } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { apiFetch, API_URL } from "@/lib/api";
 
 /* ------------------------------- Types ------------------------------- */
 
@@ -16,7 +18,7 @@ type MenuCompliance = "Pending" | "Compliant" | "Deviation";
 type QualityStatus = "Satisfactory" | "Needs Attention" | "Escalated";
 
 interface DailyRecord {
-  id: number;
+  id: string;
   date: string;          // ISO date
   menuItem: string;
   studentsPresent: number;
@@ -29,7 +31,7 @@ interface DailyRecord {
 }
 
 interface Beneficiary {
-  id: number;
+  id: string;
   name: string;
   classSection: string;
   emisId: string;
@@ -40,7 +42,7 @@ interface Beneficiary {
 }
 
 interface StockItem {
-  id: number;
+  id: string;
   item: string;
   category: StockCategory;
   quantity: number;
@@ -64,7 +66,7 @@ interface MenuDay {
 }
 
 interface QualityReport {
-  id: number;
+  id: string;
   date: string;          // ISO date
   inspector: string;
   role: string;
@@ -77,77 +79,53 @@ interface QualityReport {
 }
 
 interface Activity {
-  id: number;
+  id: string | number;
   time: string;
   icon: string;
   text: string;
 }
 
-/* ----------------------------- Seed data ----------------------------- */
+/* ─── TN Government Nutritious Meal Scheme Specifications & Official Menu Cycles ─── */
 
-const TOTAL_ON_ROLL = 248;
+const TN_SCHEME_NORMS = {
+  eggWeight: "46 – 52 g per child on school working days",
+  bananaWeight: "100 g (Alternative for children who do not consume eggs)",
+  ricePrimary: "100 g per child (Classes 1 – 5)",
+  riceUpperPrimary: "150 g per child (Classes 6 – 10)",
+  legumesSchedule: "Black Bengal Gram (Tue - W1/W3), Green Gram Sundal (Thu - W2/W4)",
+};
 
-const SEED_RECORDS: DailyRecord[] = [
-  { id: 1, date: "2026-07-10", menuItem: "Curry Leaf Rice + Boiled Egg / Banana", studentsPresent: 238, mealsServed: 232, eggsServed: 219, bananasServed: 13, riceUsedKg: 29, status: "Submitted", remarks: "Egg tray shortfall of 6 covered with bananas." },
-  { id: 2, date: "2026-07-09", menuItem: "Lemon Rice + Boiled Egg / Banana", studentsPresent: 241, mealsServed: 239, eggsServed: 226, bananasServed: 13, riceUsedKg: 30, status: "Verified", remarks: "" },
-  { id: 3, date: "2026-07-08", menuItem: "Vegetable Pulav + Boiled Egg / Banana", studentsPresent: 236, mealsServed: 234, eggsServed: 221, bananasServed: 13, riceUsedKg: 29, status: "Verified", remarks: "" },
-  { id: 4, date: "2026-07-07", menuItem: "Mixed Vegetable Rice + Boiled Egg / Banana", studentsPresent: 244, mealsServed: 241, eggsServed: 228, bananasServed: 13, riceUsedKg: 30, status: "Verified", remarks: "" },
-  { id: 5, date: "2026-07-06", menuItem: "Sambar Rice + Boiled Egg / Banana", studentsPresent: 240, mealsServed: 238, eggsServed: 225, bananasServed: 13, riceUsedKg: 30, status: "Verified", remarks: "" },
-  { id: 6, date: "2026-07-03", menuItem: "Curry Leaf Rice + Boiled Egg / Banana", studentsPresent: 233, mealsServed: 229, eggsServed: 216, bananasServed: 13, riceUsedKg: 28, status: "Verified", remarks: "Two students on leave after serving count." },
-  { id: 7, date: "2026-07-02", menuItem: "Lemon Rice + Boiled Egg / Banana", studentsPresent: 246, mealsServed: 244, eggsServed: 231, bananasServed: 13, riceUsedKg: 31, status: "Verified", remarks: "" },
+const TN_GOVT_MENU_CYCLE = {
+  w1_w3: [
+    { day: "Monday", menuItem: "Rice + Vegetable Sambar + Pepper Egg", accompaniment: "Pepper Egg (46–52g)", eggDay: true, calories: 620, proteinGm: 18 },
+    { day: "Tuesday", menuItem: "Rice + Black Chickpea Curry + Tomato Masala Egg", accompaniment: "Black Bengal Gram Sundal & Tomato Egg", eggDay: true, calories: 635, proteinGm: 19 },
+    { day: "Wednesday", menuItem: "Tomato Rice + Pepper Egg", accompaniment: "Boiled Pepper Egg", eggDay: true, calories: 590, proteinGm: 16 },
+    { day: "Thursday", menuItem: "Rice + Vegetable Sambar + Boiled Egg", accompaniment: "Boiled Egg", eggDay: true, calories: 610, proteinGm: 17 },
+    { day: "Friday", menuItem: "Rice + Dal with Spinach/Keerai Kootu + Masala Egg + Fried Potato with chilli powder", accompaniment: "Keerai Kootu & Spicy Potato Fry", eggDay: true, calories: 640, proteinGm: 20 },
+  ],
+  w2_w4: [
+    { day: "Monday", menuItem: "Sambar Rice + Onion-Tomato Masala Egg", accompaniment: "Onion-Tomato Masala Egg", eggDay: true, calories: 625, proteinGm: 18 },
+    { day: "Tuesday", menuItem: "Rice + Vegetable Sambar + Pepper Egg", accompaniment: "Pepper Egg", eggDay: true, calories: 610, proteinGm: 17 },
+    { day: "Wednesday", menuItem: "Tamarind Rice + Tomato Masala Egg", accompaniment: "Tomato Masala Egg", eggDay: true, calories: 600, proteinGm: 16 },
+    { day: "Thursday", menuItem: "Lemon Rice + Green Gram Sundal + Tomato Egg", accompaniment: "Green Gram Sundal & Tomato Egg", eggDay: true, calories: 630, proteinGm: 19 },
+    { day: "Friday", menuItem: "Rice + Vegetable Sambar + Boiled Egg + Fried Potato", accompaniment: "Fried Potato & Boiled Egg", eggDay: true, calories: 635, proteinGm: 18 },
+  ],
+};
+
+const TN_GOVT_MEAL_OPTIONS = [
+  "Rice + Vegetable Sambar + Pepper Egg",
+  "Rice + Black Chickpea Curry + Tomato Masala Egg",
+  "Tomato Rice + Pepper Egg",
+  "Rice + Vegetable Sambar + Boiled Egg",
+  "Rice + Dal with Spinach/Keerai Kootu + Masala Egg + Fried Potato with chilli powder",
+  "Sambar Rice + Onion-Tomato Masala Egg",
+  "Tamarind Rice + Tomato Masala Egg",
+  "Lemon Rice + Green Gram Sundal + Tomato Egg",
+  "Rice + Vegetable Sambar + Boiled Egg + Fried Potato",
+  "Custom / Special Diet Menu",
 ];
 
-const SEED_BENEFICIARIES: Beneficiary[] = [
-  { id: 1,  name: "Praveen Kumar S.", classSection: "10A", emisId: "330123456711", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 2,  name: "Shalini K.",       classSection: "12A", emisId: "330123456715", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 3,  name: "Imran Khan J.",    classSection: "9B",  emisId: "330123456719", category: "Egg Alternative", mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 4,  name: "Nivedha M.",       classSection: "10B", emisId: "330123456722", category: "Regular Meal",    mealsThisMonth: 7, status: "Active",      lastAvailed: "2026-07-09" },
-  { id: 5,  name: "Ajith Kumar R.",   classSection: "11C", emisId: "330123456726", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 6,  name: "Fathima R.",       classSection: "12B", emisId: "330123456730", category: "Egg Alternative", mealsThisMonth: 6, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 7,  name: "Deepika V.",       classSection: "12A", emisId: "330123456733", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 8,  name: "Karthik M.",       classSection: "12C", emisId: "330123456737", category: "Special Diet",    mealsThisMonth: 7, status: "Active",      lastAvailed: "2026-07-09" },
-  { id: 9,  name: "Sowmiya P.",       classSection: "8A",  emisId: "330123456741", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 10, name: "Vignesh S.",       classSection: "12B", emisId: "330123456745", category: "Regular Meal",    mealsThisMonth: 5, status: "Inactive",    lastAvailed: "2026-07-03" },
-  { id: 11, name: "Meena L.",         classSection: "7B",  emisId: "330123456749", category: "Egg Alternative", mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 12, name: "Arun Prasad K.",   classSection: "11A", emisId: "330123456753", category: "Regular Meal",    mealsThisMonth: 0, status: "Transferred", lastAvailed: "2026-06-26" },
-  { id: 13, name: "Lakshmi Priya D.", classSection: "6A",  emisId: "330123456757", category: "Special Diet",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-  { id: 14, name: "Surya Narayanan",  classSection: "9A",  emisId: "330123456761", category: "Regular Meal",    mealsThisMonth: 8, status: "Active",      lastAvailed: "2026-07-10" },
-];
-
-const SEED_STOCK: StockItem[] = [
-  { id: 1, item: "Fine Rice",              category: "Grains",           quantity: 340, unit: "kg",     dailyUsage: 30,  reorderLevel: 120, lastRefilled: "2026-07-05", supplier: "TN Civil Supplies Corp.",  reorderPlaced: false },
-  { id: 2, item: "Toor Dal",               category: "Pulses",           quantity: 85,  unit: "kg",     dailyUsage: 6,   reorderLevel: 40,  lastRefilled: "2026-07-05", supplier: "TN Civil Supplies Corp.",  reorderPlaced: false },
-  { id: 3, item: "Double Fortified Salt",  category: "Oil & Condiments", quantity: 15,  unit: "kg",     dailyUsage: 1.5, reorderLevel: 12,  lastRefilled: "2026-06-20", supplier: "Block Godown, Coimbatore", reorderPlaced: false },
-  { id: 4, item: "Fortified Palm Oil",     category: "Oil & Condiments", quantity: 45,  unit: "litres", dailyUsage: 3,   reorderLevel: 20,  lastRefilled: "2026-07-05", supplier: "TN Civil Supplies Corp.",  reorderPlaced: false },
-  { id: 5, item: "Fresh Eggs",             category: "Perishables",      quantity: 180, unit: "pieces", dailyUsage: 225, reorderLevel: 450, lastRefilled: "2026-07-08", supplier: "District Egg Federation",  reorderPlaced: true },
-  { id: 6, item: "Bananas",                category: "Perishables",      quantity: 60,  unit: "pieces", dailyUsage: 14,  reorderLevel: 30,  lastRefilled: "2026-07-09", supplier: "Local Farmer Co-op",       reorderPlaced: false },
-  { id: 7, item: "Bengal Gram",            category: "Pulses",           quantity: 110, unit: "kg",     dailyUsage: 4,   reorderLevel: 35,  lastRefilled: "2026-07-05", supplier: "TN Civil Supplies Corp.",  reorderPlaced: false },
-  { id: 8, item: "LPG Cylinders",          category: "Fuel",             quantity: 3,   unit: "units",  dailyUsage: 0.2, reorderLevel: 2,   lastRefilled: "2026-06-28", supplier: "Indane Distributor",       reorderPlaced: false },
-];
-
-const SEED_MENU: MenuDay[] = [
-  { day: "Monday",    menuItem: "Sambar Rice + Boiled Egg / Banana",          accompaniment: "Potato Fry",              eggDay: true, calories: 620, proteinGm: 18, compliance: "Compliant", deviationNote: "" },
-  { day: "Tuesday",   menuItem: "Mixed Vegetable Rice + Boiled Egg / Banana", accompaniment: "Black Bengal Gram Sundal", eggDay: true, calories: 605, proteinGm: 17, compliance: "Compliant", deviationNote: "" },
-  { day: "Wednesday", menuItem: "Vegetable Pulav + Boiled Egg / Banana",      accompaniment: "Boiled Potatoes",         eggDay: true, calories: 615, proteinGm: 17, compliance: "Compliant", deviationNote: "" },
-  { day: "Thursday",  menuItem: "Lemon Rice + Boiled Egg / Banana",           accompaniment: "Fried Potatoes",          eggDay: true, calories: 590, proteinGm: 16, compliance: "Deviation", deviationNote: "Potato stock exhausted — sundal served as accompaniment." },
-  { day: "Friday",    menuItem: "Curry Leaf Rice + Boiled Egg / Banana",      accompaniment: "Fried Bengal Gram",       eggDay: true, calories: 600, proteinGm: 17, compliance: "Pending",   deviationNote: "" },
-];
-
-const SEED_QUALITY: QualityReport[] = [
-  { id: 1, date: "2026-07-10", inspector: "Mrs. Kalaiselvi P.", role: "Teacher on Duty",  tasteRating: 4, quantityRating: 5, hygieneRating: 4, issues: "None. Sample tasted 30 min before serving.", actionTaken: "—", status: "Satisfactory" },
-  { id: 2, date: "2026-07-09", inspector: "Mr. Venkatesh R.",   role: "Headmaster",       tasteRating: 4, quantityRating: 4, hygieneRating: 5, issues: "None.", actionTaken: "—", status: "Satisfactory" },
-  { id: 3, date: "2026-07-08", inspector: "Mrs. Revathi S.",    role: "VEC Member",       tasteRating: 3, quantityRating: 4, hygieneRating: 3, issues: "Kitchen drainage slow; water pooling near washing area.", actionTaken: "Plumber engaged; drainage cleared on Jul 09.", status: "Needs Attention" },
-  { id: 4, date: "2026-07-04", inspector: "Mr. Manikandan T.",  role: "Block MDM Officer", tasteRating: 4, quantityRating: 4, hygieneRating: 4, issues: "Egg storage tray uncovered.", actionTaken: "Covered storage bins issued same day.", status: "Satisfactory" },
-  { id: 5, date: "2026-07-01", inspector: "Mrs. Kalaiselvi P.", role: "Teacher on Duty",  tasteRating: 2, quantityRating: 3, hygieneRating: 4, issues: "Sambar found watery; dal proportion below scale.", actionTaken: "Cook counselled; dal issue escalated to block office.", status: "Escalated" },
-];
-
-const SEED_ACTIVITY: Activity[] = [
-  { id: 1, time: "Today, 12:45 PM", icon: "🍛", text: "Daily meal log posted — 232 of 238 present students served." },
-  { id: 2, time: "Today, 9:10 AM",  icon: "🥚", text: "Egg stock low (180 pcs) — reorder confirmed with District Egg Federation." },
-  { id: 3, time: "Yesterday",       icon: "✅", text: "Jul 09 meal record verified against EMIS attendance." },
-  { id: 4, time: "Jul 09",          icon: "🧂", text: "Fortified salt flagged Low Stock — indent raised to block godown." },
-  { id: 5, time: "Jul 08",          icon: "📋", text: "VEC inspection logged — kitchen drainage issue marked Needs Attention." },
-];
+/* ─── No static seed data — all data is fetched live from the backend ─── */
 
 /* ---------------------------- Small helpers --------------------------- */
 
@@ -207,8 +185,14 @@ function stockDaysLeft(s: StockItem): number {
   return s.dailyUsage > 0 ? Math.floor(s.quantity / s.dailyUsage) : 99;
 }
 
-function fmtDate(iso: string): string {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+function fmtDate(iso?: string | null): string {
+  if (!iso || typeof iso !== "string" || !iso.trim() || iso === "Invalid Date") {
+    return "Not yet availed";
+  }
+  const cleanIso = iso.trim();
+  const d = new Date(cleanIso.includes("T") ? cleanIso : cleanIso + "T00:00:00");
+  if (isNaN(d.getTime())) return "Not yet availed";
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function coverage(r: DailyRecord): number {
@@ -223,12 +207,18 @@ function stars(n: number): string {
 
 export default function MiddayMealPage() {
   const { lang } = usePortalLanguage();
-  const [records, setRecords] = useState<DailyRecord[]>(SEED_RECORDS);
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(SEED_BENEFICIARIES);
-  const [stock, setStock] = useState<StockItem[]>(SEED_STOCK);
-  const [menu, setMenu] = useState<MenuDay[]>(SEED_MENU);
-  const [quality, setQuality] = useState<QualityReport[]>(SEED_QUALITY);
-  const [activity, setActivity] = useState<Activity[]>(SEED_ACTIVITY);
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId as string | undefined;
+
+  // ── Data state — starts empty, filled by API ──
+  const [records, setRecords] = useState<DailyRecord[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [stock, setStock] = useState<StockItem[]>([]);
+  const [menu, setMenu] = useState<MenuDay[]>([]);
+  const [quality, setQuality] = useState<QualityReport[]>([]);
+  const [activity, setActivity] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [tab, setTab] = useState<TabKey>("overview");
   const [toast, setToast] = useState<{ text: string; tone: "ok" | "warn" } | null>(null);
@@ -251,18 +241,56 @@ export default function MiddayMealPage() {
   const [stockSearch, setStockSearch] = useState("");
   const [stockCatFilter, setStockCatFilter] = useState<"All" | StockCategory>("All");
   const [refillItem, setRefillItem] = useState<StockItem | null>(null);
+  const [editStockItem, setEditStockItem] = useState<StockItem | null>(null);
+  const [showAddStock, setShowAddStock] = useState(false);
 
   // Menu tab state
   const [deviationDay, setDeviationDay] = useState<MenuDay | null>(null);
+  const [menuCycleTab, setMenuCycleTab] = useState<"w1_w3" | "w2_w4">("w1_w3");
 
   // Quality tab state
   const [qualSearch, setQualSearch] = useState("");
   const [qualStatusFilter, setQualStatusFilter] = useState<"All" | QualityStatus>("All");
   const [showAddReport, setShowAddReport] = useState(false);
 
+  // Delete confirmation modal state
+  const [confirmDelete, setConfirmDelete] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  /* ── Fetch all MDM data for this school from the backend ── */
+  const fetchAll = useCallback(async () => {
+    if (!schoolId) return;
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const qs = `?schoolId=${encodeURIComponent(schoolId)}`;
+      const [rRes, bRes, sRes, mRes, qRes] = await Promise.all([
+        apiFetch(`/api/headmaster/mdm/records${qs}`),
+        apiFetch(`/api/headmaster/mdm/beneficiaries${qs}`),
+        apiFetch(`/api/headmaster/mdm/stock${qs}`),
+        apiFetch(`/api/headmaster/mdm/menu${qs}`),
+        apiFetch(`/api/headmaster/mdm/quality${qs}`),
+      ]);
+      const [rJson, bJson, sJson, mJson, qJson] = await Promise.all([
+        rRes.json(), bRes.json(), sRes.json(), mRes.json(), qRes.json(),
+      ]);
+      if (rJson.success) setRecords(rJson.data ?? []);
+      if (bJson.success) setBeneficiaries(bJson.data ?? []);
+      if (sJson.success) setStock(sJson.data ?? []);
+      if (mJson.success) setMenu(mJson.data ?? []);
+      if (qJson.success) setQuality(qJson.data ?? []);
+    } catch (err) {
+      console.error("MDM fetch error:", err);
+      setFetchError("Could not load meal data. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [schoolId]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
   const showToast = (text: string, tone: "ok" | "warn" = "ok") => {
     setToast({ text, tone });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 6000);
   };
 
   const logActivity = (icon: string, text: string) => {
@@ -272,6 +300,39 @@ export default function MiddayMealPage() {
   /* --------------------------- Derived stats -------------------------- */
 
   const today = records[0];
+
+  const currentMonthName = useMemo(
+    () => new Date().toLocaleString(lang === "தமிழ்" ? "ta-IN" : "en-IN", { month: "long" }),
+    [lang]
+  );
+
+  const currentDayName = useMemo(
+    () => new Date().toLocaleDateString("en-US", { weekday: "long" }),
+    []
+  );
+
+  const formattedTodayDate = useMemo(
+    () => new Date().toLocaleDateString(lang === "தமிழ்" ? "ta-IN" : "en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    [lang]
+  );
+
+  const todayMenuDay = useMemo((): MenuDay => {
+    const found = menu.find((m) => m.day === currentDayName);
+    if (found) return found;
+    const staticDay = TN_GOVT_MENU_CYCLE.w1_w3.find((m) => m.day === currentDayName) || TN_GOVT_MENU_CYCLE.w1_w3[0];
+    return {
+      day: staticDay.day,
+      menuItem: staticDay.menuItem,
+      accompaniment: staticDay.accompaniment,
+      eggDay: staticDay.eggDay,
+      calories: staticDay.calories,
+      proteinGm: staticDay.proteinGm,
+      compliance: "Compliant" as MenuCompliance,
+      deviationNote: "",
+    };
+  }, [menu, currentDayName]);
+
+  const todayCoveragePct = today ? coverage(today) : 0;
 
   const stats = useMemo(() => {
     const activeBens = beneficiaries.filter((b) => b.status === "Active").length;
@@ -344,89 +405,305 @@ export default function MiddayMealPage() {
 
   /* ------------------------------ Actions ----------------------------- */
 
-  const verifyRecord = (id: number) => {
+  const verifyRecord = async (id: string) => {
     const rec = records.find((r) => r.id === id);
     if (!rec) return;
-    setRecords((prev) => prev.map((r) => (r.id === id ? { ...r, status: "Verified" } : r)));
-    logActivity("✅", `${fmtDate(rec.date)} meal record verified against EMIS attendance.`);
-    showToast(`✓ ${fmtDate(rec.date)} record marked Verified.`);
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/records/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "Verified" }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRecords((prev) => prev.map((r) => (r.id === id ? { ...r, status: "Verified" } : r)));
+        logActivity("✅", `${fmtDate(rec.date)} meal record verified against EMIS attendance.`);
+        showToast(`✓ ${fmtDate(rec.date)} record marked Verified.`);
+      }
+    } catch { showToast("Failed to verify record.", "warn"); }
   };
 
-  const saveMealLog = (rec: DailyRecord) => {
-    setRecords((prev) => [rec, ...prev.filter((r) => r.date !== rec.date)]);
-    // consume stock: rice + eggs + bananas
-    setStock((prev) =>
-      prev.map((s) => {
-        if (s.item === "Fine Rice") return { ...s, quantity: Math.max(0, s.quantity - rec.riceUsedKg) };
-        if (s.item === "Fresh Eggs") return { ...s, quantity: Math.max(0, s.quantity - rec.eggsServed) };
-        if (s.item === "Bananas") return { ...s, quantity: Math.max(0, s.quantity - rec.bananasServed) };
-        return s;
-      })
-    );
-    setShowLogMeal(false);
-    logActivity("🍛", `Daily meal log posted — ${rec.mealsServed} of ${rec.studentsPresent} present students served.`);
-    showToast(`✓ Meal record for ${fmtDate(rec.date)} posted to the TN MDM portal. Stock auto-deducted.`);
+  const saveMealLog = async (rec: Omit<DailyRecord, "id" | "status">) => {
+    if (!schoolId) return;
+    try {
+      const res = await apiFetch("/api/headmaster/mdm/records", {
+        method: "POST",
+        body: JSON.stringify({ ...rec, schoolId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        await fetchAll(); // refresh all data so stock deductions are reflected
+        setShowLogMeal(false);
+        logActivity("🍛", `Daily meal log posted — ${rec.mealsServed} of ${rec.studentsPresent} present students served.`);
+        showToast(`✓ Meal record for ${fmtDate(rec.date)} posted to the TN MDM portal.`);
+      }
+    } catch { showToast("Failed to save meal log.", "warn"); }
   };
 
-  const addBeneficiary = (b: Beneficiary) => {
-    setBeneficiaries((prev) => [b, ...prev]);
-    setShowAddBen(false);
-    logActivity("👤", `${b.name} (Class ${b.classSection}) enrolled as MDM beneficiary — ${b.category}.`);
-    showToast(`✓ ${b.name} enrolled under the noon meal roll.`);
+  const addBeneficiary = async (b: Omit<Beneficiary, "id" | "mealsThisMonth" | "lastAvailed">) => {
+    if (!schoolId) return;
+    try {
+      const res = await apiFetch("/api/headmaster/mdm/beneficiaries", {
+        method: "POST",
+        body: JSON.stringify({ ...b, schoolId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setBeneficiaries((prev) => [json.data, ...prev]);
+        setShowAddBen(false);
+        logActivity("👤", `${b.name} (Class ${b.classSection}) enrolled as MDM beneficiary — ${b.category}.`);
+        showToast(`✓ ${b.name} enrolled under the noon meal roll.`);
+      }
+    } catch { showToast("Failed to add beneficiary.", "warn"); }
   };
 
-  const toggleBenStatus = (id: number) => {
+  const toggleBenStatus = async (id: string) => {
     const ben = beneficiaries.find((b) => b.id === id);
     if (!ben || ben.status === "Transferred") return;
     const next: BenStatus = ben.status === "Active" ? "Inactive" : "Active";
-    setBeneficiaries((prev) => prev.map((b) => (b.id === id ? { ...b, status: next } : b)));
-    logActivity(next === "Active" ? "✅" : "⏸️", `${ben.name} marked ${next} on the meal roll.`);
-    showToast(`${ben.name} is now ${next}.`, next === "Active" ? "ok" : "warn");
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/beneficiaries/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: next }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setBeneficiaries((prev) => prev.map((b) => (b.id === id ? { ...b, status: next } : b)));
+        logActivity(next === "Active" ? "✅" : "⏸️", `${ben.name} marked ${next} on the meal roll.`);
+        showToast(`${ben.name} is now ${next}.`, next === "Active" ? "ok" : "warn");
+      }
+    } catch { showToast("Failed to update beneficiary.", "warn"); }
   };
 
-  const refillStock = (id: number, qty: number) => {
-    const item = stock.find((s) => s.id === id);
-    if (!item || qty <= 0) return;
-    setStock((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? { ...s, quantity: s.quantity + qty, lastRefilled: new Date().toISOString().slice(0, 10), reorderPlaced: false }
-          : s
-      )
-    );
-    setRefillItem(null);
-    logActivity("📦", `${item.item} refilled with ${qty} ${item.unit} from ${item.supplier}.`);
-    showToast(`✓ ${item.item} stock updated: +${qty} ${item.unit}.`);
-  };
-
-  const placeReorder = (id: number) => {
+  const refillStock = async (id: string, newQty: number, addedQty?: number) => {
     const item = stock.find((s) => s.id === id);
     if (!item) return;
-    setStock((prev) => prev.map((s) => (s.id === id ? { ...s, reorderPlaced: true } : s)));
-    logActivity("🛒", `Reorder indent raised for ${item.item} with ${item.supplier}.`);
-    showToast(`✓ Reorder placed for ${item.item}.`);
+    const lastRefilled = new Date().toISOString().slice(0, 10);
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/stock/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ quantity: Number(newQty), lastRefilled, reorderPlaced: false }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStock((prev) => prev.map((s) => (s.id === id ? { ...s, ...json.data } : s)));
+        setRefillItem(null);
+        const diffMsg = addedQty ? `+${addedQty} ${item.unit}` : `set to ${newQty} ${item.unit}`;
+        logActivity("📦", `${item.item} stock updated (${diffMsg}).`);
+        showToast(`✓ ${item.item} stock updated: ${newQty} ${item.unit} on hand.`);
+      } else {
+        showToast("Failed to update stock.", "warn");
+      }
+    } catch (err) {
+      console.error("Refill error:", err);
+      showToast("Failed to update stock.", "warn");
+    }
   };
 
-  const markCompliance = (day: string, status: MenuCompliance, note = "") => {
-    setMenu((prev) => prev.map((m) => (m.day === day ? { ...m, compliance: status, deviationNote: note } : m)));
+  const placeReorder = async (id: string) => {
+    const item = stock.find((s) => s.id === id);
+    if (!item) return;
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/stock/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ reorderPlaced: true }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setStock((prev) => prev.map((s) => (s.id === id ? { ...s, reorderPlaced: true } : s)));
+        logActivity("🛒", `Reorder indent raised for ${item.item} with ${item.supplier}.`);
+        showToast(`✓ Reorder placed for ${item.item}.`);
+      }
+    } catch { showToast("Failed to place reorder.", "warn"); }
+  };
+
+  const addStockItem = async (item: Omit<StockItem, "id" | "lastRefilled" | "reorderPlaced">) => {
+    if (!schoolId) return;
+    try {
+      const res = await apiFetch("/api/headmaster/mdm/stock", {
+        method: "POST",
+        body: JSON.stringify({ ...item, schoolId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setStock((prev) => [...prev, json.data]);
+        setShowAddStock(false);
+        logActivity("📦", `${item.item} (${item.quantity} ${item.unit}) added to kitchen stock.`);
+        showToast(`✓ ${item.item} added to kitchen stock register.`);
+      }
+    } catch { showToast("Failed to add stock item.", "warn"); }
+  };
+
+  const updateStockItem = async (id: string, updates: Partial<StockItem>) => {
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/stock/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setStock((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+        setEditStockItem(null);
+        showToast("✓ Stock item details & daily usage updated.");
+        logActivity("📦", `${json.data.item} daily usage updated to ${updates.dailyUsage} ${json.data.unit}/day.`);
+      }
+    } catch { showToast("Failed to update stock item.", "warn"); }
+  };
+
+  const seedDefaultGovtStock = async () => {
+    if (!schoolId) return;
+    const defaults = [
+      { item: "Fine Rice", category: "Grains", quantity: 340, unit: "kg", dailyUsage: 30, reorderLevel: 120, supplier: "TN Civil Supplies Corp." },
+      { item: "Toor Dal", category: "Pulses", quantity: 85, unit: "kg", dailyUsage: 6, reorderLevel: 40, supplier: "TN Civil Supplies Corp." },
+      { item: "Double Fortified Salt", category: "Oil & Condiments", quantity: 15, unit: "kg", dailyUsage: 1.5, reorderLevel: 12, supplier: "Block Godown" },
+      { item: "Fortified Palm Oil", category: "Oil & Condiments", quantity: 45, unit: "litres", dailyUsage: 3, reorderLevel: 20, supplier: "TN Civil Supplies Corp." },
+      { item: "Fresh Eggs", category: "Perishables", quantity: 180, unit: "pieces", dailyUsage: 225, reorderLevel: 450, supplier: "District Egg Federation" },
+      { item: "Bananas", category: "Perishables", quantity: 60, unit: "pieces", dailyUsage: 14, reorderLevel: 30, supplier: "Local Farmer Co-op" },
+      { item: "Bengal Gram", category: "Pulses", quantity: 110, unit: "kg", dailyUsage: 4, reorderLevel: 35, supplier: "TN Civil Supplies Corp." },
+      { item: "LPG Cylinders", category: "Fuel", quantity: 3, unit: "units", dailyUsage: 0.2, reorderLevel: 2, supplier: "Indane Distributor" },
+    ];
+    try {
+      const created = await Promise.all(
+        defaults.map((d) => apiFetch("/api/headmaster/mdm/stock", { method: "POST", body: JSON.stringify({ ...d, schoolId }) }).then((r) => r.json()))
+      );
+      const items = created.map((c) => c.data).filter(Boolean);
+      setStock(items);
+      showToast("✓ Official TN Govt MDM stock items initialized!");
+      logActivity("📦", "Official TN Govt kitchen stock items initialized.");
+    } catch { showToast("Failed to initialize stock list.", "warn"); }
+  };
+
+  const markCompliance = async (day: string, status: MenuCompliance, note = "") => {
+    // Optimistic UI update: update local state immediately for instant feedback
+    setMenu((prev) => {
+      const exists = prev.some((m) => m.day === day);
+      if (exists) {
+        return prev.map((m) => (m.day === day ? { ...m, compliance: status, deviationNote: note } : m));
+      } else {
+        return [...prev, { day, menuItem: "", accompaniment: "", eggDay: true, calories: 600, proteinGm: 18, compliance: status, deviationNote: note }];
+      }
+    });
     setDeviationDay(null);
     logActivity(status === "Compliant" ? "✅" : "⚠️", `${day} menu marked ${status}${note ? ` — ${note}` : "."}`);
     showToast(status === "Compliant" ? `✓ ${day} menu marked served as sanctioned.` : `⚠ Deviation recorded for ${day}.`, status === "Compliant" ? "ok" : "warn");
+
+    // Sync with backend API
+    if (!schoolId) return;
+    try {
+      await apiFetch(`/api/headmaster/mdm/menu/${encodeURIComponent(day)}`, {
+        method: "PUT",
+        body: JSON.stringify({ schoolId, compliance: status, deviationNote: note }),
+      });
+    } catch (err) {
+      console.error("Background menu compliance sync error:", err);
+    }
   };
 
-  const addQualityReport = (r: QualityReport) => {
-    setQuality((prev) => [r, ...prev]);
-    setShowAddReport(false);
-    logActivity("📋", `${r.role} inspection logged by ${r.inspector} — ${r.status}.`);
-    showToast(`✓ Quality report filed. Status: ${r.status}.`, r.status === "Satisfactory" ? "ok" : "warn");
+  const addQualityReport = async (r: Omit<QualityReport, "id">) => {
+    const targetSchoolId = schoolId || "school-50001";
+    try {
+      const res = await apiFetch("/api/headmaster/mdm/quality", {
+        method: "POST",
+        body: JSON.stringify({ ...r, schoolId: targetSchoolId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setQuality((prev) => [json.data, ...prev]);
+        setShowAddReport(false);
+        logActivity("📋", `${r.role} inspection logged by ${r.inspector} — ${r.status}.`);
+        showToast(`✓ Quality report filed. Status: ${r.status}.`, r.status === "Satisfactory" ? "ok" : "warn");
+      }
+    } catch { showToast("Failed to file quality report.", "warn"); }
   };
 
-  const resolveReport = (id: number) => {
+  const resolveReport = async (id: string) => {
     const rep = quality.find((q) => q.id === id);
     if (!rep) return;
-    setQuality((prev) => prev.map((q) => (q.id === id ? { ...q, status: "Satisfactory", actionTaken: q.actionTaken === "—" ? "Issue resolved and closed by HM." : q.actionTaken } : q)));
-    logActivity("✅", `Quality issue of ${fmtDate(rep.date)} closed by HM.`);
-    showToast(`✓ ${fmtDate(rep.date)} report closed as resolved.`);
+    try {
+      const res = await apiFetch(`/api/headmaster/mdm/quality/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "Satisfactory", actionTaken: rep.actionTaken === "—" ? "Issue resolved and closed by HM." : rep.actionTaken }),
+      });
+      // Note: no dedicated PATCH for quality yet — update locally and the next fetch will sync
+      setQuality((prev) => prev.map((q) => (q.id === id ? { ...q, status: "Satisfactory", actionTaken: rep.actionTaken === "—" ? "Issue resolved and closed by HM." : rep.actionTaken } : q)));
+      logActivity("✅", `Quality issue of ${fmtDate(rep.date)} closed by HM.`);
+      showToast(`✓ ${fmtDate(rep.date)} report closed as resolved.`);
+    } catch { showToast("Failed to resolve report.", "warn"); }
+  };
+
+  const deleteBeneficiary = (id: string) => {
+    const ben = beneficiaries.find((b) => b.id === id);
+    if (!ben) return;
+    setConfirmDelete({
+      title: "🗑️ Remove Beneficiary",
+      message: `Are you sure you want to remove ${ben.name} (Class ${ben.classSection}) from the meal roll?`,
+      onConfirm: async () => {
+        setBeneficiaries((prev) => prev.filter((b) => b.id !== id));
+        showToast(`✓ ${ben.name} removed from beneficiary list.`);
+        logActivity("🗑️", `${ben.name} removed from the meal roll.`);
+        try {
+          await apiFetch(`/api/headmaster/mdm/beneficiaries/${id}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("Delete beneficiary error:", err);
+        }
+      },
+    });
+  };
+
+  const deleteDailyRecord = (id: string) => {
+    const rec = records.find((r) => r.id === id);
+    if (!rec) return;
+    setConfirmDelete({
+      title: "🗑️ Delete Daily Meal Log",
+      message: `Are you sure you want to delete the meal log for ${fmtDate(rec.date)} (${rec.menuItem})?`,
+      onConfirm: async () => {
+        setRecords((prev) => prev.filter((r) => r.id !== id));
+        showToast(`✓ Meal record for ${fmtDate(rec.date)} deleted.`);
+        logActivity("🗑️", `Meal record for ${fmtDate(rec.date)} deleted.`);
+        try {
+          await apiFetch(`/api/headmaster/mdm/records/${id}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("Delete daily record error:", err);
+        }
+      },
+    });
+  };
+
+  const deleteStockItem = (id: string) => {
+    const item = stock.find((s) => s.id === id);
+    if (!item) return;
+    setConfirmDelete({
+      title: "🗑️ Remove Stock Item",
+      message: `Are you sure you want to remove ${item.item} (${item.quantity} ${item.unit}) from kitchen stock register?`,
+      onConfirm: async () => {
+        setStock((prev) => prev.filter((s) => s.id !== id));
+        showToast(`✓ ${item.item} removed from kitchen stock.`);
+        logActivity("🗑️", `${item.item} removed from stock register.`);
+        try {
+          await apiFetch(`/api/headmaster/mdm/stock/${id}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("Delete stock item error:", err);
+        }
+      },
+    });
+  };
+
+  const deleteQualityReport = (id: string) => {
+    const rep = quality.find((q) => q.id === id);
+    if (!rep) return;
+    setConfirmDelete({
+      title: "🗑️ Delete Inspection Report",
+      message: `Are you sure you want to delete the inspection report from ${fmtDate(rep.date)} by ${rep.inspector}?`,
+      onConfirm: async () => {
+        setQuality((prev) => prev.filter((q) => q.id !== id));
+        showToast(`✓ Quality report deleted.`);
+        logActivity("🗑️", `Quality report from ${fmtDate(rep.date)} deleted.`);
+        try {
+          await apiFetch(`/api/headmaster/mdm/quality/${id}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("Delete quality report error:", err);
+        }
+      },
+    });
   };
 
   /* --------------------------- Filtered lists ------------------------- */
@@ -489,38 +766,44 @@ export default function MiddayMealPage() {
         </p>
         <div className="flex flex-wrap gap-4 mt-4">
           <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.activeBens}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "வினையொளிர்" : "Active beneficiaries"}</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "ஜூலையில் உணவு பரிமாற்றம்" : "Meals served in July"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? `${currentMonthName} உணவுகள்` : `Meals in ${currentMonthName}`}</span></div>
           <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgCoverage}%</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "சராசரி உல்ளடக்கம்" : "Avg coverage"}</span></div>
           <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgQuality}/5</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "தரம் மதிப்பெண்" : "Quality score"}</span></div>
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex flex-wrap gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-6 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              tab === t.key ? "bg-emerald-600" : "text-slate-400 hover:text-white hover:bg-slate-800"
-            }`}
-            style={tab === t.key ? { color: "#fff" } : undefined}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
+      {/* Responsive Tab Bar */}
+      <div className="overflow-x-auto max-w-full pb-1 mb-6 no-scrollbar">
+        <div className="flex items-center gap-1.5 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl w-max sm:w-fit min-w-full sm:min-w-0">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 shrink-0 ${
+                tab === t.key
+                  ? "bg-emerald-600 shadow-md text-white"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/80"
+              }`}
+              style={tab === t.key ? { color: "#fff" } : undefined}
+            >
+              <span className="text-sm">{t.icon}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ============================ OVERVIEW ============================ */}
       {tab === "overview" && (
         <>
+
           {/* Quick lookup */}
           <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
             <h2 className="text-base font-semibold text-white mb-1">🔎 {lang === "தமிழ்" ? "விரைவு தேடல்" : "Quick Lookup"}</h2>
             <p className="text-xs text-slate-500 mb-4">{lang === "தமிழ்" ? "பயனாளர்கள், கைவசம் உள்ள பொருட்கள், தினசரி பதிவுகள் மற்றும் ஆய்வு அறிக்கைகளை ஒரே இடத்தில் தேடவும்." : "Search across beneficiaries, stock items, daily records and inspection reports in one place."}</p>
             <input
               type="text"
-              placeholder={lang === "தமிழ்" ? "🔍 மாணவர் பெயர், EMIS ID, மளிகை பொருள், தேதி (2026-07-09) அல்லது ஆய்வாளரை தேடவும்…" : "🔍 Try a student name, EMIS ID, grocery item, date (2026-07-09) or inspector…"}
+              placeholder={lang === "தமிழ்" ? "🔍 மாணவர் பெயர், EMIS ID, மளிகை பொருள், தேதி அல்லது ஆய்வாளரை தேடவும்…" : "🔍 Try a student name, EMIS ID, grocery item, date or inspector…"}
               value={lookup}
               onChange={(e) => setLookup(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
@@ -565,51 +848,63 @@ export default function MiddayMealPage() {
             )}
           </div>
 
-          {/* KPI cards */}
+          {/* KPI Cards with 🟢 / 🟡 / 🔴 status indicators */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "இன்று வழங்கப்பட்டது" : "Served Today"}</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "இன்று வழங்கப்பட்டது" : "Meals Served Today"}</span>
+                <span className="text-xs" title="Daily status">{todayCoveragePct >= 95 ? "🟢" : todayCoveragePct >= 85 ? "🟡" : "🔴"}</span>
+              </div>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-emerald-400">{today?.mealsServed ?? 0}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{today?.studentsPresent ?? 0} {lang === "தமிழ்" ? "வருகையில்" : "present"} ({today ? coverage(today) : 0}%)</span>
+                <span className="text-[10px] text-slate-400 font-bold">{today?.studentsPresent ?? 0} {lang === "தமிழ்" ? "வருகையில்" : "present"} ({todayCoveragePct}%)</span>
               </div>
               <div className="w-full bg-slate-850 h-1.5 rounded-full overflow-hidden mt-2.5">
-                <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${today ? coverage(today) : 0}%` }} />
+                <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${todayCoveragePct}%` }} />
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "பயனாளி பட்டியல்" : "Beneficiary Roll"}</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "மாணவர் கவரேஜ்" : "Student Coverage"}</span>
+                <span className="text-xs" title="Average coverage">{stats.avgCoverage >= 90 ? "🟢" : stats.avgCoverage >= 80 ? "🟡" : "🔴"}</span>
+              </div>
               <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-2xl font-black text-blue-400">{stats.activeBens}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "மொத்தம்" : "of"} {TOTAL_ON_ROLL} {lang === "தமிழ்" ? "இல் செயலில் உள்ளவை" : "on roll active"}</span>
+                <span className="text-2xl font-black text-blue-400">{stats.avgCoverage}%</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "சராசரி" : "average rate"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {benCatCounts["Egg Alternative"]} {lang === "தமிழ்" ? "வாழைப்பழ மாற்று" : "on banana alternative"} · {benCatCounts["Special Diet"]} {lang === "தமிழ்" ? "சிறப்பு உணவு" : "special diet"}
+                {stats.activeBens} {lang === "தமிழ்" ? "செயலில் உள்ள பயனாளிகள்" : "active beneficiaries"}
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "கையிருப்பு நிலை" : "Stock Health"}</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "கையிருப்பு நிலை" : "Stock Alerts"}</span>
+                <span className="text-xs" title="Stock alert level">{stats.criticalItems > 0 ? "🔴" : stats.lowItems > 0 ? "🟡" : "🟢"}</span>
+              </div>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className={`text-2xl font-black ${stats.criticalItems > 0 ? "text-red-400" : stats.lowItems > 0 ? "text-amber-400" : "text-emerald-400"}`}>
                   {stats.lowItems + stats.criticalItems}
                 </span>
-                <span className="text-[10px] text-slate-400 font-bold">{stock.length} {lang === "தமிழ்" ? "பொருட்களில் கவனிக்க வேண்டியவை" : "items flagged"}</span>
+                <span className="text-[10px] text-slate-400 font-bold">{stock.length} {lang === "தமிழ்" ? "பொருட்களில்" : "items total"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {stats.criticalItems} {lang === "தமிழ்" ? "மிகக் குறைவு" : "critical"} · {stats.lowItems} {lang === "தமிழ்" ? "குறைந்த கையிருப்பு" : "low stock"} · {lang === "தமிழ்" ? "மற்றவை போதுமானது" : "rest adequate"}
+                {stats.criticalItems} {lang === "தமிழ்" ? "மிகக் குறைவு" : "critical"} · {stats.lowItems} {lang === "தமிழ்" ? "குறைவு" : "low stock"}
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "மெனு இணக்கம்" : "Menu Compliance"}</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "மெனு இணக்கம்" : "Menu Compliance"}</span>
+                <span className="text-xs" title="Menu compliance level">{stats.menuCompliance >= 90 ? "🟢" : stats.menuCompliance >= 75 ? "🟡" : "🔴"}</span>
+              </div>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-amber-400">{stats.menuCompliance}%</span>
-                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "இந்த வாரம்" : "this week"}</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "வாராந்திர இணக்கம்" : "weekly rate"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {stats.openIssues} {lang === "தமிழ்" ? "திறந்த தர சிக்கல்கள்" : "quality issues open"} · {stats.pendingSync} {lang === "தமிழ்" ? "EMIS ஒத்திசைவு நிலுவையில்" : "awaiting EMIS sync"}
+                {stats.openIssues} {lang === "தமிழ்" ? "திறந்த தர சிக்கல்கள்" : "quality reports open"}
               </div>
             </div>
           </div>
@@ -797,17 +1092,26 @@ export default function MiddayMealPage() {
                       <td className="py-3 pr-3 text-[11px] text-slate-400 font-semibold">{r.riceUsedKg} kg</td>
                       <td className="py-3 pr-3"><span className={`badge ${RECORD_BADGE[r.status]}`}>{r.status}</span></td>
                       <td className="py-3 text-right">
-                        {r.status !== "Verified" ? (
+                        <div className="flex items-center justify-end gap-2">
+                          {r.status !== "Verified" ? (
+                            <button
+                              onClick={() => verifyRecord(r.id)}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors"
+                              style={{ color: "#fff" }}
+                            >
+                              Verify vs EMIS →
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-emerald-500 font-bold">✓ Verified</span>
+                          )}
                           <button
-                            onClick={() => verifyRecord(r.id)}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors"
-                            style={{ color: "#fff" }}
+                            onClick={() => deleteDailyRecord(r.id)}
+                            title="Delete Daily Record"
+                            className="px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20 text-xs font-bold"
                           >
-                            Verify vs EMIS →
+                            🗑️ Delete
                           </button>
-                        ) : (
-                          <span className="text-[10px] text-emerald-500 font-bold">✓ Verified</span>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -892,7 +1196,7 @@ export default function MiddayMealPage() {
                   <th className="py-2.5 pr-3 font-bold">Student</th>
                   <th className="py-2.5 pr-3 font-bold">EMIS ID</th>
                   <th className="py-2.5 pr-3 font-bold">Meal Type</th>
-                  <th className="py-2.5 pr-3 font-bold">Meals (July)</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? `${currentMonthName} உணவுகள்` : `Meals (${currentMonthName})`}</th>
                   <th className="py-2.5 pr-3 font-bold">Last Availed</th>
                   <th className="py-2.5 pr-3 font-bold">Status</th>
                   <th className="py-2.5 font-bold text-right">Action</th>
@@ -915,21 +1219,30 @@ export default function MiddayMealPage() {
                     <td className="py-3 pr-3 text-[11px] text-slate-500 font-semibold">{fmtDate(b.lastAvailed)}</td>
                     <td className="py-3 pr-3"><span className={`badge ${BEN_STATUS_BADGE[b.status]}`}>{b.status}</span></td>
                     <td className="py-3 text-right">
-                      {b.status === "Transferred" ? (
-                        <span className="text-[10px] text-slate-600 font-bold">TC Issued</span>
-                      ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        {b.status === "Transferred" ? (
+                          <span className="text-[10px] text-slate-600 font-bold">TC Issued</span>
+                        ) : (
+                          <button
+                            onClick={() => toggleBenStatus(b.id)}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                              b.status === "Active"
+                                ? "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                                : "bg-emerald-600 hover:bg-emerald-700"
+                            }`}
+                            style={b.status === "Active" ? undefined : { color: "#fff" }}
+                          >
+                            {b.status === "Active" ? "Mark Inactive" : "Reactivate"}
+                          </button>
+                        )}
                         <button
-                          onClick={() => toggleBenStatus(b.id)}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
-                            b.status === "Active"
-                              ? "bg-slate-800 hover:bg-slate-700 text-slate-300"
-                              : "bg-emerald-600 hover:bg-emerald-700"
-                          }`}
-                          style={b.status === "Active" ? undefined : { color: "#fff" }}
+                          onClick={() => deleteBeneficiary(b.id)}
+                          title="Delete Beneficiary"
+                          className="px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20 text-xs font-bold"
                         >
-                          {b.status === "Active" ? "Mark Inactive" : "Reactivate"}
+                          🗑️ Delete
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -950,10 +1263,23 @@ export default function MiddayMealPage() {
               <h2 className="text-base font-semibold text-white">📦 Kitchen Store Inventory</h2>
               <p className="text-xs text-slate-500">Storeroom balances with burn-rate projections. Posting a daily meal log auto-deducts rice, eggs and bananas.</p>
             </div>
-            <div className="flex gap-2">
-              <span className="badge badge-green">{stock.filter((s) => stockLevel(s) === "Adequate").length} Adequate</span>
-              <span className="badge badge-yellow">{stats.lowItems} Low</span>
-              <span className="badge badge-red">{stats.criticalItems} Critical</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {stock.length === 0 && (
+                <button
+                  onClick={seedDefaultGovtStock}
+                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-xs transition-colors"
+                  style={{ color: "#fff" }}
+                >
+                  ⚡ Initialize TN Govt Stock List
+                </button>
+              )}
+              <button
+                onClick={() => setShowAddStock(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors"
+                style={{ color: "#fff" }}
+              >
+                + Add Stock Item
+              </button>
             </div>
           </div>
 
@@ -1019,21 +1345,37 @@ export default function MiddayMealPage() {
                         {s.reorderPlaced && <div className="text-[9px] text-blue-400 font-bold mt-1">🛒 Reorder placed</div>}
                       </td>
                       <td className="py-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => setRefillItem(s)}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors mr-2"
-                          style={{ color: "#fff" }}
-                        >
-                          Log Refill
-                        </button>
-                        {!s.reorderPlaced && lvl !== "Adequate" && (
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => placeReorder(s.id)}
-                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold transition-colors"
+                            onClick={() => setRefillItem(s)}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors"
+                            style={{ color: "#fff" }}
                           >
-                            Reorder
+                            Log Refill
                           </button>
-                        )}
+                          <button
+                            onClick={() => setEditStockItem(s)}
+                            title="Edit Stock Item & Daily Usage"
+                            className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 transition-colors border border-amber-500/20 text-[10px] font-bold"
+                          >
+                            ✏️ Edit
+                          </button>
+                          {!s.reorderPlaced && lvl !== "Adequate" && (
+                            <button
+                              onClick={() => placeReorder(s.id)}
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold transition-colors"
+                            >
+                              Reorder
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteStockItem(s.id)}
+                            title="Delete Stock Item"
+                            className="px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20 text-xs font-bold"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1041,7 +1383,24 @@ export default function MiddayMealPage() {
               </tbody>
             </table>
             {filteredStock.length === 0 && (
-              <div className="py-10 text-center text-slate-500 italic text-sm">No stock items match the current filters.</div>
+              <div className="py-12 text-center text-slate-400 text-xs space-y-3">
+                <div>No kitchen stock items found in store register.</div>
+                <div className="flex justify-center gap-3">
+                  <button
+                    onClick={() => setShowAddStock(true)}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors"
+                    style={{ color: "#fff" }}
+                  >
+                    + Add New Stock Item
+                  </button>
+                  <button
+                    onClick={seedDefaultGovtStock}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold rounded-xl text-xs transition-colors border border-amber-500/20"
+                  >
+                    ⚡ Auto-Populate Standard TN Govt MDM Stock Items
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -1052,58 +1411,112 @@ export default function MiddayMealPage() {
         <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
             <div>
-              <h2 className="text-base font-semibold text-white">📅 Government Sanctioned Weekly Menu</h2>
-              <p className="text-xs text-slate-500">Mandated nutrition schedule with egg/banana provision. Mark each day as served-as-sanctioned or record a deviation.</p>
+              <h2 className="text-base font-semibold text-white">📅 Tamil Nadu Government Nutritious Meal Cycle</h2>
+              <p className="text-xs text-slate-500">Official revised menu cycle mandated across TN district schools with 1st/3rd & 2nd/4th week rotation.</p>
             </div>
             <span className={`badge ${stats.menuCompliance >= 80 ? "badge-green" : "badge-yellow"}`}>
               Weekly compliance: {stats.menuCompliance}%
             </span>
           </div>
 
+          {/* Week Cycle Switcher Tabs */}
+          <div className="flex items-center gap-2 mb-5 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
+            <button
+              onClick={() => setMenuCycleTab("w1_w3")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                menuCycleTab === "w1_w3" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              🗓️ 1st & 3rd Weeks Schedule
+            </button>
+            <button
+              onClick={() => setMenuCycleTab("w2_w4")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                menuCycleTab === "w2_w4" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              🗓️ 2nd & 4th Weeks Schedule
+            </button>
+          </div>
+
+          {/* Official Scheme Specifications Card */}
+          <div className="p-4 bg-gradient-to-r from-emerald-950/40 via-slate-900/60 to-slate-900/40 border border-emerald-500/20 rounded-xl mb-5">
+            <div className="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-2">
+              <span>🥚</span> Official Scheme Entitlements & Government Norms (Puratchi Thalaivar MGR Nutritious Meal Programme)
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-slate-300">
+              <div className="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Egg Entitlement</div>
+                <div className="font-bold text-white mt-0.5">46 – 52 g / egg</div>
+                <div className="text-[10px] text-slate-400">All school working days</div>
+              </div>
+              <div className="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Banana Alternative</div>
+                <div className="font-bold text-amber-400 mt-0.5">100 g / child</div>
+                <div className="text-[10px] text-slate-400">For non-egg eating children</div>
+              </div>
+              <div className="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Rice Quantity</div>
+                <div className="font-bold text-white mt-0.5">100g (Cl 1–5) / 150g (Cl 6–10)</div>
+                <div className="text-[10px] text-slate-400">Per child daily scale</div>
+              </div>
+              <div className="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Legume Rotation</div>
+                <div className="font-bold text-emerald-400 mt-0.5">Black Chana / Green Sundal</div>
+                <div className="text-[10px] text-slate-400">Tue (W1/3) & Thu (W2/4)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Schedule List */}
           <div className="space-y-3">
-            {menu.map((m) => {
-              const isToday = m.day === "Friday";
+            {TN_GOVT_MENU_CYCLE[menuCycleTab].map((item) => {
+              const dbDay = menu.find((m) => m.day === item.day);
+              const complianceStatus = dbDay?.compliance ?? "Compliant";
+              const isToday = item.day === currentDayName;
+
               return (
                 <div
-                  key={m.day}
-                  className={`p-4 rounded-xl border ${isToday ? "bg-emerald-500/5 border-emerald-500/30" : "bg-slate-900/60 border-slate-850"}`}
+                  key={item.day}
+                  className={`p-4 rounded-xl border ${
+                    isToday ? "bg-emerald-500/5 border-emerald-500/30" : "bg-slate-900/60 border-slate-850"
+                  }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="text-sm font-bold text-white">{m.day}</h3>
+                        <h3 className="text-sm font-bold text-white">{item.day}</h3>
                         {isToday && <span className="badge badge-blue">Today</span>}
-                        <span className={`badge ${COMPLIANCE_BADGE[m.compliance]}`}>{m.compliance}</span>
-                        {m.eggDay && (
+                        <span className={`badge ${COMPLIANCE_BADGE[complianceStatus]}`}>{complianceStatus}</span>
+                        {item.eggDay && (
                           <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md">
-                            🥚 Egg / 🍌 Banana Day
+                            🥚 46-52g Egg / 🍌 100g Banana Day
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-300 font-semibold">{m.menuItem}</div>
-                      <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                        Accompaniment: {m.accompaniment} · ⚡ {m.calories} kcal · 🥩 {m.proteinGm} g protein
+                      <div className="text-xs text-white font-bold">{item.menuItem}</div>
+                      <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                        Accompaniment: <span className="text-slate-300">{item.accompaniment}</span> · ⚡ {item.calories} kcal · 🥩 {item.proteinGm} g protein
                       </div>
-                      {m.compliance === "Deviation" && m.deviationNote && (
-                        <div className="text-[10px] text-red-400/90 font-semibold mt-1.5">⚠ {m.deviationNote}</div>
+                      {dbDay?.compliance === "Deviation" && dbDay?.deviationNote && (
+                        <div className="text-[10px] text-red-400/90 font-semibold mt-1.5">⚠ {dbDay.deviationNote}</div>
                       )}
                     </div>
+
                     <div className="flex gap-2 shrink-0">
                       <button
-                        onClick={() => markCompliance(m.day, "Compliant")}
+                        onClick={() => markCompliance(item.day, "Compliant")}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
-                          m.compliance === "Compliant" ? "bg-emerald-600" : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          complianceStatus === "Compliant" ? "bg-emerald-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300"
                         }`}
-                        style={m.compliance === "Compliant" ? { color: "#fff" } : undefined}
                       >
                         ✓ As Sanctioned
                       </button>
                       <button
-                        onClick={() => setDeviationDay(m)}
+                        onClick={() => setDeviationDay({ day: item.day, menuItem: item.menuItem, accompaniment: item.accompaniment, eggDay: true, calories: item.calories, proteinGm: item.proteinGm, compliance: dbDay?.compliance || "Pending", deviationNote: dbDay?.deviationNote || "" })}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
-                          m.compliance === "Deviation" ? "bg-red-600" : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          complianceStatus === "Deviation" ? "bg-red-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300"
                         }`}
-                        style={m.compliance === "Deviation" ? { color: "#fff" } : undefined}
                       >
                         ⚠ Deviation
                       </button>
@@ -1115,12 +1528,12 @@ export default function MiddayMealPage() {
           </div>
 
           <div className="mt-5 p-4 bg-slate-900/60 rounded-xl border border-slate-850">
-            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">Nutrition Norms — Upper Primary (per child / day)</div>
+            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">Government Nutrition Guidelines (Puratchi Thalaivar MGR Nutritious Meal Programme)</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <MiniStat label="Calories" value="≥ 700 kcal (with breakfast)" />
-              <MiniStat label="Protein" value="≥ 20 g" />
-              <MiniStat label="Rice Scale" value="150 g / child" />
-              <MiniStat label="Egg Provision" value="5 days / week" />
+              <MiniStat label="Daily Calories" value="≥ 620 - 700 kcal" />
+              <MiniStat label="Protein Content" value="16 - 20 g / day" />
+              <MiniStat label="Rice Scale" value="100g (Cl 1-5) / 150g (Cl 6-10)" />
+              <MiniStat label="Egg Weight" value="46 - 52 g / egg" />
             </div>
           </div>
         </div>
@@ -1212,15 +1625,24 @@ export default function MiddayMealPage() {
                         <div className="text-[11px] text-slate-500 leading-relaxed mt-1"><strong className="text-slate-400">Action taken:</strong> {r.actionTaken}</div>
                       )}
                     </div>
-                    {r.status !== "Satisfactory" && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {r.status !== "Satisfactory" && (
+                        <button
+                          onClick={() => resolveReport(r.id)}
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors"
+                          style={{ color: "#fff" }}
+                        >
+                          Mark Resolved
+                        </button>
+                      )}
                       <button
-                        onClick={() => resolveReport(r.id)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors shrink-0"
-                        style={{ color: "#fff" }}
+                        onClick={() => deleteQualityReport(r.id)}
+                        title="Delete Report"
+                        className="px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20 text-xs font-bold"
                       >
-                        Mark Resolved
+                        🗑️ Delete
                       </button>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1242,11 +1664,24 @@ export default function MiddayMealPage() {
       )}
 
       {showAddBen && (
-        <AddBeneficiaryModal onClose={() => setShowAddBen(false)} onSave={addBeneficiary} />
+        <AddBeneficiaryModal
+          schoolId={schoolId}
+          existingBeneficiaries={beneficiaries}
+          onClose={() => setShowAddBen(false)}
+          onSave={addBeneficiary}
+        />
       )}
 
       {refillItem && (
         <RefillModal item={refillItem} onClose={() => setRefillItem(null)} onSave={refillStock} />
+      )}
+
+      {editStockItem && (
+        <EditStockModal item={editStockItem} onClose={() => setEditStockItem(null)} onSave={updateStockItem} />
+      )}
+
+      {showAddStock && (
+        <AddStockModal onClose={() => setShowAddStock(false)} onSave={addStockItem} />
       )}
 
       {deviationDay && (
@@ -1261,14 +1696,28 @@ export default function MiddayMealPage() {
         <AddReportModal onClose={() => setShowAddReport(false)} onSave={addQualityReport} />
       )}
 
-      {/* Toast */}
+      {confirmDelete && (
+        <DeleteConfirmModal
+          title={confirmDelete.title}
+          message={confirmDelete.message}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={confirmDelete.onConfirm}
+        />
+      )}
+
+      {/* Toast Notification Banner */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-xl border text-xs leading-relaxed shadow-2xl animate-[fadeIn_.2s_ease] ${
-          toast.tone === "ok"
-            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 backdrop-blur-md"
-            : "bg-amber-500/10 border-amber-500/30 text-amber-300 backdrop-blur-md"
-        }`}>
-          {toast.text}
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[99999] min-w-[340px] max-w-lg p-4 rounded-2xl bg-slate-950 text-white font-bold border-2 border-emerald-500 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 text-xs leading-relaxed">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl shrink-0">{toast.tone === "ok" ? "✅" : "⚠️"}</span>
+            <span className="text-white text-xs font-black">{toast.text}</span>
+          </div>
+          <button
+            onClick={() => setToast(null)}
+            className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded-lg bg-slate-800 shrink-0 transition-colors"
+          >
+            ✕
+          </button>
         </div>
       )}
     </PortalLayout>
@@ -1345,14 +1794,19 @@ const inputCls = "w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py
 const labelCls = "block text-xs text-slate-400 mb-1.5 font-semibold";
 
 function LogMealModal({ menu, onClose, onSave }: {
-  menu: MenuDay[]; onClose: () => void; onSave: (r: DailyRecord) => void;
+  menu: MenuDay[]; onClose: () => void; onSave: (r: any) => void;
 }) {
   const todayIso = new Date().toISOString().slice(0, 10);
   const weekday = new Date().toLocaleDateString("en-IN", { weekday: "long" });
-  const todaysMenu = menu.find((m) => m.day === weekday)?.menuItem ?? menu[0]?.menuItem ?? "";
+  const todaysMenu = menu.find((m) => m.day === weekday)?.menuItem ?? TN_GOVT_MEAL_OPTIONS[0];
 
   const [date, setDate] = useState(todayIso);
-  const [menuItem, setMenuItem] = useState(todaysMenu);
+  const [selectedMenuPreset, setSelectedMenuPreset] = useState(
+    TN_GOVT_MEAL_OPTIONS.includes(todaysMenu) ? todaysMenu : TN_GOVT_MEAL_OPTIONS[0]
+  );
+  const [customMenuItem, setCustomMenuItem] = useState(
+    TN_GOVT_MEAL_OPTIONS.includes(todaysMenu) ? "" : todaysMenu
+  );
   const [present, setPresent] = useState("238");
   const [served, setServed] = useState("232");
   const [eggs, setEggs] = useState("219");
@@ -1360,30 +1814,42 @@ function LogMealModal({ menu, onClose, onSave }: {
   const [rice, setRice] = useState("29");
   const [remarks, setRemarks] = useState("");
 
+  const finalMenuItem = selectedMenuPreset === "Custom / Special Diet Menu" ? customMenuItem : selectedMenuPreset;
+
   return (
     <ModalShell
       title="🍛 Log Daily Meal Distribution"
-      subtitle="Posts the serving count to the TN Mid-Day Meal portal and auto-deducts rice, eggs and bananas from stock."
+      subtitle="Select sanctioned TN Government menu G.O., post serving count & auto-deduct stock."
       onClose={onClose}
     >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onSave({
-            id: Date.now(),
             date,
-            menuItem: menuItem.trim(),
+            menuItem: finalMenuItem.trim(),
             studentsPresent: Number(present) || 0,
             mealsServed: Number(served) || 0,
             eggsServed: Number(eggs) || 0,
             bananasServed: Number(bananas) || 0,
             riceUsedKg: Number(rice) || 0,
-            status: "Submitted",
             remarks: remarks.trim(),
           });
         }}
         className="space-y-4"
       >
+        {/* Scheme Norms banner */}
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-300 leading-relaxed">
+          <div className="font-bold flex items-center gap-1.5 mb-1">
+            <span>📜</span> TN Govt MDM Scheme Norms:
+          </div>
+          <ul className="list-disc list-inside space-y-0.5 text-slate-300 text-[10px]">
+            <li><strong>Rice Entitlement:</strong> 100g (Cl 1–5), 150g (Cl 6–10)</li>
+            <li><strong>Egg Spec:</strong> 46–52g boiled egg on working days</li>
+            <li><strong>Banana Alt:</strong> 100g for non-egg eating children</li>
+          </ul>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Date *</label>
@@ -1391,13 +1857,39 @@ function LogMealModal({ menu, onClose, onSave }: {
           </div>
           <div>
             <label className={labelCls}>Rice Used (kg) *</label>
-            <input className={inputCls} type="number" min={0} value={rice} onChange={(e) => setRice(e.target.value)} required />
+            <input className={inputCls} type="number" step="0.1" min={0} value={rice} onChange={(e) => setRice(e.target.value)} required />
           </div>
         </div>
+
         <div>
-          <label className={labelCls}>Menu Served *</label>
-          <input className={inputCls} value={menuItem} onChange={(e) => setMenuItem(e.target.value)} required />
+          <label className={labelCls}>Sanctioned Menu Item *</label>
+          <select
+            className={inputCls}
+            value={selectedMenuPreset}
+            onChange={(e) => setSelectedMenuPreset(e.target.value)}
+            required
+          >
+            {TN_GOVT_MEAL_OPTIONS.map((opt) => (
+              <option key={opt} value={opt} className="bg-slate-900 text-white">
+                {opt}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {selectedMenuPreset === "Custom / Special Diet Menu" && (
+          <div>
+            <label className={labelCls}>Custom Menu Description *</label>
+            <input
+              className={inputCls}
+              value={customMenuItem}
+              onChange={(e) => setCustomMenuItem(e.target.value)}
+              placeholder="e.g. Special Pongal & Chana Sundal"
+              required
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Students Present *</label>
@@ -1408,20 +1900,23 @@ function LogMealModal({ menu, onClose, onSave }: {
             <input className={inputCls} type="number" min={0} value={served} onChange={(e) => setServed(e.target.value)} required />
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>Eggs Distributed</label>
+            <label className={labelCls}>Eggs Distributed (46-52g)</label>
             <input className={inputCls} type="number" min={0} value={eggs} onChange={(e) => setEggs(e.target.value)} />
           </div>
           <div>
-            <label className={labelCls}>Bananas Distributed</label>
+            <label className={labelCls}>Bananas Distributed (100g)</label>
             <input className={inputCls} type="number" min={0} value={bananas} onChange={(e) => setBananas(e.target.value)} />
           </div>
         </div>
+
         <div>
           <label className={labelCls}>Remarks</label>
-          <textarea className={`${inputCls} resize-none`} rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. Egg shortfall covered with bananas…" />
+          <textarea className={`${inputCls} resize-none`} rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. 13 egg alternatives served with 100g bananas..." />
         </div>
+
         <div className="flex gap-3 pt-1">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
           <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>Post Serving Log</button>
@@ -1431,69 +1926,251 @@ function LogMealModal({ menu, onClose, onSave }: {
   );
 }
 
-function AddBeneficiaryModal({ onClose, onSave }: { onClose: () => void; onSave: (b: Beneficiary) => void }) {
+interface StudentOption {
+  id: string;
+  name: string;
+  classVal: string;
+  sectionVal: string;
+  emisId: string;
+}
+
+function AddBeneficiaryModal({
+  schoolId,
+  existingBeneficiaries,
+  onClose,
+  onSave,
+}: {
+  schoolId?: string;
+  existingBeneficiaries: Beneficiary[];
+  onClose: () => void;
+  onSave: (b: any) => void;
+}) {
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const [name, setName] = useState("");
   const [classSection, setClassSection] = useState("");
   const [emisId, setEmisId] = useState("");
   const [category, setCategory] = useState<BenCategory>("Regular Meal");
 
+  useEffect(() => {
+    async function loadStudents() {
+      setLoadingStudents(true);
+      try {
+        const qs = schoolId ? `?schoolId=${encodeURIComponent(schoolId)}` : "";
+        const res = await apiFetch(`/api/headmaster/students${qs}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: StudentOption[] = json.data.map((s: any) => {
+            const studentName = s.name && s.name !== "Unknown" ? s.name : s.user?.name || "Student";
+            const rawClass = String(s.class || s.classVal || "");
+            const rawSec = String(s.section || s.sectionVal || "");
+            let classFormatted = rawClass;
+            if (rawClass && !rawClass.toLowerCase().startsWith("class")) {
+              classFormatted = `Class ${rawClass}${rawSec}`;
+            } else if (rawSec && !classFormatted.includes(rawSec)) {
+              classFormatted = `${classFormatted}${rawSec}`;
+            }
+            return {
+              id: s.id,
+              name: studentName,
+              classVal: classFormatted || "Class 6A",
+              sectionVal: "",
+              emisId: String(s.emisNumber || s.emisId || ""),
+            };
+          });
+          setStudents(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading students for dropdown:", err);
+      } finally {
+        setLoadingStudents(false);
+      }
+    }
+    loadStudents();
+  }, [schoolId]);
+
+  // Exclude active beneficiaries already on the roll
+  const availableStudents = useMemo(() => {
+    return students.filter((s) => {
+      const isEnrolled = existingBeneficiaries.some((b) => {
+        if (b.status === "Inactive" || b.status === "Transferred") return false;
+        if (s.emisId && b.emisId && s.emisId.trim().toLowerCase() === b.emisId.trim().toLowerCase()) {
+          return true;
+        }
+        if (s.name && b.name && s.name.trim().toLowerCase() === b.name.trim().toLowerCase()) {
+          return true;
+        }
+        return false;
+      });
+      return !isEnrolled;
+    });
+  }, [students, existingBeneficiaries]);
+
+  // Filtered list based on search input for scalability
+  const filteredStudents = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return availableStudents;
+    return availableStudents.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.classVal.toLowerCase().includes(q) ||
+        s.emisId.toLowerCase().includes(q)
+    );
+  }, [availableStudents, searchQuery]);
+
+  const handleSelectStudent = (id: string) => {
+    setSelectedStudentId(id);
+    if (!id) return;
+    const target = students.find((s) => s.id === id);
+    if (target) {
+      setName(target.name);
+      setClassSection(target.classVal);
+      setEmisId(target.emisId);
+    }
+  };
+
   return (
     <ModalShell
       title="👤 Enrol Meal Beneficiary"
-      subtitle="Adds the student to the noon meal roll. EMIS ID is validated against the state student registry."
+      subtitle="Select an eligible student from your school's student database or enter details below."
       onClose={onClose}
     >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onSave({
-            id: Date.now(),
             name: name.trim(),
             classSection: classSection.trim(),
             emisId: emisId.trim(),
             category,
-            mealsThisMonth: 0,
-            status: "Active",
-            lastAvailed: new Date().toISOString().slice(0, 10),
           });
         }}
         className="space-y-4"
       >
+        {/* Student database selector with search filter */}
+        <div className="space-y-2 p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
+          <label className={labelCls}>🎓 Select Eligible Student</label>
+
+          {/* Quick search input for larger student populations */}
+          <input
+            type="text"
+            placeholder="🔍 Type student name, class or EMIS ID to search eligible students…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`${inputCls} py-1.5 text-xs bg-slate-950`}
+          />
+
+          <select
+            className={inputCls}
+            value={selectedStudentId}
+            onChange={(e) => handleSelectStudent(e.target.value)}
+          >
+            <option value="">
+              {loadingStudents
+                ? "⏳ Loading school student register…"
+                : filteredStudents.length > 0
+                ? `-- Select Eligible Student (${filteredStudents.length} available) --`
+                : searchQuery
+                ? `-- No un-enrolled student matches "${searchQuery}" --`
+                : "-- Manual Entry / No un-enrolled students available --"}
+            </option>
+            {filteredStudents.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} — {s.classVal} — {s.emisId || "No EMIS"}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
+            Select an eligible student from your school's student database. Students already enrolled in the meal register are excluded.
+          </p>
+        </div>
+
         <div>
           <label className={labelCls}>Student Name *</label>
-          <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kavya S." required />
+          <input
+            className={inputCls}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Arun Kumar"
+            required
+          />
         </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Class & Section *</label>
-            <input className={inputCls} value={classSection} onChange={(e) => setClassSection(e.target.value)} placeholder="e.g. 8B" required />
+            <input
+              className={inputCls}
+              value={classSection}
+              onChange={(e) => setClassSection(e.target.value)}
+              placeholder="e.g. Class 6A"
+              required
+            />
           </div>
           <div>
             <label className={labelCls}>EMIS ID *</label>
-            <input className={inputCls} value={emisId} onChange={(e) => setEmisId(e.target.value)} placeholder="12-digit EMIS number" required />
+            <input
+              className={inputCls}
+              value={emisId}
+              onChange={(e) => setEmisId(e.target.value)}
+              placeholder="e.g. EMIS600001"
+              required
+            />
           </div>
         </div>
+
         <div>
           <label className={labelCls}>Meal Category *</label>
-          <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value as BenCategory)}>
+          <select
+            className={inputCls}
+            value={category}
+            onChange={(e) => setCategory(e.target.value as BenCategory)}
+          >
             <option>Regular Meal</option>
             <option>Egg Alternative</option>
             <option>Special Diet</option>
           </select>
         </div>
+
         <div className="flex gap-3 pt-1">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
-          <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>Enrol Student</button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors"
+            style={{ color: "#fff" }}
+          >
+            Enrol Student
+          </button>
         </div>
       </form>
     </ModalShell>
   );
 }
 
-function RefillModal({ item, onClose, onSave }: {
-  item: StockItem; onClose: () => void; onSave: (id: number, qty: number) => void;
+function RefillModal({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: StockItem;
+  onClose: () => void;
+  onSave: (id: string, newQty: number, addedQty?: number) => void;
 }) {
-  const [qty, setQty] = useState("");
+  const [mode, setMode] = useState<"add" | "set">("add");
+  const [val, setVal] = useState("");
+
+  const numVal = Number(val) || 0;
+  const targetNewQty = mode === "add" ? item.quantity + numVal : numVal;
+
   return (
     <ModalShell
       title={`📦 Log Refill — ${item.item}`}
@@ -1503,17 +2180,76 @@ function RefillModal({ item, onClose, onSave }: {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onSave(item.id, Number(qty) || 0);
+          if (targetNewQty < 0) return;
+          onSave(item.id, targetNewQty, mode === "add" ? numVal : undefined);
         }}
         className="space-y-4"
       >
-        <div>
-          <label className={labelCls}>Quantity Received ({item.unit}) *</label>
-          <input className={inputCls} type="number" min={1} value={qty} onChange={(e) => setQty(e.target.value)} placeholder={`e.g. ${item.reorderLevel * 2}`} required autoFocus />
+        {/* Mode Switcher */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+          <button
+            type="button"
+            onClick={() => { setMode("add"); setVal(""); }}
+            className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              mode === "add" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            ➕ Add Shipment Received
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("set"); setVal(String(item.quantity)); }}
+            className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              mode === "set" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            ✏️ Set New Total Stock
+          </button>
         </div>
+
+        <div>
+          <label className={labelCls}>
+            {mode === "add"
+              ? `Quantity Received to Add (${item.unit}) *`
+              : `Exact Total Quantity On Hand (${item.unit}) *`}
+          </label>
+          <input
+            className={inputCls}
+            type="number"
+            min={0}
+            step="any"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            placeholder={mode === "add" ? "e.g. 2" : `Current is ${item.quantity}`}
+            required
+            autoFocus
+          />
+        </div>
+
+        {/* Live Calculation Preview */}
+        <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
+          <span className="text-slate-400 font-medium">Updated Store Balance:</span>
+          <span className="font-bold text-emerald-400 text-sm">
+            {targetNewQty} {item.unit}
+            {mode === "add" && numVal > 0 && ` (${item.quantity} + ${numVal})`}
+          </span>
+        </div>
+
         <div className="flex gap-3 pt-1">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
-          <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>Update Stock</button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors"
+            style={{ color: "#fff" }}
+          >
+            Update Stock Balance
+          </button>
         </div>
       </form>
     </ModalShell>
@@ -1527,7 +2263,7 @@ function DeviationModal({ day, onClose, onSave }: {
   return (
     <ModalShell
       title={`⚠ Record Menu Deviation — ${day.day}`}
-      subtitle={`Sanctioned: ${day.menuItem}. Deviations are visible to the block MDM officer.`}
+      subtitle={`Sanctioned Menu: "${day.menuItem}". Deviations are automatically submitted to your Block Educational Officer (BEO) & District Education Office (DEO) for audit.`}
       onClose={onClose}
     >
       <form
@@ -1550,7 +2286,7 @@ function DeviationModal({ day, onClose, onSave }: {
   );
 }
 
-function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: QualityReport) => void }) {
+function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: any) => void }) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [inspector, setInspector] = useState("");
   const [role, setRole] = useState("Teacher on Duty");
@@ -1570,7 +2306,6 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
         onSubmit={(e) => {
           e.preventDefault();
           onSave({
-            id: Date.now(),
             date,
             inspector: inspector.trim(),
             role,
@@ -1592,10 +2327,11 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
           <div>
             <label className={labelCls}>Inspector Role *</label>
             <select className={inputCls} value={role} onChange={(e) => setRole(e.target.value)}>
+              <option>Block Educational Officer (BEO)</option>
+              <option>District Educational Officer (DEO)</option>
               <option>Headmaster</option>
               <option>Teacher on Duty</option>
               <option>VEC Member</option>
-              <option>Block MDM Officer</option>
               <option>Parent Volunteer</option>
             </select>
           </div>
@@ -1604,19 +2340,24 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
           <label className={labelCls}>Inspector Name *</label>
           <input className={inputCls} value={inspector} onChange={(e) => setInspector(e.target.value)} placeholder="e.g. Mrs. Kalaiselvi P." required />
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Taste", val: taste, set: setTaste },
-            { label: "Quantity", val: quantity, set: setQuantity },
-            { label: "Hygiene", val: hygiene, set: setHygiene },
-          ].map((f) => (
-            <div key={f.label}>
-              <label className={labelCls}>{f.label} (1–5) *</label>
-              <select className={inputCls} value={f.val} onChange={(e) => f.set(e.target.value)}>
-                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} — {stars(n)}</option>)}
-              </select>
-            </div>
-          ))}
+        <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
+          <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span>📋</span> Quality & Safety Inspection Checklist
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { label: "Food Taste", val: taste, set: setTaste },
+              { label: "Portion Quantity", val: quantity, set: setQuantity },
+              { label: "Kitchen Hygiene", val: hygiene, set: setHygiene },
+            ].map((f) => (
+              <div key={f.label} className="bg-slate-850 p-2.5 rounded-lg border border-slate-700/60">
+                <label className="text-[10px] font-bold text-slate-300 block mb-1">{f.label} *</label>
+                <select className={inputCls} value={f.val} onChange={(e) => f.set(e.target.value)}>
+                  {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} Star{n > 1 ? "s" : ""} — {stars(n)}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <label className={labelCls}>Observations / Issues</label>
@@ -1633,6 +2374,231 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
         <div className="flex gap-3 pt-1">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
           <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>File Report</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+}
+
+function DeleteConfirmModal({
+  title,
+  message,
+  onClose,
+  onConfirm,
+}: {
+  title: string;
+  message: string;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <ModalShell title={title} subtitle={message} onClose={onClose}>
+      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-5 flex items-start gap-3">
+        <span className="text-2xl shrink-0">⚠️</span>
+        <div className="text-xs text-red-300 font-semibold leading-relaxed">
+          This action is permanent and will remove the record from your school's database log. Are you sure you want to proceed?
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onConfirm();
+            onClose();
+          }}
+          className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors"
+        >
+          Yes, Delete Record
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function AddStockModal({ onClose, onSave }: { onClose: () => void; onSave: (item: any) => void }) {
+  const [item, setItem] = useState("");
+  const [category, setCategory] = useState<StockCategory>("Grains");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("kg");
+  const [dailyUsage, setDailyUsage] = useState("");
+  const [reorderLevel, setReorderLevel] = useState("");
+  const [supplier, setSupplier] = useState("TN Civil Supplies Corp.");
+
+  return (
+    <ModalShell
+      title="📦 Add Kitchen Stock Item"
+      subtitle="Adds a new commodity, perishable, condiment or fuel item to your school storeroom register."
+      onClose={onClose}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave({
+            item: item.trim(),
+            category,
+            quantity: Number(quantity) || 0,
+            unit: unit.trim(),
+            dailyUsage: Number(dailyUsage) || 0,
+            reorderLevel: Number(reorderLevel) || 0,
+            supplier: supplier.trim(),
+          });
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <label className={labelCls}>Item Name *</label>
+          <input className={inputCls} value={item} onChange={(e) => setItem(e.target.value)} placeholder="e.g. Fine Rice, Fresh Eggs, LPG Cylinders" required />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Category *</label>
+            <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value as StockCategory)}>
+              <option>Grains</option>
+              <option>Pulses</option>
+              <option>Oil & Condiments</option>
+              <option>Perishables</option>
+              <option>Fuel</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Unit *</label>
+            <input className={inputCls} value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g. kg, litres, pieces, units" required />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className={labelCls}>Initial Qty *</label>
+            <input className={inputCls} type="number" min={0} value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="100" required />
+          </div>
+          <div>
+            <label className={labelCls}>Daily Usage</label>
+            <input className={inputCls} type="number" min={0} step="0.1" value={dailyUsage} onChange={(e) => setDailyUsage(e.target.value)} placeholder="15" />
+          </div>
+          <div>
+            <label className={labelCls}>Reorder At</label>
+            <input className={inputCls} type="number" min={0} value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} placeholder="30" />
+          </div>
+        </div>
+        <div>
+          <label className={labelCls}>Supplier / Depot Name *</label>
+          <input className={inputCls} value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="e.g. TN Civil Supplies Corp. / Block Godown" required />
+        </div>
+        <div className="flex gap-3 pt-1">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
+          <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>Add Stock Item</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+}
+
+function EditStockModal({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: StockItem;
+  onClose: () => void;
+  onSave: (id: string, updates: Partial<StockItem>) => void;
+}) {
+  const [itemName, setItemName] = useState(item.item);
+  const [category, setCategory] = useState(item.category);
+  const [quantity, setQuantity] = useState(String(item.quantity));
+  const [dailyUsage, setDailyUsage] = useState(String(item.dailyUsage));
+  const [reorderLevel, setReorderLevel] = useState(String(item.reorderLevel));
+  const [supplier, setSupplier] = useState(item.supplier);
+
+  return (
+    <ModalShell
+      title={`✏️ Edit Stock Item — ${item.item}`}
+      subtitle="Adjust daily consumption rate (burn rate), quantity on hand, or reorder thresholds."
+      onClose={onClose}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave(item.id, {
+            item: itemName.trim(),
+            category,
+            quantity: Number(quantity) || 0,
+            dailyUsage: Number(dailyUsage) || 0,
+            reorderLevel: Number(reorderLevel) || 0,
+            supplier: supplier.trim(),
+          });
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <label className={labelCls}>Item Name *</label>
+          <input className={inputCls} value={itemName} onChange={(e) => setItemName(e.target.value)} required />
+        </div>
+        <div
+          className="p-3.5 rounded-xl border text-xs space-y-1.5 shadow-sm"
+          style={{ backgroundColor: "#fff7ed", borderColor: "#fdba74" }}
+        >
+          <div className="font-extrabold flex items-center gap-1.5 text-xs" style={{ color: "#c2410c" }}>
+            <span>🔥</span> Daily Usage Burn Rate
+          </div>
+          <p className="leading-relaxed font-semibold text-[11px]" style={{ color: "#7c2d12" }}>
+            This value determines how fast stock depletes per working day and calculates remaining stock days. Reduce this number if your daily consumption rate is lower.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Daily Usage ({item.unit}/day) *</label>
+            <input
+              className={inputCls}
+              type="number"
+              min={0}
+              step="0.1"
+              value={dailyUsage}
+              onChange={(e) => setDailyUsage(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Quantity On Hand ({item.unit}) *</label>
+            <input
+              className={inputCls}
+              type="number"
+              min={0}
+              step="0.1"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Reorder Threshold ({item.unit})</label>
+            <input
+              className={inputCls}
+              type="number"
+              min={0}
+              value={reorderLevel}
+              onChange={(e) => setReorderLevel(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Supplier / Depot</label>
+            <input
+              className={inputCls}
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 pt-1">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">Cancel</button>
+          <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold rounded-xl text-xs transition-colors" style={{ color: "#fff" }}>Save Changes</button>
         </div>
       </form>
     </ModalShell>
