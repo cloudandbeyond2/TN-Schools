@@ -111,6 +111,58 @@ export default function SavedInfographicsPage() {
     }
   };
 
+  const updatePublishStatus = async (id: string, isPublished: boolean, publishedSections: string[]) => {
+    try {
+      const res = await fetch(`${API_URL}/api/ai/visualdesign/${id}/publish`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublished, publishedSections })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSavedLessons(prev => prev.map(l => l.id === id ? { ...l, isPublished, publishedSections } : l));
+        Swal.fire('Success', isPublished ? 'Lesson published successfully!' : 'Lesson unpublished.', 'success');
+      } else {
+        throw new Error(json.error || "Failed to update publish status");
+      }
+    } catch (err: any) {
+      Swal.fire('Error', err.message, 'error');
+    }
+  };
+
+  const handlePublishToggle = async (lesson: any) => {
+    if (lesson.isPublished) {
+      const res = await Swal.fire({
+        title: "Unpublish Lesson?",
+        text: "Students will no longer be able to see this infographic.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, unpublish"
+      });
+      if (res.isConfirmed) {
+        await updatePublishStatus(lesson.id, false, []);
+      }
+    } else {
+      const res = await Swal.fire({
+        title: "Publish Lesson",
+        html: `
+          <p class="mb-4">Enter the sections to publish to (comma separated, e.g. A, B, C):</p>
+          <input id="swal-input-sections" class="swal2-input" placeholder="A, B, C" value="A">
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Publish",
+        preConfirm: () => {
+          const input = document.getElementById('swal-input-sections') as HTMLInputElement;
+          return input.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
+        }
+      });
+      if (res.isConfirmed && res.value) {
+        await updatePublishStatus(lesson.id, true, res.value);
+      }
+    }
+  };
+
   return (
     <PortalLayout>
       <div className="w-full px-4 md:px-8 pb-24">
@@ -214,12 +266,20 @@ export default function SavedInfographicsPage() {
                    
                    <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
                      <p className="text-xs text-slate-400 font-medium">Saved on {new Date(lesson.createdAt).toLocaleDateString()}</p>
-                     <button
-                       onClick={() => window.open(`/teacher/ai-lesson-creator/${lesson.id}`, '_blank')}
-                       className="px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors flex items-center gap-2"
-                     >
-                       <i className="fi fi-rr-eye"></i> View
-                     </button>
+                     <div className="flex gap-2">
+                       <button
+                         onClick={() => handlePublishToggle(lesson)}
+                         className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors flex items-center gap-2 ${lesson.isPublished ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                       >
+                         {lesson.isPublished ? <><i className="fi fi-rr-check"></i> Published</> : <><i className="fi fi-rr-upload"></i> Publish</>}
+                       </button>
+                       <button
+                         onClick={() => window.open(`/teacher/ai-lesson-creator/${lesson.id}`, '_blank')}
+                         className="px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors flex items-center gap-2"
+                       >
+                         <i className="fi fi-rr-eye"></i> View
+                       </button>
+                     </div>
                    </div>
                  </div>
                );

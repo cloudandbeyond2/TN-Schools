@@ -2292,6 +2292,8 @@ model InfographicLesson {
   focus           String
   infographicData Json
   teacherId       String?
+  isPublished     Boolean  @default(false)
+  publishedSections String[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -141,6 +141,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
+      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -219,6 +220,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
+      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -393,6 +395,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
+      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
 
       // ===================== STUDY PLANNER =====================
       { label: "---", href: "#", icon: "" },

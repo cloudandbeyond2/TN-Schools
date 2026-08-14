@@ -1845,4 +1845,61 @@ router.get('/visualdesign/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ===========================================================================
+// GET /api/ai/visualdesign/published
+// ===========================================================================
+router.get('/visualdesign/published', async (req: Request, res: Response) => {
+  try {
+    const { className, section } = req.query;
+
+    if (!className) {
+      return res.status(400).json({ success: false, message: "Class is required" });
+    }
+
+    const whereClause: any = {
+      isPublished: true,
+      class: String(className),
+    };
+
+    if (section) {
+      whereClause.publishedSections = {
+        has: String(section)
+      };
+    }
+
+    const list = await prisma.infographicLesson.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, data: list });
+  } catch (err) {
+    console.error('[GET /api/ai/visualdesign/published]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// PUT /api/ai/visualdesign/:id/publish
+// ===========================================================================
+router.put('/visualdesign/:id/publish', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { isPublished, publishedSections } = req.body;
+
+    const lesson = await prisma.infographicLesson.update({
+      where: { id },
+      data: {
+        isPublished: Boolean(isPublished),
+        publishedSections: Array.isArray(publishedSections) ? publishedSections : []
+      }
+    });
+
+    res.json({ success: true, data: lesson });
+  } catch (err) {
+    console.error('[PUT /api/ai/visualdesign/:id/publish]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
