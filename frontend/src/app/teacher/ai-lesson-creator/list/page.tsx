@@ -112,7 +112,7 @@ export default function SavedInfographicsPage() {
   };
 
   return (
-    <PortalLayout role="TEACHER">
+    <PortalLayout>
       <div className="w-full px-4 md:px-8 pb-24">
         <header className="mb-8 flex flex-col gap-6 bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-4 border-b border-slate-100 dark:border-slate-700 pb-6">

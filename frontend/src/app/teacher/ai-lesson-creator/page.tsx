@@ -208,7 +208,7 @@ export default function AILessonCreator() {
   };
 
   return (
-    <PortalLayout role="TEACHER">
+    <PortalLayout>
       <div className="w-full px-4 md:px-8 pb-24">
         
         {/* Header */}
