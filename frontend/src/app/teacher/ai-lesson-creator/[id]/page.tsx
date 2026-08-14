@@ -41,7 +41,7 @@ export default function InfographicViewerPage() {
   }, [id, API_URL]);
 
   return (
-    <PortalLayout role="TEACHER">
+    <PortalLayout>
       {isLoading ? (
         <div className="w-full flex items-center justify-center p-24">
           <i className="fi fi-rr-spinner animate-spin text-4xl text-indigo-500"></i>
