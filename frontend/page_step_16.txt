@@ -1,0 +1,116 @@
+        <header className="mb-8 flex flex-col gap-6 bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 dark:border-slate-700 pb-6">
+            <div className="flex items-center gap-4">
+              <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 text-2xl shadow-inner shrink-0">
+                <i className="fi fi-rr-magic-wand"></i>
+              </span>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white">AI Infographic Creator</h1>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base">Generate beautiful educational visuals instantly directly from the centralized syllabus.</p>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => router.push('/teacher/ai-lesson-creator/list')}
+              className="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all flex items-center justify-center gap-2 shrink-0 w-full md:w-auto whitespace-nowrap"
+            >
+              <i className="fi fi-rr-list"></i>
+              View Saved Lessons
+            </button>
+          </div>
+          
+          <form onSubmit={handleGenerate} className="flex flex-col w-full mt-2">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 w-full items-start">
+               {/* Class Dropdown */}
+               <div className="flex flex-col lg:col-span-2">
+                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Class</label>
+                 <select
+                   value={selectedClass}
+                   onChange={(e) => setSelectedClass(e.target.value)}
+                   className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-semibold cursor-pointer"
+                   disabled={isGenerating}
+                 >
+                   {[...Array(12)].map((_, i) => (
+                     <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
+                   ))}
+                 </select>
+               </div>
+
+               {/* Subject Dropdown */}
+               <div className="flex flex-col lg:col-span-2">
+                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Subject</label>
+                 <select
+                   value={selectedSubject}
+                   onChange={(e) => setSelectedSubject(e.target.value)}
+                   className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-semibold disabled:opacity-50 cursor-pointer"
+                   disabled={isGenerating || subjects.length === 0}
+                 >
+                   {subjects.map(s => (
+                     <option key={s.id} value={s.id}>{s.name}</option>
+                   ))}
+                   {subjects.length === 0 && <option value="">No Subjects</option>}
+                 </select>
+               </div>
+
+               {/* Unit Dropdown */}
+               <div className="flex flex-col md:col-span-2 lg:col-span-3">
+                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Unit</label>
+                 <select
+                   value={selectedUnit}
+                   onChange={(e) => setSelectedUnit(e.target.value)}
+                   className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-semibold disabled:opacity-50 cursor-pointer"
+                   disabled={isGenerating || units.length === 0}
+                 >
+                   {units.map(u => (
+                     <option key={u.id} value={u.name}>Unit {u.unitNumber}: {u.name}</option>
+                   ))}
+                   {units.length === 0 && <option value="">No Units Found</option>}
+                 </select>
+               </div>
+
+               {/* Topic Input */}
+               <div className="flex flex-col lg:col-span-3">
+                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Topic</label>
+                 <input
+                   type="text"
+                   value={customTopic}
+                   onChange={(e) => setCustomTopic(e.target.value)}
+                   placeholder="Enter topic..."
+                   className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-semibold disabled:opacity-50"
+                   disabled={isGenerating}
+                   required
+                 />
+               </div>
+
+               {/* Focus Dropdown */}
+               <div className="flex flex-col lg:col-span-2">
+                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Learning Focus</label>
+                 <select
+                   value={focus}
+                   onChange={(e) => setFocus(e.target.value)}
+                   className="w-full px-4 py-3.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold cursor-pointer"
+                   disabled={isGenerating}
+                 >
+                   <option value="Exam point of view">Exam Point of View</option>
+                   <option value="General knowledge">General Knowledge</option>
+                   <option value="Know more">Know More (Deep Dive)</option>
+                 </select>
+               </div>
+             </div>
+             
+             <div className="flex justify-end mt-8 border-t border-slate-100 dark:border-slate-700 pt-6">
+               <button
+                  type="submit"
+                  disabled={isGenerating || !selectedUnit || !customTopic}
+                  className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed w-full sm:w-auto min-w-[200px]"
+                >
+                  {isGenerating ? (
+                    <i className="fi fi-rr-spinner animate-spin"></i>
+                  ) : (
+                    <i className="fi fi-rr-sparkles"></i>
+                  )}
+                  {isGenerating ? "Generating..." : "Generate Lesson"}
+                </button>
+             </div>
+          </form>
+        </header>
