@@ -978,19 +978,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 :root:not(.dark) .text-purple-300,
-:root:not(.dark) .text-purple-400 {
-  color: #6b21a8 !important;
+:root:not(.dark) .text-purple-400,
+:root:not(.dark) .text-purple-500 {
+  color: #7e22ce !important;
+}
+:root:not(.dark) .text-violet-400,
+:root:not(.dark) .text-violet-500 {
+  color: #6d28d9 !important;
 }
 
 /* Light mode specific status colors and tracks */
-:root:not(.dark) .text-emerald-400 {
-  color: #10b981 !important;
+:root:not(.dark) .text-emerald-400,
+:root:not(.dark) .text-emerald-500 {
+  color: #059669 !important;
 }
 :root:not(.dark) .bg-emerald-500\/20 {
   background-color: #e8f7f0 !important;
 }
-:root:not(.dark) .text-blue-400 {
-  color: #3b82f6 !important;
+:root:not(.dark) .text-blue-400,
+:root:not(.dark) .text-blue-500 {
+  color: #2563eb !important;
 }
 :root:not(.dark) .bg-blue-500\/20 {
   background-color: #eff6ff !important;
@@ -1000,8 +1007,21 @@ h1, h2, h3, h4, h5, h6 {
   color: #64748b !important;
   border: none !important;
 }
-:root:not(.dark) .text-amber-400 {
+:root:not(.dark) .text-amber-400,
+:root:not(.dark) .text-amber-500 {
   color: #d97706 !important;
+}
+:root:not(.dark) .text-pink-400,
+:root:not(.dark) .text-pink-500 {
+  color: #db2777 !important;
+}
+:root:not(.dark) .text-cyan-400,
+:root:not(.dark) .text-cyan-500 {
+  color: #0891b2 !important;
+}
+:root:not(.dark) .text-red-400,
+:root:not(.dark) .text-red-500 {
+  color: #dc2626 !important;
 }
 :root:not(.dark) .bg-amber-500\/20 {
   background-color: #fef3c7 !important;
@@ -1378,9 +1398,7 @@ button.bg-red-600 span {
 
 /* Ensure text color utility classes take precedence in Light Mode over general element overrides (excluding form controls) */
 :root:not(.dark) .text-white:not(input):not(select):not(textarea),
-:root:not(.dark) .text-white:not(input):not(select):not(textarea) span,
-:root:not(.dark) .text-white:not(input):not(select):not(textarea) i,
-:root:not(.dark) .text-white:not(input):not(select):not(textarea) i::before {
+:root:not(.dark) .text-white:not(input):not(select):not(textarea) > span:not([class*="text-"]) {
   color: #ffffff !important;
 }
 :root:not(.dark) .text-slate-400:not(input):not(select):not(textarea) {
