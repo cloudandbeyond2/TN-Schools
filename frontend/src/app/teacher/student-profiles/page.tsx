@@ -49,7 +49,11 @@ export default function StudentProfilesPage() {
         const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
-          setTeacherClasses(data.data);
+          // Deduplicate classes by class and section combination
+          const uniqueClasses = data.data.filter((v: any, i: number, a: any[]) => 
+            a.findIndex((t: any) => t.className === v.className && t.section === v.section) === i
+          );
+          setTeacherClasses(uniqueClasses);
         }
       } catch (err) {
         console.error("Error fetching teacher classes:", err);
