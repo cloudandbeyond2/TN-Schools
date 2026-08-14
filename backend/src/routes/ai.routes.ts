@@ -1771,6 +1771,83 @@ Return ONLY valid JSON matching the schema.`;
   }
 });
 
+const LAB_DESIGN_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' },
+    subtitle: { type: 'STRING' },
+    aim: { type: 'STRING' },
+    centralImageUrl: { type: 'STRING' },
+    apparatus: {
+      type: 'ARRAY',
+      items: { type: 'STRING' }
+    },
+    theory: {
+      type: 'OBJECT',
+      properties: {
+        description: { type: 'STRING' },
+        formula: { type: 'STRING' }
+      },
+      required: ['description', 'formula']
+    },
+    procedures: {
+      type: 'ARRAY',
+      items: { type: 'STRING' }
+    },
+    flowchart: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          step: { type: 'STRING' },
+          action: { type: 'STRING' }
+        },
+        required: ['step', 'action']
+      }
+    },
+    precautions: {
+      type: 'ARRAY',
+      items: { type: 'STRING' }
+    }
+  },
+  required: ['title', 'subtitle', 'aim', 'centralImageUrl', 'apparatus', 'theory', 'procedures', 'flowchart', 'precautions']
+};
+
+// ===========================================================================
+// POST /api/ai/labdesign
+// ===========================================================================
+router.post('/labdesign', async (req: Request, res: Response) => {
+  try {
+    const { command } = req.body;
+    
+    if (!command) {
+      return res.status(400).json({ success: false, message: "Missing command" });
+    }
+
+    const prompt = `You are an expert educational lab content generator.
+The user wants a lab experiment infographic for the topic: "${command}"
+
+Generate structured JSON data for a stunning, comprehensive lab experiment infographic. 
+Ensure you provide:
+- A strong title and subtitle
+- aim: The objective of the experiment
+- apparatus: List of materials needed
+- theory: The underlying principle, and the governing formula if any (use N/A if not applicable)
+- procedures: 5-8 clear numbered steps detailing how to perform the experiment
+- flowchart: The procedure broken down into a 4-5 step sequence representing a flowchart or pipeline. For each item provide the 'step' number and the 'action' (very brief summary).
+- precautions: 3-5 crucial safety precautions or tips for accuracy.
+- centralImageUrl: A 1-3 word prompt describing the primary apparatus or setup for generating an image (e.g., "titration setup", "microscope view").
+
+Return ONLY valid JSON matching the schema.`;
+
+    const designData = await callGemini(prompt, true, LAB_DESIGN_SCHEMA, 8192);
+    res.json({ success: true, data: designData });
+  } catch (err) {
+    console.error('[POST /api/ai/labdesign]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ===========================================================================
 // POST /api/ai/visualdesign/save
 // ===========================================================================
@@ -1805,12 +1882,13 @@ router.post('/visualdesign/save', async (req: Request, res: Response) => {
 // ===========================================================================
 router.get('/visualdesign/list', async (req: Request, res: Response) => {
   try {
-    const { className, subjectId, topic } = req.query;
+    const { className, subjectId, topic, focus } = req.query;
 
     const whereClause: any = {};
     if (className) whereClause.class = String(className);
     if (subjectId) whereClause.subjectId = String(subjectId);
     if (topic) whereClause.topic = { contains: String(topic), mode: 'insensitive' };
+    if (focus) whereClause.focus = String(focus);
 
     const list = await prisma.infographicLesson.findMany({
       where: whereClause,
@@ -1856,16 +1934,20 @@ router.get('/visualdesign/published', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: "Class is required" });
     }
 
+    const classNum = (String(className).match(/\d+/) || [])[0];
+
     const whereClause: any = {
       isPublished: true,
-      class: String(className),
+      class: classNum || String(className),
     };
 
     if (section) {
       whereClause.publishedSections = {
-        has: String(section)
+        has: String(section).toUpperCase().trim()
       };
     }
+
+    console.log("[GET /api/ai/visualdesign/published] Query:", JSON.stringify(whereClause));
 
     const list = await prisma.infographicLesson.findMany({
       where: whereClause,

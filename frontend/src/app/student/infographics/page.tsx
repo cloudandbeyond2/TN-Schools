@@ -25,8 +25,13 @@ export default function StudentInfographicsPage() {
         query.append("className", className);
         if (section) query.append("section", section);
 
-        const res = await fetch(`${API_URL}/api/ai/visualdesign/published?${query.toString()}`);
+        const token = user?.backendToken;
+        const res = await fetch(`${API_URL}/api/ai/visualdesign/published?${query.toString()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          cache: 'no-store'
+        });
         const json = await res.json();
+        console.log("Infographics API response:", json);
         
         if (json.success) {
           setSavedLessons(json.data);
