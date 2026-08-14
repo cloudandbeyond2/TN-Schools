@@ -89,10 +89,10 @@ export default function HeadmasterDashboard() {
       {/* Academic-year KPI header */}
       <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 mb-4 fade-in">
         <div>
-          <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-            <i className="fi fi-rr-chart-histogram text-base text-amber-500" /> School KPIs
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <i className="fi fi-rr-chart-histogram text-lg text-amber-500 dark:text-amber-400" /> School KPIs
           </h2>
-          <p className="text-[9px] sm:text-[11px] text-slate-500">
+          <p className="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400">
             {kpis?.source === "snapshot" ? "Archived year — data from academic history records" : "Live data for the selected academic year"}
           </p>
         </div>
@@ -105,28 +105,28 @@ export default function HeadmasterDashboard() {
           label="Enrolled Students"
           value={kpisLoading || !kpis ? "…" : kpis.enrollment.total}
           flaticonClass="fi-rr-graduation-cap"
-          color="text-blue-400"
+          color="text-blue-500 dark:text-blue-400"
           sub={academicYear ? `Academic year ${academicYear}` : undefined}
         />
         <KpiCard
           label="Attendance"
           value={kpisLoading || !kpis ? "…" : kpis.attendancePct != null ? `${kpis.attendancePct}%` : "—"}
           flaticonClass="fi-rr-calendar-check"
-          color="text-emerald-400"
+          color="text-emerald-500 dark:text-emerald-400"
           sub="School-wide average"
         />
         <KpiCard
           label="Pass Rate"
           value={kpisLoading || !kpis ? "…" : kpis.marks.passPct != null ? `${kpis.marks.passPct}%` : "—"}
           flaticonClass="fi-rr-notebook"
-          color="text-violet-400"
+          color="text-violet-500 dark:text-violet-400"
           sub={kpis?.marks.averagePct != null ? `Avg marks ${kpis.marks.averagePct}%` : "Marks ≥ 35%"}
         />
         <KpiCard
           label="Teaching Staff"
           value={kpisLoading || !kpis ? "…" : kpis.teachers.total || totalStaff}
           flaticonClass="fi-rr-users-alt"
-          color="text-amber-400"
+          color="text-amber-500 dark:text-amber-400"
           sub={`${excellentStaff} rated excellent`}
         />
       </div>
@@ -140,26 +140,26 @@ export default function HeadmasterDashboard() {
         <div className="glass rounded-2xl p-5 border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider">Promotions ({academicYear || "—"})</span>
-            <Link href="/headmaster/promotions" className="text-[9px] sm:text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
-              <i className="fi fi-rr-arrow-circle-up text-[11px]" /> Manage →
+            <Link href="/headmaster/promotions" className="text-[9px] sm:text-[10px] font-bold text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 flex items-center gap-1">
+              <i className="fi fi-rr-arrow-circle-up text-xs text-blue-500 dark:text-blue-400" /> Manage →
             </Link>
           </div>
           {kpis ? (
             <div className="space-y-2 text-[10px] sm:text-xs">
               {[
-                { label: "Promoted", value: kpis.promotions.promoted, color: "text-emerald-400" },
-                { label: "Graduated (12th)", value: kpis.promotions.graduated, color: "text-violet-400" },
-                { label: "Detained", value: kpis.promotions.detained, color: "text-amber-400" },
-                { label: "Transferred out", value: kpis.promotions.transferred, color: "text-slate-300" },
+                { label: "Promoted", value: kpis.promotions.promoted, color: "text-emerald-500 dark:text-emerald-400" },
+                { label: "Graduated (12th)", value: kpis.promotions.graduated, color: "text-violet-500 dark:text-violet-400" },
+                { label: "Detained", value: kpis.promotions.detained, color: "text-amber-500 dark:text-amber-400" },
+                { label: "Transferred out", value: kpis.promotions.transferred, color: "text-slate-600 dark:text-slate-300" },
               ].map((row) => (
                 <div key={row.label} className="flex justify-between">
-                  <span className="text-slate-400">{row.label}</span>
+                  <span className="text-slate-500 dark:text-slate-400">{row.label}</span>
                   <span className={`font-bold ${row.color}`}>{row.value}</span>
                 </div>
               ))}
               <div className="pt-2 mt-2 border-t border-slate-800 flex justify-between">
                 <span className="text-slate-500">Batches awaiting BEO</span>
-                <span className={`font-bold ${kpis.promotions.pendingBatches > 0 ? "text-amber-400" : "text-slate-300"}`}>
+                <span className={`font-bold ${kpis.promotions.pendingBatches > 0 ? "text-amber-500 dark:text-amber-400" : "text-slate-600 dark:text-slate-300"}`}>
                   {kpis.promotions.pendingBatches}
                 </span>
               </div>
@@ -172,14 +172,14 @@ export default function HeadmasterDashboard() {
 
       {/* Risk summary row (live watchlist) */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
-        <KpiCard label="High Risk Students" value={isLoading ? "…" : highRisk} flaticonClass="fi-rr-arrow-trend-up" color="text-red-400" sub="Needs intervention" />
-        <KpiCard label="Safe Students" value={isLoading ? "…" : totalStudents - highRisk} flaticonClass="fi-rr-shield-check" color="text-emerald-400" sub="Low / medium risk" />
-        <KpiCard label="Watchlist Records" value={isLoading ? "…" : totalStudents} flaticonClass="fi-rr-document-clipboard" color="text-blue-400" sub="Student monitoring" />
+        <KpiCard label="High Risk Students" value={isLoading ? "…" : highRisk} flaticonClass="fi-rr-arrow-trend-up" color="text-red-500 dark:text-red-400" sub="Needs intervention" />
+        <KpiCard label="Safe Students" value={isLoading ? "…" : totalStudents - highRisk} flaticonClass="fi-rr-shield-check" color="text-emerald-500 dark:text-emerald-400" sub="Low / medium risk" />
+        <KpiCard label="Watchlist Records" value={isLoading ? "…" : totalStudents} flaticonClass="fi-rr-document-clipboard" color="text-blue-500 dark:text-blue-400" sub="Student monitoring" />
         <KpiCard
           label="Detained This Year"
           value={kpis ? kpis.promotions.detained : "…"}
           flaticonClass="fi-rr-square-xmark"
-          color="text-amber-400"
+          color="text-amber-500 dark:text-amber-400"
           sub="Re-enrolled in same class"
         />
       </div>
@@ -188,13 +188,13 @@ export default function HeadmasterDashboard() {
         {/* Staff Table */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 fade-in-2 border border-slate-800">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-              <i className="fi fi-rr-presentation text-base text-blue-400" /> Staff Performance
+            <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <i className="fi fi-rr-presentation text-lg text-blue-500 dark:text-blue-400" /> Staff Performance
             </h2>
             <Link
               href="/headmaster/staff"
               id="headmaster-add-staff"
-              className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 font-bold bg-blue-500/10 border border-blue-500/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all"
+              className="text-[10px] sm:text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-bold bg-blue-500/10 border border-blue-500/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all"
             >
               View All Staff
             </Link>
@@ -207,9 +207,9 @@ export default function HeadmasterDashboard() {
             </div>
           ) : staff.length === 0 ? (
             <div className="text-center py-10 text-slate-500 text-[10px] sm:text-xs">
-              <div className="flex justify-center mb-2"><i className="fi fi-rr-presentation text-2xl text-slate-600" /></div>
+              <div className="flex justify-center mb-2"><i className="fi fi-rr-presentation text-3xl text-blue-400/60 dark:text-slate-500" /></div>
               <div className="font-semibold text-slate-400 mb-1">No staff records yet</div>
-              <Link href="/headmaster/staff" className="text-blue-400 hover:underline">Go to Staff Management →</Link>
+              <Link href="/headmaster/staff" className="text-blue-500 dark:text-blue-400 hover:underline">Go to Staff Management →</Link>
             </div>
           ) : (
             <div className="overflow-x-auto w-full">
@@ -226,7 +226,7 @@ export default function HeadmasterDashboard() {
                 <tbody>
                   {staff.slice(0, 8).map((s, i) => (
                     <tr key={s.id || i}>
-                      <td className="font-bold text-white text-[10px] sm:text-xs px-2 sm:px-4 py-2 sm:py-3">{s.name}</td>
+                      <td className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs px-2 sm:px-4 py-2 sm:py-3">{s.name}</td>
                       <td className="text-[10px] sm:text-xs px-2 sm:px-4 py-2 sm:py-3">{s.subject}</td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3">
                         <span className={`badge ${s.attendance >= 95 ? "badge-green" : s.attendance >= 90 ? "badge-yellow" : "badge-red"} text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1`}>
@@ -238,7 +238,7 @@ export default function HeadmasterDashboard() {
                           {s.performance}
                         </span>
                       </td>
-                      <td className={`px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs ${(s.leaveUsed ?? 0) >= 3 ? "text-red-400" : "text-slate-400"}`}>
+                      <td className={`px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs ${(s.leaveUsed ?? 0) >= 3 ? "text-red-500 dark:text-red-400" : "text-slate-500 dark:text-slate-400"}`}>
                         {s.leaveUsed ?? 0}
                       </td>
                     </tr>
@@ -252,10 +252,10 @@ export default function HeadmasterDashboard() {
         {/* Student Risk Summary */}
         <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-              <i className="fi fi-rr-users text-base text-amber-500" /> Student Risk Summary
+            <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <i className="fi fi-rr-users text-lg text-amber-500 dark:text-amber-400" /> Student Risk Summary
             </h2>
-            <Link href="/headmaster/students" className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 font-bold">
+            <Link href="/headmaster/students" className="text-[10px] sm:text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-bold">
               View All →
             </Link>
           </div>
@@ -266,23 +266,23 @@ export default function HeadmasterDashboard() {
             </div>
           ) : totalStudents === 0 ? (
             <div className="text-center py-8 text-slate-500 text-[10px] sm:text-xs">
-              <div className="flex justify-center mb-2"><i className="fi fi-rr-users text-2xl text-slate-600" /></div>
+              <div className="flex justify-center mb-2"><i className="fi fi-rr-users text-3xl text-amber-400/60 dark:text-slate-500" /></div>
               <div>No student records yet</div>
-              <Link href="/headmaster/students" className="text-blue-400 hover:underline mt-1 block">Add Students →</Link>
+              <Link href="/headmaster/students" className="text-blue-500 dark:text-blue-400 hover:underline mt-1 block">Add Students →</Link>
             </div>
           ) : (
             <div className="space-y-3">
               {[
-                { label: "High Risk", count: students.filter(s => s.risk === "High").length, color: "text-red-400", bar: "bg-red-500" },
-                { label: "Medium Risk", count: students.filter(s => s.risk === "Medium").length, color: "text-amber-400", bar: "bg-amber-500" },
-                { label: "Low Risk", count: students.filter(s => s.risk === "Low").length, color: "text-emerald-400", bar: "bg-emerald-500" },
+                { label: "High Risk", count: students.filter(s => s.risk === "High").length, color: "text-red-500 dark:text-red-400", bar: "bg-red-500" },
+                { label: "Medium Risk", count: students.filter(s => s.risk === "Medium").length, color: "text-amber-500 dark:text-amber-400", bar: "bg-amber-500" },
+                { label: "Low Risk", count: students.filter(s => s.risk === "Low").length, color: "text-emerald-500 dark:text-emerald-400", bar: "bg-emerald-500" },
               ].map((item) => (
                 <div key={item.label} className="space-y-1">
                   <div className="flex justify-between text-[10px] sm:text-xs">
-                    <span className="text-slate-400">{item.label}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{item.label}</span>
                     <span className={`font-bold ${item.color}`}>{item.count}</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5">
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5">
                     <div
                       className={`${item.bar} h-1.5 rounded-full transition-all`}
                       style={{ width: totalStudents > 0 ? `${(item.count / totalStudents) * 100}%` : "0%" }}
@@ -292,7 +292,7 @@ export default function HeadmasterDashboard() {
               ))}
               <div className="pt-3 border-t border-slate-800 flex justify-between text-[10px] sm:text-xs">
                 <span className="text-slate-500">Total Students</span>
-                <span className="font-bold text-white">{totalStudents}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{totalStudents}</span>
               </div>
             </div>
           )}
@@ -302,10 +302,10 @@ export default function HeadmasterDashboard() {
       {/* Leave Requests Summary */}
       <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-            <i className="fi fi-rr-calendar-check text-base text-pink-500" /> Recent Leave Requests
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <i className="fi fi-rr-calendar-check text-lg text-pink-500 dark:text-pink-400" /> Recent Leave Requests
           </h2>
-          <Link href="/headmaster/leave" className="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 font-bold">
+          <Link href="/headmaster/leave" className="text-[10px] sm:text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-bold">
             View All Leaves →
           </Link>
         </div>
@@ -317,7 +317,7 @@ export default function HeadmasterDashboard() {
           </div>
         ) : leaveRequests.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-[10px] sm:text-xs">
-            <div className="flex justify-center mb-2"><i className="fi fi-rr-calendar-check text-2xl text-slate-600" /></div>
+            <div className="flex justify-center mb-2"><i className="fi fi-rr-calendar-check text-3xl text-pink-400/60 dark:text-slate-500" /></div>
             <div>No leave requests found.</div>
           </div>
         ) : (
@@ -334,7 +334,7 @@ export default function HeadmasterDashboard() {
               <tbody>
                 {leaveRequests.slice(0, 5).map((req: any) => (
                   <tr key={req.id}>
-                    <td className="font-bold text-white text-[10px] sm:text-xs px-2 sm:px-4 py-2 sm:py-3">
+                    <td className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs px-2 sm:px-4 py-2 sm:py-3">
                       {req.studentName}
                       <div className="text-[9px] sm:text-[10px] text-slate-500 font-normal mt-0.5">
                         {req.studentId ? "Student" : req.staffId ? "Staff" : ""}
@@ -358,27 +358,27 @@ export default function HeadmasterDashboard() {
       {/* School Sports & Health Widget */}
       <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-            <i className="fi fi-rr-trophy text-base text-amber-500" /> School Sports & Health
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <i className="fi fi-rr-trophy text-lg text-amber-500 dark:text-amber-400" /> School Sports & Health
           </h2>
-          <span className="text-[10px] sm:text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg">Ground: Good</span>
+          <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded-lg">Ground: Good</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-white">450</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Participants</div>
+          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
+             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">450</div>
+             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Participants</div>
           </div>
-          <div className="bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-amber-400">12</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Gold Medals</div>
+          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
+             <div className="text-lg sm:text-2xl font-black text-amber-600 dark:text-amber-400">12</div>
+             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Gold Medals</div>
           </div>
-          <div className="bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-blue-400">85%</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Avg Fitness</div>
+          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
+             <div className="text-lg sm:text-2xl font-black text-blue-600 dark:text-blue-400">85%</div>
+             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Avg Fitness</div>
           </div>
-          <div className="bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-red-400">2</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Equip Alerts</div>
+          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
+             <div className="text-lg sm:text-2xl font-black text-red-600 dark:text-red-400">2</div>
+             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Equip Alerts</div>
           </div>
         </div>
       </div>
@@ -386,12 +386,12 @@ export default function HeadmasterDashboard() {
       {/* Quick Links */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 fade-in-4">
         {[
-          { label: "Staff Management", icon: <i className="fi fi-rr-users"></i>, href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
-          { label: "Student Monitoring", icon: <i className="fi fi-rr-graduation-cap"></i>, href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },
-          { label: "Parents & PTA", icon: <i className="fi fi-rr-family"></i>, href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
-          { label: "Leave Management", icon: <i className="fi fi-rr-calendar"></i>, href: "/headmaster/leave", color: "border-pink-500/20 hover:border-pink-500/50" },
-          { label: "Alumni Network", icon: <i className="fi fi-rr-diploma"></i>, href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
-          { label: "School Resources", icon: <i className="fi fi-rr-building"></i>, href: "/headmaster/resources", color: "border-cyan-500/20 hover:border-cyan-500/50" },
+          { label: "Staff Management", icon: <i className="fi fi-rr-users text-blue-500 dark:text-blue-400"></i>, href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
+          { label: "Student Monitoring", icon: <i className="fi fi-rr-graduation-cap text-emerald-500 dark:text-emerald-400"></i>, href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },
+          { label: "Parents & PTA", icon: <i className="fi fi-rr-family text-amber-500 dark:text-amber-400"></i>, href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
+          { label: "Leave Management", icon: <i className="fi fi-rr-calendar text-pink-500 dark:text-pink-400"></i>, href: "/headmaster/leave", color: "border-pink-500/20 hover:border-pink-500/50" },
+          { label: "Alumni Network", icon: <i className="fi fi-rr-diploma text-purple-500 dark:text-purple-400"></i>, href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
+          { label: "School Resources", icon: <i className="fi fi-rr-building text-cyan-500 dark:text-cyan-400"></i>, href: "/headmaster/resources", color: "border-cyan-500/20 hover:border-cyan-500/50" },
         ].map((link) => (
           <Link
             key={link.label}
@@ -399,7 +399,7 @@ export default function HeadmasterDashboard() {
             className={`glass rounded-2xl p-3 sm:p-5 border ${link.color} flex flex-col items-center gap-2 sm:gap-3 text-center transition-all hover:scale-105 group`}
           >
             <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform">{link.icon}</span>
-            <span className="text-[10px] sm:text-xs font-bold text-slate-300 group-hover:text-white">{link.label}</span>
+            <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-white">{link.label}</span>
           </Link>
         ))}
       </div>
