@@ -347,7 +347,7 @@ export default function SchoolPortalPage() {
                 <div className="text-base font-black truncate text-slate-900 dark:text-white">
                   Class {c.className}{c.section ? ` - ${c.section}` : ""}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">{c.subject}</div>
+                {c.subject !== 'General' && <div className="text-xs text-slate-500 mt-0.5">{c.subject}</div>}
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold flex items-center gap-1.5" style={{ color: accent }}>
                   <GraduationCap className="w-3.5 h-3.5" /> {c.totalStudents} students
                 </div>

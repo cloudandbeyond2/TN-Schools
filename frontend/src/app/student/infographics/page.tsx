@@ -12,10 +12,12 @@ export default function StudentInfographicsPage() {
 
   const [savedLessons, setSavedLessons] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLessons = async () => {
       setIsLoading(true);
+      setErrorMsg(null);
       try {
         const user = session?.user as any;
         const className = user?.class || "10";
@@ -24,11 +26,16 @@ export default function StudentInfographicsPage() {
         const query = new URLSearchParams();
         query.append("className", className);
         if (section) query.append("section", section);
+        query.append("_t", Date.now().toString());
 
         const token = user?.backendToken;
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const res = await fetch(`${API_URL}/api/ai/visualdesign/published?${query.toString()}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          cache: 'no-store'
+          headers
         });
         const json = await res.json();
         console.log("Infographics API response:", json);
@@ -36,10 +43,12 @@ export default function StudentInfographicsPage() {
         if (json.success) {
           setSavedLessons(json.data);
         } else {
+          setErrorMsg(json.error || "Failed to fetch from API.");
           throw new Error(json.error || "Failed to fetch");
         }
       } catch (err: any) {
-        console.error(err);
+        console.error("Error fetching infographics:", err);
+        if (!errorMsg) setErrorMsg(err.message || "Failed to fetch");
       } finally {
         setIsLoading(false);
       }
@@ -63,8 +72,15 @@ export default function StudentInfographicsPage() {
         </header>
 
         {isLoading ? (
-          <div className="flex justify-center p-12">
-            <i className="fi fi-rr-spinner animate-spin text-3xl text-indigo-500"></i>
+          <div className="w-full flex justify-center py-24">
+            <i className="fi fi-rr-spinner animate-spin text-4xl text-indigo-500"></i>
+          </div>
+        ) : errorMsg ? (
+          <div className="w-full flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <i className="fi fi-rr-cross-circle text-5xl text-red-400 mb-6"></i>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Error Loading Infographics</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm">{errorMsg}</p>
+            <p className="text-xs text-slate-400 mt-4">(If authentication required, please Sign Out and Sign Back In)</p>
           </div>
         ) : savedLessons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -56,11 +56,10 @@ router.get('/public/:dise', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'This school portal is not published yet.' });
     }
 
-    const [classes, celebrations, culturalEvents, teachers, classCount, staffCount] = await Promise.all([
+    const [classes, celebrations, culturalEvents, teachers, classCount, staffCount, studentGroupCounts] = await Promise.all([
       prisma.classRoom.findMany({
         where: { schoolId: school.id, isActive: true },
         orderBy: { className: 'asc' },
-        take: 12,
       }),
       prisma.celebration.findMany({
         where: {
@@ -85,6 +84,11 @@ router.get('/public/:dise', async (req: Request, res: Response) => {
       }),
       prisma.classRoom.count({ where: { schoolId: school.id } }),
       prisma.headmasterStaff.count({ where: { schoolId: school.id } }),
+      prisma.student.groupBy({
+        by: ['class', 'section'],
+        where: { schoolId: school.id },
+        _count: { id: true }
+      }),
     ]);
 
     // Merge the two event sources into a single, normalised list.
@@ -108,6 +112,24 @@ router.get('/public/:dise', async (req: Request, res: Response) => {
     ]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 6);
+
+    const uniqueClassesMap = new Map();
+    for (const c of classes) {
+      const key = `${c.className}-${c.section}`;
+      if (!uniqueClassesMap.has(key)) {
+        uniqueClassesMap.set(key, c);
+      }
+    }
+    const uniqueClasses = Array.from(uniqueClassesMap.values()).slice(0, 12);
+
+    const enrichedClasses = uniqueClasses.map(c => {
+      const match = studentGroupCounts.find(sc => sc.class === c.className && sc.section === c.section);
+      return {
+        ...c,
+        subject: 'General', // override subject since it's a combined class card
+        totalStudents: match ? match._count.id : 0
+      };
+    });
 
     res.json({
       success: true,
@@ -133,7 +155,7 @@ router.get('/public/:dise', async (req: Request, res: Response) => {
         },
         events,
         teachers,
-        classes,
+        classes: enrichedClasses,
       },
     });
   } catch (err) {

@@ -1903,27 +1903,6 @@ router.get('/visualdesign/list', async (req: Request, res: Response) => {
 });
 
 // ===========================================================================
-// GET /api/ai/visualdesign/:id
-// ===========================================================================
-router.get('/visualdesign/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const lesson = await prisma.infographicLesson.findUnique({
-      where: { id }
-    });
-    
-    if (!lesson) {
-      return res.status(404).json({ success: false, message: "Infographic not found" });
-    }
-
-    res.json({ success: true, data: lesson });
-  } catch (err) {
-    console.error('[GET /api/ai/visualdesign/:id]', err);
-    res.status(500).json({ success: false, error: String(err) });
-  }
-});
-
-// ===========================================================================
 // GET /api/ai/visualdesign/published
 // ===========================================================================
 router.get('/visualdesign/published', async (req: Request, res: Response) => {
@@ -1960,6 +1939,29 @@ router.get('/visualdesign/published', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+
+// ===========================================================================
+// GET /api/ai/visualdesign/:id
+// ===========================================================================
+router.get('/visualdesign/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const lesson = await prisma.infographicLesson.findUnique({
+      where: { id }
+    });
+    
+    if (!lesson) {
+      return res.status(404).json({ success: false, message: "Infographic not found" });
+    }
+
+    res.json({ success: true, data: lesson });
+  } catch (err) {
+    console.error('[GET /api/ai/visualdesign/:id]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
 
 // ===========================================================================
 // PUT /api/ai/visualdesign/:id/publish
