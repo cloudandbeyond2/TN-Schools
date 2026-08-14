@@ -1911,15 +1911,18 @@ router.post('/upload-syllabus-pdf', pdfUpload.single('pdf'), async (req: Request
 
     const promptBase = `You are analyzing a Tamil Nadu State Board school textbook for Class ${className}.
 
-Read the table of contents / unit pages and extract the syllabus EXACTLY as printed — do NOT invent, rename, reorder, or translate away the original headings. Preserve the book's own unit and lesson titles in their original script.
+Read the table of contents / unit pages and extract the syllabus. Preserve the book's own unit and lesson titles in their original script.
+
+CRITICAL INSTRUCTION FOR TAMIL TEXT: 
+Some Tamil PDFs use legacy fonts or have corrupted Unicode text layers (e.g. missing 'pulli' dots on consonants like 'ட்' becoming 'ட', or vowels split into separate characters). You MUST output the CORRECT, properly spelled Tamil Unicode words for all 'titleTamil' and 'name' fields based on your knowledge of the language and context. Do NOT just copy garbled text. For example, if you see 'ஊடசசதது மறறும ஆலாேராககயம', output 'ஊட்டச்சத்து மற்றும் ஆரோக்கியம்'.
 
 For each UNIT (in a Tamil book these are "இயல்"; in others they may be chapters/units):
 - "unitNumber": sequential number starting at 1.
-- "titleTamil" and "titleEnglish": the unit heading in Tamil script AND English. For a Tamil book, titleTamil must be the EXACT printed heading and titleEnglish an accurate translation. For an English book, titleEnglish is the exact heading and titleTamil a translation.
+- "titleTamil" and "titleEnglish": the unit heading in Tamil script AND English. For a Tamil book, titleTamil must be the correctly spelled Tamil heading and titleEnglish an accurate translation. For an English book, titleEnglish is the exact heading and titleTamil a translation.
 - "description": 1-2 sentence student-facing summary of the unit, in the textbook's language.
 - "tip": one short study tip (under 90 chars), in the textbook language.
 - "emoji": one relevant emoji.
-- "lessons": every lesson/section under the unit, in order, each with "name" (EXACT original-script title as printed) and "nameEnglish" (translation).
+- "lessons": every lesson/section under the unit, in order, each with "name" (correctly spelled original-script title) and "nameEnglish" (translation).
 - Also return top-level "language" (e.g. "Tamil") and "subjectName" (e.g. "தமிழ்").${subjectName ? ` The subject is: ${subjectName}.` : ''}
 
 Skip covers, preface, acknowledgements, anthem, index and glossary — only real academic units/lessons.`;
@@ -1945,7 +1948,15 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }
       console.log('[PDF Upload] Falling back to text extraction...');
-      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 250000)}`, PDF_SYLLABUS_SCHEMA);
+      const fallbackPrompt = `${promptBase}
+
+CRITICAL INSTRUCTION FOR TAMIL TEXT:
+The text provided below was extracted from a PDF with legacy Tamil fonts. It is heavily garbled (e.g. missing 'pulli' dots on consonants like 'ட்' becoming 'ட', or vowels split into separate characters like 'ாே' instead of 'ரோ').
+You MUST fix and reconstruct the CORRECT, properly spelled Tamil Unicode words for all 'titleTamil' and 'name' fields based on context. Do NOT just copy the garbled text. For example, if you see 'ஊடசசதது மறறும ஆலாேராககயம', output 'ஊட்டச்சத்து மற்றும் ஆரோக்கியம்'. If you see 'நணணயிரிகளின உலகம', output 'நுண்ணுயிரிகளின் உலகம்'.
+
+Textbook text:
+${extractedText.substring(0, 250000)}`;
+      parsed = await callGeminiJSON(fallbackPrompt, PDF_SYLLABUS_SCHEMA);
     }
 
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {

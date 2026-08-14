@@ -3,7 +3,7 @@ import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion, Saved3DMod
 import https from 'https';
 import { authenticate } from '../middleware/auth.middleware';
 import { getGeminiApiKey } from '../services/aiConfig.service';
-
+import { prisma } from '../config/prisma';
 const router = Router();
 
 // Every AI endpoint proxies to the paid Gemini API — logged-in users only.
@@ -1611,6 +1611,236 @@ Each object must match this schema exactly:
     res.json({ success: true, data: questions });
   } catch (err) {
     console.error('[POST /api/ai/generate-questions]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/visualdesign
+// ===========================================================================
+const VISUAL_DESIGN_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' },
+    subtitle: { type: 'STRING' },
+    introduction: { type: 'STRING' },
+    centralImageUrl: { type: 'STRING', description: 'A single unsplash image keyword like "earth" or "galaxy"' },
+    whatIsIt: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'A flat icon name, e.g., fi-rr-apple, fi-rr-arrow-down' },
+          text: { type: 'STRING' }
+        },
+        required: ['icon', 'text']
+      }
+    },
+    lawOrFormula: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        subtitle: { type: 'STRING' },
+        formula: { type: 'STRING' },
+        variables: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              symbol: { type: 'STRING' },
+              explanation: { type: 'STRING' }
+            },
+            required: ['symbol', 'explanation']
+          }
+        }
+      },
+      required: ['title', 'subtitle', 'formula', 'variables']
+    },
+    keyFacts: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'fi-rr-dumbbell, fi-rr-arrows-h, etc.' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' }
+        },
+        required: ['icon', 'title', 'description']
+      }
+    },
+    didYouKnow: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        description: { type: 'STRING' }
+      },
+      required: ['title', 'description']
+    },
+    examples: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          imageKeyword: { type: 'STRING', description: 'Keyword for Unsplash, e.g., "skydiver", "moon"' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' }
+        },
+        required: ['imageKeyword', 'title', 'description']
+      }
+    },
+    applications: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'fi-rr-rocket, fi-rr-bridge, etc.' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' }
+        },
+        required: ['icon', 'title', 'description']
+      }
+    },
+    quote: {
+      type: 'OBJECT',
+      properties: {
+        text: { type: 'STRING' },
+        author: { type: 'STRING' }
+      },
+      required: ['text', 'author']
+    },
+    remember: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        text: { type: 'STRING' }
+      },
+      required: ['title', 'text']
+    }
+  },
+  required: ['title', 'subtitle', 'introduction', 'centralImageUrl', 'whatIsIt', 'lawOrFormula', 'keyFacts', 'didYouKnow', 'examples', 'applications', 'quote', 'remember']
+};
+
+router.post('/visualdesign', async (req: Request, res: Response) => {
+  try {
+    const { command, focus } = req.body;
+    
+    if (!command) {
+      return res.status(400).json({ success: false, message: "Missing command" });
+    }
+
+    let focusInstruction = "";
+    if (focus === "Exam point of view") {
+      focusInstruction = "FOCUS: Exam point of view. Prioritize academic definitions, crucial formulas, board-exam patterns, strict syllabus alignment, and highly testable facts.";
+    } else if (focus === "General knowledge") {
+      focusInstruction = "FOCUS: General knowledge. Prioritize fascinating trivia, real-world relevance, broad concepts, historical context, and fun facts.";
+    } else if (focus === "Know more") {
+      focusInstruction = "FOCUS: Know more (Deep dive). Prioritize advanced concepts, cutting-edge applications, complex underlying theories, and beyond-the-syllabus explorations.";
+    }
+
+    const prompt = `You are an expert educational content generator.
+The user wants an infographic for the topic: "${command}"
+${focusInstruction}
+
+Generate structured JSON data for a stunning, comprehensive infographic. The content should be accurate, detailed, and fit perfectly into the provided schema.
+
+CRITICAL INSTRUCTION FOR ICONS:
+For any field requiring an icon, you MUST choose strictly from this exact list of safe icons:
+"fi-rr-star", "fi-rr-lightbulb", "fi-rr-book-alt", "fi-rr-world", "fi-rr-leaf", "fi-rr-rocket", "fi-rr-heart", "fi-rr-sun", "fi-rr-moon", "fi-rr-shield", "fi-rr-bolt", "fi-rr-microscope", "fi-rr-atom", "fi-rr-telescope", "fi-rr-chart-pie", "fi-rr-flask", "fi-rr-brain", "fi-rr-clock", "fi-rr-graduation-cap", "fi-rr-users", "fi-rr-building", "fi-rr-computer", "fi-rr-globe", "fi-rr-water", "fi-rr-flame", "fi-rr-cloud", "fi-rr-wind"
+
+Do NOT make up any other icon names.
+
+Ensure you provide:
+- A strong title and subtitle
+- An introductory paragraph
+- "whatIsIt": 4 key points defining the topic. Provide flaticon class names for icons from the safe list.
+- "lawOrFormula": The main governing law/formula for this topic, with variable definitions.
+- "keyFacts": 5 interesting facts with icons from the safe list.
+- "didYouKnow": A mind-blowing trivia box.
+- "examples": 5 real-world examples with a 1-2 word image generation prompt for the image (e.g. "vast galaxy", "green leaf macro").
+- "applications": 3 practical applications with icons from the safe list.
+- "quote": A famous quote related to this topic.
+- "remember": A brief summary.
+
+Return ONLY valid JSON matching the schema.`;
+
+    const designData = await callGemini(prompt, true, VISUAL_DESIGN_SCHEMA, 8192);
+    res.json({ success: true, data: designData });
+  } catch (err) {
+    console.error('[POST /api/ai/visualdesign]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/visualdesign/save
+// ===========================================================================
+router.post('/visualdesign/save', async (req: Request, res: Response) => {
+  try {
+    const { className, subjectId, topic, focus, infographicData } = req.body;
+    
+    if (!className || !subjectId || !topic || !infographicData) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    const saved = await prisma.infographicLesson.create({
+      data: {
+        class: String(className),
+        subjectId,
+        topic,
+        focus: focus || "General",
+        infographicData,
+        teacherId: req.user?.id || null
+      }
+    });
+
+    res.json({ success: true, data: saved });
+  } catch (err) {
+    console.error('[POST /api/ai/visualdesign/save]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// GET /api/ai/visualdesign/list
+// ===========================================================================
+router.get('/visualdesign/list', async (req: Request, res: Response) => {
+  try {
+    const { className, subjectId, topic } = req.query;
+
+    const whereClause: any = {};
+    if (className) whereClause.class = String(className);
+    if (subjectId) whereClause.subjectId = String(subjectId);
+    if (topic) whereClause.topic = { contains: String(topic), mode: 'insensitive' };
+
+    const list = await prisma.infographicLesson.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, data: list });
+  } catch (err) {
+    console.error('[GET /api/ai/visualdesign/list]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// GET /api/ai/visualdesign/:id
+// ===========================================================================
+router.get('/visualdesign/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const lesson = await prisma.infographicLesson.findUnique({
+      where: { id }
+    });
+    
+    if (!lesson) {
+      return res.status(404).json({ success: false, message: "Infographic not found" });
+    }
+
+    res.json({ success: true, data: lesson });
+  } catch (err) {
+    console.error('[GET /api/ai/visualdesign/:id]', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
