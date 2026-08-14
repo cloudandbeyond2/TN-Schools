@@ -1,4 +1,0 @@
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [selectedUnit, setSelectedUnit] = useState<string>("");
-  const [customTopic, setCustomTopic] = useState<string>("");
-  const [focus, setFocus] = useState<string>("Exam point of view");
