@@ -13,8 +13,12 @@ router.get('/chapters', async (req: Request, res: Response) => {
   try {
     const { schoolId, teacherId, subject } = req.query;
 
+    if (!schoolId) {
+      return res.json({ success: true, data: [], count: 0 });
+    }
+
     const where: any = {};
-    if (schoolId)  where.schoolId  = String(schoolId);
+    where.schoolId  = String(schoolId);
     if (teacherId) where.teacherId = String(teacherId);
     if (subject)   where.subject   = String(subject);
 
@@ -128,8 +132,12 @@ router.get('/mock-tests', async (req: Request, res: Response) => {
   try {
     const { schoolId, teacherId } = req.query;
 
+    if (!schoolId) {
+      return res.json({ success: true, data: [], count: 0 });
+    }
+
     const where: any = {};
-    if (schoolId)  where.schoolId  = String(schoolId);
+    where.schoolId  = String(schoolId);
     if (teacherId) where.teacherId = String(teacherId);
 
     const data = await prisma.nEETMockTest.findMany({
