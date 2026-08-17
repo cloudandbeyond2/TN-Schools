@@ -494,7 +494,7 @@ export default function TeacherSSLCPrepPage() {
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     selectedClassroom === cr.id
                       ? "bg-amber-500 text-slate-900 shadow-lg"
-                      : "text-slate-450 hover:text-white"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {lang === "தமிழ்" ? `வகுப்பு ${cr.className}-${cr.section}` : `Class ${cr.className}-${cr.section}`}
@@ -513,7 +513,7 @@ export default function TeacherSSLCPrepPage() {
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     selectedGrade === g && selectedClassroom === "all"
                       ? "bg-amber-500 text-slate-900 shadow-lg"
-                      : "text-slate-450 hover:text-white"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {lang === "தமிழ்" ? `வகுப்பு ${g} (அனைத்தும்)` : `Class ${g} (All)`}
