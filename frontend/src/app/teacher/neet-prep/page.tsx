@@ -99,7 +99,7 @@ const emptyTestForm = {
 
 export default function NEETPrepPage() {
   const { lang } = usePortalLanguage();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
 
@@ -134,9 +134,10 @@ export default function NEETPrepPage() {
   const [teacherSubjects, setTeacherSubjects] = useState<string[]>([]);
 
   const fetchSyllabus = useCallback(async () => {
+    if (!schoolId) return;
     try {
       const params = new URLSearchParams();
-      if (schoolId) params.append("schoolId", schoolId);
+      params.append("schoolId", schoolId);
       const res = await fetch(`${API}/api/neet-prep/chapters?${params}`);
       const data = await res.json();
       if (data.success) setTopics(data.data);
@@ -146,9 +147,10 @@ export default function NEETPrepPage() {
   }, [schoolId]);
 
   const fetchTests = useCallback(async () => {
+    if (!schoolId) return;
     try {
       const params = new URLSearchParams();
-      if (schoolId) params.append("schoolId", schoolId);
+      params.append("schoolId", schoolId);
       const res = await fetch(`${API}/api/neet-prep/mock-tests?${params}`);
       const data = await res.json();
       if (data.success) setTests(data.data);
@@ -159,15 +161,39 @@ export default function NEETPrepPage() {
 
   // Fetch real students in teacher's school and map mock study progress metrics
   const fetchStudentReports = useCallback(async () => {
+    if (!schoolId || !teacherId) return;
     try {
       const params = new URLSearchParams();
-      if (schoolId) params.append("schoolId", schoolId);
-      if (teacherId) params.append("teacherId", teacherId);
+      params.append("schoolId", schoolId);
+      params.append("teacherId", teacherId);
       const res = await fetch(`${API}/api/personal-guide?${params}`);
       const data = await res.json();
-      if (data.success) {
-        // Map student guides list to study progress metrics
-        const mappedReports: StudentReport[] = data.data.map((student: any, idx: number) => {
+      
+      let rawStudents = [];
+      if (data.success && data.data && data.data.length > 0) {
+        rawStudents = data.data.map((student: any) => ({
+          id: student.id,
+          studentName: student.studentName,
+          class: student.class,
+          section: student.section,
+        }));
+      } else {
+        // Fallback: fetch from /api/students
+        const stdRes = await fetch(`${API}/api/students?schoolId=${schoolId}`);
+        const stdData = await stdRes.json();
+        if (stdData.success && stdData.data && stdData.data.length > 0) {
+          rawStudents = stdData.data.map((student: any) => ({
+            id: student.id,
+            studentName: student.user?.name || "Student",
+            class: student.class,
+            section: student.section,
+          }));
+        }
+      }
+
+      if (rawStudents.length > 0) {
+        // Map student list to study progress metrics
+        const mappedReports: StudentReport[] = rawStudents.map((student: any, idx: number) => {
           // Generate realistic study values based on index
           const bioProgress = Math.min(45 + (idx * 11), 100);
           const chemProgress = Math.min(30 + (idx * 15), 100);
@@ -199,6 +225,8 @@ export default function NEETPrepPage() {
           };
         });
         setStudents(mappedReports);
+      } else {
+        setStudents([]);
       }
     } catch (e) {
       console.error(e);
@@ -226,10 +254,15 @@ export default function NEETPrepPage() {
   }, [teacherId, chapterForm.subject]);
 
   const fetchAll = useCallback(async () => {
+    if (status === "loading") return;
+    if (!schoolId || !teacherId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     await Promise.all([fetchSyllabus(), fetchTests(), fetchStudentReports(), fetchTeacherSubjects()]);
     setLoading(false);
-  }, [fetchSyllabus, fetchTests, fetchStudentReports, fetchTeacherSubjects]);
+  }, [fetchSyllabus, fetchTests, fetchStudentReports, fetchTeacherSubjects, schoolId, teacherId, status]);
 
   useEffect(() => {
     fetchAll();
@@ -1000,18 +1033,8 @@ export default function NEETPrepPage() {
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
               <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> Top Mock Performers</h4>
-              <div className="space-y-3">
-                {[
-                  { name: "Priya Sundaram", score: 695, rank: 1 },
-                  { name: "Ravi Shankar", score: 680, rank: 2 },
-                  { name: "Divya Murugan", score: 642, rank: 3 },
-                ].map((s) => (
-                  <div key={s.rank} className="flex items-center gap-3">
-                    <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">{s.rank}</span>
-                    <span className="flex-1 text-xs font-semibold text-slate-700 dark:text-slate-300">{s.name}</span>
-                    <span className="text-xs font-bold text-emerald-500">{s.score}/720</span>
-                  </div>
-                ))}
+              <div className="text-slate-400 dark:text-slate-500 text-xs italic py-8 text-center">
+                No mock test performances recorded
               </div>
             </div>
           </div>
