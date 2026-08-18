@@ -587,27 +587,27 @@ function StudioViewContent() {
           <div className="w-full max-w-6xl mx-auto py-4">
             <div className={`p-6 sm:p-8 rounded-[2rem] ${theme.bgCard} border ${theme.border} shadow-xl overflow-hidden`}>
               <div className="flex items-center gap-3 mb-8">
-                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xl shadow-md"><i className="fi fi-sr-globe leading-none" /></span>
+                <span className="inline-flex shrink-0 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white text-lg sm:text-xl shadow-md"><i className="fi fi-sr-globe leading-none" /></span>
                 <div>
-                  <h3 className={`font-black text-2xl ${theme.text}`}>Bilingual Glossary Matrix</h3>
-                  <p className={`${theme.textMuted} text-sm`}>Key terms mapped to Tamil equivalents for regional learners.</p>
+                  <h3 className={`font-black text-xl sm:text-2xl ${theme.text}`}>Bilingual Glossary Matrix</h3>
+                  <p className={`${theme.textMuted} text-[13px] sm:text-sm mt-0.5 sm:mt-0`}>Key terms mapped to Tamil equivalents for regional learners.</p>
                 </div>
               </div>
               <div className={`rounded-2xl border ${theme.border} overflow-x-auto`}>
-                <table className="w-full text-left min-w-[560px]">
+                <table className="w-full text-left min-w-[400px] sm:min-w-[560px]">
                   <thead className={`${isDarkMode ? "bg-slate-900/80" : "bg-slate-100/80"} backdrop-blur-md`}>
                     <tr className={`border-b ${theme.border}`}>
-                      <th className={`py-4 px-6 font-black ${theme.textMuted} uppercase text-xs tracking-widest`}>English Term</th>
-                      <th className={`py-4 px-6 font-black ${theme.textMuted} uppercase text-xs tracking-widest`}>Tamil Equivalent</th>
-                      <th className={`py-4 px-6 font-black ${theme.textMuted} uppercase text-xs tracking-widest`}>Pronunciation</th>
+                      <th className={`py-3 px-4 sm:py-4 sm:px-6 font-black ${theme.textMuted} uppercase text-[10px] sm:text-xs tracking-widest`}>English Term</th>
+                      <th className={`py-3 px-4 sm:py-4 sm:px-6 font-black ${theme.textMuted} uppercase text-[10px] sm:text-xs tracking-widest`}>Tamil Equivalent</th>
+                      <th className={`py-3 px-4 sm:py-4 sm:px-6 font-black ${theme.textMuted} uppercase text-[10px] sm:text-xs tracking-widest`}>Pronunciation</th>
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${theme.border}`}>
                     {currentPlan.planData?.bilingual?.map((item: any, i: number) => (
                       <tr key={i} className={`${isDarkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"} transition-colors`}>
-                        <td className={`py-4 px-6 font-bold text-lg ${theme.text}`}>{item.english}</td>
-                        <td className="py-4 px-6 font-bold text-violet-500 font-tamil text-2xl">{item.tamil}</td>
-                        <td className={`py-4 px-6 text-base font-medium ${theme.textMuted} italic`}>{item.pronunciation}</td>
+                        <td className={`py-3 px-4 sm:py-4 sm:px-6 font-bold text-[13px] sm:text-lg ${theme.text}`}>{item.english}</td>
+                        <td className="py-3 px-4 sm:py-4 sm:px-6 font-bold text-violet-500 font-tamil text-[13px] sm:text-2xl">{item.tamil}</td>
+                        <td className={`py-3 px-4 sm:py-4 sm:px-6 text-[13px] sm:text-base font-medium ${theme.textMuted} italic`}>{item.pronunciation}</td>
                       </tr>
                     ))}
                   </tbody>

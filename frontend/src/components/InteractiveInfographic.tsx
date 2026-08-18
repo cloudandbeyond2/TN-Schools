@@ -188,7 +188,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className={`text-4xl md:text-5xl p-3 bg-white rounded-2xl shadow-md border ${colors.border} border-opacity-30`}>
+            <div className={`shrink-0 text-4xl md:text-5xl p-3 bg-white rounded-2xl shadow-md border ${colors.border} border-opacity-30`}>
               {heroIcon}
             </div>
             <div>
@@ -214,19 +214,19 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       {/* REALISTIC CONCEPT VISUAL (Pollinations)                            */}
       {/* ================================================================== */}
-      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-100">
+      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-900">
         <img
           src={pol(`${topic}, ${subject}, core concept visualization, colorful educational infographic style, bright clean background`, 1200, 440)}
           alt={heroTitle}
           loading="lazy"
-          className="w-full h-40 md:h-56 object-cover"
+          className="w-full aspect-[1200/440] object-cover object-center opacity-90"
           onError={(e) => {
             const target = e.currentTarget;
             const parent = target.parentElement;
             if (!parent) return;
             target.style.display = 'none';
             const fb = document.createElement('div');
-            fb.className = 'w-full h-40 md:h-56 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-100 to-slate-200';
+            fb.className = 'w-full aspect-[1200/440] flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-100 to-slate-200';
             fb.innerHTML = `<span style="font-size:3rem;line-height:1">${heroIcon}</span><p style="font-size:13px;font-weight:700;color:#64748b;text-align:center;max-width:280px;padding:0 12px">${heroTitle}</p>`;
             parent.insertBefore(fb, parent.firstChild);
           }}
@@ -284,8 +284,8 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
 
           {/* Constant / Boundary Value */}
           {data?.constantName && (
-            <div className={`${colors.light} border ${colors.border} border-opacity-40 rounded-3xl p-4 shadow-sm flex items-center gap-4`}>
-              <div className={`shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[64px]`}>
+            <div className={`${colors.light} border ${colors.border} border-opacity-40 rounded-3xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4`}>
+              <div className={`w-full sm:w-auto shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[64px]`}>
                 <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1 break-words`}>{data.constantName}</div>
                 <div className={`text-sm font-black ${colors.text} break-words`}>{data.constantValue}</div>
               </div>
@@ -293,32 +293,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
             </div>
           )}
 
-          {/* Term Table */}
-          {termTable.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-md overflow-x-auto">
-              <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-3 min-w-max`}>
-                Bilingual Key Terms / இருமொழி கலைச்சொற்கள்
-              </span>
-              <table className="w-full min-w-[350px] text-left text-xs table-fixed">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">English</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">Tamil</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[50%]">Definition</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {termTable.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px] break-words">{row.english}</td>
-                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px] break-words`}>{row.tamil}</td>
-                      <td className="py-2.5 text-slate-500 text-[10px] leading-snug break-words">{row.definition}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+
         </div>
 
         {/* ---- Interactive Concept Modules (center) ---- */}
@@ -409,11 +384,40 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       </div>
 
       {/* ================================================================== */}
+      {/* BILINGUAL TERM TABLE (FULL WIDTH)                                   */}
+      {/* ================================================================== */}
+      {termTable.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-md overflow-x-auto w-full">
+          <span className={`text-[10px] font-black ${colors.text} uppercase tracking-widest block mb-4 min-w-max`}>
+            Bilingual Key Terms / இருமொழி கலைச்சொற்கள்
+          </span>
+          <table className="w-full min-w-[500px] text-left text-sm table-fixed">
+            <thead>
+              <tr className="border-b border-slate-100">
+                <th className="pb-3 font-black text-slate-500 text-[10px] uppercase tracking-wider w-[20%]">English</th>
+                <th className="pb-3 font-black text-slate-500 text-[10px] uppercase tracking-wider w-[25%]">Tamil</th>
+                <th className="pb-3 font-black text-slate-500 text-[10px] uppercase tracking-wider w-[55%]">Definition</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {termTable.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-3 pr-4 font-bold text-slate-800 text-[13px] break-words">{row.english}</td>
+                  <td className={`py-3 pr-4 font-bold ${colors.text} text-[14px] break-words`}>{row.tamil}</td>
+                  <td className="py-3 text-slate-500 text-xs leading-relaxed break-words">{row.definition}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ================================================================== */}
       {/* WORKFLOW / STEP-BY-STEP BOTTOM                                      */}
       {/* ================================================================== */}
       {workflow.length > 0 && (
         <div className="border-t border-slate-100 pt-5 space-y-3">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
                 Step-by-Step Learning Roadmap
@@ -468,7 +472,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       {/* FOOTER                                                              */}
       {/* ================================================================== */}
-      <div className={`flex justify-between items-center pr-2 pt-2 border-t border-slate-100`}>
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-2 pt-2 border-t border-slate-100`}>
         <span className="text-[9px] font-medium text-slate-400">
           {subject} · Grade content · Tamil Nadu State Board
         </span>
