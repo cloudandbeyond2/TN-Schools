@@ -2302,17 +2302,17 @@ export default function StudentsMonitoringPage() {
                                   {/* ── HEADER BAND ── */}
                                   <div style={{ background: 'rgba(0,0,0,0.4)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
                                     <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                                      <span style={{ fontSize: '10px', fontWeight: 900, color: '#1a4fa8', letterSpacing: '-0.5px' }}>TN</span>
+                                      <span style={{ fontSize: '10px', fontWeight: 900, color: '#1a4fa8', letterSpacing: '-0.5px', marginTop: '-1px' }}>TN</span>
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <div style={{ fontSize: '7.5px', fontWeight: 700, color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1.1 }}>Tamil Nadu School Education Department</div>
-                                      <div style={{ fontSize: '11.5px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25, marginTop: '1px' }}>{schoolName}</div>
+                                      <div style={{ fontSize: '11.5px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25, marginTop: '1px', paddingBottom: '2px' }}>{schoolName}</div>
                                     </div>
-                                    <div style={{ background: '#ef4444', color: '#ffffff', fontSize: '7.5px', fontWeight: 900, padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.08em', flexShrink: 0 }}>STUDENT</div>
+                                    <div style={{ background: '#ef4444', color: '#ffffff', fontSize: '7.5px', fontWeight: 900, padding: '1px 6px 3px 6px', borderRadius: '4px', letterSpacing: '0.08em', flexShrink: 0 }}>STUDENT</div>
                                   </div>
 
                                   {/* ── LOCATION / ACADEMIC YEAR ROW ── */}
-                                  <div style={{ background: 'rgba(255,255,255,0.09)', padding: '3px 12px', fontSize: '8.5px', color: '#bfdbfe', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                  <div style={{ background: 'rgba(255,255,255,0.09)', padding: '3px 12px 5px 12px', fontSize: '8.5px', color: '#bfdbfe', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                     📍 {formattedLocation} &nbsp;|&nbsp; Academic Year: {newAcademicYear || '2024-25'}
                                   </div>
 
@@ -2329,7 +2329,7 @@ export default function StudentsMonitoringPage() {
                                     {/* Info Column */}
                                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
                                       <div>
-                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.15 }}>{newName}</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.15, paddingBottom: '3px' }}>{newName}</div>
                                         <div style={{ fontSize: '10px', fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px', marginBottom: '6px' }}>
                                           {newClass}{newSection ? ` · SECTION ${newSection}` : ''}{newGroup ? ` · GRP ${newGroup}` : ''}
                                         </div>
@@ -2345,7 +2345,7 @@ export default function StudentsMonitoringPage() {
                                         ].map(({ lbl, val }) => (
                                           <div key={lbl} style={{ background: 'rgba(255,255,255,0.08)', padding: '3px 6px', borderRadius: '5px' }}>
                                             <div style={{ fontSize: '7px', color: '#7dd3fc', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{lbl}</div>
-                                            <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
+                                            <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingBottom: '2px' }}>{val}</div>
                                           </div>
                                         ))}
                                       </div>
@@ -2355,7 +2355,7 @@ export default function StudentsMonitoringPage() {
                                   {/* ── FOOTER ── */}
                                   <div style={{ background: 'rgba(0,0,0,0.45)', padding: '5px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
                                     <div style={{ fontSize: '8.5px', color: '#bfdbfe', fontWeight: 700 }}>Issued by: School Headmaster &nbsp;|&nbsp; Valid: {newAcademicYear || 'Current Year'}</div>
-                                    <div style={{ fontSize: '7.5px', color: '#ffffff', fontWeight: 900, background: '#dc2626', padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.05em' }}>IF FOUND, RETURN TO SCHOOL</div>
+                                    <div style={{ fontSize: '7.5px', color: '#ffffff', fontWeight: 900, background: '#dc2626', padding: '1px 6px 3px 6px', borderRadius: '4px', letterSpacing: '0.05em' }}>IF FOUND, RETURN TO SCHOOL</div>
                                   </div>
                                 </div>
                               </div>
@@ -2382,14 +2382,14 @@ export default function StudentsMonitoringPage() {
                                   {/* ── SCHOOL HEADER ── */}
                                   <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', flexShrink: 0, background: '#ffffff' }}>
                                     <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#1a4fa8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
-                                      <span style={{ fontSize: '9.5px', fontWeight: 900, color: '#ffffff' }}>TN</span>
+                                      <span style={{ fontSize: '9.5px', fontWeight: 900, color: '#ffffff', marginTop: '-1px' }}>TN</span>
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                      <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f2744', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>{schoolName}</div>
+                                      <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f2744', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, paddingBottom: '2px' }}>{schoolName}</div>
                                       <div style={{ fontSize: '7.5px', color: '#64748b', fontWeight: 700, marginTop: '1px' }}>Tamil Nadu School Education · Student Identity Card (Back)</div>
                                     </div>
                                     {/* Blood Group badge */}
-                                    <div style={{ background: '#dc2626', color: '#ffffff', borderRadius: '6px', padding: '3px 8px', textAlign: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(220,38,38,0.25)' }}>
+                                    <div style={{ background: '#dc2626', color: '#ffffff', borderRadius: '6px', padding: '2px 8px 4px 8px', textAlign: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(220,38,38,0.25)' }}>
                                       <div style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1 }}>{newBloodGroup || '—'}</div>
                                       <div style={{ fontSize: '6.5px', fontWeight: 800, color: '#fecaca', letterSpacing: '0.05em', marginTop: '1px' }}>BLOOD GROUP</div>
                                     </div>
@@ -2441,15 +2441,104 @@ export default function StudentsMonitoringPage() {
                                   </div>
 
                                   {/* ── HELPLINE FOOTER (Maximum High Contrast) ── */}
-                                  <div style={{ background: 'linear-gradient(90deg, #0f2744 0%, #1a4fa8 50%, #064e3b 100%)', padding: '6px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                                    <div style={{ fontSize: '9px', lineHeight: 1.3 }}>
-                                      <span style={{ color: '#ffffff', fontWeight: 900 }}>📞 Helpline: 14417</span>
-                                      <span style={{ color: '#93c5fd', margin: '0 5px' }}>|</span>
-                                      <span style={{ color: '#ffffff', fontWeight: 700 }}>TN Edu Dept: </span>
-                                      <span style={{ color: '#fde047', fontWeight: 900 }}>044-28268852</span>
-                                    </div>
-                                    <div style={{ fontSize: '8.5px', color: '#7dd3fc', fontWeight: 800, textAlign: 'right' }}>www.tnschools.gov.in</div>
-                                  </div>
+                                  <div
+  style={{
+    background:
+      'linear-gradient(90deg, #0f2744 0%, #1a4fa8 50%, #064e3b 100%)',
+    padding: '6px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'nowrap',
+    width: '100%',
+    height: '30px',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    lineHeight: '1'
+  }}
+>
+  {/* LEFT SIDE */}
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      height: '100%',
+      whiteSpace: 'nowrap',
+      lineHeight: '1',
+      fontSize: '9px'
+    }}
+  >
+    <span
+      style={{
+        color: '#ffffff',
+        fontWeight: 900,
+        display: 'inline-flex',
+        alignItems: 'center',
+        lineHeight: '1'
+      }}
+    >
+      <span
+        style={{
+          fontSize: '11px',
+          marginRight: '4px',
+          lineHeight: '1',
+          display: 'inline-block'
+        }}
+      >
+        ☎
+      </span>
+      Helpline: 14417
+    </span>
+
+    <span
+      style={{
+        color: '#93c5fd',
+        margin: '0 7px',
+        lineHeight: '1'
+      }}
+    >
+      |
+    </span>
+
+    <span
+      style={{
+        color: '#ffffff',
+        fontWeight: 700,
+        lineHeight: '1'
+      }}
+    >
+      TN Edu Dept:
+    </span>
+
+    <span
+      style={{
+        color: '#fde047',
+        fontWeight: 900,
+        marginLeft: '4px',
+        lineHeight: '1'
+      }}
+    >
+      044-28268852
+    </span>
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div
+    style={{
+      color: '#7dd3fc',
+      fontWeight: 800,
+      fontSize: '8.5px',
+      lineHeight: '1',
+      whiteSpace: 'nowrap',
+      display: 'flex',
+      alignItems: 'center',
+      height: '100%'
+    }}
+  >
+    www.tnschools.gov.in
+  </div>
+</div>
                                 </div>
                               </div>
                             </div>

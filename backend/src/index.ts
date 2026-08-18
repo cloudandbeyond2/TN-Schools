@@ -134,8 +134,11 @@ app.use('/api', globalLimiter);
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
+import os from 'os';
+
 // Serve uploaded files statically
 const uploadsDir = path.join(__dirname, '../uploads');
+const tmpUploadsDir = path.join(os.tmpdir(), 'uploads');
 try {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -143,10 +146,19 @@ try {
 } catch (error) {
   console.warn('[Warning] Could not create uploads directory (likely running in a read-only environment like Vercel).');
 }
+try {
+  if (!fs.existsSync(tmpUploadsDir)) {
+    fs.mkdirSync(tmpUploadsDir, { recursive: true });
+  }
+} catch {
+  // Ignore
+}
 app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(tmpUploadsDir));
 
 // Serve audio cache statically
 const audioCacheDir = path.join(__dirname, '../public/audio_cache');
+const tmpAudioCacheDir = path.join(os.tmpdir(), 'audio_cache');
 try {
   if (!fs.existsSync(audioCacheDir)) {
     fs.mkdirSync(audioCacheDir, { recursive: true });
@@ -154,7 +166,15 @@ try {
 } catch (error) {
   console.warn('[Warning] Could not create audio_cache directory.');
 }
+try {
+  if (!fs.existsSync(tmpAudioCacheDir)) {
+    fs.mkdirSync(tmpAudioCacheDir, { recursive: true });
+  }
+} catch {
+  // Ignore
+}
 app.use('/audio_cache', cors({ origin: '*' }), express.static(audioCacheDir));
+app.use('/audio_cache', cors({ origin: '*' }), express.static(tmpAudioCacheDir));
 
 
 
