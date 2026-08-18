@@ -69,6 +69,10 @@ export default function TeacherPersonalGuidePage() {
   const [feedbackText, setFeedbackText] = useState<Record<string, string>>({});
   const [savingFeedback, setSavingFeedback] = useState<string | null>(null);
   const [generatingAI, setGeneratingAI] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [submittingReply, setSubmittingReply] = useState<string | null>(null);
+  const [showReplyAnyway, setShowReplyAnyway] = useState<Record<string, boolean>>({});
+
 
   useEffect(() => {
     if (!schoolId || !teacherId) return;
@@ -139,6 +143,17 @@ export default function TeacherPersonalGuidePage() {
     else setTasks([]);
   }, [selectedStudent, loadTasks]);
 
+  useEffect(() => {
+    if (expandedTaskId) {
+      setTimeout(() => {
+        const container = document.querySelector(`.chat-scroll-container-${expandedTaskId}`);
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [expandedTaskId, tasks]);
+
   const handleSendTask = async () => {
     if (!form.title || !form.question) {
       return Swal.fire({
@@ -183,37 +198,6 @@ export default function TeacherPersonalGuidePage() {
     }
   };
 
-  const handleSaveFeedback = async (taskId: string) => {
-    const fb = feedbackText[taskId];
-    if (!fb?.trim()) return;
-    setSavingFeedback(taskId);
-    try {
-      const res = await fetch(
-        `${API}/api/personal-guide/tasks/${taskId}/feedback`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ teacherFeedback: fb }),
-        }
-      );
-      const data = await res.json();
-      if (data.success) {
-        await loadTasks(selectedStudent.id);
-        setFeedbackText((prev) => ({ ...prev, [taskId]: "" }));
-        Swal.fire({
-          icon: "success",
-          title: "Feedback Saved!",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSavingFeedback(null);
-    }
-  };
-
   const handleSuggestAIFeedback = async (taskId: string) => {
     setGeneratingAI(taskId);
     try {
@@ -222,7 +206,7 @@ export default function TeacherPersonalGuidePage() {
       });
       const data = await res.json();
       if (data.success && data.feedback) {
-        setFeedbackText((prev) => ({ ...prev, [taskId]: data.feedback }));
+        setReplyText((prev) => ({ ...prev, [taskId]: data.feedback }));
       } else {
         Swal.fire({ icon: "error", title: "AI Suggestion Failed", text: data.error || "Make sure GEMINI_API_KEY is configured in backend." });
       }
@@ -231,6 +215,72 @@ export default function TeacherPersonalGuidePage() {
       Swal.fire({ icon: "error", title: "Connection Error", text: "Failed to connect to the backend server." });
     } finally {
       setGeneratingAI(null);
+    }
+  };
+
+  const handleSendReply = async (taskId: string, sender: 'student' | 'teacher') => {
+    const text = replyText[taskId]?.trim();
+    if (!text || !selectedStudent) return;
+
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task) return;
+
+    setSubmittingReply(taskId);
+    try {
+      if (!task.response?.teacherFeedback) {
+        // If there's no initial feedback, save this text as initial feedback
+        const res = await fetch(
+          `${API}/api/personal-guide/tasks/${taskId}/feedback`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teacherFeedback: text }),
+          }
+        );
+        const data = await res.json();
+        if (data.success) {
+          setReplyText((prev) => ({ ...prev, [taskId]: "" }));
+          await loadTasks(selectedStudent.id);
+          Swal.fire({
+            icon: "success",
+            title: "Feedback Saved!",
+            text: "Your feedback has been saved and sent to the student.",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire({ icon: "error", title: "Failed to send feedback", text: data.error });
+        }
+      } else {
+        // Otherwise, send as a regular conversation reply
+        const res = await fetch(
+          `${API}/api/personal-guide/tasks/${taskId}/reply`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sender, text }),
+          }
+        );
+        const data = await res.json();
+        if (data.success) {
+          setReplyText((prev) => ({ ...prev, [taskId]: "" }));
+          setShowReplyAnyway((prev) => ({ ...prev, [taskId]: false }));
+          await loadTasks(selectedStudent.id);
+          Swal.fire({
+            icon: "success",
+            title: "Reply Sent!",
+            text: "Your message has been posted to the student.",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire({ icon: "error", title: "Failed to send reply", text: data.error });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSubmittingReply(null);
     }
   };
 
@@ -261,15 +311,19 @@ export default function TeacherPersonalGuidePage() {
         <div className="w-full space-y-4">
 
           {/* Glassmorphism Header */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-800 py-4 px-5 md:py-5 md:px-6 mb-6 shadow-2xl shadow-indigo-500/20 text-white">
+          <div
+            className="relative overflow-hidden rounded-3xl py-5 px-6 mb-6 shadow-xl text-white transition-all duration-300 group"
+            style={{
+              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)",
+              color: "#ffffff"
+            }}
+          >
             <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-white">
               <i className="fi fi-rr-compass text-[120px] leading-none" />
             </div>
             <div className="relative z-10 max-w-2xl">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-2 border border-white/30">
-                <i className="fi fi-rr-sparkles text-[10px]" /> {lang === "தமிழ்" ? "வழிகாட்டுதல்" : "Mentorship"}
-              </span>
-              <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white">
+              <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white flex items-center gap-2" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                <i className="fi fi-sr-book-bookmark text-white text-2xl flex items-center" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }} />
                 {lang === "தமிழ்" ? "தனிப்பட்ட வழிகாட்டி" : "Personal Guide"}
               </p>
               <p className="text-indigo-100 !text-white text-xs mb-0 leading-relaxed">
@@ -590,78 +644,160 @@ export default function TeacherPersonalGuidePage() {
 
                                 {hasResp ? (
                                   <div className="space-y-3">
-                                    <div>
-                                      <p className="text-xs font-black text-blue-500 uppercase tracking-wider mb-1">
-                                        Student Response
-                                      </p>
-                                      <p className="text-xs text-slate-700 dark:text-slate-300 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg px-3 py-2 leading-relaxed">
-                                        {task.response.responseText}
-                                      </p>
-                                      <p className="text-xs text-slate-400 mt-1">
-                                        Submitted:{" "}
-                                        {new Date(
-                                          task.response.submittedAt
-                                        ).toLocaleString("en-IN")}
-                                      </p>
+                                    <div className={`chat-scroll-container-${task._id} max-h-[300px] overflow-y-auto pr-1 space-y-3 scrollbar-thin`}>
+                                      {/* Student Response */}
+                                      <div>
+                                        <p className="text-xs font-black text-blue-500 uppercase tracking-wider mb-1">
+                                          Student Response
+                                        </p>
+                                        <p className="text-xs text-slate-700 dark:text-slate-300 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg px-3 py-2 leading-relaxed font-medium">
+                                          {task.response.responseText}
+                                        </p>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                          Submitted:{" "}
+                                          {new Date(
+                                            task.response.submittedAt
+                                          ).toLocaleString("en-IN")}
+                                        </p>
+                                      </div>
+
+                                      {/* Teacher Feedback */}
+                                      {task.response.teacherFeedback && (
+                                        <div>
+                                          <p className="text-xs font-black text-emerald-500 uppercase tracking-wider mb-1">
+                                            Your Feedback (sent to student)
+                                          </p>
+                                          <p className="text-xs text-slate-700 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-lg px-3 py-2 italic">
+                                            &quot;{task.response.teacherFeedback}&quot;
+                                          </p>
+                                          {task.response.reviewedAt && (
+                                            <p className="text-xs text-slate-400 mt-1">
+                                              Reviewed: {new Date(task.response.reviewedAt).toLocaleString("en-IN")}
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Thread Replies */}
+                                      {task.response.messages && task.response.messages.map((msg: any, mIdx: number) => (
+                                        <div key={mIdx}>
+                                          <p className={`text-xs font-black uppercase tracking-wider mb-1 ${msg.sender === "student" ? "text-blue-500" : "text-emerald-500"}`}>
+                                            {msg.sender === "student" ? "Student Response" : "Your Feedback"}
+                                          </p>
+                                          <p className={`text-xs text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 leading-relaxed ${msg.sender === "student" ? "bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 font-medium" : "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 italic"}`}>
+                                            {msg.sender === "teacher" && '"'}{msg.text}{msg.sender === "teacher" && '"'}
+                                          </p>
+                                          <p className="text-xs text-slate-400 mt-1">
+                                            Sent: {new Date(msg.timestamp).toLocaleString("en-IN")}
+                                          </p>
+                                        </div>
+                                      ))}
                                     </div>
 
-                                    {task.response.teacherFeedback ? (
-                                      <div>
-                                        <p className="text-xs font-black text-emerald-500 uppercase tracking-wider mb-1">
-                                          Your Feedback (sent to student)
-                                        </p>
-                                        <p className="text-xs text-slate-700 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-lg px-3 py-2 italic">
-                                          &quot;{task.response.teacherFeedback}&quot;
-                                        </p>
-                                      </div>
-                                    ) : (
-                                      <div className="space-y-2">
-                                        <p className="text-xs font-black text-indigo-500 uppercase tracking-wider">
-                                          Add Your Feedback
-                                        </p>
-                                        <textarea
-                                          rows={4}
-                                          value={feedbackText[task._id] || ""}
-                                          onChange={(e) =>
-                                            setFeedbackText((prev) => ({
-                                              ...prev,
-                                              [task._id]: e.target.value,
-                                            }))
-                                          }
-                                          placeholder="Write feedback for this student's response..."
-                                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-400 resize-none"
-                                        />
-                                        <div className="flex gap-2 items-center">
-                                          <button
-                                            onClick={() =>
-                                              handleSuggestAIFeedback(task._id)
+                                    {/* Scroll to Bottom Button */}
+                                    {task.response.messages && task.response.messages.length > 1 && (
+                                      <div className="flex justify-end pr-1">
+                                        <button
+                                          onClick={() => {
+                                            const container = document.querySelector(`.chat-scroll-container-${task._id}`);
+                                            if (container) {
+                                              container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
                                             }
-                                            disabled={generatingAI === task._id}
-                                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
-                                          >
-                                            <i className="fi fi-rr-sparkles text-xs mr-1" />
-                                            {generatingAI === task._id
-                                              ? "Thinking..."
-                                              : " Auto-Suggest AI"}
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handleSaveFeedback(task._id)
-                                            }
-                                            disabled={
-                                              savingFeedback === task._id ||
-                                              !feedbackText[task._id]?.trim()
-                                            }
-                                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
-                                          >
-                                            <i className="fi fi-rr-star text-xs mr-1" />
-                                            {savingFeedback === task._id
-                                              ? "Saving..."
-                                              : "Send Feedback"}
-                                          </button>
-                                        </div>
+                                          }}
+                                          className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full text-[10px] font-bold transition-colors border border-slate-200/50 dark:border-slate-700/50 cursor-pointer shadow-sm"
+                                          title="Scroll to bottom"
+                                        >
+                                          <i className="fi fi-rr-arrow-small-down text-[10px] flex items-center justify-center" />
+                                          Scroll to Bottom
+                                        </button>
                                       </div>
                                     )}
+
+
+                                    {/* Reply / Awaiting Response Block */}
+                                     {(() => {
+                                       const replies = task.response.messages || [];
+                                       const lastSender = replies.length > 0 
+                                         ? replies[replies.length - 1].sender 
+                                         : (task.response.teacherFeedback ? 'teacher' : 'student');
+ 
+                                       if (lastSender === 'student' || showReplyAnyway[task._id]) {
+                                         return (
+                                           <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800 space-y-3">
+                                             <div className="flex items-center justify-between">
+                                               <p className="text-xs font-black text-indigo-500 uppercase tracking-wider">
+                                                 {!task.response.teacherFeedback ? "Add Initial Feedback" : "Continue Conversation"}
+                                               </p>
+                                               {lastSender !== 'student' && (
+                                                 <button
+                                                   onClick={() => setShowReplyAnyway((prev) => ({ ...prev, [task._id]: false }))}
+                                                   className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                                 >
+                                                   Cancel reply
+                                                 </button>
+                                               )}
+                                             </div>
+                                             <textarea
+                                               rows={3}
+                                               value={replyText[task._id] || ""}
+                                               onChange={(e) =>
+                                                 setReplyText((prev) => ({
+                                                   ...prev,
+                                                   [task._id]: e.target.value,
+                                                 }))
+                                               }
+                                               placeholder={!task.response.teacherFeedback ? "Write feedback for this student's response..." : "Write a reply to the student..."}
+                                               className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-400 resize-none leading-relaxed"
+                                             />
+                                             <div className="flex gap-2 items-center">
+                                               {!task.response.teacherFeedback && (
+                                                 <button
+                                                   onClick={() =>
+                                                     handleSuggestAIFeedback(task._id)
+                                                   }
+                                                   disabled={generatingAI === task._id}
+                                                   className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
+                                                 >
+                                                   <i className="fi fi-rr-sparkles text-xs mr-1" />
+                                                   {generatingAI === task._id
+                                                     ? "Thinking..."
+                                                     : " Auto-Suggest AI"}
+                                                 </button>
+                                               )}
+                                               <button
+                                                 onClick={() => handleSendReply(task._id, 'teacher')}
+                                                 disabled={
+                                                   submittingReply === task._id ||
+                                                   !replyText[task._id]?.trim()
+                                                 }
+                                                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
+                                               >
+                                                 <i className="fi fi-rr-star text-xs mr-1" />
+                                                 {submittingReply === task._id 
+                                                   ? "Sending..." 
+                                                   : (!task.response.teacherFeedback ? "Send Feedback" : "Send Reply")}
+                                               </button>
+                                             </div>
+                                           </div>
+                                         );
+                                       } else {
+                                         return (
+                                           <div 
+                                             onClick={() => setShowReplyAnyway((prev) => ({ ...prev, [task._id]: true }))}
+                                             className="flex items-center justify-between gap-2 text-xs text-amber-500 bg-amber-50 hover:bg-amber-100/50 dark:bg-amber-950/20 dark:hover:bg-amber-900/10 border border-amber-100 dark:border-amber-900 rounded-lg px-3 py-2 cursor-pointer transition-colors"
+                                             title="Click to send another message anyway"
+                                           >
+                                             <div className="flex items-center gap-2">
+                                               <i className="fi fi-rr-clock text-xs shrink-0 animate-spin" />
+                                               <span>Waiting for student response...</span>
+                                             </div>
+                                             <span className="text-[10px] font-bold underline text-indigo-500 dark:text-indigo-400 hover:text-indigo-600">
+                                               Click to reply anyway
+                                             </span>
+                                           </div>
+                                         );
+                                       }
+                                     })()}
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-lg px-3 py-2">

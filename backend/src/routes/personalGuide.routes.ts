@@ -654,6 +654,45 @@ router.put('/tasks/:taskId/feedback', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/personal-guide/tasks/:taskId/reply — Add message to continuation thread
+router.post('/tasks/:taskId/reply', async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { sender, text } = req.body;
+    if (!sender || !text) {
+      return res.status(400).json({ success: false, error: 'sender and text are required' });
+    }
+
+    const response = await PersonalGuideResponse.findOne({ taskId });
+    if (!response) {
+      return res.status(404).json({ success: false, error: 'Response not found' });
+    }
+
+    // Initialize messages array if not present
+    if (!response.messages) {
+      response.messages = [];
+    }
+
+    response.messages.push({
+      sender,
+      text,
+      timestamp: new Date()
+    });
+
+    await response.save();
+
+    // If student replied, set task status to 'answered' so teacher knows there's a new message
+    // If teacher replied, set task status to 'reviewed'
+    const newStatus = sender === 'student' ? 'answered' : 'reviewed';
+    await PersonalGuideTask.findByIdAndUpdate(taskId, { status: newStatus });
+
+    return res.json({ success: true, data: response });
+  } catch (err: any) {
+    console.error('[POST /api/personal-guide/tasks/:taskId/reply]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to add reply' });
+  }
+});
+
 // DELETE /api/personal-guide/tasks/:taskId — Teacher deletes a task
 router.delete('/tasks/:taskId', async (req: Request, res: Response) => {
   try {

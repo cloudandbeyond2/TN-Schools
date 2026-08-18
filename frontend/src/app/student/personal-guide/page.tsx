@@ -304,6 +304,8 @@ export default function StudentPersonalGuidePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [submittingReply, setSubmittingReply] = useState<string | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -414,6 +416,40 @@ export default function StudentPersonalGuidePage() {
     }
   };
 
+  const handleSendReply = async (taskId: string, sender: 'student' | 'teacher') => {
+    const text = replyText[taskId]?.trim();
+    if (!text || !student) return;
+    setSubmittingReply(taskId);
+    try {
+      const res = await fetch(
+        `${API}/api/personal-guide/tasks/${taskId}/reply`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sender, text }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        setReplyText((prev) => ({ ...prev, [taskId]: "" }));
+        await loadTasks(student.id);
+        Swal.fire({
+          icon: "success",
+          title: "Reply Sent!",
+          text: "Your message has been posted to your teacher.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({ icon: "error", title: "Failed to send", text: data.error });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSubmittingReply(null);
+    }
+  };
+
   const pendingCount = tasks.filter((task) => task.status === "pending").length;
   const answeredCount = tasks.filter((task) => task.status === "answered").length;
   const reviewedCount = tasks.filter((task) => task.status === "reviewed").length;
@@ -454,35 +490,14 @@ export default function StudentPersonalGuidePage() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-          <div className="relative z-10 space-y-4 max-w-3xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-sm">
-                <i className="fi fi-sr-book-bookmark text-white text-lg flex items-center" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }} />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight !text-white drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-                  {t.personalGuide}
-                </h1>
-                <p className="text-indigo-100 text-xs font-medium drop-shadow-sm">
-                  {t.subtitle}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 max-w-md">
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-lg sm:text-xl font-black text-amber-300">{pendingCount}</p>
-                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.awaitingReply}</p>
-              </div>
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-lg sm:text-xl font-black text-blue-200">{answeredCount}</p>
-                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.replied}</p>
-              </div>
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-lg sm:text-xl font-black text-emerald-300">{reviewedCount}</p>
-                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.feedbackReceived}</p>
-              </div>
-            </div>
+          <div className="relative z-10 max-w-2xl">
+            <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white flex items-center gap-2" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+              <i className="fi fi-sr-book-bookmark text-white text-2xl flex items-center" />
+              {t.personalGuide}
+            </p>
+            <p className="text-indigo-100 !text-white text-xs mb-0 leading-relaxed" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+              {t.subtitle}
+            </p>
           </div>
 
           {/* Scoped style to ensure active toggle button text is dark navy */}
@@ -598,36 +613,129 @@ export default function StudentPersonalGuidePage() {
 
                           {hasRes ? (
                             <div className="space-y-3">
-                              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100/40 dark:border-blue-900/40 rounded-xl p-4">
-                                <p className="text-xs font-black text-blue-500 uppercase tracking-wider mb-1">
-                                  {t.yourAnswer}
-                                </p>
-                                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                                  {task.response.responseText}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-2">
-                                  {t.submitted}{" "}
-                                  {new Date(
-                                    task.response.submittedAt
-                                  ).toLocaleString("en-IN")}
-                                </p>
+                              <div className={`chat-scroll-container-${task._id} max-h-[300px] overflow-y-auto pr-1 space-y-3 scrollbar-thin`}>
+                                {/* Initial Student Answer */}
+                                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100/40 dark:border-blue-900/40 rounded-xl p-4">
+                                  <p className="text-xs font-black text-blue-500 uppercase tracking-wider mb-1">
+                                    {t.yourAnswer}
+                                  </p>
+                                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                                    {task.response.responseText}
+                                  </p>
+                                  <p className="text-xs text-slate-400 mt-2">
+                                    {t.submitted}{" "}
+                                    {new Date(
+                                      task.response.submittedAt
+                                    ).toLocaleString("en-IN")}
+                                  </p>
+                                </div>
+
+                                {/* Initial Teacher Feedback */}
+                                {task.response.teacherFeedback && (
+                                  <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+                                    <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+                                      {t.teacherFeedback}
+                                    </p>
+                                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">
+                                      &quot;{task.response.teacherFeedback}&quot;
+                                    </p>
+                                    {task.response.reviewedAt && (
+                                      <p className="text-xs text-slate-400 mt-1">
+                                        Reviewed: {new Date(task.response.reviewedAt).toLocaleString("en-IN")}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Thread Replies */}
+                                {task.response.messages && task.response.messages.map((msg: any, mIdx: number) => (
+                                  <div 
+                                    key={mIdx} 
+                                    className={`p-4 rounded-xl border ${
+                                      msg.sender === "student" 
+                                        ? "bg-blue-50 dark:bg-blue-950/20 border-blue-100/40 dark:border-blue-900/40" 
+                                        : "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800"
+                                    }`}
+                                  >
+                                    <p className={`text-xs font-black uppercase tracking-wider mb-1 ${msg.sender === "student" ? "text-blue-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                                      {msg.sender === "student" ? t.yourAnswer : t.teacherFeedback}
+                                    </p>
+                                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                                      {msg.text}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-2">
+                                      {new Date(msg.timestamp).toLocaleString("en-IN")}
+                                    </p>
+                                  </div>
+                                ))}
                               </div>
 
-                              {task.response.teacherFeedback ? (
-                                <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-                                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
-                                    {t.teacherFeedback}
-                                  </p>
-                                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">
-                                    &quot;{task.response.teacherFeedback}&quot;
-                                  </p>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl px-4 py-3">
-                                  <i className="fi fi-sr-clock text-amber-500 flex items-center" />
-                                  {t.teacherReviewing}
+                              {/* Scroll to Bottom Button */}
+                              {task.response.messages && task.response.messages.length > 1 && (
+                                <div className="flex justify-end pr-1">
+                                  <button
+                                    onClick={() => {
+                                      const container = document.querySelector(`.chat-scroll-container-${task._id}`);
+                                      if (container) {
+                                        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+                                      }
+                                    }}
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full text-[10px] font-bold transition-colors border border-slate-200/50 dark:border-slate-700/50 cursor-pointer shadow-sm"
+                                    title="Scroll to bottom"
+                                  >
+                                    <i className="fi fi-rr-arrow-small-down text-[10px] flex items-center justify-center" />
+                                    Scroll to Bottom
+                                  </button>
                                 </div>
                               )}
+
+                              {/* Reply / Awaiting Response Block */}
+                              {(() => {
+                                const replies = task.response.messages || [];
+                                const lastSender = replies.length > 0 
+                                  ? replies[replies.length - 1].sender 
+                                  : (task.response.teacherFeedback ? 'teacher' : 'student');
+
+                                if (lastSender === 'teacher') {
+                                  return (
+                                    <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800 space-y-3">
+                                      <p className="text-xs font-black text-slate-500 uppercase tracking-wider">
+                                        Continue Conversation
+                                      </p>
+                                      <textarea
+                                        rows={3}
+                                        value={replyText[task._id] || ""}
+                                        onChange={(e) =>
+                                          setReplyText((prev) => ({
+                                            ...prev,
+                                            [task._id]: e.target.value,
+                                          }))
+                                        }
+                                        placeholder="Type your reply to your teacher here..."
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
+                                      />
+                                      <button
+                                        onClick={() => handleSendReply(task._id, 'student')}
+                                        disabled={
+                                          submittingReply === task._id ||
+                                          !replyText[task._id]?.trim()
+                                        }
+                                        className="flex items-center gap-2 px-5 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
+                                      >
+                                        <i className="fi fi-sr-paper-plane flex items-center text-xs" />
+                                        {submittingReply === task._id ? "Sending..." : "Send Reply"}
+                                      </button>
+                                    </div>
+                                  );
+                                } else {
+                                  return (
+                                    <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl px-4 py-3">
+                                      <i className="fi fi-sr-clock text-amber-500 flex items-center" />
+                                      {t.teacherReviewing}
+                                    </div>
+                                  );
+                                }
+                              })()}
                             </div>
                           ) : (
                             <div className="space-y-3">
