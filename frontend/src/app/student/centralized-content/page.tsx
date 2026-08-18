@@ -470,7 +470,7 @@ export default function CentralizedContentPage() {
                         className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white text-base sm:text-lg shrink-0"
                         style={{ background: theme.gradient }}
                       >
-                        <i className={`fi ${theme.icon} text-white flex items-center`} style={{ color: '#fff' }} />
+                        <i className={`fi ${theme.icon} !text-white flex items-center`} style={{ color: 'white', WebkitTextFillColor: 'white' }} />
                       </div>
                       <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 sm:px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/20 shadow-xs shrink-0">
                         Class {sub.class}
@@ -517,7 +517,7 @@ export default function CentralizedContentPage() {
                     className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white text-xl"
                     style={{ background: theme.gradient }}
                   >
-                    <i className={`fi ${theme.icon} text-white flex items-center`} style={{ color: '#fff' }} />
+                    <i className={`fi ${theme.icon} !text-white flex items-center`} style={{ color: 'white', WebkitTextFillColor: 'white' }} />
                   </div>
                   <div>
                     <h3 className="font-black text-sm md:text-base text-slate-805 dark:text-slate-100">{selectedSubject.name}</h3>
