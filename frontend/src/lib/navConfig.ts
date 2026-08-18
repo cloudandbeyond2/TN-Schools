@@ -168,8 +168,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
-      { label: "---", href: "#", icon: "" },
-      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+      // { label: "---", href: "#", icon: "" },
+      // { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
       //// { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Extracurricular & Wellbeing ───────────────────
@@ -253,8 +253,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
-      { label: "---", href: "#", icon: "" },
-      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+      // { label: "---", href: "#", icon: "" },
+      // { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
       // // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Extracurricular & Wellbeing ───────────────────
