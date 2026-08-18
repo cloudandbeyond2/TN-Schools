@@ -488,6 +488,12 @@ const PersonalGuideTaskSchema = new Schema<IPersonalGuideTask>({
 export const PersonalGuideTask = mongoose.models.PersonalGuideTask || mongoose.model<IPersonalGuideTask>('PersonalGuideTask', PersonalGuideTaskSchema);
 
 
+export interface IMessage {
+  sender: 'student' | 'teacher';
+  text: string;
+  timestamp: Date;
+}
+
 export interface IPersonalGuideResponse extends Document {
   taskId: string;
   studentId: string;
@@ -496,6 +502,7 @@ export interface IPersonalGuideResponse extends Document {
   teacherFeedback?: string;
   submittedAt: Date;
   reviewedAt?: Date;
+  messages?: IMessage[];
 }
 
 const PersonalGuideResponseSchema = new Schema<IPersonalGuideResponse>({
@@ -506,6 +513,11 @@ const PersonalGuideResponseSchema = new Schema<IPersonalGuideResponse>({
   teacherFeedback: { type: String },
   submittedAt:     { type: Date, default: Date.now },
   reviewedAt:      { type: Date },
+  messages:        [{
+    sender:    { type: String, enum: ['student', 'teacher'], required: true },
+    text:      { type: String, required: true },
+    timestamp: { type: Date, default: Date.now }
+  }]
 });
 
 export const PersonalGuideResponse = mongoose.models.PersonalGuideResponse || mongoose.model<IPersonalGuideResponse>('PersonalGuideResponse', PersonalGuideResponseSchema);
