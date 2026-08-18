@@ -495,7 +495,7 @@ export default function StudentPersonalGuidePage() {
               <i className="fi fi-sr-book-bookmark text-white text-2xl flex items-center" />
               {t.personalGuide}
             </p>
-            <p className="text-indigo-100 !text-white text-xs mb-0 leading-relaxed" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+            <p className="text-white text-xs mb-0 leading-relaxed" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
               {t.subtitle}
             </p>
           </div>

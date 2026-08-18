@@ -326,7 +326,7 @@ export default function TeacherPersonalGuidePage() {
                 <i className="fi fi-sr-book-bookmark text-white text-2xl flex items-center" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }} />
                 {lang === "தமிழ்" ? "தனிப்பட்ட வழிகாட்டி" : "Personal Guide"}
               </p>
-              <p className="text-indigo-100 !text-white text-xs mb-0 leading-relaxed">
+              <p className="text-white text-xs mb-0 leading-relaxed" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                 {lang === "தமிழ்" ? "மாணவர்களுக்கு தனிப்பணிகள் அனுப்பி, அவர்களின் பதில்களைக் கண்காணித்துக் கருத்துக்களை வழங்கவும்." : "Send personalized tasks to students, track their responses, and provide guidance."}
               </p>
             </div>
