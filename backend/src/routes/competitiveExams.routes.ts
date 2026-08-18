@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import {
   HSC_GROUPS,
   STREAM_LABELS,
@@ -387,9 +388,16 @@ router.post('/upload-syllabus-pdf', upload.single('file'), async (req: Request, 
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    let uploadsDir = path.join(__dirname, '../../uploads');
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+    } catch {
+      uploadsDir = path.join(os.tmpdir(), 'uploads');
+      try {
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+      } catch {}
     }
 
     const fileExt = path.extname(req.file.originalname) || '.pdf';

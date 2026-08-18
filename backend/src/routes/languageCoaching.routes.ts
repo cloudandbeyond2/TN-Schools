@@ -7,13 +7,26 @@ import crypto from 'crypto';
 import { EdgeTTS } from 'node-edge-tts';
 import { LanguageCoachingProgress } from '../models/mongo';
 
+import os from 'os';
+
 const router = Router();
 const prisma = new PrismaClient();
 
-// Ensure audio cache folder exists
-const AUDIO_CACHE_DIR = path.join(__dirname, '../../public/audio_cache');
-if (!fs.existsSync(AUDIO_CACHE_DIR)) {
-  fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
+// Ensure audio cache folder exists safely (with fallback for read-only environments like Vercel)
+let AUDIO_CACHE_DIR = path.join(__dirname, '../../public/audio_cache');
+try {
+  if (!fs.existsSync(AUDIO_CACHE_DIR)) {
+    fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
+  }
+} catch {
+  AUDIO_CACHE_DIR = path.join(os.tmpdir(), 'audio_cache');
+  try {
+    if (!fs.existsSync(AUDIO_CACHE_DIR)) {
+      fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
+    }
+  } catch {
+    // Ignore if directory creation fails
+  }
 }
 
 

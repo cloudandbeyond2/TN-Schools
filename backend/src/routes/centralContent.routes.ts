@@ -20,11 +20,20 @@ const generalUpload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }
 });
 
+import os from 'os';
+
 const materialsStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    let dir = path.join(__dirname, '../../uploads');
+    try {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch {
+      dir = path.join(os.tmpdir(), 'uploads');
+      try {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      } catch {}
     }
     cb(null, dir);
   },

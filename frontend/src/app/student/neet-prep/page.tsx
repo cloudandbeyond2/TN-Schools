@@ -91,7 +91,7 @@ const chapterQuestions: Record<Subject, Question[]> = {
 };
 
 export default function StudentNEETPrepPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
 
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -117,9 +117,10 @@ export default function StudentNEETPrepPage() {
   const [generatingAi, setGeneratingAi] = useState(false);
 
   const fetchSyllabus = useCallback(async () => {
+    if (!schoolId) return;
     try {
       const params = new URLSearchParams();
-      if (schoolId) params.append("schoolId", schoolId);
+      params.append("schoolId", schoolId);
       const res = await fetch(`${API}/api/neet-prep/chapters?${params}`);
       const data = await res.json();
       if (data.success) setChapters(data.data);
@@ -129,9 +130,10 @@ export default function StudentNEETPrepPage() {
   }, [schoolId]);
 
   const fetchTests = useCallback(async () => {
+    if (!schoolId) return;
     try {
       const params = new URLSearchParams();
-      if (schoolId) params.append("schoolId", schoolId);
+      params.append("schoolId", schoolId);
       const res = await fetch(`${API}/api/neet-prep/mock-tests?${params}`);
       const data = await res.json();
       if (data.success) {
@@ -154,10 +156,15 @@ export default function StudentNEETPrepPage() {
   }, [schoolId]);
 
   const fetchAll = useCallback(async () => {
+    if (status === "loading") return;
+    if (!schoolId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     await Promise.all([fetchSyllabus(), fetchTests()]);
     setLoading(false);
-  }, [fetchSyllabus, fetchTests]);
+  }, [fetchSyllabus, fetchTests, schoolId, status]);
 
   useEffect(() => {
     fetchAll();
@@ -417,12 +424,15 @@ export default function StudentNEETPrepPage() {
             .banner-desc {
               color: rgba(255, 255, 255, 0.85) !important;
             }
+            :root:not(.dark) .banner-stat-val,
             .banner-stat-val {
               color: #ffffff !important;
             }
+            :root:not(.dark) .banner-stat-lbl,
             .banner-stat-lbl {
               color: rgba(255, 255, 255, 0.7) !important;
             }
+            :root:not(.dark) .banner-stat-icon,
             .banner-stat-icon {
               color: rgba(255, 255, 255, 0.9) !important;
             }
