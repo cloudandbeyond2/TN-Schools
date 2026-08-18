@@ -12,6 +12,11 @@ export default function StudentMockTestsPage() {
   
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openSubjects, setOpenSubjects] = useState<Record<string, boolean>>({});
+
+  const toggleSubject = (subject: string) => {
+    setOpenSubjects(prev => ({ ...prev, [subject]: prev[subject] === undefined ? true : !prev[subject] }));
+  };
   
   // Test Taking State
   const [activeTest, setActiveTest] = useState<any>(null);
@@ -306,19 +311,33 @@ export default function StudentMockTestsPage() {
                 return acc;
               }, {} as Record<string, any[]>);
 
-              return (Object.entries(subjectGroups) as [string, any[]][]).map(([subject, tests]) => (
-                <div key={subject} className="bg-white/50 dark:bg-gray-800/50 rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-gray-700 pb-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 shrink-0">
-                      <i className="fi fi-sr-folder text-lg" />
+              return (Object.entries(subjectGroups) as [string, any[]][]).map(([subject, tests]) => {
+                const isOpen = openSubjects[subject] === undefined ? false : openSubjects[subject];
+                
+                return (
+                  <div key={subject} className="bg-white/50 dark:bg-gray-800/50 rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-all duration-300">
+                    <div 
+                      className={`flex items-center gap-3 cursor-pointer select-none group transition-all duration-300 ${isOpen ? 'mb-5 border-b border-gray-100 dark:border-gray-700 pb-4' : ''}`}
+                      onClick={() => toggleSubject(subject)}
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 shrink-0 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
+                        <i className="fi fi-sr-folder text-lg" />
+                      </div>
+                      <h3 className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{subject}</h3>
+                      
+                      <div className="ml-auto flex items-center gap-3">
+                        <span className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-700">
+                          {tests.length} {lang === "தமிழ்" ? "தேர்வுகள்" : "Tests"}
+                        </span>
+                        <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                          <i className="fi fi-sr-angle-down text-sm flex items-center" />
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide">{subject}</h3>
-                    <span className="ml-auto bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-700">
-                      {tests.length} {lang === "தமிழ்" ? "தேர்வுகள்" : "Tests"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {tests.map((assignment) => {
+
+                    {isOpen && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in zoom-in-95 duration-200">
+                        {tests.map((assignment) => {
                       const test = assignment.mockTest;
                       const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
                       const score = hasSubmitted ? assignment.submissions[0].score : null;
@@ -377,11 +396,13 @@ export default function StudentMockTestsPage() {
                       );
                     })}
                   </div>
-                </div>
-              ));
-            })()}
-          </div>
-        )}
+                )}
+              </div>
+            );
+          });
+        })()}
+      </div>
+    )}
       </div>
     </PortalLayout>
   );
