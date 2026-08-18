@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { samacheerFormulas, SamacheerFormula } from "@/data/samacheer-formulas";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function QuizPage() {
   const [currentQuiz, setCurrentQuiz] = useState<any>(null);
@@ -103,6 +104,14 @@ export default function QuizPage() {
 
   if (quizCompleted) return (
     <PortalLayout title="Maths Quiz" subtitle="Completed!" themeClass="theme-student">
+       <div className="flex justify-start mb-4">
+         <Link 
+           href="/student/maths-formulas"
+           className="flex items-center gap-2 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
+         >
+           <i className="fi fi-rr-arrow-left"></i> Back to Formula
+         </Link>
+       </div>
        <div className="mt-12 bg-emerald-950 rounded-[2.5rem] p-12 border border-emerald-800/40 shadow-xl text-center">
          <h2 className="text-3xl font-black text-emerald-400 mb-4">Quiz Completed! 🎉</h2>
          <p className="text-xl !text-white mb-6" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>You've answered all questions for your standard.</p>
@@ -124,6 +133,14 @@ export default function QuizPage() {
 
   if (!currentQuiz) return (
     <PortalLayout title="Maths Quiz" subtitle="Loading..." themeClass="theme-student">
+       <div className="flex justify-start mb-4">
+         <Link 
+           href="/student/maths-formulas"
+           className="flex items-center gap-2 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
+         >
+           <i className="fi fi-rr-arrow-left"></i> Back to Formula
+         </Link>
+       </div>
        <div className="p-8 text-center text-white">Loading quiz...</div>
     </PortalLayout>
   );
@@ -132,7 +149,13 @@ export default function QuizPage() {
 
   return (
     <PortalLayout title="Maths Magic Quiz" subtitle="Test yourself!" themeClass="theme-student">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <Link 
+          href="/student/maths-formulas"
+          className="flex items-center gap-2 p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
+        >
+          <i className="fi fi-rr-arrow-left"></i> Back to Formula
+        </Link>
         <button
           onClick={() => setLang(l => l === "en" ? "ta" : "en")}
           className="p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
