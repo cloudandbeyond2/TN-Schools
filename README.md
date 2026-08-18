@@ -1,1 +1,1 @@
-# privateschool
+# privateschools
