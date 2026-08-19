@@ -711,13 +711,86 @@ const grade11: ZoologyGrade = {
   ],
 };
 
+const grade12: ZoologyGrade = {
+  grade: 12,
+  label: "Class 12 · Bio-Zoology",
+  medium: "English",
+  book: "Class 12 Bio-Zoology, 2024 Edition",
+  intro: "Class 12 Zoology covers reproduction, genetics, biotechnology, human health, and environmental biology. Master each chapter's concepts and quizzes to prepare for NEET and board exams.",
+  units: [
+    {
+      id: "human-reproduction",
+      title: "Human Reproduction",
+      titleTa: "மனித இனப்பெருக்கம்",
+      textbookRef: "Class 12 Bio-Zoology · Chapter 2",
+      emoji: "👶",
+      color: "rose",
+      objectives: [
+        "Describe the male and female reproductive systems.",
+        "Explain gametogenesis (spermatogenesis & oogenesis).",
+        "Understand fertilization, embryonic development, and parturition."
+      ],
+      concepts: [
+        { heading: "Reproductive Systems", body: "The male system produces sperm in the testes, and the female system produces eggs in the ovaries and supports gestation in the uterus." },
+        { heading: "Gametogenesis", body: "Spermatogenesis produces sperm cells, and oogenesis produces egg cells. Both involve meiosis to create haploid cells." }
+      ],
+      figure: { caption: "Human reproductive systems and cell development stages.", page: "Chapter 2" },
+      research: [
+        { title: "In-vitro fertilization (IVF) advancements", body: "New research uses AI to select the healthiest embryos for implantation during IVF.", year: "2024" }
+      ],
+      news: [
+        { title: "Stem cell research", body: "Scientists are exploring how stem cells can repair reproductive tissues.", tag: "Biotech" }
+      ],
+      glossary: [
+        { term: "Gametogenesis", ta: "இனப்பெருக்கச் செல் உருவாக்கம்", def: "The process of forming male and female gametes." },
+        { term: "Fertilization", ta: "கருவுறுதல்", def: "The fusion of male and female gametes to form a zygote." }
+      ],
+      quiz: [
+        { q: "Where does spermatogenesis take place?", options: ["Uterus", "Seminiferous tubules", "Ovaries"], answer: 1, explain: "Seminiferous tubules is where sperm cells develop." }
+      ]
+    },
+    {
+      id: "molecular-genetics",
+      title: "Molecular Genetics",
+      titleTa: "மூலக்கூறு மரபியல்",
+      textbookRef: "Class 12 Bio-Zoology · Chapter 5",
+      emoji: "🧬",
+      color: "purple",
+      objectives: [
+        "Explain the structure of DNA as a double helix.",
+        "Understand transcription, translation, and replication.",
+        "Explain the genetic code and regulation of gene expression."
+      ],
+      concepts: [
+        { heading: "DNA Double Helix", body: "DNA consists of two polynucleotide chains wound around each other, carrying the genetic instructions for all living organisms." },
+        { heading: "Replication and Transcription", body: "DNA replicates to duplicate itself. Transcription converts DNA segments into RNA messages." }
+      ],
+      figure: { caption: "Structure of a DNA Double Helix and base pairing.", page: "Chapter 5" },
+      research: [
+        { title: "CRISPR gene editing", body: "CRISPR technology allows scientists to edit DNA sequences and modify gene function.", year: "2024" }
+      ],
+      news: [
+        { title: "Gene therapies", body: "Newly approved gene therapies are curing genetic disorders in clinical trials.", tag: "Genetics" }
+      ],
+      glossary: [
+        { term: "DNA", ta: "டி.என்.ஏ", def: "Deoxyribonucleic acid, the hereditary material in organisms." },
+        { term: "Transcription", ta: "படிபெடுத்தல்", def: "The process of copying DNA into RNA." }
+      ],
+      quiz: [
+        { q: "Which base pairs with Adenine in DNA?", options: ["Cytosine", "Thymine", "Guanine"], answer: 1, explain: "Adenine always pairs with Thymine in DNA." }
+      ]
+    }
+  ]
+};
+
 export const ZOOLOGY_SYLLABUS: Record<number, ZoologyGrade> = {
   8: grade8,
   10: grade10,
   11: grade11,
+  12: grade12,
 };
 
-export const AVAILABLE_GRADES = [8, 10, 11];
+export const AVAILABLE_GRADES = [8, 10, 11, 12];
 
 // Map a student's raw class string (e.g. "8", "VIII", "Std 8", "11-A") to a
 // grade we have content for. Falls back to the nearest available grade.
@@ -734,10 +807,11 @@ export function resolveGrade(rawClass?: string | number | null): number {
 
 function closest(g: number): number {
   if (AVAILABLE_GRADES.includes(g)) return g;
-  // map 6-9 -> 8, 10 -> 10, 11-12 -> 11
+  // map 6-9 -> 8, 10 -> 10, 11 -> 11, 12 -> 12
   if (g <= 9) return 8;
   if (g === 10) return 10;
-  return 11;
+  if (g === 11) return 11;
+  return 12;
 }
 
 // ----------------------------------------------------------------------------
