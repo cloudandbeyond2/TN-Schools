@@ -271,31 +271,11 @@ export default function ReportPage() {
     const saved = typeof window !== "undefined" ? localStorage.getItem("tn_student_reports") : null;
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        initialReports = parsed.map((item: any) => ({
-          ...item,
-          description: item.description ? item.description.replace(/Location:\s*Brick Kiln/gi, "Location: Holy Cross Hr Sec School Campus, Trichy") : item.description,
-          location: item.location && item.location.includes("Brick Kiln") ? "Holy Cross Hr Sec School Campus, Trichy" : item.location
-        }));
-      } catch (e) {}
-    } else {
-      initialReports = [
-        {
-          refNum: "TN-RPT-806066",
-          category: "Child Labour / Forced Work",
-          priority: "CRITICAL",
-          date: "2026-07-29",
-          status: "Pending",
-          description: "Holy Cross Hr Sec School | Location: Holy Cross Hr Sec School Campus, Trichy | Details: Forced labor report",
-          staffName: "Factory Supervisor",
-          location: "Holy Cross Hr Sec School Campus, Trichy",
-          dateOfIncident: "2026-07-29",
-          witnessDetails: "Classmates",
-          urgency: "Urgent",
-          isAnonymous: "Anonymous Report",
-          officialNote: "Received by DEO Trichy & State Commissioner. Under 24h critical escalation review."
+        initialReports = JSON.parse(saved);
+        if (Array.isArray(initialReports)) {
+          initialReports = initialReports.filter(r => r.refNum !== "TN-RPT-806066");
         }
-      ];
+      } catch (e) {}
     }
 
     setMyReports(initialReports);
@@ -503,70 +483,82 @@ export default function ReportPage() {
           </div>
 
           <div className="space-y-4">
-            {myReports
-              .filter((r) => !searchRef || r.refNum.toLowerCase().includes(searchRef.toLowerCase()))
-              .map((r, idx) => (
-                <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all hover:border-red-400/50">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-mono font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                        {r.refNum}
-                      </span>
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase ${
-                        r.priority === "CRITICAL" ? "bg-red-500 text-white" : "bg-amber-500 text-slate-950"
-                      }`}>
-                        {r.priority}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-slate-400">Status:</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                        r.status === "Resolved" 
-                          ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-300"
-                          : r.status === "Under Review"
-                          ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-300"
-                          : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-300"
-                      }`}>
-                        {r.status === "Resolved" ? "✅ Resolved" : r.status === "Under Review" ? "🔍 Under Review" : "⏳ Action Pending"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Category & Date</span>
-                      <span className="font-bold text-black dark:text-white block">{r.category}</span>
-                      <span className="text-slate-500 text-[11px]">{r.date}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Incident Summary</span>
-                      <p className="text-slate-600 dark:text-slate-400 text-[11px] line-clamp-2">{r.description}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-                    <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex items-start gap-3 flex-1">
-                      <ShieldCheck size={18} className="text-emerald-500 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 block mb-0.5">
-                          Official Department Response / Action Note
+            {myReports.length === 0 ? (
+              <div className="text-center py-12 px-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                <Hash size={32} className="mx-auto text-slate-400 mb-3" />
+                <h4 className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                  {lang === "en" ? "No Reports Filed" : "எந்த புகாரும் இல்லை"}
+                </h4>
+                <p className="text-xs text-slate-500 mt-1">
+                  {lang === "en" ? "You haven't filed any reports yet, or they are not saved on this device." : "நீங்கள் இதுவரை எந்த புகாரும் அளிக்கவில்லை."}
+                </p>
+              </div>
+            ) : (
+              myReports
+                .filter((r) => !searchRef || r.refNum.toLowerCase().includes(searchRef.toLowerCase()))
+                .map((r, idx) => (
+                  <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all hover:border-red-400/50">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                          {r.refNum}
                         </span>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                          {r.officialNote || "Your report is under active review by the school counsellor and DEO."}
-                        </p>
+                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase ${
+                          r.priority === "CRITICAL" ? "bg-red-500 text-white" : "bg-amber-500 text-slate-950"
+                        }`}>
+                          {r.priority}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-slate-400">Status:</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                          r.status === "Resolved" 
+                            ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-300"
+                            : r.status === "Under Review"
+                            ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-300"
+                            : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-300"
+                        }`}>
+                          {r.status === "Resolved" ? "✅ Resolved" : r.status === "Under Review" ? "🔍 Under Review" : "⏳ Action Pending"}
+                        </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setSelectedStudentReport(r)}
-                      className="px-4 py-2.5 bg-red-600 hover:bg-red-700 !text-white text-xs font-black rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0"
-                      style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
-                    >
-                      <Eye size={14} className="!text-white" />
-                      {lang === "en" ? "View Full Details" : "முழு விவரங்களை பார்க்க"}
-                    </button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Category & Date</span>
+                        <span className="font-bold text-black dark:text-white block">{r.category}</span>
+                        <span className="text-slate-500 text-[11px]">{r.date}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Incident Summary</span>
+                        <p className="text-slate-600 dark:text-slate-400 text-[11px] line-clamp-2">{r.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                      <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex items-start gap-3 flex-1">
+                        <ShieldCheck size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 block mb-0.5">
+                            Official Department Response / Action Note
+                          </span>
+                          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                            {r.officialNote || "Your report is under active review by the school counsellor and DEO."}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedStudentReport(r)}
+                        className="px-4 py-2.5 bg-red-600 hover:bg-red-700 !text-white text-xs font-black rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0"
+                        style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
+                      >
+                        <Eye size={14} className="!text-white" />
+                        {lang === "en" ? "View Full Details" : "முழு விவரங்களை பார்க்க"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+            )}
           </div>
         </div>
       )}
