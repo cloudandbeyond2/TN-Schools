@@ -203,30 +203,6 @@ export default function MiddleSchoolDashboard() {
       {/* ── KPI Strip ──────────────────────────────────── */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} hideHeader={true} />
 
-      {/* ── Quick KPI Cards ────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        {KPI_CONFIG.map(k => {
-          const ac = ACCENT_CLASSES[k.accent];
-          return (
-            <div key={k.keyEn}
-              className={`group glass ${ac.bg} border ${ac.border} rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg transition-all duration-200 relative overflow-hidden`}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full blur-2xl -z-10" />
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-white/60 dark:border-slate-700 shadow-sm flex items-center justify-center`}>
-                  <i className={`fi ${k.fi} flex items-center text-base ${ac.text}`} />
-                </div>
-                <span className={`text-[9px] sm:text-[10px] font-black px-2 py-1 rounded-full bg-white dark:bg-slate-800 border border-white/60 dark:border-slate-700 shadow-sm ${ac.text} text-right max-w-[80px] leading-tight`}>
-                  {kpiSubs[k.valueKey]}
-                </span>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{kpiValues[k.valueKey]}</div>
-                <div className={`text-[10px] sm:text-xs font-bold mt-0.5 ${ac.text}`}>{isTa ? k.keyTa : k.keyEn}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       {/* ── Quick Nav Links ────────────────────────────── */}
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
@@ -245,56 +221,9 @@ export default function MiddleSchoolDashboard() {
       {/* ── Daily Overview (timetable, homework, exams, attendance) ── */}
       <StudentDailyOverview />
 
-      {/* ── Subject Progress + Assessment Marks  (2-col on lg) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+      {/* ── Assessment Marks ── */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6">
 
-        {/* Subject Progress */}
-        <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="text-sm sm:text-base font-black text-black dark:text-white flex items-center gap-2">
-              <i className="fi fi-sr-rocket-lunch flex items-center text-emerald-500" />
-              {isTa ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
-            </h2>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {isTa ? "கற்றல் அரங்கம்" : "Learning Arcade"}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {subjectList.map(s => {
-              const pct = s.progress;
-              const tag = pct >= 85
-                ? { fi: "fi-sr-star",   label: isTa ? "சூப்பர்" : "Superstar", col: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"   }
-                : pct >= 75
-                ? { fi: "fi-sr-trophy", label: isTa ? "சாம்பியன்" : "Champion",  col: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
-                : { fi: "fi-sr-bolt",   label: isTa ? "பூஸ்ட்" : "Power Up",    col: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20"   };
-              return (
-                <div key={s.name}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:border-emerald-400/40 transition-all group">
-                  <div className="w-9 h-9 shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <i className={`fi ${s.fi} flex items-center text-base`} style={{ color: s.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5 gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{s.name}</span>
-                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-0.5 shrink-0 ${tag.col}`}>
-                          <i className={`fi ${tag.fi} flex items-center text-[9px]`} />
-                          {tag.label}
-                        </span>
-                      </div>
-                      <span className="text-sm font-black text-black dark:text-white shrink-0">{pct}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}cc)` }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Recent Assessment Marks */}
         <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md">
