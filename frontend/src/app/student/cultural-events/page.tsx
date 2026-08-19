@@ -550,113 +550,34 @@ export default function StudentCulturalEventsPage() {
       subtitle="Join the dance, art, and music festivals!"
     >
       <div className="flex flex-col gap-8 w-full max-w-none text-left">
-        {/* Dynamic & Premium Hero Banner */}
-        {heroEvent ? (
-          <div className="relative overflow-hidden rounded-2xl shadow-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 md:p-6 transition-all duration-300">
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 text-left w-full">
-              <div className="space-y-3 flex-1">
-                <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-2.5 py-1 font-bold tracking-wider text-[10px] uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
-                  <i className="fi fi-sr-sparkles text-[10px]" /> Featured Event
-                </div>
-                
-                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
-                  {heroEvent.title}
-                </h2>
-                
-                <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl">
-                  {heroEvent.description}
-                </p>
-
-                <div className="flex flex-wrap gap-3 pt-1 text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-850">
-                    <i className="fi fi-rr-calendar-lines text-indigo-500" />
-                    <span>{new Date(heroEvent.eventDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
-                  </div>
-                  {(() => {
-                    const loc = parseLocation(heroEvent.location);
-                    const displayLocStr = loc.venue && loc.coordinator
-                      ? `${loc.venue} (Coord: ${loc.coordinator})`
-                      : (loc.venue || (loc.coordinator ? `Coord: ${loc.coordinator}` : ""));
-                    if (!displayLocStr) return null;
-                    return (
-                      <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-850">
-                        <i className="fi fi-rr-marker text-rose-500" />
-                        <span>{displayLocStr}</span>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div className="pt-2 flex flex-wrap gap-3">
-                  {registrations[heroEvent.id] ? (
-                    <button
-                      onClick={() => handleCancelRegistration(heroEvent.id, heroEvent.title)}
-                      className="px-4 py-2 rounded-xl text-xs font-black border border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 transition-all flex items-center gap-2 active:scale-95 shadow-sm"
-                    >
-                      <i className="fi fi-sr-checkbox text-xs" /> Registered ({registrations[heroEvent.id]?.type === "individual" ? "Individual" : "Group"})
-                    </button>
-                  ) : new Date(heroEvent.eventDate).getTime() < new Date().getTime() ? (
-                    <button
-                      disabled
-                      className="px-4 py-2 rounded-xl text-xs font-black bg-slate-100 text-slate-400 dark:bg-slate-900 dark:text-slate-650 cursor-not-allowed flex items-center gap-2 border border-slate-200 dark:border-slate-800"
-                    >
-                      <i className="fi fi-rr-ban text-xs" /> Event Closed
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => openRegisterModal(heroEvent)}
-                      className="px-4 py-2 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-opacity-95 shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2 border-b-4 border-black/20"
-                    >
-                      <i className="fi fi-sr-ticket text-xs" /> Register to Participate
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-center md:justify-end shrink-0">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/20 flex items-center justify-center shadow-sm">
-                  {renderFlatIcon(heroCategory, "w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm")}
-                </div>
-              </div>
+        {/* ── PAGE BANNER ─────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
+          {/* Left: icon tile + title + subtitle */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-fuchsia-50 dark:bg-fuchsia-950/40 border border-fuchsia-100 dark:border-fuchsia-800/30 flex items-center justify-center shrink-0 shadow-sm">
+              <i className="fi fi-sr-music text-xl flex items-center text-fuchsia-500" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1">
+                Culture &amp; Fun!
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
+                Join the dance, art, and music festivals!
+              </p>
             </div>
           </div>
-        ) : (
-          /* Default Heritage Month Fallback if no database events */
-          <div className="relative overflow-hidden rounded-2xl shadow-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 md:p-6 transition-all duration-300">
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 text-left w-full">
-              <div className="space-y-3 flex-1">
-                <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-2.5 py-1 font-bold tracking-wider text-[10px] uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
-                  <i className="fi fi-sr-sparkles text-[10px]" /> Featured Event
-                </div>
-                
-                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
-                  Tamil Heritage &amp; Arts Month
-                </h2>
-                
-                <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl">
-                  Let's celebrate our rich culture together! Join the state-wide celebrations featuring traditional games, art expos, folk dances, musical plays, and delicious traditional food!
-                </p>
 
-                <div className="flex flex-wrap gap-3 pt-1 text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-850">
-                    <i className="fi fi-rr-calendar-lines text-indigo-500" />
-                    <span>August 1 – August 31, 2026</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-850">
-                    <i className="fi fi-rr-marker text-rose-500" />
-                    <span>School Campus &amp; Auditorium</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center md:justify-end shrink-0">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/20 flex items-center justify-center shadow-sm">
-                  <i className="fi fi-sr-scroll text-amber-500 text-3xl sm:text-4xl" />
-                </div>
-              </div>
+          {/* Right: KPI chips */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-fuchsia-50 dark:bg-fuchsia-950/40 text-fuchsia-700 dark:text-fuchsia-300 font-extrabold text-xs rounded-xl border border-fuchsia-200/50 dark:border-fuchsia-800/40 shadow-sm">
+              <i className="fi fi-sr-calendar-star flex items-center text-fuchsia-500" />
+              <span>{events.length} Events</span>
             </div>
           </div>
-        )}
+        </div>
+        {/* ── END BANNER ──────────────────────────────────────── */}
+
+
 
         {/* 📊 Interactive Stats Overview Panel */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -779,9 +700,9 @@ export default function StudentCulturalEventsPage() {
               <span className="text-sm">Fetching upcoming cultural events...</span>
             </div>
           ) : filteredEvents.length === 0 ? (
-            <div className="text-center py-16 px-4 bg-white dark:bg-slate-850/40 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
-              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-1 shadow-inner">
-                <i className="fi fi-rr-party-horn text-3xl text-slate-400 dark:text-slate-600 animate-bounce" />
+            <div className="text-center py-16 px-4 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-1 shadow-inner">
+                <i className="fi fi-rr-party-horn text-3xl text-slate-400 dark:text-slate-500 animate-bounce" />
               </div>
               <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">No events found</h4>
               <p className="text-xs text-slate-400 font-semibold max-w-sm">
