@@ -196,14 +196,14 @@ export default function StudentSyllabusPage() {
                         ? "bg-indigo-550 text-white font-bold shadow-md border-indigo-550"
                         : "bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-400 text-slate-650 dark:text-slate-300"
                     }`}
-                    style={isSelected ? { background: `linear-gradient(135deg, ${sub.color || "#6366f1"}, ${sub.color || "#6366f1"}dd)` } : undefined}
+                    style={isSelected ? { color: "#ffffff", background: `linear-gradient(135deg, ${sub.color || "#6366f1"}, ${sub.color || "#6366f1"}dd)` } : undefined}
                   >
                     <div className="flex items-center gap-2">
                       <i 
                         className={`fi ${getSubjectIcon(sub.icon)} text-base flex items-center`} 
-                        style={!isSelected ? { color: sub.color || "#6366f1" } : undefined}
+                        style={!isSelected ? { color: sub.color || "#6366f1" } : { color: "#ffffff" }}
                       />
-                      <span className="text-xs font-semibold">{sub.name}</span>
+                      <span className="text-xs font-semibold" style={isSelected ? { color: "#ffffff" } : undefined}>{sub.name}</span>
                     </div>
                   </button>
                 );

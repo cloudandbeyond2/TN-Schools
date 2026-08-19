@@ -210,7 +210,7 @@ export default function StudentSyllabusBoardPage() {
                 }`}
                 style={
                   selectedSubject?.id === sub.id
-                    ? { background: `linear-gradient(135deg, ${sub.color || "#6366f1"}, ${sub.color || "#6366f1"}dd)`, borderColor: sub.color || "#6366f1" }
+                    ? { color: "#ffffff", background: `linear-gradient(135deg, ${sub.color || "#6366f1"}, ${sub.color || "#6366f1"}dd)`, borderColor: sub.color || "#6366f1" }
                     : undefined
                 }
               >
