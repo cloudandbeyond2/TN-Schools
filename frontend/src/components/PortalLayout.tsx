@@ -76,6 +76,7 @@ const translations = {
       "Academics & Subjects": "கல்வி & பாடங்கள்",
       "Academics Hub": "கல்வி மையம்",
       "Learning Hub": "கற்றல் மையம்",
+      "Syllabus": "பாடத்திட்டம்",
       "Class Syllabus Board": "வகுப்பு பாடத்திட்ட பலகை",
       "My Subjects": "எனது பாடங்கள்",
       "Homework": "வீட்டுப்பாடம்",
