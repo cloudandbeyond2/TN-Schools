@@ -571,7 +571,7 @@ export default function HomePage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "0" }}>
               {[
                 { href: "/student", label: portals[0].label, desc: portals[0].desc, accent: "#065F46", accentLight: "#D1FAE5", accentText: "#064E3B", fiIcon: "fi-rr-graduation-cap", features: ["AI Tutor", "Adaptive Quiz", "Career Guide"] },
-                { href: "/parent", label: portals[1].label, desc: portals[1].desc, accent: "#059669", accentLight: "#ECFDF5", accentText: "#065F46", fiIcon: "fi-rr-user-relationship", features: ["Child Progress", "Notifications", "Attendance"] },
+                { href: "/parent", label: portals[1].label, desc: portals[1].desc, accent: "#059669", accentLight: "#ECFDF5", accentText: "#065F46", fiIcon: "fi-rr-users", features: ["Child Progress", "Notifications", "Attendance"] },
               ].map((p, i) => (
                 <motion.div key={p.href} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
                   <Link href={p.href} style={{ textDecoration: "none", display: "block" }}>
@@ -672,7 +672,7 @@ export default function HomePage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
               {[
-                { href: "/block-education-officer", label: "Block Education Officer", accent: "#7C3AED", accentLight: "#F5F3FF", accentText: "#5B21B6", fiIcon: "fi-rr-building-columns", features: ["School Visits", "Exam Analytics"] },
+                { href: "/block-education-officer", label: "Block Education Officer", accent: "#7C3AED", accentLight: "#F5F3FF", accentText: "#5B21B6", fiIcon: "fi-rr-bank", features: ["School Visits", "Exam Analytics"] },
                 { href: "/district-education-officer", label: "District Education Officer", accent: "#DB2777", accentLight: "#FDF2F8", accentText: "#9D174D", fiIcon: "fi-rr-map", features: ["Heatmaps", "School Ranking"] },
               ].map((p, i) => (
                 <motion.div key={p.href} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>

@@ -647,10 +647,18 @@ export default function PortalLayout({
       fetch(`${apiUrl}/api/students/${studentId}`)
         .then(res => res.json())
         .then(json => {
-          if (json.success && json.data?.group) {
-            setStudentGroupCode(json.data.group);
-          } else if (json.success && json.group) {
-            setStudentGroupCode(json.group);
+          const gCode = json.data?.group || json.group || "";
+          if (gCode) {
+            setStudentGroupCode(gCode);
+            // Map code to StudentGroup stream dynamically
+            const mapGroupCodeToStream = (code: string): StudentGroup => {
+              const c = String(code).trim();
+              if (["2503", "2504"].includes(c) || c.startsWith("26")) return "Science";
+              if (["2501", "2502", "2505", "2506"].includes(c)) return "ComputerScience";
+              if (c.startsWith("27")) return "Commerce";
+              return "Science"; // default fallback
+            };
+            setStudentGroup(mapGroupCodeToStream(gCode));
           }
         })
         .catch(err => console.error("Failed to load student group code:", err));
@@ -1023,7 +1031,7 @@ export default function PortalLayout({
         {/* User Profile Section */}
         <div
           onClick={userRole === "TEACHER" ? () => router.push("/teacher/profile") : undefined}
-          className={`mx-4 p-3 border border-[var(--border)] rounded-2xl flex items-center gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-all block ${userRole === "TEACHER" ? "cursor-pointer" : ""}`}
+          className={`mx-4 p-3 border border-[var(--border)] rounded-2xl flex items-center gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-all ${userRole === "TEACHER" ? "cursor-pointer" : ""}`}
         >
           <div className="relative shrink-0">
             <div

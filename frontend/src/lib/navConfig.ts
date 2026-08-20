@@ -739,6 +739,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
       { label: "User Management", href: "/super-admin/users", icon: "Users" },
+
+      
+      
       { label: "Role & Permissions", href: "/super-admin/roles", icon: "Lock" },
       { label: "School Management", href: "/super-admin/schools", icon: "Building" },
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },
@@ -848,22 +851,37 @@ const GROUP_RESTRICTED_LINKS: Record<string, StudentGroup[]> = {
 };
 
 // Return a copy of `items` with the Science Labs & Centers section replaced by
-// the section that matches the student's group, and group-restricted links
+// the single campus link that matches the student's group, and group-restricted links
 // (NEET prep etc.) removed for groups they don't apply to.
 export function applyStudentGroup(items: NavItem[], group: StudentGroup): NavItem[] {
   let result = items;
-  if (group !== "Science") {
-    const start = result.findIndex((it) => it.label === SCIENCE_SECTION_LABEL);
-    if (start !== -1) {
-      // The section runs until the next "---" separator (or end of list).
-      let end = result.findIndex((it, i) => i > start && it.label === "---");
-      if (end === -1) end = result.length;
-      result = [
-        ...result.slice(0, start + 1),
-        ...GROUP_SCIENCE_SECTIONS[group],
-        ...result.slice(end),
-      ];
-    }
+  const start = result.findIndex((it) => it.label === "Labs & Centers" || it.label === "Science Campus" || it.label === "🧪 LABS & PRACTICALS");
+  if (start !== -1) {
+    const isHeader = result[start].href === "#";
+    const replaceStart = isHeader ? start + 1 : start;
+    
+    let end = result.findIndex((it, i) => i > replaceStart && it.label === "---");
+    if (end === -1) end = result.length;
+
+    const campusLabels: Record<StudentGroup, string> = {
+      Science: "Science Campus",
+      Commerce: "Commerce Campus",
+      ComputerScience: "CS Campus",
+      Arts: "Arts Campus",
+      Vocational: "Vocational Campus"
+    };
+
+    const campusItem: NavItem = {
+      label: campusLabels[group] || "Science Campus",
+      href: "/student/science-campus",
+      icon: "FlaskConical"
+    };
+    
+    result = [
+      ...result.slice(0, replaceStart),
+      campusItem,
+      ...result.slice(end),
+    ];
   }
   return result.filter((it) => {
     const allowed = GROUP_RESTRICTED_LINKS[it.href];
