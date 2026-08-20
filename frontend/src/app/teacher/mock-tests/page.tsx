@@ -216,45 +216,68 @@ export default function TeacherMockTestsPage() {
       });
 
       htmlContent = `
-        <div class="space-y-4 text-left">
+        <div class="space-y-5 text-left mt-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Target Class & Section</label>
-            <select id="swal-class-select" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              Target Class & Section
+            </label>
+            <select id="swal-class-select" class="w-full border border-gray-300 rounded-xl p-3 text-gray-800 bg-gray-50 hover:bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all cursor-pointer">
               ${classOptions.map(opt => `<option value="${opt.value}" ${opt.value.startsWith(currentGrade) ? 'selected' : ''}>${opt.label}</option>`).join('')}
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-            <input id="swal-date" type="datetime-local" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Due Date
+            </label>
+            <input id="swal-date" type="datetime-local" class="w-full border border-gray-300 rounded-xl p-3 text-gray-800 bg-gray-50 hover:bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all cursor-pointer">
           </div>
         </div>
       `;
     } else {
       htmlContent = `
-        <div class="space-y-4 text-left">
+        <div class="space-y-5 text-left mt-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
-            <input id="swal-class" class="w-full border rounded-lg p-2 focus:ring-emerald-500" value="${currentGrade}">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              Class
+            </label>
+            <input id="swal-class" class="w-full border border-gray-300 rounded-xl p-3 text-gray-800 bg-gray-50 hover:bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" value="${currentGrade}">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Section (Leave blank for all)</label>
-            <input id="swal-section" class="w-full border rounded-lg p-2 focus:ring-emerald-500" placeholder="e.g. A">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              Section <span class="text-xs text-gray-500 font-normal">(Leave blank for all)</span>
+            </label>
+            <input id="swal-section" class="w-full border border-gray-300 rounded-xl p-3 text-gray-800 bg-gray-50 hover:bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" placeholder="e.g. A">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-            <input id="swal-date" type="datetime-local" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Due Date
+            </label>
+            <input id="swal-date" type="datetime-local" class="w-full border border-gray-300 rounded-xl p-3 text-gray-800 bg-gray-50 hover:bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all cursor-pointer">
           </div>
         </div>
       `;
     }
 
     const { value: formValues } = await Swal.fire({
-      title: 'Assign Mock Test to Class',
+      title: '<h2 class="text-2xl font-bold text-gray-800">Assign Mock Test</h2>',
       html: htmlContent,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      confirmButtonText: 'Assign Now',
+      buttonsStyling: false,
+      confirmButtonText: '<div class="flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Assign Now</div>',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'rounded-2xl shadow-2xl border border-gray-100 p-6',
+        title: 'm-0',
+        actions: 'mt-8 gap-3',
+        confirmButton: 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-colors shadow-sm',
+        cancelButton: 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-6 rounded-xl transition-colors shadow-sm'
+      },
       preConfirm: () => {
         const selectEl = document.getElementById('swal-class-select') as HTMLSelectElement;
         if (selectEl) {
