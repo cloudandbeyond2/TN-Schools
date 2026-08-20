@@ -125,7 +125,7 @@ router.post('/students', async (req: Request, res: Response) => {
           schoolId,
           class: classVal,
           section: section || sectionVal || 'A',
-          group,
+          group: (classVal === '11' || classVal === '12') ? (group || null) : null,
           rollNumber: cleanRoll,
           admissionNumber,
           emisNumber,
@@ -321,7 +321,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               schoolId,
               class: classVal,
               section: section || 'A',
-              group: group || null,
+              group: (classVal === '11' || classVal === '12') ? (group || null) : null,
               admissionNumber: admissionNumber || null,
               emisNumber: emisNumber || null,
               dob: parseDob(dob),
@@ -408,7 +408,7 @@ router.put('/students/:id', async (req: Request, res: Response) => {
       bloodGroup, religion, community, nationality, mediumOfInstruction,
       class: cls, section, academicYear, fatherName, fatherOccupation,
       motherName, motherOccupation, parentEmail, phoneNumber, address,
-      city, district, state, pincode, studentStatus, schoolId
+      city, district, state, pincode, studentStatus, schoolId, group
     } = req.body;
 
     const student = await prisma.student.findUnique({ where: { id }, include: { user: true } });
@@ -426,6 +426,7 @@ router.put('/students/:id', async (req: Request, res: Response) => {
         emisNumber,
         class: classVal,
         section: section || student.section,
+        group: (classVal === '11' || classVal === '12') ? (group !== undefined ? group : student.group) : null,
         dob: parseDob(dob),
         gender,
         bloodGroup,
