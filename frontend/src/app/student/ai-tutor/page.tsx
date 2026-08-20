@@ -343,7 +343,7 @@ export default function AITutorPage() {
                   <i className="fi fi-sr-settings-sliders flex items-center text-xs" /> Settings
                 </button>
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 hidden sm:flex">
-                  <i className="fi fi-sr-robot text-white text-sm flex items-center" />
+                  <i className="fi fi-sr-robot !text-white text-sm flex items-center" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs sm:text-sm font-semibold text-white truncate">{selectedSubject} — AI Tutor</div>
@@ -416,7 +416,7 @@ export default function AITutorPage() {
                     <div key={i} className={`flex gap-2 sm:gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 animate-in zoom-in">
-                          <i className="fi fi-sr-robot text-white text-sm flex items-center" />
+                          <i className="fi fi-sr-robot !text-white text-sm flex items-center" />
                         </div>
                       )}
                       <div
@@ -443,7 +443,7 @@ export default function AITutorPage() {
             {isTyping && (
               <div className="flex gap-2 sm:gap-3 justify-start px-4 sm:px-5 pb-4">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0">
-                  <i className="fi fi-sr-robot text-white text-sm flex items-center" />
+                  <i className="fi fi-sr-robot !text-white text-sm flex items-center" />
                 </div>
                 <div className="bg-slate-805 border border-slate-700/65 rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1 items-center shadow-sm">
                   <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -499,7 +499,7 @@ export default function AITutorPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-                  <i className="fi fi-sr-robot text-white text-xl flex items-center" />
+                  <i className="fi fi-sr-robot !text-white text-xl flex items-center" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-base text-white">
@@ -570,7 +570,7 @@ export default function AITutorPage() {
                     <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 animate-in zoom-in">
-                          <i className="fi fi-sr-robot text-white text-sm flex items-center" />
+                          <i className="fi fi-sr-robot !text-white text-sm flex items-center" />
                         </div>
                       )}
                       <div
@@ -587,7 +587,7 @@ export default function AITutorPage() {
                   {isTyping && (
                     <div className="flex gap-3 justify-start">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 animate-pulse">
-                        <i className="fi fi-sr-robot text-white text-sm flex items-center" />
+                        <i className="fi fi-sr-robot !text-white text-sm flex items-center" />
                       </div>
                       <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-5 py-4 flex gap-1.5 items-center shadow-sm">
                         <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
