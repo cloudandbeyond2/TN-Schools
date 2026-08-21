@@ -175,6 +175,40 @@ export default function HeadmasterDigitalLibraryPage() {
       subtitle={lang === "தமிழ்" ? "உங்கள் பள்ளிக்கான டிஜிட்டல் வளங்களை நிர்வகிக்கவும் மற்றும் அங்கீகரிக்கவும்" : "Manage and approve digital resources for your school"} 
       accentColor="#0284c7"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-sky-50 dark:bg-sky-950/40 text-sky-500 rounded-xl shrink-0 border border-sky-100 dark:border-sky-900/50">
+              <i className="fi fi-rr-book-alt text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "டிஜிட்டல் நூலகம் & வள மையம்" : "Digital Library & Resource Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "மாணவர்கள் மற்றும் ஆசிரியர்களுக்கான பாடப்புத்தகங்கள், மின்-புத்தகங்கள், மாதிரித் தாள்கள் மற்றும் ஆய்வுப் பொருட்களை மேலாண்மை செய்து ஒப்புதல் அளிக்கவும்."
+                  : "Review teacher uploads, approve digital textbooks, manage e-learning study materials, and direct upload school reference resources."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "ஒப்புதல்கள்" : "Pending"}</span>
+              <span className="text-base font-bold text-sky-600 dark:text-sky-400 mt-0.5">{pendingItems.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "வளங்கள்" : "Approved E-Books"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{allResources.length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="w-full space-y-6">
         
         {/* Tabs */}
