@@ -614,6 +614,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "School Admin & Govt", href: "#", icon: "" },
       { label: "School Resources", href: "/headmaster/resources", icon: "fi fi-rr-building" },
+      { label: "Science Lab Support", href: "/headmaster/science-lab-support", icon: "fi fi-rr-flask" },
       { label: "Mid-Day Meal", href: "/headmaster/midday-meal", icon: "fi fi-rr-restaurant" },
       { label: "Scholarship", href: "/headmaster/scholarship", icon: "fi fi-rr-award" },
       { label: "Govt Scheme Management", href: "/headmaster/gov-schemes", icon: "fi fi-rr-bank" },
