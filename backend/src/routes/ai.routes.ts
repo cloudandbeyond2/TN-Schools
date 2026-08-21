@@ -379,8 +379,25 @@ const LESSON_CORE_SCHEMA = {
       },
       required: ['heroTitle', 'heroSubtitle', 'heroIcon', 'conceptColor', 'modules', 'stats', 'workflow', 'termTable'],
     },
+    conceptExplanation: {
+      type: 'OBJECT',
+      properties: {
+        mainTitle: { type: 'STRING' },
+        subtitle: { type: 'STRING' },
+        whatIsIt: { type: 'STRING' },
+        howItWorks: { type: 'ARRAY', items: { type: 'STRING' } },
+        keyJobs: { type: 'ARRAY', items: { type: 'STRING' } },
+        mainParts: { type: 'ARRAY', items: { type: 'STRING' } },
+        funFacts: { type: 'ARRAY', items: { type: 'STRING' } },
+        takeCare: { type: 'ARRAY', items: { type: 'STRING' } },
+        didYouKnow: { type: 'STRING' },
+        footerText: { type: 'STRING' }
+      },
+      required: ['mainTitle', 'subtitle', 'whatIsIt', 'howItWorks', 'keyJobs', 'mainParts', 'funFacts', 'takeCare', 'didYouKnow', 'footerText'],
+      description: 'A detailed concept explanation map, similar to a sticky notes pinboard',
+    },
   },
-  required: ['objectives', 'timeline', 'studentKeyPoints', 'bilingual', 'exitTickets', 'infographic'],
+  required: ['objectives', 'timeline', 'studentKeyPoints', 'bilingual', 'exitTickets', 'infographic', 'conceptExplanation'],
 };
 
 router.post('/generate-lesson-plan', async (req: Request, res: Response) => {
@@ -422,7 +439,8 @@ Return JSON matching the provided schema. All content MUST be specifically about
 - studentKeyPoints: 5-6 crisp, memorable takeaways for a student, given in BOTH English (en) and natural classroom Tamil (ta), same count and order. These are the "clear points" students see when the lesson is projected.
 - bilingual: 5 key technical terms (english, tamil, pronunciation).
 - exitTickets: exactly 5 MCQs; options formatted like "A) ...", answer is the full correct option text.
-- infographic: real data about ${topic} — heroTitle (bilingual), heroSubtitle "Grade ${grade} ${subject}", heroIcon (best emoji), conceptColor (one of emerald/sky/indigo/amber/rose/teal/violet), 4 modules, 3 stats, 4 workflow steps, formulaBox + formulaExplain, lawTitle + lawDesc, 3 termTable entries, constantName/Value/Explain (use real constants; leave formula/law/constant blank only if genuinely not applicable to ${topic}).`;
+- infographic: real data about ${topic} — heroTitle (bilingual), heroSubtitle "Grade ${grade} ${subject}", heroIcon (best emoji), conceptColor (one of emerald/sky/indigo/amber/rose/teal/violet), 4 modules, 3 stats, 4 workflow steps, formulaBox + formulaExplain, lawTitle + lawDesc, 3 termTable entries, constantName/Value/Explain (use real constants; leave formula/law/constant blank only if genuinely not applicable to ${topic}).
+- conceptExplanation: generate detailed content for a sticky note pinboard explaining the concept. Provide mainTitle, subtitle, whatIsIt (short intro), howItWorks (3-5 steps), keyJobs (3-5 jobs/roles), mainParts (3-5 parts), funFacts (3-5 facts), takeCare (3-5 tips), didYouKnow (interesting fact), and footerText.`;
 
     const core = await callGemini(prompt, true, LESSON_CORE_SCHEMA, 24000);
     res.json({
