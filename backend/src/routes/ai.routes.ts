@@ -523,7 +523,7 @@ Return JSON matching the schema (a "slides" array of exactly 15 objects) in this
 13 Activity (experiment, values=3 materials)
 14 Summary (summary, values=4)
 15 Thank You (hero, label=next topic teaser)
-Each slide: large bold title, minimal body (max 30 words), numbered bullets, one-line teacherNotes, one-line studentActivity. You MUST generate 3 to 4 'stickyNotes' with deep-dives, detailed explanations, real-world analogies, or extra facts. The text in 'stickyNotes' MUST be entirely different and more detailed than the 'bullets'. All content specifically about "${topic}".`;
+Each slide: large bold title, minimal body (max 30 words), numbered bullets, one-line teacherNotes, one-line studentActivity. You MUST generate 3 to 4 'stickyNotes' with deep-dives, detailed explanations, real-world analogies, or extra facts. The text in 'stickyNotes' MUST be entirely different and more detailed than the 'bullets'. Additionally, 'graphicData' MUST visually represent the structural relationships or an entirely different facet of the concept, and MUST NOT simply duplicate the 'bullets'. All content specifically about "${topic}".`;
 
     const result = await callGemini(prompt, true, LESSON_SLIDES_SCHEMA, 32000, 150000);
     res.json({ success: true, data: Array.isArray(result?.slides) ? result.slides : [] });
