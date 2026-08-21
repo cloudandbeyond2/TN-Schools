@@ -1340,8 +1340,8 @@ export default function LessonPlannerPage() {
                                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-blue-500 shadow-md border-b-2 border-blue-700 z-10">
                                     <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-white/40"></div>
                                   </div>
-                                  <h2 className="text-xl font-black mb-3 uppercase text-blue-900" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>WHAT IS IT?</h2>
-                                  <p className="text-sm font-bold leading-relaxed" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                  <h2 className="text-xl font-black mb-3 uppercase text-blue-900 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>WHAT IS IT?</h2>
+                                  <p className="text-sm font-bold leading-relaxed break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                     {conceptData.whatIsIt}
                                   </p>
                                 </div>
@@ -1350,7 +1350,7 @@ export default function LessonPlannerPage() {
                                 <div className="relative bg-green-200/90 dark:bg-green-300/90 text-slate-900 p-5 rounded-sm shadow-lg transform rotate-1 hover:rotate-0 transition-transform">
                                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-green-400/40 opacity-70 -rotate-1 mix-blend-multiply"></div>
                                   <h2 className="text-xl font-black mb-3 uppercase text-green-900 border-b-2 border-green-400/50 pb-1" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>HOW IT WORKS</h2>
-                                  <ol className="text-sm font-bold leading-relaxed space-y-3 list-decimal pl-4" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                  <ol className="text-sm font-bold leading-relaxed space-y-3 list-decimal pl-4 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                     {conceptData.howItWorks?.map((step: string, i: number) => (
                                       <li key={i} className={i !== 0 ? "border-t border-green-300/50 pt-2" : ""}>{step}</li>
                                     ))}
@@ -1360,8 +1360,8 @@ export default function LessonPlannerPage() {
                                 {/* KEY JOBS */}
                                 <div className="relative bg-pink-200/90 dark:bg-pink-300/90 text-slate-900 p-5 rounded-sm shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
                                    <div className="absolute top-1 left-1/2 -translate-x-1/2 w-24 h-5 bg-blue-300/40 opacity-70 rotate-2 mix-blend-multiply"></div>
-                                  <h2 className="text-xl font-black mb-3 uppercase text-pink-900" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>KEY JOBS</h2>
-                                  <ul className="text-sm font-bold leading-relaxed space-y-3" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                  <h2 className="text-xl font-black mb-3 uppercase text-pink-900 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>KEY JOBS</h2>
+                                  <ul className="text-sm font-bold leading-relaxed space-y-3 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                     {conceptData.keyJobs?.map((job: string, i: number) => (
                                       <li key={i} className={`flex gap-2 ${i !== 0 ? "border-t border-pink-300/50 pt-2" : ""}`}><span>☑️</span> {job}</li>
                                     ))}
@@ -1377,8 +1377,8 @@ export default function LessonPlannerPage() {
                                   
                                   <div className="w-full aspect-[3/4] bg-orange-50/50 rounded border border-orange-100 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
                                      <i className="fi fi-rr-magic-wand text-6xl text-amber-500 mb-6 animate-pulse" />
-                                     <h3 className="text-xl font-black text-slate-800" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{conceptData.mainTitle}</h3>
-                                     <p className="text-sm text-slate-500 font-bold mt-2" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>AI Generated Concept Map</p>
+                                     <h3 className="text-xl font-black text-slate-800 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{conceptData.mainTitle}</h3>
+                                     <p className="text-sm text-slate-500 font-bold mt-2 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>AI Generated Concept Map</p>
                                   </div>
                                 </div>
                               </div>
@@ -1392,8 +1392,8 @@ export default function LessonPlannerPage() {
                                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-orange-500 shadow-md border-b-2 border-orange-700 z-10">
                                     <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-white/40"></div>
                                   </div>
-                                  <h2 className="text-xl font-black mb-3 uppercase text-pink-900 border-b-2 border-pink-300/50 pb-1" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>MAIN PARTS</h2>
-                                  <ul className="text-sm font-bold leading-loose" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                  <h2 className="text-xl font-black mb-3 uppercase text-pink-900 border-b-2 border-pink-300/50 pb-1 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>MAIN PARTS</h2>
+                                  <ul className="text-sm font-bold leading-loose break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                     {conceptData.mainParts?.map((part: string, i: number) => (
                                       <li key={i}>{(i + 1)}. {part}</li>
                                     ))}
@@ -1406,8 +1406,8 @@ export default function LessonPlannerPage() {
                                   <div className="absolute -top-3 right-8 w-5 h-5 rounded-full bg-yellow-400 shadow-md border-b-2 border-yellow-600 z-10">
                                     <div className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-white/40"></div>
                                   </div>
-                                  <h2 className="text-xl font-black mb-3 uppercase text-yellow-900 text-center" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>FUN FACTS</h2>
-                                  <ul className="text-sm font-bold leading-relaxed space-y-3" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                  <h2 className="text-xl font-black mb-3 uppercase text-yellow-900 text-center break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>FUN FACTS</h2>
+                                  <ul className="text-sm font-bold leading-relaxed space-y-3 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                     {conceptData.funFacts?.map((fact: string, i: number) => (
                                       <li key={i} className={i !== conceptData.funFacts.length - 1 ? "border-b border-yellow-400/30 pb-2" : ""}>⭐ {fact}</li>
                                     ))}
@@ -1423,8 +1423,8 @@ export default function LessonPlannerPage() {
                               {/* TAKE CARE! */}
                               <div className="relative bg-sky-200/90 dark:bg-sky-300/90 text-slate-900 p-5 rounded-sm shadow-lg transform rotate-1 hover:rotate-0 transition-transform w-full md:w-72">
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-blue-400/40 opacity-70 rotate-2 mix-blend-multiply"></div>
-                                <h2 className="text-xl font-black mb-3 uppercase text-blue-900 text-center" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>TAKE CARE!</h2>
-                                <ul className="text-sm font-bold leading-relaxed space-y-2 list-disc pl-5" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                <h2 className="text-xl font-black mb-3 uppercase text-blue-900 text-center break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>TAKE CARE!</h2>
+                                <ul className="text-sm font-bold leading-relaxed space-y-2 list-disc pl-5 break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                   {conceptData.takeCare?.map((tip: string, i: number) => (
                                     <li key={i}>{tip}</li>
                                   ))}
@@ -1433,8 +1433,8 @@ export default function LessonPlannerPage() {
 
                               {/* DID YOU KNOW? */}
                               <div className="relative bg-green-200/90 dark:bg-green-300/90 text-slate-900 p-5 rounded-sm shadow-lg transform -rotate-2 hover:rotate-0 transition-transform w-full md:w-72">
-                                <h2 className="text-xl font-black mb-3 uppercase text-green-900 text-center" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>DID YOU KNOW?</h2>
-                                <div className="border-2 border-green-400/60 p-3 rounded-[2rem] text-sm font-bold leading-relaxed text-center" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
+                                <h2 className="text-xl font-black mb-3 uppercase text-green-900 text-center break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>DID YOU KNOW?</h2>
+                                <div className="border-2 border-green-400/60 p-3 rounded-[2rem] text-sm font-bold leading-relaxed text-center break-words" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>
                                   {conceptData.didYouKnow}
                                 </div>
                               </div>
