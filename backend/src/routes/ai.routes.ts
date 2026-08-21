@@ -467,6 +467,17 @@ const LESSON_SLIDES_SCHEMA = {
           title: { type: 'STRING' },
           subtitle: { type: 'STRING' },
           bullets: { type: 'ARRAY', items: { type: 'STRING' } },
+          stickyNotes: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                heading: { type: 'STRING', description: 'A catchy title for the sticky note (e.g. Fun Fact, Pro Tip, Common Myth, Real World)' },
+                detail: { type: 'STRING', description: 'Detailed, engaging explanation or trivia different from the main bullets' }
+              },
+              required: ['heading', 'detail']
+            }
+          },
           teacherNotes: { type: 'STRING' },
           studentActivity: { type: 'STRING' },
           illustrationPrompt: { type: 'STRING' },
@@ -512,7 +523,7 @@ Return JSON matching the schema (a "slides" array of exactly 15 objects) in this
 13 Activity (experiment, values=3 materials)
 14 Summary (summary, values=4)
 15 Thank You (hero, label=next topic teaser)
-Each slide: large bold title, minimal body (max 30 words), numbered bullets, one-line teacherNotes, one-line studentActivity. Keep illustrationPrompt and animationSuggestion short (one line each). All content specifically about "${topic}".`;
+Each slide: large bold title, minimal body (max 30 words), numbered bullets, one-line teacherNotes, one-line studentActivity. You MUST generate 3 to 4 'stickyNotes' with deep-dives, detailed explanations, real-world analogies, or extra facts. The text in 'stickyNotes' MUST be entirely different and more detailed than the 'bullets'. Additionally, 'graphicData' MUST visually represent the structural relationships or an entirely different facet of the concept, and MUST NOT simply duplicate the 'bullets'. All content specifically about "${topic}".`;
 
     const result = await callGemini(prompt, true, LESSON_SLIDES_SCHEMA, 32000, 150000);
     res.json({ success: true, data: Array.isArray(result?.slides) ? result.slides : [] });
