@@ -685,18 +685,35 @@ model EvaluationSubmission {
 }
 
 model LabEquipment {
-  id           String   @id @default(uuid())
-  name         String
-  classSection String
-  status       String
-  date         String
-  safetyCheck  Boolean  @default(true)
-  schoolId     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  classRoomId  String?
-  location     String?  @default("N/A")
-  count        Int      @default(1)
+  id                 String   @id @default(uuid())
+  name               String
+  classSection       String
+  status             String
+  date               String
+  safetyCheck        Boolean  @default(true)
+  schoolId           String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  classRoomId        String?
+  location           String?  @default("N/A")
+  count              Int      @default(1)
+
+  // Chemistry Laboratory experiment fields (optional for backward compatibility)
+  subject            String?   @default("Chemistry")
+  gradeLevel         String?   // Store e.g. "Class 11", "Class 12"
+  section            String?   // Store e.g. "A", "B", etc.
+  chapter            String?   // Store e.g. "Volumetric Analysis"
+  category           String?   // Store e.g. "Volumetric Analysis", "Organic Compound Analysis", etc.
+  aim                String?
+  theory             String?
+  apparatus          String?
+  chemicals          String?
+  procedure          String?
+  observation        String?
+  calculation        String?
+  result             String?
+  safetyPrecautions  String?
+  imageUrl           String?
 
   @@index([schoolId])
   @@index([classRoomId])
