@@ -183,23 +183,44 @@ export default function HeadmasterPortalPage() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-white">🌐 {lang === "தமிழ்" ? "பள்ளியின் பொது முகப்புப் பக்கத்தை நிர்வகிக்கவும்" : "Manage your school's public landing page"}</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {lang === "தமிழ்" ? "பார்வையாளர்கள் காணும் பன்னர், தல்பப்புவரி, தொகுப்பகம் மற்றும் உள்நுழைவு விருப்பங்களை திருத்தவும்." : "Edit the banner, tagline, gallery and login options that visitors see."}
-          </p>
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+              <i className="fi fi-rr-globe text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "பொது பள்ளி தளம் மையம்" : "Public School Portal Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "பார்வையாளர்கள் காணும் முகப்புப் பக்க பேனர், கருப்பொருள், புகைப்பட தொகுப்பகம் மற்றும் உள்நுழைவு விருப்பங்களை நிர்வகிக்கவும்."
+                  : "Customize your school's public landing page banner, tagline, photo showcase, and visitor portal access options."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0 self-start md:self-auto">
+            {schoolDise && (
+              <a
+                href={`/school/${schoolDise}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/10 flex items-center gap-2"
+              >
+                <i className="fi fi-rr-globe" /> {lang === "தமிழ்" ? "தளத்தைக் காண் ↗" : "View Public Page ↗"}
+              </a>
+            )}
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "படங்கள்" : "Gallery Photos"}</span>
+              <span className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">{(portal?.gallery || []).length}</span>
+            </div>
+          </div>
         </div>
-        {schoolDise && (
-          <a
-            href={`/school/${schoolDise}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap"
-          >
-            🌐 View Public Page ↗
-          </a>
-        )}
       </div>
 
       {loading ? (

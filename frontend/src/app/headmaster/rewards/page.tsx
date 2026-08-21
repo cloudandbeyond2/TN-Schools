@@ -123,6 +123,40 @@ export default function RewardsPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+              <i className="fi fi-rr-trophy text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "விருதுகள், மரியாதைகள் & சான்றிதழ்கள் மையம்" : "Rewards, Honors & Citations Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "மாணவர்கள், ஆசிரியர்கள் மற்றும் பள்ளி செயல்பாடுகளில் பெற்ற மாநில/மாவட்ட அளவிலான விருதுகளைப் பதிவு செய்து நிர்வகிக்கவும்."
+                  : "Register, track, and catalog state recognitions, student athletic medals, and teaching citations won by the school."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "விருதுகள்" : "Total Honors"}</span>
+              <span className="text-base font-bold text-amber-500 dark:text-amber-400 mt-0.5">{honors.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "தரம்" : "DISE Rank"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">Grade A+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Honors counter Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
