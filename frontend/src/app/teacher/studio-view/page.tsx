@@ -373,72 +373,68 @@ function StudioViewContent() {
 
                   {/* Right: realistic image + infographic diagram */}
                   <div className="w-full lg:w-5/12 xl:w-2/5 shrink-0 flex flex-col gap-5">
-                    <div className="relative rounded-3xl overflow-hidden border border-slate-100 shadow-inner bg-slate-100 aspect-[4/3]">
-                      {!slideImgError ? (
-                        <img
-                          src={pol(imgPrompt, 900, 675)}
-                          alt={slide.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                          onError={() => setSlideImgError(true)}
-                        />
-                      ) : (
-                        /* ── Rich fallback panel when Pollinations image unavailable ── */
-                        <div className={`w-full h-full flex flex-col gap-3 p-4 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100`}>
-                          {/* Header strip */}
-                          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-white bg-gradient-to-r ${accent.from} ${accent.to} shrink-0`}>
-                            <i className={`fi ${typeIcon} leading-none text-sm`} />
-                            <span className="text-[10px] font-black uppercase tracking-widest flex-1">{slide.graphicType?.replace(/_/g,' ') || 'Visual Overview'}</span>
-                            <i className="fi fi-sr-picture leading-none text-white/60 text-[9px]" />
-                          </div>
+                    <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-inner bg-slate-50 md:aspect-[4/3] min-h-[400px] md:min-h-0 flex flex-col p-4 md:p-6" style={{ perspective: "1000px" }}>
+                      {/* Background decorations */}
+                      <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #cbd5e1 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+                      
+                      {/* Sticky Note Title */}
+                      <div className="relative z-10 bg-yellow-200/90 text-slate-800 p-4 rounded-sm shadow-lg transform rotate-2 hover:rotate-0 transition-transform mb-6 self-start max-w-[85%] border border-yellow-300">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-4 bg-orange-400/30 -rotate-1 mix-blend-multiply"></div>
+                        <h3 className="text-sm font-black uppercase tracking-wider mb-1" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{slide.title}</h3>
+                        <p className="text-xs font-bold opacity-80" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{slide.subtitle || 'Key Takeaways'}</p>
+                      </div>
 
-                          {/* Teacher Note */}
-                          {slide.teacherNotes && (
-                            <div className="flex gap-2 p-3 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0">
-                              <i className="fi fi-sr-graduation-cap text-indigo-500 text-sm leading-none mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <span className="block text-[8px] font-black text-indigo-500 uppercase tracking-wider mb-0.5">Teacher Note</span>
-                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.teacherNotes}</p>
+                      {/* Bullet Sticky Notes */}
+                      <div className="relative z-10 flex-1 flex flex-wrap gap-4 items-center justify-center content-center">
+                        { (slide.stickyNotes || []).length > 0 ? slide.stickyNotes.slice(0, 4).map((note: any, idx: number) => {
+                          const rotations = ["-rotate-3", "rotate-2", "-rotate-1", "rotate-3"];
+                          const colors = [
+                            "bg-sky-200/90 border-sky-300 text-sky-900",
+                            "bg-pink-200/90 border-pink-300 text-pink-900",
+                            "bg-green-200/90 border-green-300 text-green-900",
+                            "bg-purple-200/90 border-purple-300 text-purple-900"
+                          ];
+                          const pinColors = ["bg-blue-500", "bg-pink-500", "bg-emerald-500", "bg-purple-500"];
+                          
+                          return (
+                            <div key={idx} title={note.detail} className={`relative p-4 rounded-sm shadow-md transform ${rotations[idx % 4]} hover:scale-105 transition-transform w-[45%] flex-1 min-w-[140px] max-w-[200px] border ${colors[idx % 4]} cursor-help`}>
+                              <div className={`absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full shadow-sm border border-white/50 ${pinColors[idx % 4]}`}>
+                                <div className="absolute top-0.5 left-0.5 w-1 h-1 rounded-full bg-white/60"></div>
                               </div>
+                              <h4 className="text-[10px] font-black uppercase mb-1.5 leading-tight line-clamp-2" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{note.heading}</h4>
+                              <p className="text-[9px] font-bold leading-relaxed line-clamp-3 opacity-90" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{note.detail}</p>
                             </div>
-                          )}
-
-                          {/* Student Activity */}
-                          {slide.studentActivity && (
-                            <div className="flex gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 shrink-0">
-                              <i className="fi fi-sr-bulb text-emerald-500 text-sm leading-none mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <span className="block text-[8px] font-black text-emerald-500 uppercase tracking-wider mb-0.5">Student Activity</span>
-                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.studentActivity}</p>
+                          );
+                        }) : slide.bullets?.slice(0, 4).map((b: string, idx: number) => {
+                          const splitIdx = b.indexOf(':');
+                          const hasTitle = splitIdx > 0 && splitIdx < 50;
+                          const bTitle = hasTitle ? b.substring(0, splitIdx) : `Point ${idx + 1}`;
+                          const bDesc = hasTitle ? b.substring(splitIdx + 1).trim() : b;
+                          
+                          const rotations = ["-rotate-3", "rotate-2", "-rotate-1", "rotate-3"];
+                          const colors = [
+                            "bg-sky-200/90 border-sky-300 text-sky-900",
+                            "bg-pink-200/90 border-pink-300 text-pink-900",
+                            "bg-green-200/90 border-green-300 text-green-900",
+                            "bg-purple-200/90 border-purple-300 text-purple-900"
+                          ];
+                          const pinColors = ["bg-blue-500", "bg-pink-500", "bg-emerald-500", "bg-purple-500"];
+                          
+                          return (
+                            <div key={idx} title={bDesc} className={`relative p-4 rounded-sm shadow-md transform ${rotations[idx % 4]} hover:scale-105 transition-transform w-[45%] flex-1 min-w-[140px] max-w-[200px] border ${colors[idx % 4]} cursor-help`}>
+                              <div className={`absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full shadow-sm border border-white/50 ${pinColors[idx % 4]}`}>
+                                <div className="absolute top-0.5 left-0.5 w-1 h-1 rounded-full bg-white/60"></div>
                               </div>
+                              <h4 className="text-[10px] font-black uppercase mb-1.5 leading-tight line-clamp-2" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{bTitle}</h4>
+                              <p className="text-[9px] font-bold leading-relaxed line-clamp-3 opacity-90" style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}>{bDesc}</p>
                             </div>
-                          )}
-
-                          {/* Bullet icon flow — condensed */}
-                          {slide.bullets?.slice(0, 4).map((b: string, idx: number) => {
-                            const splitIdx = b.indexOf(':');
-                            const hasTitle = splitIdx > 0 && splitIdx < 50;
-                            const bTitle = hasTitle ? b.substring(0, splitIdx) : `Point ${idx + 1}`;
-                            const bDesc = hasTitle ? b.substring(splitIdx + 1).trim() : b;
-                            return (
-                              <div key={idx} className="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white border border-slate-100 shrink-0">
-                                <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-white text-[10px] bg-gradient-to-br ${accent.from} ${accent.to}`}>
-                                  <i className={`fi ${bulletIcons[idx % bulletIcons.length]} leading-none`} />
-                                </span>
-                                <div className="min-w-0">
-                                  <p className={`text-[9px] font-black ${accent.text} leading-none mb-0.5`}>{bTitle}</p>
-                                  <p className="text-[9px] text-slate-500 leading-snug font-medium break-words line-clamp-2">{bDesc}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {!slideImgError && (
-                        <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                          <i className="fi fi-sr-picture leading-none" /> AI Visual
-                        </span>
-                      )}
+                          );
+                        })}
+                      </div>
+                      
+                      <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-slate-200 text-slate-500 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 z-20">
+                        <i className="fi fi-sr-thumbtack leading-none" /> Concept Pinboard
+                      </span>
                     </div>
                     <div className="bg-slate-50 rounded-3xl border border-slate-100 p-5 flex-1 flex flex-col shadow-inner relative overflow-hidden min-h-[220px]">
                       <SlideVisual graphicType={slide.graphicType} graphicData={slide.graphicData} illustrationPrompt={slide.illustrationPrompt} animationSuggestion={slide.animationSuggestion} title={slide.title} subtitle={slide.subtitle} accent={accent} />
