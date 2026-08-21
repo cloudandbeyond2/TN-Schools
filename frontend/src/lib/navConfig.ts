@@ -518,6 +518,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
       { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
       { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
+      { label: "Concept Explanation", href: "/teacher/concept-explanation", icon: "fi fi-rr-bulb" },
       { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
       { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
       { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
