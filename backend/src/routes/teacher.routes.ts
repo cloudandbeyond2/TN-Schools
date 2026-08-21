@@ -6,6 +6,11 @@ import path from 'path';
 import https from 'https';
 import { getGeminiApiKey } from '../services/aiConfig.service';
 import { sendMockSMS, getStudentParents } from '../utils/sms';
+import multer from 'multer';
+import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
+import { uploadBuffer } from '../services/storage.service';
+
+const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
 
@@ -548,9 +553,49 @@ router.put('/evaluations/:id', async (req: Request, res: Response) => {
 // GET /api/teacher/labs
 router.get('/labs', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const { schoolId, gradeLevel, section } = req.query;
+
+    const andConditions: any[] = [];
+
+    // Filter by school if provided (teacher view or same-school student)
+    if (schoolId) {
+      andConditions.push({ schoolId: String(schoolId) });
+    }
+
+    if (gradeLevel) {
+      if (schoolId) {
+        // Same-school query: include null-gradeLevel (school-specific items) + exact class match
+        andConditions.push({
+          OR: [
+            { gradeLevel: null },
+            { gradeLevel: '' },
+            { gradeLevel: { equals: String(gradeLevel), mode: 'insensitive' } },
+          ],
+        });
+      } else {
+        // Cross-school query (student at different school): ONLY exact gradeLevel match
+        // Do NOT include null-gradeLevel to prevent junk from other schools leaking in
+        andConditions.push({
+          gradeLevel: { equals: String(gradeLevel), mode: 'insensitive' },
+        });
+      }
+    }
+
+    if (section) {
+      andConditions.push({
+        OR: [
+          { classSection: { contains: String(section), mode: 'insensitive' } },
+          { section: { contains: String(section), mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (andConditions.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
     const labs = await prisma.labEquipment.findMany({
-      where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      where: andConditions.length === 1 ? andConditions[0] : { AND: andConditions },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ success: true, data: labs });
@@ -559,10 +604,119 @@ router.get('/labs', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/teacher/labs/:id
+router.get('/labs/:id', async (req: Request, res: Response) => {
+  try {
+    const lab = await prisma.labEquipment.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!lab) {
+      return res.status(404).json({ success: false, error: 'Lab item not found' });
+    }
+    res.json({ success: true, data: lab });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/teacher/labs/generate-content
+router.post('/labs/generate-content', async (req: Request, res: Response) => {
+  const { name, gradeLevel } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, error: 'Experiment name is required' });
+  }
+
+  const prompt = `
+You are an expert Chemistry Teacher for Tamil Nadu State Board (higher secondary curriculum).
+Generate the detailed laboratory practical guidelines and structured content for a chemistry experiment.
+
+Experiment Name: ${name}
+Grade Level: ${gradeLevel || 'Class 11 / Class 12'}
+
+Also identify:
+- chapter: The Tamil Nadu State Board Chemistry chapter name this experiment belongs to (e.g., "Volumetric Analysis", "Chemical Equilibrium", "Electrochemistry", "Organic Chemistry", etc.)
+- category: The best matching category from this list only: "Volumetric Analysis", "Qualitative Analysis", "Organic Compound Analysis", "Inorganic Compound Analysis", "Preparation of Compounds", "Chemical Reactions", "Identification Tests", "Other"
+
+Your output MUST be structured JSON matching the requested schema. Provide clear, accurate, and easy-to-understand content tailored for government school students.
+  `;
+
+  const EXPERIMENT_GEN_SCHEMA = {
+    type: 'OBJECT',
+    properties: {
+      chapter: { type: 'STRING' },
+      category: { type: 'STRING' },
+      aim: { type: 'STRING' },
+      theory: { type: 'STRING' },
+      apparatus: { type: 'ARRAY', items: { type: 'STRING' } },
+      chemicals: { type: 'ARRAY', items: { type: 'STRING' } },
+      procedure: { type: 'ARRAY', items: { type: 'STRING' } },
+      observation: { type: 'STRING' },
+      calculation: { type: 'STRING' },
+      result: { type: 'STRING' },
+      safetyPrecautions: { type: 'STRING' }
+    },
+    required: ['chapter', 'category', 'aim', 'theory', 'apparatus', 'chemicals', 'procedure', 'observation', 'calculation', 'result', 'safetyPrecautions']
+  };
+
+  try {
+    const { callGemini } = require('./ai.routes');
+    const data = await callGemini(prompt, true, EXPERIMENT_GEN_SCHEMA);
+    res.json({ success: true, data });
+  } catch (err: any) {
+    console.error('Error generating experiment content:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/labs/upload
+router.post('/labs/upload', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+    const uploaded = await uploadBuffer({
+      buffer: req.file.buffer,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      folder: 'chemistry-lab',
+    });
+    res.json({ success: true, url: uploaded.url });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/teacher/labs
 router.post('/labs', async (req: Request, res: Response) => {
   try {
-    const { name, classSection, status, date, safetyCheck, schoolId, userId, classRoomId, location, count } = req.body;
+    const {
+      name,
+      classSection,
+      status,
+      date,
+      safetyCheck,
+      schoolId,
+      userId,
+      classRoomId,
+      location,
+      count,
+      subject,
+      gradeLevel,
+      section,
+      chapter,
+      category,
+      aim,
+      theory,
+      apparatus,
+      chemicals,
+      procedure,
+      observation,
+      calculation,
+      result,
+      safetyPrecautions,
+      imageUrl
+    } = req.body;
+
     const lab = await prisma.labEquipment.create({
       data: {
         name,
@@ -573,7 +727,23 @@ router.post('/labs', async (req: Request, res: Response) => {
         schoolId: schoolId || null,
         classRoomId: classRoomId || null,
         location: location || 'N/A',
-        count: count !== undefined ? Number(count) : 1
+        count: count !== undefined ? Number(count) : 1,
+        // Practicals fields
+        subject: subject || 'Chemistry',
+        gradeLevel: gradeLevel || null,
+        section: section || null,
+        chapter: chapter || null,
+        category: category || null,
+        aim: aim || null,
+        theory: theory || null,
+        apparatus: apparatus || null,
+        chemicals: chemicals || null,
+        procedure: procedure || null,
+        observation: observation || null,
+        calculation: calculation || null,
+        result: result || null,
+        safetyPrecautions: safetyPrecautions || null,
+        imageUrl: imageUrl || null
       },
     });
     if (userId) {
