@@ -45,6 +45,11 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"All" | "Upcoming" | "Completed">("All");
 
+  // Search & Pagination State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   // Event Scheduler Form State
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<"Sports" | "Academic" | "Cultural" | "General">("Academic");
@@ -236,50 +241,105 @@ export default function EventsPage() {
   };
 
   const filteredEvents = events.filter((ev) => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "Completed") return ev.status === "Completed";
-    // Upcoming includes Scheduled and In Preparation
-    return ev.status === "Scheduled" || ev.status === "In Preparation";
+    const matchesFilter =
+      activeFilter === "All" ||
+      (activeFilter === "Completed" && ev.status === "Completed") ||
+      (activeFilter === "Upcoming" && (ev.status === "Scheduled" || ev.status === "In Preparation"));
+
+    const matchesSearch =
+      searchQuery === "" ||
+      ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (ev.description && ev.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (ev.coordinator && ev.coordinator.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return matchesFilter && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage) || 1;
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, searchQuery]);
 
   return (
     <PortalLayout
-      title={lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் விளம்பர பலகை" : "School Events Billboard"}
+      title={lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் மையம்" : "School Events Hub"}
       subtitle={lang === "தமிழ்" ? "இந்த கல்வியாண்டிற்கான நிகழ்வுகள், விளையாட்டுப் போட்டிகள், கண்காட்சிகள் மற்றும் பெற்றோர் கவுன்சில் மாநாடுகளை நிர்வகிக்கவும்." : "Manage school events, sports qualifiers, exhibitions and parent council summits."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+              <i className="fi fi-rr-calendar text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் மையம்" : "School Events Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "இந்த கல்வியாண்டிற்கான நிகழ்வுகள், விளையாட்டுத் தகுதிப் போட்டிகள், கண்காட்சிகள் மற்றும் பெற்றோர் மாநாடுகளை நிர்வகிக்கவும்."
+                  : "Announce, schedule, and track school competitions, sports qualifiers, exhibitions, and academic council summits."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "நிகழ்வுகள்" : "Total Events"}</span>
+              <span className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">{events.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "வரவிருப்பவை" : "Upcoming"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{events.filter(e => e.status !== "Completed").length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Event cards listing */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-              <h2 className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                <i className="fi fi-rr-calendar text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் நாட்காட்டி" : "Calendar of Activities"}
-              </h2>
-              
-              {/* Event toggle filters */}
-              <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto max-w-full">
-                {(["All", "Upcoming", "Completed"] as const).map((filterVal) => (
-                  <button
-                    key={filterVal}
-                    onClick={() => setActiveFilter(filterVal)}
-                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-                      activeFilter === filterVal
-                        ? "bg-blue-600 text-white font-extrabold"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800"
-                    }`}
-                  >
-                    {filterVal === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : filterVal === "Upcoming" ? (lang === "தமிழ்" ? "வரூகிறது" : "Upcoming") : (lang === "தமிழ்" ? "முடியனது" : "Completed")}
-                  </button>
-                ))}
-              </div>
+          {/* Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl overflow-x-auto">
+              {(["All", "Upcoming", "Completed"] as const).map((filterVal) => (
+                <button
+                  key={filterVal}
+                  type="button"
+                  onClick={() => setActiveFilter(filterVal)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    activeFilter === filterVal
+                      ? "bg-blue-600 text-white shadow-sm font-extrabold"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  {filterVal === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : filterVal === "Upcoming" ? (lang === "தமிழ்" ? "வரூகிறது" : "Upcoming") : (lang === "தமிழ்" ? "முடியனது" : "Completed")}
+                </button>
+              ))}
             </div>
-            <p className="text-[11px] sm:text-xs text-slate-500 mb-1 leading-relaxed">
-              {lang === "தமிழ்" ? "இந்த கல்வியாண்டிற்கான நிகழ்வுகள், விளையாட்டு தகுதிப் போட்டிகள், கண்காட்சிகள் மற்றும் பெற்றோர் கவுன்சில் மாநாடுகଳின் காலக்கோற்களை கண்டறியும்." : "Track timelines, sports qualifiers, exhibitions, and parent council summits planned for this academic year."}
-            </p>
+
+            <div className="relative flex-1 max-w-xs">
+              <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="text"
+                placeholder={lang === "தமிழ்" ? "தேடுங்கள்..." : "Search events..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
           </div>
 
           <div className="space-y-3 sm:space-y-4">
@@ -292,7 +352,7 @@ export default function EventsPage() {
                 No events currently found under this category.
               </div>
             ) : (
-              filteredEvents.map((ev) => (
+              paginatedEvents.map((ev) => (
                 <div
                   key={ev.id}
                   className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-750 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
@@ -324,6 +384,7 @@ export default function EventsPage() {
                       {ev.status}
                     </span>
                     <button
+                      type="button"
                       onClick={() => handleDelete(ev.id)}
                       className="text-[9px] sm:text-[10px] font-bold text-rose-400 hover:text-rose-300 transition-colors mt-0.5 flex items-center gap-1"
                     >
@@ -334,6 +395,52 @@ export default function EventsPage() {
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {filteredEvents.length > itemsPerPage && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 font-medium">
+              <span>
+                {lang === "தமிழ்" 
+                  ? `மொத்தம் ${filteredEvents.length} இல் ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, filteredEvents.length)} காட்டப்படுகிறது`
+                  : `Showing ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, filteredEvents.length)} of ${filteredEvents.length} items`}
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs flex items-center gap-1"
+                >
+                  <i className="fi fi-rr-angle-left text-xs" /> {lang === "தமிழ்" ? "முந்தைய" : "Previous"}
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-7 h-7 rounded-xl text-xs font-bold transition-all ${
+                      currentPage === pageNum
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs flex items-center gap-1"
+                >
+                  {lang === "தமிழ்" ? "அடுத்தது" : "Next"} <i className="fi fi-rr-angle-right text-xs" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Event scheduler tool */}

@@ -743,58 +743,35 @@ export default function TeacherDigitalPortfolioPage() {
     <PortalLayout>
       <div className="space-y-6 pt-4 pb-16 overflow-y-auto min-h-screen">
 
-        {/* Executive Hero Banner */}
-        <div className="relative bg-white rounded-3xl border border-slate-200 shadow-md p-6 overflow-hidden">
-          {/* Subtle Background Glow Spheres */}
-          <div className="absolute -top-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/8 rounded-full blur-3xl pointer-events-none" />
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-xs font-bold text-amber-600 border border-amber-200 shadow-sm">
-                <FolderOpen className="w-4 h-4 text-amber-500" />
-                {isHeadmaster
-                  ? (lang === "தமிழ்" ? "🛡️ தலைமையாசிரியர் போர்ட்ஃபோலியோ கட்டுப்பாட்டகம்" : "🛡️ Headmaster Portfolio Console")
-                  : (lang === "தமிழ்" ? "🎓 ஆசிரியர் போர்ட்ஃபோலியோ மேலாளர்" : "🎓 Teacher Student Portfolio Manager")}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+                <i className="fi fi-rr-portrait text-xl" />
               </div>
-
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-800">
-                {lang === "தமிழ்" ? "மாணவர் டிஜிட்டல் போர்ட்ஃபோலியோ" : "Student Digital Portfolios"}
-              </h1>
-
-              <p className="text-slate-500 text-xs md:text-sm max-w-2xl leading-relaxed">
-                {lang === "தமிழ்"
-                  ? "மாணவர்களின் திறன்கள், ஆய்வகப் பங்களிப்பு, திட்டங்கள் மற்றும் சாதனைகளை 360-டிகிரியில் பார்வையிட்டு ஆசிரிய நற்சான்றிதழ்களை வழங்கவும்."
-                  : "360-degree cumulative profile monitoring. Track student academic logs, practical competencies, project showcases, and teacher endorsements."}
-              </p>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "மாணவர் டிஜிட்டல் போர்ட்ஃபோலியோ மையம்" : "Student Digital Portfolios Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "மாணவர்களின் திறன்கள், ஆய்வகப் பங்களிப்பு, திட்டங்கள் மற்றும் சாதனைகளை 360-டிகிரியில் பார்வையிட்டு ஆசிரிய நற்சான்றிதழ்களை வழங்கவும்."
+                    : "360-degree cumulative profile monitoring. Track student academic logs, practical competencies, project showcases, and teacher endorsements."}
+                </p>
+              </div>
             </div>
 
-            {/* Quick Status KPI Widget */}
-            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shrink-0 w-full lg:w-auto justify-around">
-              <div className="text-center px-3 border-r border-slate-200">
-                <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                  {lang === "தமிழ்" ? "மாணவர்கள்" : "Total Students"}
-                </span>
-                <span className="text-lg font-black text-amber-500">{filteredStudents.length}</span>
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "மாணவர்கள்" : "Total Students"}</span>
+                <span className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">{filteredStudents.length}</span>
               </div>
-
-              <div className="text-center px-3 border-r border-slate-200">
-                <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                  {lang === "தமிழ்" ? "வகுப்புகள்" : "Standards"}
-                </span>
-                <span className="text-lg font-black text-indigo-500">{classesList.filter(c => c !== "All").length}</span>
-              </div>
-
-              <div className="flex items-center gap-2 pl-2">
-                <ShieldCheck className="w-6 h-6 text-emerald-500" />
-                <div className="text-left text-[11px]">
-                  <span className="block font-black text-emerald-600">
-                    {lang === "தமிழ்" ? "திருத்தும் அனுமதி" : "Edit Active"}
-                  </span>
-                  <span className="text-slate-400 font-medium">
-                    {isHeadmaster ? "HM Admin" : "Teacher Access"}
-                  </span>
-                </div>
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "வகுப்புகள்" : "Standards"}</span>
+                <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{classesList.filter(c => c !== "All").length}</span>
               </div>
             </div>
           </div>

@@ -185,19 +185,44 @@ export default function HistoryPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+              <i className="fi fi-rr-time-past text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "பள்ளி வரலாறு & காலவரிசை மையம்" : "School History & Archival Timeline Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "பள்ளியின் வரலாற்று வளர்ச்சிகள், கட்டமைப்பு மாற்றங்கள் மற்றும் முக்கிய கல்வி சாதனைகளின் காலவரிசையைக் கண்காணிக்கவும்."
+                  : "Trace the historical evolution of school infrastructure, academic milestones, enrollment benchmarks, and heritage achievements."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "மைல்கல்கள்" : "Milestones"}</span>
+              <span className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">{milestones.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "நிறுவப்பட்டது" : "Est. Year"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{milestones.length > 0 ? milestones[0].year : "1955"}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 text-left">
         {/* Timeline Visual Feed */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
-            <h2 className="text-sm sm:text-base font-semibold text-white mb-1 flex items-center gap-2">
-              <i className="fi fi-rr-calendar-clock text-blue-500" /> {lang === "தமிழ்" ? "மைல்கல் காலவரிசை (1955 முதல்)" : "Milestone Timeline (Since 1955)"}
-            </h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
-              {lang === "தமிழ்" ? "பள்ளி கட்டமைப்பு, சேர்க்கை இலக்குகள் மற்றும் முக்கிய கல்வி மைல்கல்களின் வரலாறு வளர்ச்சி." : "Historical evolution of school infrastructure, enrollment benchmarks, and major academic milestones."}
-            </p>
-          </div>
-
-          <div className="relative border-l-2 border-slate-800 ml-4 pl-6 space-y-8">
+          <div className="relative border-l-2 border-slate-800 ml-4 pl-6 space-y-8 pt-2">
             {loading ? (
               <div className="text-center py-6 text-slate-500 font-bold text-xs">
                 {lang === "தமிழ்" ? "மைல்கல்கள் ஏற்றப்படுகின்றன..." : "Loading milestones..."} <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
