@@ -353,6 +353,28 @@ export default function TeacherDigitalLibraryPage() {
       accentColor="#10b981"
     >
       <div className="w-full px-4 sm:px-6 lg:px-8 space-y-8 pt-4">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-book-alt text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "டிஜிட்டல் நூலக பங்களிப்பு மையம்" : "Digital Library Contributions Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "மின்-புத்தகங்கள், குறிப்புப் புத்தகங்கள், கற்றல் வீடியோக்கள் மற்றும் அரசுப் பாடப் பொருட்களை மாணவர்களுக்காகப் பதிவேற்றிப் பகிரவும்."
+                    : "Upload and contribute e-books, reference manuals, educational videos, and competitive exam materials to the school digital library."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {message && (
           <div className={`p-4 rounded-xl flex items-center gap-3 border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400'}`}>
@@ -369,7 +391,8 @@ export default function TeacherDigitalLibraryPage() {
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                📚 {lang === "தமிழ்" ? `பங்களிக்கப்பட்ட உங்கள் வளங்கள் (${items.length})` : `Your Contributed Resources (${items.length})`}
+                <i className="fi fi-rr-book-alt text-xl text-emerald-600"></i>
+                {lang === "தமிழ்" ? `பங்களிக்கப்பட்ட உங்கள் வளங்கள் (${items.length})` : `Your Contributed Resources (${items.length})`}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{lang === "தமிழ்" ? "நீங்கள் சமர்ப்பித்த பாடப்புத்தகங்கள், வீடியோ பாடங்கள் மற்றும் குறிப்புப் புத்தகங்களை நிர்வகிக்கவும் கண்காணிக்கவும்." : "Manage and track your submitted textbooks, video lessons, and reference books."}</p>
             </div>

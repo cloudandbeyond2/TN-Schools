@@ -444,6 +444,29 @@ export default function TeacherSSLCPrepPage() {
       title={lang === "தமிழ்" ? "SSLC தேர்வுத் தயாரிப்பு கட்டுப்பாட்டு மையம்" : "SSLC Board Prep Console"}
       subtitle={lang === "தமிழ்" ? "வகுப்புகள் 9 & 10 க்கான வாரியத் தேர்வுத் தயாரிப்பை நிர்வகிக்கவும் — மாதிரி தேர்வுகள், தாள்கள், திட்டங்கள் மற்றும் கணிப்புகள்." : "Manage board preparation for Classes 9 & 10 — mock tests, papers, plans and predictions."}
     >
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-target text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "SSLC அரசுத் தேர்வு தயாரிப்பு மையம்" : "SSLC Board Prep Console Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "வகுப்பு 10 அரசுத் தேர்வுக்கான மாதிரித் தேர்வுகள், கடந்த கால வினாத்தாள்கள் மற்றும் மாணவர் தேர்ச்சி கணிப்புகளை நிர்வகிக்கவும்."
+                    : "Manage 10th standard SSLC board exam preparation, create mock tests, upload question papers, and track pass-rate AI predictions."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       {/* Tab bar + grade switch */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -1230,6 +1253,7 @@ export default function TeacherSSLCPrepPage() {
           </div>
         </div>
       )}
+      </div>
     </PortalLayout>
   );
 }
