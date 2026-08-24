@@ -116,7 +116,31 @@ export default function TeacherEventsPage() {
       subtitle={lang === "தமிழ்" ? "மன்றங்களுக்கான கூடுதல் பாடநெறி நிகழ்வுகளை திட்டமிட்டு நிர்வகிக்கவும்" : "Schedule and manage extracurricular events for clubs"} 
       themeClass="theme-teacher"
     >
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <Calendar className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "மன்ற நிகழ்வுகள் மையம்" : "Club Events Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "பள்ளி மன்றங்களுக்கான கூடுதல் பாடநெறி நிகழ்வுகள், போட்டிகள் மற்றும் பயிலரங்குகளைத் திட்டமிட்டு நிர்வகிக்கவும்."
+                    : "Schedule and manage extracurricular club events, competitions, showcases, and workshops for your school."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex justify-between items-center mb-4">
@@ -275,6 +299,7 @@ export default function TeacherEventsPage() {
           )}
         </div>
       </div>
-    </PortalLayout>
+    </div>
+  </PortalLayout>
   );
 }

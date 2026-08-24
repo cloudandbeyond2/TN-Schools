@@ -599,17 +599,6 @@ export default function ScienceLabSupportPage() {
                 </p>
               </div>
             </div>
-
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
-              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{isTamil ? "தயார் நிலை" : "Operational"}</span>
-                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{powerLevel}%</span>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{isTamil ? "உபகரணங்கள்" : "Total Items"}</span>
-                <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{totalCount}</span>
-              </div>
-            </div>
           </div>
         </div>
 

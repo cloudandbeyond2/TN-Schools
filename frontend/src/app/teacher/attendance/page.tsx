@@ -360,8 +360,29 @@ export default function AttendancePage() {
       title={t("attendance_module")}
       subtitle="Scope and record student attendance. Auto-notifies parents instantly on absence."
     >
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
-      {/* Tab Switcher & Filters */}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+                <Users className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {t("attendance_module") || "Attendance Management Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  Track, record, and monitor daily and weekly student attendance. Auto-notifies parents instantly on absence.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Switcher & Filters */}
       <div className="glass rounded-2xl p-5 mb-6 border border-slate-800 flex flex-col xl:flex-row justify-between items-stretch gap-4 fade-in">
 
         {/* Left Side: Segmented Tab control + Class Select */}
@@ -810,6 +831,7 @@ export default function AttendancePage() {
           </div>
         </div>
       )}
-    </PortalLayout>
+    </div>
+  </PortalLayout>
   );
 }
