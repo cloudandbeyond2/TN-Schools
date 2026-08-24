@@ -579,6 +579,40 @@ export default function ScienceLabSupportPage() {
       }
     >
       <div className="flex flex-col gap-6 text-left font-sans">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-500 rounded-xl shrink-0 border border-cyan-100 dark:border-cyan-900/50">
+                <i className="fi fi-rr-flask text-xl" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {isTamil ? "அறிவியல் ஆய்வக ஆதரவு மையம்" : "Science Lab Support Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {isTamil
+                    ? "ஆய்வக உபகரணங்கள், இரசாயன இருப்புகள், பழுதுபார்க்கும் பதிவுகள் மற்றும் பாதுகாப்பு நெறிமுறைகளை நிர்வகிக்கவும்."
+                    : "Manage science laboratory inventory, track equipment repair tickets, and enforce safety audit protocols."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{isTamil ? "தயார் நிலை" : "Operational"}</span>
+                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{powerLevel}%</span>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{isTamil ? "உபகரணங்கள்" : "Total Items"}</span>
+                <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{totalCount}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Modern Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-all hover:shadow-md">

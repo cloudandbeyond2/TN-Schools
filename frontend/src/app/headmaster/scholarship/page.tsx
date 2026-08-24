@@ -254,6 +254,40 @@ export default function ScholarshipPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 rounded-xl shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+              <i className="fi fi-rr-graduation-cap text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "உதவித்தொகை விநியோகம் & சரிபார்ப்பு மையம்" : "Scholarship Distribution & Verification Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "சமூக நல கல்வி உதவித்தொகைகள், தேசிய வருவாய் வழி உதவித்தொகை (NMMS) மற்றும் EMIS சான்றிதழ் தணிக்கைகளை நிர்வகிக்கவும்."
+                  : "Review, audit, and authorize social welfare bursaries, NMMS merit grants, and EMIS community certificates for direct benefit transfer."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "விண்ணப்பங்கள்" : "Applications"}</span>
+              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{applications.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்டவை" : "Approved"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{approvedCount}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
