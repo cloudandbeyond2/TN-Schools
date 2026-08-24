@@ -358,7 +358,31 @@ export default function ScienceDrawMatPage() {
       title={lang === "தமிழ்" ? "அறிவியல் வரைபடம்" : "Science Draw Mat"}
       subtitle={lang === "தமிழ்" ? "வரைந்து, அழித்து, தட்டச்சு செய்து அற்புதமான அறிவியல் வரைபடங்களை உருவாக்குங்கள்!" : "Draw, erase, type, and create awesome science diagrams!"}
     >
-      <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] xl:h-[calc(100vh-140px)] overflow-y-auto xl:overflow-hidden">
+      <div className="space-y-6">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 rounded-xl shrink-0 border border-indigo-100 dark:border-indigo-900/50">
+                <Palette className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "அறிவியல் வரைபட மையம்" : "Science Draw Mat Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "வரைகலை கருவிகளைப் பயன்படுத்தி அறிவியல் வரைபடங்களை வரைந்து, தட்டச்சு செய்து பதிவிறக்கவும்."
+                    : "Draw, erase, type, and create awesome science diagrams using interactive drawing tools."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] xl:h-[calc(100vh-140px)] overflow-y-auto xl:overflow-hidden">
         
         {/* Playful Tools Sidebar */}
         <div className="w-full xl:w-24 flex-shrink-0 flex flex-row xl:flex-col gap-4 relative z-40 select-none">
@@ -734,6 +758,7 @@ export default function ScienceDrawMatPage() {
         </div>
         
       </div>
+    </div>
       
       {/* Playful Toast Notification */}
       {toastMsg && (
