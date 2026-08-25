@@ -119,25 +119,29 @@ export default function HeadmasterSocialActivitiesPage() {
       accentColor="#059669"
       themeClass="theme-headmaster"
     >
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="space-y-6 text-left">
         
         {/* Header Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-emerald-150 dark:border-emerald-900 shadow-sm text-left relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
           
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-2xl">
-                <BarChart2 className="w-8 h-8" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 rounded-xl shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+                <BarChart2 className="w-5 h-5 text-emerald-500" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white">{lang === "தமிழ்" ? "சமூக சேவை & சமூக தணிக்கை" : "Community Service & Social Audit"}</h1>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{lang === "தமிழ்" ? "சுற்றுச்சூழல், தூய்மைப்பணி மற்றும் கல்வி சேவை தாக்கங்களை பள்ளி முழுவதும் மதிப்பாய்வு செய்யவும்." : "Review environmental, cleanup, and educational volunteering impacts school-wide."}</p>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "சமூக சேவை & சமூக தணிக்கை" : "Community Service & Social Audit"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்" ? "சுற்றுச்சூழல், தூய்மைப்பணி மற்றும் கல்வி சேவை தாக்கங்களை பள்ளி முழுவதும் மதிப்பாய்வு செய்யவும்." : "Review environmental, cleanup, and educational volunteering impacts school-wide."}
+                </p>
               </div>
             </div>
             <button
               onClick={handleDownloadReport}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-3 rounded-2xl transition-all shadow flex items-center justify-center gap-2 self-start md:self-auto"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2 self-start md:self-auto shrink-0"
             >
               <Download className="w-4 h-4" /> Download Social Report
             </button>

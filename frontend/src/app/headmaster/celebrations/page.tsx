@@ -35,6 +35,12 @@ export default function HeadmasterCelebrationsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Filter, Search & Pagination State
+  const [filterType, setFilterType] = useState<"ALL" | "EVENT" | "HOLIDAY">("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   // Form State
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
@@ -195,7 +201,24 @@ export default function HeadmasterCelebrationsPage() {
     }
   };
 
-  const filteredCelebrations = celebrations;
+  const filteredCelebrations = celebrations.filter((item) => {
+    const matchesType = filterType === "ALL" || item.type === filterType;
+    const matchesSearch =
+      searchQuery === "" ||
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesType && matchesSearch;
+  });
+
+  const totalPages = Math.ceil(filteredCelebrations.length / itemsPerPage) || 1;
+  const paginatedCelebrations = filteredCelebrations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchQuery]);
 
   return (
     <PortalLayout
@@ -206,20 +229,92 @@ export default function HeadmasterCelebrationsPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left Columns - Celebration List */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-                <h2 className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                  <i className="fi fi-rr-party-horn text-blue-500 text-base" /> {lang === "தமிழ்" ? "பதிவு செய்யப்பட்ட கொண்டாட்டங்கள் & நிகழ்வுகள்" : "Registered Celebrations & Events"}
-                </h2>
-              </div>
-              <p className="text-[11px] sm:text-xs text-slate-550 mb-1 leading-relaxed">
-                {lang === "தமிழ்" ? "பள்ளி திருவிழாக்கள் மற்றும் கொண்டாட்டங்களைச் சேர்க்கவும். இந்த நிகழ்வுகள் ஆசிரியர் போர்டல் கொண்டாட்டங்கள் பட்டியலுடன் ஒத்திசைக்கப்படும்." : "Add school festivals and celebrations. These events will sync instantly to the Teacher Portal celebrations list."}
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-pink-50 dark:bg-pink-950/40 text-pink-500 rounded-xl shrink-0 border border-pink-100 dark:border-pink-900/50">
+              <i className="fi fi-rr-party-horn text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "பள்ளி கொண்டாட்டங்கள் & நிகழ்வுகள் மையம்" : "School Celebrations & Events Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "பள்ளி திருவிழாக்கள், தேசிய கொண்டாட்டங்கள் மற்றும் விடுமுறை நாட்களை அட்டவணைப்படுத்தி ஆசிரியர் தளத்துடன் ஒத்திசைக்கவும்."
+                  : "Schedule and manage national festivals, annual day functions, sports meets, and government holidays across the school calendar."}
               </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "நிகழ்வுகள்" : "Total Events"}</span>
+              <span className="text-base font-bold text-pink-600 dark:text-pink-400 mt-0.5">{celebrations.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{celebrations.filter(c => c.type === "HOLIDAY").length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Columns - Celebration List */}
+        <div className="lg:col-span-2 space-y-4">
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setFilterType("ALL")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    filterType === "ALL"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  {lang === "தமிழ்" ? "அனைத்தும்" : "All"} ({celebrations.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterType("EVENT")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    filterType === "EVENT"
+                      ? "bg-pink-600 text-white shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  {lang === "தமிழ்" ? "நிகழ்வுகள்" : "Events"} ({celebrations.filter(c => c.type === "EVENT").length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterType("HOLIDAY")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    filterType === "HOLIDAY"
+                      ? "bg-amber-600 text-white shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  {lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"} ({celebrations.filter(c => c.type === "HOLIDAY").length})
+                </button>
+              </div>
+
+              <div className="relative flex-1 max-w-xs">
+                <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                <input
+                  type="text"
+                  placeholder={lang === "தமிழ்" ? "தேடுங்கள்..." : "Search celebrations..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+              </div>
             </div>
 
             {/* List items */}
@@ -235,7 +330,7 @@ export default function HeadmasterCelebrationsPage() {
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
-                {filteredCelebrations.map((item) => (
+                {paginatedCelebrations.map((item) => (
                   <div
                     key={item.id}
                     className="glass rounded-2xl p-4 sm:p-5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-700 transition-colors animate-in fade-in duration-300"
@@ -279,6 +374,7 @@ export default function HeadmasterCelebrationsPage() {
 
                     <div className="flex gap-2 self-end sm:self-center shrink-0">
                       <button
+                        type="button"
                         onClick={() => handleStartEdit(item)}
                         className="p-1.5 sm:p-2 border border-slate-700 hover:border-blue-500 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
                         title={lang === "தமிழ்" ? "திருத்து" : "Edit Celebration"}
@@ -286,6 +382,7 @@ export default function HeadmasterCelebrationsPage() {
                         <i className="fi fi-rr-edit text-xs sm:text-sm" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(item.id, item.title)}
                         className="p-1.5 sm:p-2 border border-red-500/20 hover:border-red-500/50 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
                         title={lang === "தமிழ்" ? "நீக்கு" : "Delete Celebration"}
@@ -295,6 +392,52 @@ export default function HeadmasterCelebrationsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination Bar */}
+            {filteredCelebrations.length > itemsPerPage && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 font-medium">
+                <span>
+                  {lang === "தமிழ்" 
+                    ? `மொத்தம் ${filteredCelebrations.length} இல் ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, filteredCelebrations.length)} காட்டப்படுகிறது`
+                    : `Showing ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, filteredCelebrations.length)} of ${filteredCelebrations.length} items`}
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs flex items-center gap-1"
+                  >
+                    <i className="fi fi-rr-angle-left text-xs" /> {lang === "தமிழ்" ? "முந்தைய" : "Previous"}
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-7 h-7 rounded-xl text-xs font-bold transition-all ${
+                        currentPage === pageNum
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs flex items-center gap-1"
+                  >
+                    {lang === "தமிழ்" ? "அடுத்தது" : "Next"} <i className="fi fi-rr-angle-right text-xs" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -391,9 +534,7 @@ export default function HeadmasterCelebrationsPage() {
               </div>
             </form>
           </div>
-
         </div>
-      </div>
     </PortalLayout>
   );
 }

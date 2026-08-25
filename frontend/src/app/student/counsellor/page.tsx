@@ -492,7 +492,7 @@ export default function CounsellorPage() {
               return (
                 <div key={idx} className="flex items-center gap-1.5 bg-white/15 border border-white/20 rounded-full px-3 py-1.5 backdrop-blur-sm text-white">
                   <CIcon size={14} className="opacity-90 !text-white" />
-                  <span className="text-xs font-semibold opacity-90">{chip.label}</span>
+                  <span className="text-xs font-semibold opacity-90 !text-white">{chip.label}</span>
                 </div>
               )
             })}

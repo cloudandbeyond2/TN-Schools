@@ -167,6 +167,8 @@ export default function MockTestsPage() {
   const [student, setStudent] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState("All");
   const [selectedSender, setSelectedSender] = useState<"All" | "HM" | "Teacher">("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
   const [activeTest, setActiveTest] = useState<MockTest | null>(null);
   
   // Test execution state
@@ -374,6 +376,13 @@ export default function MockTestsPage() {
     return matchesSubject && matchesSender;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSubject, selectedSender]);
+
+  const totalPages = Math.ceil(filteredTests.length / ITEMS_PER_PAGE);
+  const paginatedTests = filteredTests.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   // Timer hook
   useEffect(() => {
     if (!activeTest || testFinished) return;
@@ -566,7 +575,7 @@ export default function MockTestsPage() {
 
             {/* Test list */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filteredTests.map((test) => (
+              {paginatedTests.map((test) => (
                 <div
                   key={test.id}
                   className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]"
@@ -626,6 +635,28 @@ export default function MockTestsPage() {
                 </div>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-8">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-700 text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  Previous
+                </button>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-700 text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </>
         ) : testStatus === "instructions" ? (
           <div className="fixed inset-0 z-[100] bg-[var(--bg-main)] overflow-y-auto w-full h-full p-4 md:p-8 flex items-center justify-center">

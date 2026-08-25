@@ -644,7 +644,30 @@ export default function ScienceLabsPage() {
   }
 
   return (
-    <PortalLayout title={lang === "தமிழ்" ? "அறிவியல் ஆய்வகம் நிர்வாகம்" : "Science Labs Manager"} subtitle={lang === "தமிழ்" ? "ஆய்வு முறைகள், ஆய்வக கைெயடுப்புகள் மற்றும் பாதுகாப்பு இணக்கம் நிர்வகி" : "Manage experimental sessions, lab manuals, and safety compliance."}>
+    <PortalLayout title={lang === "தமிழ்" ? "அறிவியல் ஆய்வகம் நிர்வாகம்" : "Science Labs Manager"} subtitle={lang === "தமிழ்" ? "ஆய்வு முறைகள், ஆய்வக கையேடுகள் மற்றும் பாதுகாப்பு இணக்கம் நிர்வகி" : "Manage experimental sessions, lab manuals, and safety compliance."}>
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-flask text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "அறிவியல் ஆய்வகங்கள் மையம்" : "Science Labs Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "ஆய்வக அமர்வுகள், AI ஆய்வகக் கையேடு உருவாக்கி மற்றும் மாணவர்களின் ஆய்வக அறிக்கைகளை நிர்வகிக்கவும்."
+                    : "Manage practical experimental lab sessions, generate AI lab manuals, and evaluate student lab reports and conduct."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Lab Sessions */}
         <div className="lg:col-span-2 theme-card p-6">
@@ -956,6 +979,7 @@ export default function ScienceLabsPage() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </PortalLayout>
   );

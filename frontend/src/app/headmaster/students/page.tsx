@@ -50,6 +50,15 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+const APPROVED_GROUPS = new Set([
+  "2501", "2502", "2503", "2504", "2505", "2506",
+  "2601", "2602", "2603", "2604", "2605", "2606", "2607", "2608",
+  "2701", "2702", "2703", "2704", "2705", "2706", "2707", "2708",
+  "2801", "2802", "2803", "2804", "2805", "2806",
+  "2971", "2972", "2973", "2974", "2975", "2976",
+  "2977", "2978", "2979", "2980", "2981", "2982"
+]);
+
 interface StudentConfidentialData {
   streetAddress: string;
   photo?: string;
@@ -332,6 +341,7 @@ export default function StudentsMonitoringPage() {
     setEmisError("");
     setBankAccountError("");
     setBankIfscError("");
+    setGroupError("");
   };
 
   const handleOpenEdit = (s: any) => {
@@ -406,6 +416,7 @@ export default function StudentsMonitoringPage() {
   const [emisError, setEmisError] = useState("");
   const [bankAccountError, setBankAccountError] = useState("");
   const [bankIfscError, setBankIfscError] = useState("");
+  const [groupError, setGroupError] = useState("");
 
   const handleRollChange = (val: string) => {
     // Only allow alphanumeric characters, uppercase them for standard format
@@ -744,19 +755,14 @@ export default function StudentsMonitoringPage() {
     const hscGroupsData = [
       { "Note": "For Class 11 & 12 only. Enter ONLY the Group Code (e.g. 2502) in the Group column.", "Code": "", "Group Name": "", "Stream": "" },
       { "Note": "", "Code": "CODE", "Group Name": "GROUP NAME (Subjects)", "Stream": "STREAM" },
-      { "Note": "", "Code": "1001", "Group Name": "Tamil, English, History, Geography", "Stream": "Arts" },
-      { "Note": "", "Code": "1002", "Group Name": "Tamil, English, Economics, Commerce", "Stream": "Arts" },
-      { "Note": "", "Code": "1003", "Group Name": "Tamil, English, History, Economics", "Stream": "Arts" },
-      { "Note": "", "Code": "1004", "Group Name": "Tamil, English, Accountancy, Commerce", "Stream": "Arts" },
-      { "Note": "", "Code": "1005", "Group Name": "Tamil, English, Civics, Geography", "Stream": "Arts" },
-      { "Note": "", "Code": "1101", "Group Name": "Tamil, English, Computer Applications, Accountancy", "Stream": "Vocational" },
-      { "Note": "", "Code": "1102", "Group Name": "Tamil, English, Computer Science, Mathematics", "Stream": "Vocational" },
+      // SCIENCE_MATHS
       { "Note": "", "Code": "2501", "Group Name": "Physics, Chemistry, Statistics, Mathematics", "Stream": "Science (with Mathematics)" },
       { "Note": "", "Code": "2502", "Group Name": "Physics, Chemistry, Computer Science, Mathematics", "Stream": "Science (with Mathematics)" },
       { "Note": "", "Code": "2503", "Group Name": "Physics, Chemistry, Biology, Mathematics", "Stream": "Science (with Mathematics)" },
       { "Note": "", "Code": "2504", "Group Name": "Physics, Chemistry, Bio-Chemistry, Mathematics", "Stream": "Science (with Mathematics)" },
       { "Note": "", "Code": "2505", "Group Name": "Physics, Chemistry, Communicative English, Mathematics", "Stream": "Science (with Mathematics)" },
       { "Note": "", "Code": "2506", "Group Name": "Physics, Chemistry, Mathematics, Home Science", "Stream": "Science (with Mathematics)" },
+      // SCIENCE_BIOLOGY
       { "Note": "", "Code": "2601", "Group Name": "Physics, Chemistry, Biology, Computer Science", "Stream": "Science (with Biology)" },
       { "Note": "", "Code": "2602", "Group Name": "Physics, Chemistry, Biology, Micro-Biology", "Stream": "Science (with Biology)" },
       { "Note": "", "Code": "2603", "Group Name": "Physics, Chemistry, Biology, Bio-Chemistry", "Stream": "Science (with Biology)" },
@@ -765,10 +771,35 @@ export default function StudentsMonitoringPage() {
       { "Note": "", "Code": "2606", "Group Name": "Physics, Chemistry, Biology, Communicative English", "Stream": "Science (with Biology)" },
       { "Note": "", "Code": "2607", "Group Name": "Physics, Chemistry, Biology, Home Science", "Stream": "Science (with Biology)" },
       { "Note": "", "Code": "2608", "Group Name": "Physics, Chemistry, Botany, Zoology", "Stream": "Science (with Biology)" },
+      // COMMERCE
       { "Note": "", "Code": "2701", "Group Name": "Statistics, Economics, Commerce, Accountancy", "Stream": "Commerce" },
       { "Note": "", "Code": "2702", "Group Name": "Economics, Commerce, Accountancy, Computer Applications", "Stream": "Commerce" },
       { "Note": "", "Code": "2703", "Group Name": "Communicative English, Economics, Commerce, Accountancy", "Stream": "Commerce" },
-      { "Note": "", "Code": "2704", "Group Name": "Economics, Commerce, Accountancy, Business Mathematics", "Stream": "Commerce" },
+      { "Note": "", "Code": "2704", "Group Name": "History, Economics, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2705", "Group Name": "Economics, Political Science, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2706", "Group Name": "Economics, Commerce, Accountancy, Ethics and Indian Culture", "Stream": "Commerce" },
+      { "Note": "", "Code": "2707", "Group Name": "Economics, Commerce, Accountancy, Advanced Language (Tamil)", "Stream": "Commerce" },
+      { "Note": "", "Code": "2708", "Group Name": "Economics, Commerce, Accountancy, Business Mathematics and Statistics", "Stream": "Commerce" },
+      // ARTS
+      { "Note": "", "Code": "2801", "Group Name": "Statistics, Geography, History, Economics", "Stream": "Arts / Humanities" },
+      { "Note": "", "Code": "2802", "Group Name": "Geography, History, Economics, Computer Applications", "Stream": "Arts / Humanities" },
+      { "Note": "", "Code": "2803", "Group Name": "Geography, Communicative English, History, Economics", "Stream": "Arts / Humanities" },
+      { "Note": "", "Code": "2804", "Group Name": "Geography, History, Economics, Political Science", "Stream": "Arts / Humanities" },
+      { "Note": "", "Code": "2805", "Group Name": "Geography, History, Economics, Ethics and Indian Culture", "Stream": "Arts / Humanities" },
+      { "Note": "", "Code": "2806", "Group Name": "Geography, History, Economics, Advanced Language (Tamil)", "Stream": "Arts / Humanities" },
+      // VOCATIONAL
+      { "Note": "", "Code": "2971", "Group Name": "Mathematics, Basic Mechanical Engineering (Theory), Basic Mechanical Engineering (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2972", "Group Name": "Mathematics, Basic Electrical Engineering (Theory), Basic Electrical Engineering (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2973", "Group Name": "Mathematics, Basic Electronics Engineering (Theory), Basic Electronics Engineering (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2974", "Group Name": "Mathematics, Basic Civil Engineering (Theory), Basic Civil Engineering (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2975", "Group Name": "Mathematics, Basic Automobile Engineering (Theory), Basic Automobile Engineering (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2976", "Group Name": "Mathematics, Textile Technology (Theory), Textile Technology (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2977", "Group Name": "Biology, Nursing (Theory), Nursing (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2978", "Group Name": "Home Science, Textile and Dress Designing (Theory), Textile and Dress Designing (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2979", "Group Name": "Home Science, Food Service Management (Theory), Food Service Management (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2980", "Group Name": "Biology, Agricultural Science (Theory), Agricultural Science (Practical), Employability Skills", "Stream": "Vocational" },
+      { "Note": "", "Code": "2981", "Group Name": "Commerce, Accountancy (Theory), Office Management and Secretaryship (Theory), Typography and Computer Applications (Practical)", "Stream": "Vocational" },
+      { "Note": "", "Code": "2982", "Group Name": "Commerce, Accountancy, Auditing (Practical), Employability Skills", "Stream": "Vocational" },
     ];
     const ws2 = XLSX.utils.json_to_sheet(hscGroupsData, {
       header: ["Note", "Code", "Group Name", "Stream"]
@@ -883,7 +914,29 @@ export default function StudentsMonitoringPage() {
           const studentStatus = row["Student Status"]?.toString().trim() || "Active";
 
 
-          const isValid = name !== "" && rollNumber !== "";
+          const isHscClass = cls.includes("11") || cls.includes("12");
+          let rowError = "";
+          let isValid = name !== "" && rollNumber !== "";
+
+          if (!name) {
+            rowError = "Name is missing";
+          } else if (!rollNumber) {
+            rowError = "Roll Number is missing";
+          } else if (isHscClass) {
+            if (!group) {
+              isValid = false;
+              rowError = "HSC Group is required for Class 11 and 12";
+            } else if (!APPROVED_GROUPS.has(group)) {
+              isValid = false;
+              rowError = `Invalid Group Code "${group}" for Class 11/12`;
+            }
+          } else {
+            if (group && group.trim() !== "") {
+              isValid = false;
+              rowError = "HSC Group should not be set for Class 1-10";
+            }
+          }
+
           return {
             id: idx,
             name,
@@ -899,7 +952,7 @@ export default function StudentsMonitoringPage() {
             mediumOfInstruction,
             class: cls,
             section,
-            group,
+            group: isHscClass ? group : "", // Clean it if not HSC class
             academicYear,
             fatherName,
             fatherOccupation,
@@ -915,7 +968,7 @@ export default function StudentsMonitoringPage() {
             pincode,
             studentStatus,
             isValid,
-            validationError: !name ? "Name is missing" : !rollNumber ? "Roll Number is missing" : undefined,
+            validationError: rowError || undefined,
           };
         });
 
@@ -1057,6 +1110,19 @@ export default function StudentsMonitoringPage() {
       invalidFields.push("Bank IFSC Code");
     }
 
+    // 7. HSC Group Validation
+    let localGroupError = "";
+    const isHscClass = newClass.includes("11") || newClass.includes("12");
+    if (isHscClass) {
+      if (!newGroup) {
+        localGroupError = "HSC Group is required for Class 11 & 12";
+        invalidFields.push("HSC Group");
+      } else if (!APPROVED_GROUPS.has(newGroup)) {
+        localGroupError = `Invalid Group Code "${newGroup}"`;
+        invalidFields.push("HSC Group");
+      }
+    }
+
     // Update states
     setRollError(localRollError);
     setPhoneError(localPhoneError);
@@ -1064,6 +1130,7 @@ export default function StudentsMonitoringPage() {
     setEmisError(localEmisError);
     setBankAccountError(localBankAccountError);
     setBankIfscError(localBankIfscError);
+    setGroupError(localGroupError);
 
     if (invalidFields.length > 0) {
       showToast(`❌ Please fix errors in: ${invalidFields.join(", ")}`, "error");
@@ -1077,6 +1144,7 @@ export default function StudentsMonitoringPage() {
       else if (firstInvalid === "EMIS Number") elementId = "manual-emis-number";
       else if (firstInvalid === "Bank Account Number") elementId = "manual-bank-account";
       else if (firstInvalid === "Bank IFSC Code") elementId = "manual-bank-ifsc";
+      else if (firstInvalid === "HSC Group") elementId = "manual-hsc-group";
 
       if (elementId) {
         setTimeout(() => {
@@ -1180,6 +1248,7 @@ export default function StudentsMonitoringPage() {
         setPhoneError("");
         setPincodeError("");
         setEmisError("");
+        setGroupError("");
 
         setIsModalOpen(false);
         fetchWatchlist();
@@ -1932,7 +2001,7 @@ export default function StudentsMonitoringPage() {
                         <div>
                           <h3 className="text-base font-extrabold text-slate-900 dark:text-white leading-tight">{newName}</h3>
                           <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{newClass} · Section {newSection}</p>
-                          {newGroup && (
+                          {newGroup && (newClass.includes("11") || newClass.includes("12")) && (
                             <span className="inline-block mt-1 px-2.5 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-full text-[9px] font-black uppercase">
                               Group {newGroup}
                             </span>
@@ -2706,7 +2775,7 @@ export default function StudentsMonitoringPage() {
                           {(newClass.includes("11") || newClass.includes("12")) && (
                             <div className="col-span-2">
                               <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
-                              <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <select id="manual-hsc-group" value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className={`w-full bg-blue-50 border rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white transition-colors ${groupError ? "border-red-500 focus:border-red-500 bg-red-50/50 text-red-900" : "border-blue-200 focus:border-blue-500"}`}>
                                 <option value="">Select Group</option>
                                 {Object.keys(streamLabels).map((stream) => (
                                   <optgroup key={stream} label={streamLabels[stream] || stream}>
@@ -2718,6 +2787,9 @@ export default function StudentsMonitoringPage() {
                                   </optgroup>
                                 ))}
                               </select>
+                              {groupError && (
+                                <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{groupError}</p>
+                              )}
                               <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
                             </div>
                           )}

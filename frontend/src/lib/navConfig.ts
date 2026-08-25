@@ -514,11 +514,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       // Common Menu & Tools
       { label: "Admin & Tools", href: "#", icon: "" },
-      // { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "LayoutGrid" },
+      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "fi fi-rr-apps" },
       { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
       { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
       { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
-      { label: "AI Prompts Generator", href: "/teacher/ai-prompts", icon: "fi fi-rr-bulb" },
       { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
       { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
       { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
@@ -615,6 +614,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "School Admin & Govt", href: "#", icon: "" },
       { label: "School Resources", href: "/headmaster/resources", icon: "fi fi-rr-building" },
+      { label: "Science Lab Support", href: "/headmaster/science-lab-support", icon: "fi fi-rr-flask" },
       { label: "Mid-Day Meal", href: "/headmaster/midday-meal", icon: "fi fi-rr-restaurant" },
       { label: "Scholarship", href: "/headmaster/scholarship", icon: "fi fi-rr-award" },
       { label: "Govt Scheme Management", href: "/headmaster/gov-schemes", icon: "fi fi-rr-bank" },
@@ -741,8 +741,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
       { label: "User Management", href: "/super-admin/users", icon: "Users" },
 
-      
-      
+
+
       { label: "Role & Permissions", href: "/super-admin/roles", icon: "Lock" },
       { label: "School Management", href: "/super-admin/schools", icon: "Building" },
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },
@@ -860,7 +860,7 @@ export function applyStudentGroup(items: NavItem[], group: StudentGroup): NavIte
   if (start !== -1) {
     const isHeader = result[start].href === "#";
     const replaceStart = isHeader ? start + 1 : start;
-    
+
     let end = result.findIndex((it, i) => i > replaceStart && it.label === "---");
     if (end === -1) end = result.length;
 
@@ -877,7 +877,7 @@ export function applyStudentGroup(items: NavItem[], group: StudentGroup): NavIte
       href: "/student/science-campus",
       icon: "FlaskConical"
     };
-    
+
     result = [
       ...result.slice(0, replaceStart),
       campusItem,

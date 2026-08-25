@@ -59,7 +59,9 @@ export default function PrepPlansPage() {
             : null;
           const matched = myStudent || json.data[0];
           setStudent(matched);
-          if (matched && String(matched.class) === "9") setSelectedGrade("9");
+          if (matched && matched.class) {
+            setSelectedGrade(String(matched.class) as any);
+          }
         }
       })
       .catch((err) => console.error(err));
@@ -147,32 +149,7 @@ export default function PrepPlansPage() {
             ))}
           </div>
 
-          {/* Class Grade Toggle */}
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Class:</span>
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setSelectedGrade("9")}
-                className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                  selectedGrade === "9"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                Class 9
-              </button>
-              <button
-                onClick={() => setSelectedGrade("10")}
-                className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                  selectedGrade === "10"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                Class 10 (SSLC)
-              </button>
-            </div>
-          </div>
+
 
         </div>
 

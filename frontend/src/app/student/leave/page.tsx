@@ -140,7 +140,53 @@ export default function StudentLeavePage() {
 
   const filteredLeaves = leaves.filter(leave => {
     if (!selectedMonth) return true;
-    return leave.duration.startsWith(selectedMonth);
+    
+    // 1. Fallback: If duration starts with selectedMonth (e.g. "2026-08")
+    if (leave.duration && leave.duration.startsWith(selectedMonth)) {
+      return true;
+    }
+    
+    // 2. Compare against submission date (createdAt) which is standard ISO date
+    if (leave.createdAt) {
+      const createdDate = new Date(leave.createdAt);
+      if (!isNaN(createdDate.getTime())) {
+        const year = createdDate.getFullYear();
+        const month = String(createdDate.getMonth() + 1).padStart(2, "0");
+        const createdMonthStr = `${year}-${month}`;
+        if (createdMonthStr === selectedMonth) {
+          return true;
+        }
+      }
+    }
+    
+    // 3. Match against the duration string (e.g. "21-08-26", "2026-08-12 to 2026-08-16", "June 25, 2026")
+    const [selYear, selMonth] = selectedMonth.split("-"); // e.g. ["2026", "08"]
+    if (selYear && selMonth && leave.duration) {
+      const shortYear = selYear.slice(-2); // "26"
+      
+      // Check for DD-MM-YY or similar (e.g., "21-08-26")
+      const dmyRegex = new RegExp(`\\b\\d{1,2}-${selMonth}-${shortYear}\\b`);
+      
+      // Check for YYYY-MM-DD or similar (e.g., "2026-08-21")
+      const ymdRegex = new RegExp(`\\b${selYear}-${selMonth}-\\d{1,2}\\b`);
+      
+      // Check for verbal month (e.g. "August" or "Aug")
+      const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+      const monthShorts = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const monthIndex = parseInt(selMonth, 10) - 1;
+      const monthName = monthNames[monthIndex];
+      const monthShort = monthShorts[monthIndex];
+      
+      const durationLower = leave.duration.toLowerCase();
+      const hasMonthName = monthName && (durationLower.includes(monthName) || durationLower.includes(monthShort));
+      const hasYear = durationLower.includes(selYear) || durationLower.includes(shortYear);
+      
+      if (dmyRegex.test(leave.duration) || ymdRegex.test(leave.duration) || (hasMonthName && hasYear)) {
+        return true;
+      }
+    }
+    
+    return false;
   });
 
   return (

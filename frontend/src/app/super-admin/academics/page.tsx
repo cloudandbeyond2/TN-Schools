@@ -14,9 +14,39 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
+import { getSession } from "next-auth/react";
 import Swal from "sweetalert2";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/superadmin/academics`;
+
+const authFetch = async (url: string, init: RequestInit = {}) => {
+  const session = await getSession();
+  const token = (session?.user as any)?.backendToken as string | undefined;
+  const headers = new Headers(init?.headers);
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return fetch(url, { ...init, headers });
+};
+
+const getFileUrl = (url?: string) => {
+  if (!url || url === "#") return "#";
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  return url.startsWith("/") ? `${API_URL}${url}` : `${API_URL}/${url}`;
+};
+
+const getYouTubeEmbedUrl = (url?: string) => {
+  if (!url) return "";
+  try {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+    }
+  } catch {}
+  return url;
+};
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph helper
@@ -156,6 +186,17 @@ const TYPE_COLORS: Record<string, string> = {
   Link: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
 };
 
+const renderTypeIcon = (type?: string) => {
+  const t = (type || "").toUpperCase();
+  if (t === "PDF") return <FcDocument className="text-2xl" />;
+  if (t === "VIDEO") return <FcVideoFile className="text-2xl" />;
+  if (t === "AUDIO") return <FcAudioFile className="text-2xl" />;
+  if (t === "EBOOK") return <FcReadingEbook className="text-2xl" />;
+  if (t === "DOC" || t === "WORKSHEET" || t === "PPT" || t === "PRESENTATION") return <FcDataSheet className="text-2xl" />;
+  if (t === "LINK" || t === "INTERACTIVE") return <FcLink className="text-2xl" />;
+  return <FcFolder className="text-2xl" />;
+};
+
 export default function SuperadminAcademicsPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -173,6 +214,7 @@ export default function SuperadminAcademicsPage() {
   }>({ isOpen: false, type: "class", editId: null });
   const [structureInput, setStructureInput] = useState("");
   const [savingStructure, setSavingStructure] = useState(false);
+  const [previewResource, setPreviewResource] = useState<Resource | null>(null);
 
   // Drag and Drop reorder handlers
   const handleDropClass = (dragIdx: number, dropIdx: number) => {
@@ -618,7 +660,7 @@ export default function SuperadminAcademicsPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      const res = await authFetch(`${API_BASE}/classes?_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
@@ -636,7 +678,7 @@ export default function SuperadminAcademicsPage() {
 
   const fetchSections = async () => {
     try {
-      const res = await fetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      const res = await authFetch(`${API_BASE}/sections?_t=${Date.now()}`);
       if (res.ok) setSections(await res.json());
     } catch (err) {
       console.error(err);
@@ -646,7 +688,7 @@ export default function SuperadminAcademicsPage() {
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}`);
+      const res = await authFetch(`${API_BASE}/subjects?_t=${Date.now()}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -658,7 +700,7 @@ export default function SuperadminAcademicsPage() {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}`);
+      const res = await authFetch(`${API_BASE}/resources?_t=${Date.now()}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -877,10 +919,10 @@ export default function SuperadminAcademicsPage() {
     try {
       const payload = {
         ...resourceForm,
-        category: activeTab === "overview" ? (resourceForm.contentType || "materials") : activeTab,
+        category: activeTab !== "overview" && activeTab !== "structure" && activeTab !== "subjects" ? activeTab : (resourceForm.contentType || "materials"),
         title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
       };
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -909,7 +951,7 @@ export default function SuperadminAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
+      await authFetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
       fetchResources();
     } catch (err) {
       console.error(err);
@@ -1608,18 +1650,31 @@ export default function SuperadminAcademicsPage() {
                             return (
                               <div
                                 key={res.id}
-                                onClick={() => { setActiveTab(res.category); }}
+                                onClick={() => {
+                                  if (res.url) {
+                                    setPreviewResource(res);
+                                  } else {
+                                    setActiveTab(res.category);
+                                  }
+                                }}
                                 className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-4 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 flex flex-col justify-between overflow-hidden transition-all cursor-pointer"
                               >
                                 <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full blur-3xl opacity-5" style={{ backgroundColor: t.color }} />
                                 <div>
                                   <div className="flex items-start justify-between gap-3 mb-2">
                                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${TYPE_COLORS[res.type] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
-                                      <Fi name={TYPE_ICONS[res.type] || "document"} className="text-lg" />
+                                      {renderTypeIcon(res.type)}
                                     </div>
-                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
-                                      {res.category.toUpperCase()}
-                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                                        {res.category.toUpperCase()}
+                                      </span>
+                                      {res.url && (
+                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                          VIEW
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                   <h5 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate mb-1">{res.title}</h5>
                                   <p className="text-[10px] text-slate-400 flex flex-wrap gap-x-2 gap-y-0.5 mb-2">
@@ -2048,7 +2103,7 @@ export default function SuperadminAcademicsPage() {
                         <div>
                           <div className="flex items-start justify-between gap-3 mb-3">
                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${TYPE_COLORS[res.type] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
-                              <Fi name={TYPE_ICONS[res.type] || "document"} className="text-xl" />
+                              {renderTypeIcon(res.type)}
                             </div>
 
                             <div className="flex items-center gap-1.5">
@@ -2103,7 +2158,10 @@ export default function SuperadminAcademicsPage() {
                           </div>
 
                           {/* Titles */}
-                          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug mb-1">
+                          <h3
+                            onClick={() => res.url && setPreviewResource(res)}
+                            className={`text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug mb-1 ${res.url ? "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" : ""}`}
+                          >
                             {res.title}
                           </h3>
 
@@ -2133,6 +2191,15 @@ export default function SuperadminAcademicsPage() {
                           </span>
 
                           <div className="flex gap-1">
+                            {res.url && (
+                              <button
+                                onClick={() => setPreviewResource(res)}
+                                className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                                title="View PDF / File Preview Popup"
+                              >
+                                <Fi name="eye" className="text-xs" /> View
+                              </button>
+                            )}
                             <button
                               onClick={() => openResourceModal(res)}
                               className="p-1.5 bg-indigo-500/10 hover:bg-indigo-500 hover:text-white text-indigo-600 dark:text-indigo-400 rounded-lg transition-colors"
@@ -2149,11 +2216,11 @@ export default function SuperadminAcademicsPage() {
                             </button>
                             {res.url && (
                               <a
-                                href={res.url.startsWith("/") ? `${API_BASE.replace('/api/superadmin/academics', '')}${res.url}` : res.url}
+                                href={getFileUrl(res.url)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="p-1.5 bg-slate-500/10 hover:bg-slate-500 hover:text-white text-slate-600 dark:text-slate-400 rounded-lg transition-colors flex items-center justify-center"
-                                title="Open Link"
+                                title="Open Link in New Tab"
                               >
                                 <FiExternalLinkIcon size={13} />
                               </a>
@@ -2698,8 +2765,16 @@ export default function SuperadminAcademicsPage() {
                           const formData = new FormData();
                           formData.append("file", file);
 
+                          const ext = file.name.split('.').pop()?.toLowerCase() || '';
+                          let detectedType = "PDF";
+                          if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) detectedType = "Video";
+                          else if (['mp3', 'wav', 'aac', 'm4a', 'flac'].includes(ext)) detectedType = "Audio";
+                          else if (['doc', 'docx', 'txt', 'rtf'].includes(ext)) detectedType = "DOC";
+                          else if (['epub', 'mobi'].includes(ext)) detectedType = "eBook";
+                          else if (['zip', 'html'].includes(ext)) detectedType = "Interactive";
+
                           try {
-                            const res = await fetch(`${API_BASE}/upload`, {
+                            const res = await authFetch(`${API_BASE}/upload`, {
                               method: "POST",
                               body: formData
                             });
@@ -2710,12 +2785,17 @@ export default function SuperadminAcademicsPage() {
 
                             const data = await res.json();
                             if (data.url) {
-                              setResourceForm(prev => ({ ...prev, url: data.url }));
+                              setResourceForm(prev => ({
+                                ...prev,
+                                url: data.url,
+                                type: detectedType,
+                                attachmentType: "Upload"
+                              }));
                             }
-                          } catch (err) {
+                          } catch (err: any) {
                             console.error(err);
-                            alert("File upload failed. Defaulting to local path.");
-                            setResourceForm(prev => ({ ...prev, url: `/uploads/${file.name}` }));
+                            Swal.fire({ icon: "error", title: "Upload Failed", text: err.message || "File upload failed." });
+                            setResourceForm(prev => ({ ...prev, url: `/uploads/${file.name}`, type: detectedType }));
                           }
                         }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         <span className="text-xs text-slate-500 font-medium">
@@ -3086,6 +3166,171 @@ export default function SuperadminAcademicsPage() {
                 >
                   {savingChapter ? "Saving..." : `Confirm & Save All (${ocrPreviewModal.units.length} Units)`}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ POPUP PDF / DOCUMENT / MEDIA PREVIEW MODAL ══════════════════════ */}
+      <AnimatePresence>
+        {previewResource && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
+              onClick={() => setPreviewResource(null)}
+            />
+
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden z-10 border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/50">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${TYPE_COLORS[previewResource.type] || "bg-indigo-50 text-indigo-600 border-indigo-200"}`}>
+                    {renderTypeIcon(previewResource.type)}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">
+                      {previewResource.title}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      {previewResource.category} • {previewResource.type || "Document"} View
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {previewResource.url && (
+                    <>
+                      <a
+                        href={getFileUrl(previewResource.url)}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-bold transition-all flex items-center gap-1.5"
+                        title="Download File"
+                      >
+                        <Fi name="download" className="text-sm" />
+                        <span className="hidden sm:inline">Download</span>
+                      </a>
+
+                      <a
+                        href={getFileUrl(previewResource.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-indigo-500/20"
+                        title="Open in New Window"
+                      >
+                        <FiExternalLinkIcon size={13} />
+                        <span className="hidden sm:inline">Open New Tab</span>
+                      </a>
+                    </>
+                  )}
+
+                  <button
+                    onClick={() => setPreviewResource(null)}
+                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                  >
+                    <FiXIcon className="text-xl" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Viewport */}
+              <div className="flex-1 bg-slate-950/90 overflow-hidden flex flex-col items-center justify-center min-h-[440px] relative">
+                {previewResource.type === "Video" || (previewResource.url && (previewResource.url.includes("youtube.com") || previewResource.url.includes("youtu.be"))) ? (
+                  <div className="w-full h-full aspect-video max-h-[75vh] flex items-center justify-center bg-black">
+                    {previewResource.youtubeUrl || previewResource.url?.includes("youtube") || previewResource.url?.includes("youtu.be") ? (
+                      <iframe
+                        src={getYouTubeEmbedUrl(previewResource.youtubeUrl || previewResource.url)}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={previewResource.title}
+                      />
+                    ) : (
+                      <video
+                        src={getFileUrl(previewResource.url)}
+                        controls
+                        autoPlay
+                        className="w-full h-full max-h-[75vh]"
+                      >
+                        Your browser does not support HTML5 video playback.
+                      </video>
+                    )}
+                  </div>
+                ) : previewResource.type === "Audio" ? (
+                  <div className="w-full max-w-xl p-8 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center justify-center text-center shadow-2xl my-auto">
+                    <div className="w-20 h-20 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-3xl mb-4 border border-purple-500/30">
+                      🎧
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-1">{previewResource.title}</h4>
+                    <p className="text-xs text-slate-400 mb-6">{previewResource.description || "Audio Lesson Track"}</p>
+                    <audio
+                      src={getFileUrl(previewResource.url)}
+                      controls
+                      autoPlay
+                      className="w-full"
+                    >
+                      Your browser does not support HTML5 audio player.
+                    </audio>
+                  </div>
+                ) : (
+                  /* PDF / Document Preview */
+                  <div className="w-full h-[72vh] relative bg-slate-900 flex flex-col">
+                    {previewResource.url ? (
+                      <iframe
+                        src={getFileUrl(previewResource.url)}
+                        className="w-full h-full border-0 bg-white"
+                        title={previewResource.title}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-8">
+                        <Fi name="document" className="text-5xl mb-3 text-slate-600" />
+                        <p className="text-sm font-semibold">No direct file preview available</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Info Footer */}
+              <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  {previewResource.medium && (
+                    <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300">
+                      {previewResource.medium} Medium
+                    </span>
+                  )}
+                  {previewResource.class && (
+                    <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 font-bold text-indigo-600 dark:text-indigo-400">
+                      Class {previewResource.class} {previewResource.section ? `(${previewResource.section})` : ""}
+                    </span>
+                  )}
+                  {previewResource.term && (
+                    <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 font-bold text-amber-600 dark:text-amber-400">
+                      {previewResource.term}
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-slate-400 text-[11px] font-medium flex items-center gap-3">
+                  {previewResource.addedBy && <span>Added by: <strong className="text-slate-600 dark:text-slate-300">{previewResource.addedBy}</strong></span>}
+                  {previewResource.status && (
+                    <span className={`font-bold ${previewResource.status === "Active" ? "text-emerald-500" : "text-amber-500"}`}>
+                      ● {previewResource.status}
+                    </span>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>

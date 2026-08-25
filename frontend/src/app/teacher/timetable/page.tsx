@@ -465,65 +465,82 @@ const [loading, setLoading] = useState<boolean>(false);
       themeClass="theme-teacher"
       accentColor="#f59e0b"
     >
-      {/* Date selector controls */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
-        <div>
-          <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <span>📅 {lang === "தமிழ்" ? "தேர்ந்தெடுக்கப்பட்ட தேதி பார்வை" : "Selected Date View"}</span>
-          </h2>
-          <p className="text-[11px] text-slate-500 mt-1">
-            {lang === "தமிழ்" ? "இந்த தேதிக்கான உங்கள் அட்டவணை, காலியிடங்கள், ப்ராக்சி கடமைகளை பார்க்கவும்." : "Check your schedule, free periods, and proxy duties for this date."}
-          </p>
-        </div>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors w-full sm:w-auto"
-        />
-      </div>
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
-      {/* Proxy Duty Alerts Section */}
-      {selectedDateProxies.length > 0 && (
-        <div className="space-y-3.5 mb-6">
-          {substitutingDuties.map(p => (
-            <div key={p.id} className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl flex gap-3 shadow-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-              <div>
-                <strong className="text-xs font-black block uppercase tracking-wider">🤝 Substitution Proxy Duty Alert</strong>
-                <p className="text-xs mt-1 font-semibold leading-relaxed">
-                  Headmaster has assigned you to cover <strong className="underline">Period {p.period}</strong> today for class <strong className="text-slate-850 dark:text-white font-extrabold">{p.timetable?.class}{p.timetable?.section} ({p.timetable?.subject})</strong> in place of absent colleague <strong className="underline">{getTeacherName(p.absentTeacherId)}</strong>.
-                </p>
-                {p.notes && <span className="text-[10px] block mt-1.5 opacity-80">HM Note: "{p.notes}"</span>}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-calendar text-2xl text-amber-500"></i>
               </div>
-            </div>
-          ))}
-
-          {absentCoverages.map(p => (
-            <div key={p.id} className="p-4 bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-850 text-slate-650 dark:text-slate-400 rounded-2xl flex gap-3 shadow-sm">
-              <CheckCircle2 className="w-5 h-5 shrink-0 text-slate-450 mt-0.5" />
               <div>
-                <strong className="text-xs font-black block uppercase tracking-wider">ℹ️ Class Coverage Notification (Absent)</strong>
-                <p className="text-xs mt-1 font-medium leading-relaxed">
-                  Your regular <strong className="underline">Period {p.period}</strong> class with <strong className="font-bold">{p.timetable?.class}{p.timetable?.section}</strong> is covered today by substitute teacher <strong className="text-slate-850 dark:text-white font-extrabold">{getTeacherName(p.proxyTeacherId)}</strong>.
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "கால அட்டவணை & பதிலீடுகள் மையம்" : "Timetable & Proxies Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "வாராந்திர பாடவேளை அட்டவணை, காலியிடங்கள் மற்றும் தலைமையாசிரியர் ஒதுக்கிய பதிலீட்டு (ப்ராக்ஸி) கடமைகளைக் கண்காணிக்கவும்."
+                    : "View full weekly teaching schedules, free period slots, and Headmaster-assigned proxy substitution duties for absent colleagues."}
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Main schedule card with Day selectors */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
-          <div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ {lang === "தமிழ்" ? "வார அட்டவணை & செயலில் காலங்கள்" : "Weekly Schedule & Active Period Mappings"}</h2>
-            <p className="text-[10px] text-slate-500 mt-1">
-              {viewMode === "weekly" ? (lang === "தமிழ்" ? "உங்கள் முழு வார அட்டவணையைப் பார்க்கவும்." : "View your full weekly schedule.") : (lang === "தமிழ்" ? "நாள் தேர்வு செய்து உங்கள் அட்டவணை நேரவரிசையை ஏற்றவும்." : "Select a weekday to load your schedule timeline.")}
-            </p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+        {/* Proxy Duty Alerts Section */}
+        {selectedDateProxies.length > 0 && (
+          <div className="space-y-3.5 mb-6">
+            {substitutingDuties.map(p => (
+              <div key={p.id} className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl flex gap-3 shadow-sm">
+                <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <div>
+                  <strong className="text-xs font-black block uppercase tracking-wider">🤝 Substitution Proxy Duty Alert</strong>
+                  <p className="text-xs mt-1 font-semibold leading-relaxed">
+                    Headmaster has assigned you to cover <strong className="underline">Period {p.period}</strong> today for class <strong className="text-slate-850 dark:text-white font-extrabold">{p.timetable?.class}{p.timetable?.section} ({p.timetable?.subject})</strong> in place of absent colleague <strong className="underline">{getTeacherName(p.absentTeacherId)}</strong>.
+                  </p>
+                  {p.notes && <span className="text-[10px] block mt-1.5 opacity-80">HM Note: "{p.notes}"</span>}
+                </div>
+              </div>
+            ))}
+
+            {absentCoverages.map(p => (
+              <div key={p.id} className="p-4 bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-850 text-slate-650 dark:text-slate-400 rounded-2xl flex gap-3 shadow-sm">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-slate-450 mt-0.5" />
+                <div>
+                  <strong className="text-xs font-black block uppercase tracking-wider">ℹ️ Class Coverage Notification (Absent)</strong>
+                  <p className="text-xs mt-1 font-medium leading-relaxed">
+                    Your regular <strong className="underline">Period {p.period}</strong> class with <strong className="font-bold">{p.timetable?.class}{p.timetable?.section}</strong> is covered today by substitute teacher <strong className="text-slate-850 dark:text-white font-extrabold">{getTeacherName(p.proxyTeacherId)}</strong>.
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Main schedule card with Day selectors */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                <i className="fi fi-rr-calendar text-amber-500"></i>
+                {lang === "தமிழ்" ? "வார அட்டவணை & செயலில் காலங்கள்" : "Weekly Schedule & Active Period Mappings"}
+              </h2>
+              <p className="text-[10px] text-slate-500 mt-1">
+                {viewMode === "weekly" ? (lang === "தமிழ்" ? "உங்கள் முழு வார அட்டவணையைப் பார்க்கவும்." : "View your full weekly schedule.") : (lang === "தமிழ்" ? "நாள் தேர்வு செய்து உங்கள் அட்டவணை நேரவரிசையை ஏற்றவும்." : "Select a weekday to load your schedule timeline.")}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Date Input */}
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
+              />
+
             {/* View Mode Toggle */}
             <div className="flex bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 p-1 rounded-xl">
               <button
@@ -1017,6 +1034,8 @@ const [loading, setLoading] = useState<boolean>(false);
           </div>
         </div>
       )}
+
+      </div>
     </PortalLayout>
   );
 }

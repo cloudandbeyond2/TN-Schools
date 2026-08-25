@@ -221,33 +221,61 @@ export default function GalleryPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-xl shrink-0 border border-blue-100 dark:border-blue-900/50">
+              <i className="fi fi-rr-gallery text-xl" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {lang === "தமிழ்" ? "பள்ளி புகைப்பட கேலரி மையம்" : "School Media Gallery Hub"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                {lang === "தமிழ்"
+                  ? "பள்ளியின் விளையாட்டுப் போட்டிகள், கட்டமைப்பு வசதிகள் மற்றும் கலாச்சார கொண்டாட்டங்களின் புகைப்படங்கள் மற்றும் ஊடகப் பதிவேற்றங்களை நிர்வகிக்கவும்."
+                  : "Upload, organize, and showcase campus photos, infrastructure developments, sports achievements, and cultural celebrations."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 shrink-0 self-start md:self-auto">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "புகைப்படங்கள்" : "Media Assets"}</span>
+              <span className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">{items.length}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl flex flex-col items-center min-w-[90px]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "வகைகள்" : "Categories"}</span>
+              <span className="text-base font-bold text-slate-800 dark:text-white mt-0.5">4 Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Gallery Visual Grid */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-              <div>
-                <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                  <i className="fi fi-rr-camera text-blue-500 text-base" /> {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் & கட்டமைப்பு இயக்க தொகுப்பகம்" : "School Events & Infrastructure Media"}
-                </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">{lang === "தமிழ்" ? "விளையாட்டு சாதனைகள், மேம்பாடுகள் மற்றும் கலாசார விழாக்களின் காட்சி வரலாறு." : "Visual chronicle of sports championships, upgrades, and cultural celebrations."}</p>
-              </div>
-
-              {/* Category tabs */}
-              <div className="flex overflow-x-auto scrollbar-none whitespace-nowrap gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl max-w-full">
-                {(["All", "Academic", "Sports", "Infrastructure", "Culturals"] as const).map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFilterCategory(cat)}
-                    className={`flex-shrink-0 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${filterCategory === cat
-                      ? "bg-blue-600 text-white font-extrabold"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800"
-                      }`}
-                  >
-                    {cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : cat === "Academic" ? (lang === "தமிழ்" ? "கல்வி" : "Academic") : cat === "Sports" ? (lang === "தமிழ்" ? "விளையாட்டு" : "Sports") : cat === "Infrastructure" ? (lang === "தமிழ்" ? "கட்டமைப்பு" : "Infrastructure") : (lang === "தமிழ்" ? "கலாசாரம்" : "Culturals")}
-                  </button>
-                ))}
-              </div>
+        <div className="lg:col-span-2 space-y-4">
+          {/* Category Filter Bar */}
+          <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 px-2 flex items-center gap-1.5">
+              <i className="fi fi-rr-filter text-blue-500" /> {lang === "தமிழ்" ? "புகைப்பட வடிகட்டி:" : "Filter Gallery:"}
+            </span>
+            <div className="flex overflow-x-auto scrollbar-none whitespace-nowrap gap-1">
+              {(["All", "Academic", "Sports", "Infrastructure", "Culturals"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${filterCategory === cat
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                >
+                  {cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : cat === "Academic" ? (lang === "தமிழ்" ? "கல்வி" : "Academic") : cat === "Sports" ? (lang === "தமிழ்" ? "விளையாட்டு" : "Sports") : cat === "Infrastructure" ? (lang === "தமிழ்" ? "கட்டமைப்பு" : "Infrastructure") : (lang === "தமிழ்" ? "கலாசாரம்" : "Culturals")}
+                </button>
+              ))}
             </div>
           </div>
 

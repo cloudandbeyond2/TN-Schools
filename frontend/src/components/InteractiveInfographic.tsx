@@ -130,7 +130,7 @@ const COLOR_MAP: Record<string, { primary: string; light: string; ring: string; 
 // Educational AI image via Pollinations (free, no key)
 const pol = (prompt: string, w = 1000, h = 600) => {
   // Append safety and style constraints to ensure school-appropriate imagery
-  const safePrompt = `${prompt}, safe for middle school children, educational vector textbook illustration, family friendly, no inappropriate content`;
+  const safePrompt = `${prompt}, beautiful educational illustration, realistic or clean vector art, strictly NO text, NO words, NO letters, NO labels, safe for children, family friendly`;
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?width=${w}&height=${h}&nologo=true`;
 };
 
@@ -214,11 +214,11 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       {/* REALISTIC CONCEPT VISUAL (Pollinations)                            */}
       {/* ================================================================== */}
-      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-900">
-        <img
-          src={pol(`${topic}, ${subject}, core concept visualization, colorful educational infographic style, bright clean background`, 1200, 440)}
-          alt={heroTitle}
-          loading="lazy"
+        <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-900">
+          <img
+            src={pol(`visual representation of ${topic} for ${subject} subject, high quality educational artwork, vivid colors, clear visual concept`, 1200, 440)}
+            alt={`${heroTitle} Concept`}
+            loading="lazy"
           className="w-full aspect-[1200/440] object-cover object-center opacity-90"
           onError={(e) => {
             const target = e.currentTarget;
@@ -247,7 +247,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         {/* ---- Formula & Law Hero (left) ---- */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 min-w-0">
           <div className="border-b border-slate-200 pb-2 mb-1">
             <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
               Formulas & Constants / சூத்திரங்கள் & மாறிலிகள்
@@ -275,10 +275,10 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
           {/* Law / Theorem */}
           {data?.lawTitle && (
             <div className={`bg-white border border-slate-200 rounded-3xl p-5 shadow-md`}>
-              <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-1`}>
+              <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-1 break-words`}>
                 {data.lawTitle}
               </span>
-              <p className="text-slate-700 text-xs font-medium leading-relaxed">{data.lawDesc}</p>
+              <p className="text-slate-700 text-xs font-medium leading-relaxed break-words">{data.lawDesc}</p>
             </div>
           )}
 
@@ -289,7 +289,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                 <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1 break-words`}>{data.constantName}</div>
                 <div className={`text-sm font-black ${colors.text} break-words`}>{data.constantValue}</div>
               </div>
-              <p className="text-slate-600 text-xs font-medium leading-relaxed break-words">{data.constantExplain}</p>
+              <p className="text-slate-600 text-xs font-medium leading-relaxed break-words flex-1 min-w-0">{data.constantExplain}</p>
             </div>
           )}
 
@@ -297,7 +297,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
         </div>
 
         {/* ---- Interactive Concept Modules (center) ---- */}
-        <div className="lg:col-span-4 space-y-3">
+        <div className="lg:col-span-4 space-y-3 min-w-0">
           <div className="border-b border-slate-200 pb-2 mb-1">
             <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
               Key Concepts / முக்கிய கருத்துகள்
@@ -341,7 +341,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
         </div>
 
         {/* ---- Statistics / KPI Cards (right) ---- */}
-        <div className="lg:col-span-3 space-y-3">
+        <div className="lg:col-span-3 space-y-3 min-w-0">
           <div className="border-b border-slate-200 pb-2 mb-1">
             <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
               Key Facts & Figures
@@ -441,24 +441,9 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                   <div className={`absolute top-3 right-3 z-10 text-xs font-mono font-black text-white/90 drop-shadow`}>
                     0{idx + 1}
                   </div>
-                  <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
-                    <img
-                      src={pol(`${work.step} in ${topic}, ${subject}, simple educational diagram, clean vector style, bright background`, 400, 240)}
-                      alt={work.step}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        const parent = target.parentElement;
-                        if (!parent) return;
-                        target.style.display = 'none';
-                        const fb = document.createElement('div');
-                        fb.className = 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-slate-100 to-slate-200';
-                        fb.innerHTML = `<span style="font-size:1.75rem;line-height:1">${work.icon}</span><p style="font-size:9px;font-weight:700;color:#64748b;text-align:center;max-width:100px;padding:0 6px;margin:0">${work.step}</p>`;
-                        parent.insertBefore(fb, parent.firstChild);
-                      }}
-                    />
-                    <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
+                  <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 shadow-sm border border-slate-100 bg-gradient-to-br from-slate-50 to-slate-200 flex flex-col items-center justify-center p-2">
+                    <span className="text-3xl drop-shadow-sm mb-1.5 transform hover:scale-110 transition-transform cursor-default">{work.icon}</span>
+                    <p className="text-[10px] font-bold text-slate-500 text-center line-clamp-2 leading-tight w-full break-words px-1">{work.step}</p>
                   </div>
                   <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
                   <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>

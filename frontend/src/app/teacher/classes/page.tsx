@@ -82,7 +82,7 @@ const EMPTY_FORM = {
 
 // ─── Component ─────────────────────────────────────────────────
 export default function ClassesPage() {
-  const { t } = usePortalLanguage();
+  const { t, lang } = usePortalLanguage();
   const { data: session } = useSession();
   const user = session?.user as any;
   const schoolId = user?.schoolId || "";
@@ -506,9 +506,31 @@ export default function ClassesPage() {
       .join(", ");
   };
 
-  // ─── Render ────────────────────────────────────────────────
   return (
     <PortalLayout title={t("my_classes")} subtitle={t("manage_sections")}>
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 rounded-xl shrink-0 border border-indigo-100 dark:border-indigo-900/50">
+                <i className="fi fi-rr-graduation-cap text-2xl text-indigo-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "எனது வகுப்புகள் மையம்" : "My Classes Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "உங்களுக்கு ஒதுக்கப்பட்ட வகுப்பறைகள், நாள் அட்டவணை, வருகைப் பதிவு மற்றும் மாணவர் சேர்க்கை விவரங்களை நிர்வகிக்கவும்."
+                    : "Manage your assigned classrooms, daily period schedules, quick attendance logging, notes, and section student rosters."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       {/* Academic-year school KPIs */}
       {/* <KpiStrip path={schoolId ? `/api/analytics/school/${schoolId}` : null} title="School KPIs" variant="light" /> */}
 
@@ -1113,6 +1135,7 @@ export default function ClassesPage() {
         </div>
       )}
 
+      </div>
     </PortalLayout>
   );
 }
