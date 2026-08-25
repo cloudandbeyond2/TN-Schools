@@ -34,9 +34,9 @@ export default function SubjectsPage() {
         }
 
         // 1. Fetch student to get class, section, schoolId
-        const studentRes = await fetch("http://localhost:5000/api/students");
+        const studentRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/students`);
         const studentJson = await studentRes.json();
-        
+
         let studentProfile = null;
         if (studentJson.success) {
           studentProfile = studentJson.data.find((s: any) => s.userId === (session.user as any).id);
@@ -44,13 +44,13 @@ export default function SubjectsPage() {
 
         if (studentProfile) {
           // 2. Fetch classes for this school
-          const classRes = await fetch(`http://localhost:5000/api/classes?schoolId=${studentProfile.schoolId}`);
+          const classRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/classes?schoolId=${studentProfile.schoolId}`);
           const classJson = await classRes.json();
 
           if (classJson.success) {
             // 3. Filter classes that match student's class and section
-            const studentClasses = classJson.data.filter((c: any) => 
-              c.className === studentProfile.class && 
+            const studentClasses = classJson.data.filter((c: any) =>
+              c.className === studentProfile.class &&
               c.section === studentProfile.section
             );
 
@@ -60,7 +60,7 @@ export default function SubjectsPage() {
               // Generate some random looking but deterministic fake progress data based on subject length
               const progress = (c.subject.length * 7) % 100 + 10; // e.g. 50-90
               const assignments = c.subject.length % 3;
-              
+
               return {
                 id: c.id,
                 name: c.subject,
@@ -75,7 +75,7 @@ export default function SubjectsPage() {
                 totalChapters: 10
               };
             });
-            
+
             setSubjects(mappedSubjects);
           }
         }
@@ -130,9 +130,9 @@ export default function SubjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           {subjects.map((subject, index) => (
             <div key={index} className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-500/50 hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col h-full bg-white dark:bg-transparent">
-              
+
               {/* Background Glow Effect */}
-              <div 
+              <div
                 className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
                 style={{ backgroundColor: subject.color }}
               ></div>
@@ -163,39 +163,39 @@ export default function SubjectsPage() {
                   <span className="text-black dark:text-white">{subject.chaptersCompleted} of {subject.totalChapters} Ch</span>
                 </div>
                 <div className="h-2 bg-slate-200 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000 relative" 
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 relative"
                     style={{ width: `${subject.progress}%`, background: `linear-gradient(90deg, ${subject.color}, ${subject.color}dd)` }}
                   >
-                     <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/30 to-transparent"></div>
+                    <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/30 to-transparent"></div>
                   </div>
                 </div>
               </div>
 
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-3 mb-6 relative z-10 mt-auto">
-                 <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
-                    <span className="text-xs text-black dark:text-white mb-1">Next Class</span>
-                    <span className="text-sm font-semibold text-black dark:text-white truncate" title={subject.nextClass}>{subject.nextClass}</span>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
-                    <span className="text-xs text-black dark:text-white mb-1">Pending Tasks</span>
-                    <span className={`text-sm font-semibold ${subject.assignments > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                      {subject.assignments > 0 ? `${subject.assignments} Assignments` : 'All caught up!'}
-                    </span>
-                 </div>
+                <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
+                  <span className="text-xs text-black dark:text-white mb-1">Next Class</span>
+                  <span className="text-sm font-semibold text-black dark:text-white truncate" title={subject.nextClass}>{subject.nextClass}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
+                  <span className="text-xs text-black dark:text-white mb-1">Pending Tasks</span>
+                  <span className={`text-sm font-semibold ${subject.assignments > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                    {subject.assignments > 0 ? `${subject.assignments} Assignments` : 'All caught up!'}
+                  </span>
+                </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 relative z-10">
-                <Link 
+                <Link
                   href={`/student/subjects/${subject.name.toLowerCase().replace(" ", "-")}`}
                   className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all active:scale-95 text-center flex items-center justify-center"
                   style={{ background: `linear-gradient(135deg, ${subject.color}, ${subject.color}dd)` }}
                 >
                   Go to Subject →
                 </Link>
-                <Link 
+                <Link
                   href={`/student/ai-tutor?subject=${encodeURIComponent(subject.name)}&question=${encodeURIComponent(`Hi! Can you tutor me in ${subject.name}? I want to learn this subject.`)}`}
                   className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-black dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors tooltip-trigger relative group/btn flex items-center justify-center cursor-pointer"
                 >

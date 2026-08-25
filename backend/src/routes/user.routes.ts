@@ -25,6 +25,54 @@ const SAFE_USER_SELECT = {
   updatedAt: true,
 } as const;
 
+// GET /api/users/count - Get total user count
+router.get('/count', requireMinRole('HEADMASTER'), async (req: Request, res: Response) => {
+  try {
+    const count = await prisma.user.count();
+    const activeSchools = await prisma.school.count();
+    const syllabusItems = await prisma.studyMaterial.count();
+    
+    const roleCounts = await prisma.user.groupBy({
+      by: ['role'],
+      _count: {
+        role: true
+      }
+    });
+
+    const rolesMap: Record<string, number> = {};
+    roleCounts.forEach(r => {
+      rolesMap[r.role] = r._count.role;
+    });
+
+    const formatLakhs = (num: number) => {
+       if (num >= 100000) return (num / 100000).toFixed(1) + "L";
+       if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+       return num.toString();
+    };
+
+    res.json({ 
+      success: true, 
+      count,
+      activeSchools,
+      syllabusItems,
+      rolesFormatted: {
+        students: formatLakhs(rolesMap['STUDENT'] || 0),
+        teachers: formatLakhs(rolesMap['TEACHER'] || 0),
+        parents: formatLakhs(rolesMap['PARENT'] || 0),
+        headmasters: formatLakhs(rolesMap['HEADMASTER'] || 0),
+        beos: formatLakhs(rolesMap['BEO'] || 0),
+        deos: formatLakhs(rolesMap['DEO'] || 0),
+        commissioners: formatLakhs(rolesMap['COMMISSIONER'] || 0),
+        ministers: formatLakhs(rolesMap['MINISTER'] || 0),
+        superAdmins: formatLakhs(rolesMap['SUPERADMIN'] || 0)
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching user count:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // GET /api/users - List users by role
 router.get('/', requireMinRole('HEADMASTER'), async (req: Request, res: Response) => {
   try {
@@ -100,7 +148,7 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
 router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, mobile, password, schoolId, district, block, assignedRegion } = req.body;
+    const { name, email, mobile, password, schoolId, district, block, assignedRegion, isActive } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
@@ -139,6 +187,7 @@ router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) =>
         district: district !== undefined ? (district || null) : undefined,
         block: block !== undefined ? (block || null) : undefined,
         assignedRegion: assignedRegion !== undefined ? (assignedRegion || null) : undefined,
+        isActive: isActive !== undefined ? isActive : undefined,
       },
       select: SAFE_USER_SELECT,
     });
