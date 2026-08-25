@@ -32,21 +32,7 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
-const subjectsEn = [
-  { name: "Mathematics", progress: 65, color: "#ef4444", icon: Ruler }, // Low progress to show weakness detector
-  { name: "Science", progress: 78, color: "#3b82f6", icon: Microscope },
-  { name: "Tamil", progress: 88, color: "#f59e0b", icon: Scroll },
-  { name: "English", progress: 85, color: "#10b981", icon: Languages },
-  { name: "Social Science", progress: 75, color: "#8b5cf6", icon: Globe },
-];
 
-const subjectsTa = [
-  { name: "கணிதம்", progress: 65, color: "#ef4444", icon: Ruler },
-  { name: "அறிவியல்", progress: 78, color: "#3b82f6", icon: Microscope },
-  { name: "தமிழ்", progress: 88, color: "#f59e0b", icon: Scroll },
-  { name: "ஆங்கிலம்", progress: 85, color: "#10b981", icon: Languages },
-  { name: "சமூக அறிவியல்", progress: 75, color: "#8b5cf6", icon: Globe },
-];
 
 export default function HighSchoolDashboard() {
   const { data: session, status: sessionStatus } = useSession();
@@ -88,14 +74,7 @@ export default function HighSchoolDashboard() {
         : `Welcome, ${userName} · Class ${student.class} ${student.section} · Focus Area: SSLC Board Preparation`)
     : (lang === "தமிழ்" ? "மாணவர் தரவு ஏற்றப்படுகிறது..." : "Loading student data...");
 
-  const subjectsList = lang === "தமிழ்" ? subjectsTa : subjectsEn;
 
-  const kpis = [
-    { label: lang === "தமிழ்" ? "SSLC தேர்வுக்கான நாட்கள்" : "Countdown to SSLC", value: lang === "தமிழ்" ? "84 நாட்கள்" : "84 Days", icon: Hourglass, color: "text-red-400", sub: lang === "தமிழ்" ? "தேர்வு மார்ச் 15 அன்று தொடங்குகிறது" : "Exam starts Mar 15" },
-    { label: lang === "தமிழ்" ? "ஒட்டுமொத்த சராசரி" : "Overall Avg", value: "77%", icon: BarChart2, color: "text-blue-400", sub: lang === "தமிழ்" ? "இலக்கு: 90%" : "Target: 90%" },
-    { label: lang === "தமிழ்" ? "மாதிரித் தேர்வுகள்" : "Mock Tests Taken", value: "4/10", icon: FileText, color: "text-amber-400", sub: lang === "தமிழ்" ? "அடுத்த தேர்வு: வெள்ளிக்கிழமை" : "Next test: Friday" },
-    { label: lang === "தமிழ்" ? "சுய படிப்பு மணிநேரம்" : "Study Boost Hrs", value: lang === "தமிழ்" ? "12 மணி" : "12 Hrs", icon: Zap, color: "text-purple-400", sub: lang === "தமிழ்" ? "இந்த வாரம் சுய படிப்பு" : "Self-study this week" },
-  ];
 
   const [recentMarks, setRecentMarks] = useState<any[]>([]);
   const [loadingMarks, setLoadingMarks] = useState(true);
@@ -121,77 +100,13 @@ export default function HighSchoolDashboard() {
       {/* Real academic-year KPIs */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} />
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="kpi-card border border-[var(--border)] hover:border-red-500/50 transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
-              <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
-            </div>
-            <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-[var(--text-muted)]">{kpi.label}</div>
-          </div>
-        ))}
-      </div>
+
 
       {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
       <StudentDailyOverview 
         extraLeft={
           <div className="space-y-4">
-            {/* SSLC Board Readiness Hub */}
-            <div className="glass rounded-2xl p-6 fade-in-2 border border-[var(--border)] h-fit relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 w-48 h-48 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                    {lang === "தமிழ்" ? "SSLC பொதுத் தேர்வு தயார்நிலை" : "SSLC Board Readiness Hub"}
-                  </span>
-                  <h2 className="text-lg font-bold text-[var(--text-heading)] mt-1">
-                    {lang === "தமிழ்" ? "பாடத் தயார்நிலை பகுப்பாய்வு" : "Subject Mastery Matrix"}
-                  </h2>
-                </div>
-                <button className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-300 transition-all border border-red-500/30">
-                  {lang === "தமிழ்" ? "பகுப்பாய்வை காண்க →" : "View Analytics →"}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {subjectsList.slice(0, 6).map((s) => {
-                  const statusTag = s.progress >= 85 
-                    ? { label: lang === "தமிழ்" ? "தயார்நிலை A+" : "Target Mastered", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
-                    : s.progress >= 75 
-                    ? { label: lang === "தமிழ்" ? "சரியான திசையில்" : "On Track", color: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20" }
-                    : { label: lang === "தமிழ்" ? "கவனம் தேவை" : "Needs Focus", color: "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20" };
-
-                  return (
-                    <div key={s.name} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-[var(--border)] hover:border-red-500/40 transition-all group relative overflow-hidden">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800/80 border border-[var(--border)] flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform">
-                            <s.icon className="h-5 w-5" style={{ color: s.color }} />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-bold text-[var(--text-heading)] group-hover:text-red-600 dark:group-hover:text-red-300 transition-colors">{s.name}</h3>
-                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
-                              {statusTag.label}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-lg font-black text-[var(--text-heading)]">{s.progress}%</span>
-                      </div>
-
-                      <div className="w-full bg-slate-200 dark:bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-[var(--border)]">
-                        <div className="h-full rounded-full transition-all duration-500 relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}>
-                          <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Recent Mock Tests / Test Performance */}
             <div className="glass rounded-2xl p-5 fade-in-4 border border-[var(--border)]">
@@ -301,20 +216,7 @@ export default function HighSchoolDashboard() {
               )}
             </div>
 
-            {/* AI Weakness Detector */}
-            <div className="glass rounded-2xl p-5 fade-in-3 border border-red-500/30 bg-red-500/5">
-              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-3 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-red-500 animate-pulse" /> {lang === "தமிழ்" ? "AI குறைபாடு எச்சரிக்கை" : "AI Weakness Alert"}
-              </h2>
-              <p className="text-xs text-[var(--text-main)] mb-4">
-                {lang === "தமிழ்"
-                  ? "உங்கள் சமீபத்திய மதிப்பெண்கள் கணிதத்தில் (இயற்கணிதம்) சரிவைக் காட்டுகின்றன. உங்கள் மதிப்பெண்ணை உயர்த்த 3 நாள் சிறப்பு படிப்புத் திட்டத்தை உருவாக்கியுள்ளோம்."
-                  : <>Your recent scores show a drop in <strong className="text-red-500">Mathematics (Algebra)</strong>. We have generated a custom 3-day study plan to boost your score.</>}
-              </p>
-              <button className="w-full py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-500/20 font-medium text-xs transition-colors border border-red-500/40">
-                {lang === "தமிழ்" ? "இயற்கணித பூஸ்ட் திட்டத்தைத் தொடங்கு" : "Start Algebra Boost Plan"}
-              </button>
-            </div>
+
 
             {/* Quick Links / Student Tools */}
             <div className="glass rounded-2xl p-5 fade-in-5 border border-[var(--border)]">
