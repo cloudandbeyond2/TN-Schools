@@ -54,7 +54,6 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
       const res = await apiFetch("/api/users");
       const data = await res.json();
       if (data.success) {
@@ -73,8 +72,6 @@ export default function UserManagement() {
       }
     } catch (err) {
       console.error("Error fetching users:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,8 +98,12 @@ export default function UserManagement() {
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchCounts();
+    const loadAll = async () => {
+      setLoading(true);
+      await Promise.all([fetchUsers(), fetchCounts()]);
+      setLoading(false);
+    };
+    loadAll();
   }, []);
 
   const filtered = users.filter((u) => {
@@ -248,7 +249,7 @@ export default function UserManagement() {
             }`}>
             <div className="text-lg">{roleIcons[r]}</div>
             <div className="text-[8px] font-bold text-white leading-tight mt-0.5">{r.replace("SUPERADMIN","S.ADMIN")}</div>
-            <div className="text-[8px] text-slate-500">{roleCounts[r] || "0"}</div>
+            <div className="text-[8px] text-slate-500">{loading ? "..." : (roleCounts[r] || "0")}</div>
           </button>
         ))}
       </div>
