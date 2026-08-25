@@ -7,7 +7,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
-import { petLoad, RECORDS_KEY, DEFAULT_RECORDS } from "@/lib/petData";
 
 const API_BASE = "http://localhost:5000";
 
@@ -388,53 +387,24 @@ function DigitalPortfolioContent() {
 
   const fetchPortfolio = async () => {
     try {
-      const targetStudentId = queryStudentId || (session?.user as any)?.studentId || "teenu";
+      const targetStudentId = queryStudentId || (session?.user as any)?.studentId || (session?.user as any)?.id || "teenu";
       
-      const emis = (session?.user as any)?.emisId || (session?.user as any)?.emis || "984522222211111";
-      const roll = (session?.user as any)?.rollNumber || "HM100005";
+      const emis = (session?.user as any)?.emisId || (session?.user as any)?.emis;
+      const roll = (session?.user as any)?.rollNumber;
       
       let localTeacherEdit: string | null = null;
       if (typeof window !== 'undefined') {
         const candidateKeys = [
           `portfolio_${targetStudentId}`,
-          "portfolio_teenu",
-          `portfolio_${emis}`,
-          `portfolio_${roll}`,
-          "portfolio_984522222211111",
-          "portfolio_HM100005",
-          "portfolio_demo-student"
-        ];
+          emis ? `portfolio_${emis}` : null,
+          roll ? `portfolio_${roll}` : null
+        ].filter(Boolean);
 
         for (const key of candidateKeys) {
-          const stored = localStorage.getItem(key);
+          const stored = localStorage.getItem(key as string);
           if (stored) {
-            try {
-              const parsed = JSON.parse(stored);
-              // Purge test script objects & static seed items so ONLY Kalai Teacher's live UI entries display
-              if (Array.isArray(parsed?.projects)) {
-                parsed.projects = parsed.projects.filter((p: any) => 
-                  p.title !== "Solar Powered Irrigation System" && 
-                  p.title !== "Robotics AI Rover" && 
-                  p.title !== "tst" && 
-                  p.title !== "Science mdel"
-                );
-              }
-              if (Array.isArray(parsed?.achievements)) {
-                parsed.achievements = parsed.achievements.filter((a: any) => 
-                  a.title !== "1st Place - District STEM Hackathon 2026"
-                );
-              }
-              if (Array.isArray(parsed?.skills)) {
-                parsed.skills = parsed.skills.filter((s: any) => 
-                  !s.name.toLowerCase().includes("phython")
-                );
-              }
-              localTeacherEdit = JSON.stringify(parsed);
-              break;
-            } catch (e) {
-              localTeacherEdit = stored;
-              break;
-            }
+            localTeacherEdit = stored;
+            break;
           }
         }
       }
@@ -462,62 +432,7 @@ function DigitalPortfolioContent() {
         }
       }
 
-      // Default to Teenu Holy Cross Higher Secondary School dynamic profile if no server data or if server returns static "Test Student"
-      if (!portfolioObj || portfolioObj.profile.name === "Test Student" || portfolioObj.profile.name === "Arjun K.") {
-        portfolioObj = {
-          id: "pf-teenu",
-          studentId: "teenu",
-          profile: {
-            name: "Teenu",
-            email: "teenu@holycross.edu.in",
-            class: "10-A",
-            section: "A",
-            rollNumber: "HM100005",
-            emisNumber: "984522222211111",
-            schoolName: "Holy Cross Higher Secondary School",
-            projectsCount: 2,
-            awardsCount: 2,
-            attendanceRate: 98,
-            bio: "I am a dedicated Class 10-A student at Holy Cross Higher Secondary School. My goal is to excel in applied sciences, mathematics, and athletic competitions while maintaining strong academic performance.",
-            stream: "Science Stream Explorer",
-            strengths: ["Analytical Thinking", "Science Titration Practical", "100m Athletic Sprint", "Class Leadership"],
-            areasOfGrowth: ["Time Management in Board Preps", "Advanced English Public Speaking"],
-            termGoals: ["Score > 95% in SSLC Board Examination 2026", "Win District Gold Medal in Zonal Athletics"],
-            leadershipRoles: ["Class 10-A Sports Captain", "Science Club Secretary"],
-            vocationalSkills: ["Python Circuit Simulation", "Optics Lab Calibration"],
-            languageFluency: { Tamil: "Native", English: "Fluent" },
-            careerGoal: "Aeronautical Research Engineer & National Athlete",
-            subjectInterests: ["Physics & Optics", "Chemistry Titration", "Mathematics & Geometry"],
-            talentPrep: ["National Science Olympiad", "Zonal Athletics Meet"],
-            communicationRole: "Class Representative & Science Club Speaker",
-            teacherEndorsement: "Teenu is an exceptionally bright, disciplined student with outstanding academic curiosity and leadership skills. Regularly leads class science projects.",
-            teacherName: "M. Kalai (Class 10-A Teacher)",
-            parentEndorsement: "Teenu shows immense commitment to her daily studies, morning athletic drills, and science experiments. We are proud of her academic growth.",
-            parentName: "DevanDevi (Parent)"
-          },
-          skills: [],
-          projects: [],
-          achievements: [],
-          clubs: [
-            { name: "Science & Innovation Club", role: "Secretary", category: "STEM", icon: null, themeColor: "teal", themeBg: null },
-            { name: "Eco & Environment Club", role: "Active Member", category: "Eco", icon: null, themeColor: "emerald", themeBg: null },
-            { name: "National Cadet Corps (NCC)", role: "Cadet Corporal", category: "Defense", icon: null, themeColor: "amber", themeBg: null }
-          ],
-          sports: null,
-          socialActivities: [
-            { id: "sa-1", activityType: "Plantation Drive", description: "Planted 50 saplings in school campus eco drive", date: "2026-01-15", points: 25, status: "APPROVED" },
-            { id: "sa-2", activityType: "Clean Campus Movement", description: "Organized plastic-free awareness campaign", date: "2026-02-10", points: 20, status: "APPROVED" },
-            { id: "sa-3", activityType: "Blood Donation Rally", description: "Volunteered in district blood donation drive awareness", date: "2026-03-05", points: 30, status: "APPROVED" }
-          ],
-          marksSummary: [],
-          scholarships: [],
-          labAttempts: [],
-          readingProgress: [],
-          schoolPress: []
-        };
-      }
-
-      // If local teacher edit was found, strictly enforce projects, achievements & endorsements from the teacher portal
+      // If local teacher edit was found, merge projects, achievements & endorsements
       if (localTeacherEdit && portfolioObj) {
         try {
           const parsedTeacherEdit = JSON.parse(localTeacherEdit);
@@ -539,6 +454,53 @@ function DigitalPortfolioContent() {
             }
           }
         } catch (e) {}
+      }
+
+      if (!portfolioObj) {
+        const userName = session?.user?.name || "Student";
+        portfolioObj = {
+          id: `pf-${targetStudentId}`,
+          studentId: targetStudentId,
+          profile: {
+            name: userName,
+            email: session?.user?.email || "",
+            class: (session?.user as any)?.class || "",
+            section: (session?.user as any)?.section || "",
+            rollNumber: roll || "",
+            emisNumber: emis || "",
+            schoolName: (session?.user as any)?.schoolName || "",
+            projectsCount: 0,
+            awardsCount: 0,
+            attendanceRate: 0,
+            bio: "",
+            stream: "",
+            strengths: [],
+            areasOfGrowth: [],
+            termGoals: [],
+            leadershipRoles: [],
+            vocationalSkills: [],
+            languageFluency: {},
+            careerGoal: "",
+            subjectInterests: [],
+            talentPrep: [],
+            communicationRole: "",
+            teacherEndorsement: "",
+            teacherName: "",
+            parentEndorsement: "",
+            parentName: ""
+          },
+          skills: [],
+          projects: [],
+          achievements: [],
+          clubs: [],
+          sports: null,
+          socialActivities: [],
+          marksSummary: [],
+          scholarships: [],
+          labAttempts: [],
+          readingProgress: [],
+          schoolPress: []
+        };
       }
 
       if (portfolioObj) {
@@ -980,11 +942,11 @@ function DigitalPortfolioContent() {
             <div>
               <div class="badge"><i class="fi fi-rr-graduation-cap"></i> TAMIL NADU SCHOOL EDUCATION DEPARTMENT</div>
               <h1 class="title" style="margin-top: 6px;">${data.profile.name} — Digital Portfolio</h1>
-              <p class="subtitle">${data.profile.schoolName || 'Holy Cross Higher Secondary School'} • Class ${data.profile.class}-${data.profile.section || 'A'}</p>
+              <p class="subtitle">${data.profile.schoolName || ''} ${data.profile.class ? `• Class ${data.profile.class}-${data.profile.section || ''}` : ''}</p>
             </div>
             <div style="text-align: right;">
-              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">EMIS: ${data.profile.emisNumber || '984522222211111'}</div>
-              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">ROLL NO: ${data.profile.rollNumber || 'HM100005'}</div>
+              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">EMIS: ${data.profile.emisNumber || 'N/A'}</div>
+              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">ROLL NO: ${data.profile.rollNumber || 'N/A'}</div>
               <div style="font-size: 10px; color: #34d399; font-weight: 800; margin-top: 4px;"><i class="fi fi-rr-checkbox"></i> VERIFIED OFFICIAL RECORD</div>
             </div>
           </div>
@@ -996,39 +958,28 @@ function DigitalPortfolioContent() {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                   <div>
                     <div class="info-label">Academic Stream</div>
-                    <div class="info-value">${data.profile.stream || 'Science Stream Explorer'}</div>
+                    <div class="info-value">${data.profile.stream || 'General'}</div>
                   </div>
                   <div>
                     <div class="info-label">Attendance Rate</div>
-                    <div class="info-value" style="color: #34d399;">91% (Excellent Commitment)</div>
+                    <div class="info-value" style="color: #34d399;">${data.profile.attendanceRate}%</div>
                   </div>
                 </div>
+                ${data.profile.bio ? `
                 <div style="margin-bottom: 8px;">
                   <div class="info-label">Biography / Motto</div>
-                  <p style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin: 4px 0;">"${data.profile.bio || 'Dedicated student striving for excellence in science and engineering.'}"</p>
-                </div>
+                  <p style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin: 4px 0;">"${data.profile.bio}"</p>
+                </div>` : ''}
               </div>
 
+              ${data.profile.teacherEndorsement ? `
               <div class="section-card">
-                <div class="section-title" style="color: #34d399;"><i class="fi fi-rr-user-add"></i> Verified Teacher Endorsements</div>
-                <div style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
-                  <span style="font-size: 10px; font-weight: 800; color: #34d399; text-transform: uppercase;">Class Teacher Endorsement</span>
-                  <p style="font-size: 11px; color: #e2e8f0; font-style: italic; margin: 4px 0 6px 0;">"${data.profile.teacherEndorsement || 'Disciplined student with outstanding academic curiosity and analytical problem solving skills.'}"</p>
-                  <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-align: right; display: block;">— ${data.profile.teacherName || 'Kalai Teacher'} (Class Teacher) [VERIFIED]</span>
+                <div class="section-title" style="color: #34d399;"><i class="fi fi-rr-user-add"></i> Verified Teacher Endorsement</div>
+                <div style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 12px;">
+                  <p style="font-size: 11px; color: #e2e8f0; font-style: italic; margin: 4px 0 6px 0;">"${data.profile.teacherEndorsement}"</p>
+                  <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-align: right; display: block;">— ${data.profile.teacherName || 'Teacher'}</span>
                 </div>
-              </div>
-
-              <div class="section-card">
-                <div class="section-title" style="color: #fbbf24;"><i class="fi fi-rr-running"></i> Sports & PT Master Assessment (Shiva Master)</div>
-                <div style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); border-radius: 10px; padding: 12px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: #fbbf24; margin-bottom: 6px;">
-                    <span>PET FITNESS INDEX</span>
-                    <span>78% (Healthy — Fit)</span>
-                  </div>
-                  <p style="font-size: 11px; color: #e2e8f0; font-style: italic; margin: 4px 0 6px 0;">"Teenu exhibits regular attendance in physical training (8 hrs/week), strong flexibility (84%), and high sprint speed (80%). Recommended for Zonal & State athletic trials."</p>
-                  <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-align: right; display: block;">— Shiva (Head PET Master, Holy Cross Higher Secondary School)</span>
-                </div>
-              </div>
+              </div>` : ''}
             </div>
 
             <div>
@@ -1333,15 +1284,16 @@ function DigitalPortfolioContent() {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {(data.profile.termGoals && data.profile.termGoals.length > 0 
-                    ? data.profile.termGoals 
-                    : ["Improve Mathematics", "Score above 90%", "Participate in Science Fair", "Become School Captain"]
-                  ).map((goal, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
-                      <span className="text-xs font-bold text-slate-200">{goal}</span>
-                    </div>
-                  ))}
+                  {data.profile.termGoals && data.profile.termGoals.length > 0 ? (
+                    data.profile.termGoals.map((goal, idx) => (
+                      <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+                        <span className="text-xs font-bold text-slate-200">{goal}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-500 italic md:col-span-2">No active term goals recorded.</p>
+                  )}
                 </div>
               </div>
 
@@ -1359,23 +1311,8 @@ function DigitalPortfolioContent() {
                     <FlatIcon name="engineer" className="w-8 h-8 shrink-0" />
                     <div>
                       <span className="text-[10px] text-purple-400 uppercase font-black tracking-wider block">Target Career Path</span>
-                      <h4 className="text-sm font-black text-white">{data.profile.careerGoal || "Engineer / Computer Scientist"}</h4>
+                      <h4 className="text-sm font-black text-white">{data.profile.careerGoal || "Not specified"}</h4>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {["Doctor", "Engineer", "IAS Officer", "Teacher", "Sportsperson", "Entrepreneur"].map((asp, idx) => {
-                      const isChosen = (data.profile.careerGoal || "Engineer").toLowerCase().includes(asp.toLowerCase());
-                      return (
-                        <span key={idx} className={`text-[10px] font-extrabold px-3 py-1 rounded-xl border ${
-                          isChosen
-                            ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm"
-                            : "bg-slate-900/40 text-slate-400 border-slate-800"
-                        }`}>
-                          {isChosen ? `✓ ${asp}` : asp}
-                        </span>
-                      );
-                    })}
                   </div>
                 </div>
               </div>
@@ -1386,15 +1323,19 @@ function DigitalPortfolioContent() {
                   <ChatIcon className="w-5 h-5 text-emerald-400" /> Verified Endorsements
                 </h3>
                 <div className="space-y-4">
-                  <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800 space-y-2">
-                    <p className="text-xs text-slate-300 italic leading-relaxed">
-                      "{data.profile.teacherEndorsement || "Excellent leadership skills. Very disciplined and responsible. Shows strong interest in science and actively participates in school activities."}"
-                    </p>
-                    <div className="flex justify-between items-center text-[10px] text-emerald-400 font-bold uppercase pt-1">
-                      <span>— {data.profile.teacherName} (Class Teacher)</span>
-                      <span className="bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">VERIFIED TEACHER</span>
+                  {data.profile.teacherEndorsement ? (
+                    <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800 space-y-2">
+                      <p className="text-xs text-slate-300 italic leading-relaxed">
+                        "{data.profile.teacherEndorsement}"
+                      </p>
+                      <div className="flex justify-between items-center text-[10px] text-emerald-400 font-bold uppercase pt-1">
+                        <span>— {data.profile.teacherName || "Teacher"}</span>
+                        <span className="bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">VERIFIED TEACHER</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic">No teacher endorsement recorded.</p>
+                  )}
 
                   {data.profile.parentEndorsement && (
                     <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800 space-y-2">
@@ -1402,7 +1343,7 @@ function DigitalPortfolioContent() {
                         "{data.profile.parentEndorsement}"
                       </p>
                       <div className="flex justify-between items-center text-[10px] text-purple-400 font-bold uppercase pt-1">
-                        <span>— {data.profile.parentName} (Parent)</span>
+                        <span>— {data.profile.parentName || "Parent"}</span>
                         <span className="bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">VERIFIED PARENT</span>
                       </div>
                     </div>
@@ -1420,17 +1361,18 @@ function DigitalPortfolioContent() {
                 </p>
 
                 <div className="space-y-2">
-                  {(data.profile.leadershipRoles && data.profile.leadershipRoles.length > 0 
-                    ? data.profile.leadershipRoles 
-                    : ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"]
-                  ).map((role, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
-                      <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center shrink-0">
-                        ★
-                      </span>
-                      <span className="text-xs font-bold text-slate-200">{role}</span>
-                    </div>
-                  ))}
+                  {data.profile.leadershipRoles && data.profile.leadershipRoles.length > 0 ? (
+                    data.profile.leadershipRoles.map((role, idx) => (
+                      <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
+                        <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center shrink-0">
+                          ★
+                        </span>
+                        <span className="text-xs font-bold text-slate-200">{role}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-500 italic">No leadership roles recorded.</p>
+                  )}
                 </div>
               </div>
 
@@ -1451,8 +1393,9 @@ function DigitalPortfolioContent() {
                       langList = Object.entries(p.languageFluency).map(([l, f]) => `${l} (${f})`);
                     } else if (Array.isArray(p.languages) && p.languages.length > 0) {
                       langList = p.languages;
-                    } else {
-                      langList = ["Tamil (Native / Read & Write)", "English (Fluent / Read & Write)", "Hindi (Basic / Learning)"];
+                    }
+                    if (langList.length === 0) {
+                      return <p className="text-xs text-slate-500 italic sm:col-span-2">No language details recorded.</p>;
                     }
                     return langList.map((langItem, idx) => (
                       <div key={idx} className="flex items-center gap-2.5 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
@@ -1469,107 +1412,68 @@ function DigitalPortfolioContent() {
 
           {/* Academic & Lab Achievements Tab */}
           {activeTab === "mystudies" && (() => {
-            const rawMarksList = data.marksSummary && data.marksSummary.length > 0 ? data.marksSummary : [
-              // Quarterly Exam
-              { subject: "Tamil", examName: "Quarterly Exam", marksObtained: 88, maxMarks: 100, remarks: "Good literature expression" },
-              { subject: "English", examName: "Quarterly Exam", marksObtained: 85, maxMarks: 100, remarks: "Strong reading comprehension" },
-              { subject: "Mathematics", examName: "Quarterly Exam", marksObtained: 90, maxMarks: 100, remarks: "Solid algebra foundation" },
-              { subject: "Science", examName: "Quarterly Exam", marksObtained: 88, maxMarks: 100, remarks: "Active lab participation" },
-              { subject: "Social Science", examName: "Quarterly Exam", marksObtained: 84, maxMarks: 100, remarks: "Needs more map practice" },
+            const rawMarksList = data.marksSummary || [];
 
-              // Half Yearly Exam
-              { subject: "Tamil", examName: "Half Yearly Exam", marksObtained: 90, maxMarks: 100, remarks: "Improved essay writing" },
-              { subject: "English", examName: "Half Yearly Exam", marksObtained: 86, maxMarks: 100, remarks: "Good grammar accuracy" },
-              { subject: "Mathematics", examName: "Half Yearly Exam", marksObtained: 92, maxMarks: 100, remarks: "Consistent geometry scores" },
-              { subject: "Science", examName: "Half Yearly Exam", marksObtained: 89, maxMarks: 100, remarks: "Great physics model" },
-              { subject: "Social Science", examName: "Half Yearly Exam", marksObtained: 85, maxMarks: 100, remarks: "Better historical timeline grasp" },
-
-              // Annual Exam 2026
-              { subject: "Tamil", examName: "Annual Exam 2026", marksObtained: 92, maxMarks: 100, remarks: "Outstanding literature grasp" },
-              { subject: "English", examName: "Annual Exam 2026", marksObtained: 88, maxMarks: 100, remarks: "Fluent vocabulary & grammar" },
-              { subject: "Mathematics", examName: "Annual Exam 2026", marksObtained: 95, maxMarks: 100, remarks: "Excellent problem solving" },
-              { subject: "Science", examName: "Annual Exam 2026", marksObtained: 90, maxMarks: 100, remarks: "Great lab demonstration" },
-              { subject: "Social Science", examName: "Annual Exam 2026", marksObtained: 86, maxMarks: 100, remarks: "Good analytical understanding" },
-
-              // Board Model Prep
-              { subject: "Mathematics", examName: "SSLC Board Model Prep Test", marksObtained: 96, maxMarks: 100, remarks: "Top scorer in Board Model Test" },
-              { subject: "Science", examName: "SSLC Board Model Prep Test", marksObtained: 92, maxMarks: 100, remarks: "Strong formula retention" },
-              { subject: "Tamil", examName: "SSLC Board Model Prep Test", marksObtained: 94, maxMarks: 100, remarks: "Flawless grammar section" },
-              { subject: "English", examName: "SSLC Board Model Prep Test", marksObtained: 90, maxMarks: 100, remarks: "High score in essay composition" },
-              { subject: "Social Science", examName: "SSLC Board Model Prep Test", marksObtained: 88, maxMarks: 100, remarks: "Accurate map location identification" },
-
-              // Mock & Quiz Tests
-              { subject: "English", examName: "English Mock & Quiz Test", marksObtained: 92, maxMarks: 100, remarks: "High reading comprehension score" },
-              { subject: "Mathematics", examName: "Mathematics AI Mock Quiz", marksObtained: 98, maxMarks: 100, remarks: "Perfect score in Geometry & Trig" },
-              { subject: "Science", examName: "Science Mock & Quiz Test", marksObtained: 95, maxMarks: 100, remarks: "Great physics & chemistry responses" },
-              { subject: "Tamil", examName: "Tamil Literature Mock Quiz", marksObtained: 91, maxMarks: 100, remarks: "Prompt poetry analysis response" },
-              { subject: "Social Science", examName: "Social Science Diagnostic Mock", marksObtained: 87, maxMarks: 100, remarks: "Good historical timeline recall" },
-
-              // Science Practical & Lab STEM Tests
-              { subject: "Science", examName: "Physics Circuit Lab Practical", marksObtained: 96, maxMarks: 100, remarks: "Ohm's law verification & circuit assembly" },
-              { subject: "Science", examName: "Chemistry Titration Practical", marksObtained: 94, maxMarks: 100, remarks: "Acid-base indicator titration accuracy" },
-              { subject: "Science", examName: "Botany Microscope Specimen Test", marksObtained: 95, maxMarks: 100, remarks: "Stomata slide preparation & cell structure labeling" },
-              { subject: "Science", examName: "AI Science Campus 3D Optics Task", marksObtained: 98, maxMarks: 100, remarks: "Completed Lens & Refraction 3D simulation" },
-              { subject: "Science", examName: "Annual Practical Viva Test", marksObtained: 92, maxMarks: 100, remarks: "High score in lab viva & experiment logbook" }
-            ];
+            if (rawMarksList.length === 0) {
+              return (
+                <div className="glass rounded-3xl p-8 border border-slate-700/50 text-center text-slate-400 text-xs">
+                  No academic marks recorded.
+                </div>
+              );
+            }
 
             const totalObtained = rawMarksList.reduce((acc, curr) => acc + curr.marksObtained, 0);
             const totalMax = rawMarksList.reduce((acc, curr) => acc + curr.maxMarks, 0);
-            const overallPercentage = Math.round((totalObtained / totalMax) * 100);
+            const overallPercentage = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
 
             const sortedMarks = [...rawMarksList].sort((a, b) => (b.marksObtained / b.maxMarks) - (a.marksObtained / a.maxMarks));
             const highestSub = sortedMarks[0];
             const lowestSub = sortedMarks[sortedMarks.length - 1];
 
+            // Dynamically group averages by exam category
+            const examGroups: Record<string, { totalObtained: number; totalMax: number }> = {};
+            rawMarksList.forEach(mark => {
+              const name = mark.examName || "Exam";
+              if (!examGroups[name]) examGroups[name] = { totalObtained: 0, totalMax: 0 };
+              examGroups[name].totalObtained += mark.marksObtained;
+              examGroups[name].totalMax += mark.maxMarks;
+            });
+
+            const termCards = Object.entries(examGroups).map(([examName, stats]) => ({
+              term: examName,
+              pct: `${Math.round((stats.totalObtained / stats.totalMax) * 100)}%`,
+              label: `${examName} Average`,
+              color: "text-teal-400 border-teal-500/20 bg-teal-500/10"
+            }));
+
             return (
               <div className="space-y-6">
                 
                 {/* Exam Growth & Term Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { term: "Quarterly Exam", pct: "87%", label: "Term 1 Average", color: "text-blue-400 border-blue-500/20 bg-blue-500/10" },
-                    { term: "Half Yearly Exam", pct: "88.4%", label: "Term 2 Average", color: "text-teal-400 border-teal-500/20 bg-teal-500/10" },
-                    { term: "Annual Exam 2026", pct: "90.2%", label: "Final Term (Growth 📈)", color: "text-amber-400 border-amber-500/30 bg-amber-500/10" }
-                  ].map((tCard, tIdx) => (
-                    <div key={tIdx} className={`p-4 rounded-2xl border ${tCard.color} space-y-1`}>
-                      <span className="text-[10px] font-extrabold uppercase opacity-80 block">{tCard.term}</span>
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-black">{tCard.pct}</span>
-                        <span className="text-[10px] font-bold opacity-75">{tCard.label}</span>
+                {termCards.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {termCards.slice(0, 3).map((termItem, idx) => (
+                      <div key={idx} className={`p-4 rounded-2xl border ${termItem.color} flex justify-between items-center`}>
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase opacity-80 block">{termItem.label}</span>
+                          <span className="text-xl font-black text-white">{termItem.pct}</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-300">{termItem.term}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Science Marks Calculation Guidance Card */}
-                <div className="bg-indigo-500/10 p-4 rounded-2xl border border-indigo-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-400 shrink-0">
-                      <i className="fi fi-rr-flask text-lg"></i>
-                    </div>
-                    <div>
-                      <span className="font-extrabold text-white text-sm block">How Science & Practical Marks Are Calculated & Updated</span>
-                      <p className="text-slate-300 text-[11px] leading-relaxed mt-0.5">
-                        Science evaluation combines <strong>Written Term Theory (70%)</strong>, <strong>School Lab Practicals (20%)</strong>, and <strong>AI Science Campus STEM Tasks (10%)</strong>. Scores are automatically fetched from teacher assessment inputs and online lab task submissions.
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                )}
 
                 {/* Academic Marks Summary */}
                 <div className="glass rounded-3xl p-6 border border-slate-700/50 space-y-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
                       <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <i className="fi fi-rr-graduation-cap text-indigo-400 text-lg"></i>
-                        All Exams & Science Lab Percentage History
+                        <AcademicCapIcon className="w-5 h-5 text-indigo-400" /> Subject Performance & Marks Summary
                       </h3>
-                      <p className="text-xs text-slate-400">
-                        Quarterly, Half Yearly, Annual Exam & Science Practical score percentages for all subjects
-                      </p>
+                      <p className="text-xs text-slate-400">Exam scores and mark records</p>
                     </div>
 
-                    {/* Overall Aggregate KPI Badge (Percentage Only) */}
                     <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl shrink-0">
                       <div className="text-center px-3">
                         <span className="block text-[10px] text-amber-400 font-extrabold uppercase tracking-wide">Overall Academic Aggregate</span>
@@ -1578,56 +1482,43 @@ function DigitalPortfolioContent() {
                     </div>
                   </div>
 
-                  {/* Subject Performance Focus & Low-Mark Note */}
-                  <div className="bg-slate-900/50 p-4.5 rounded-2xl border border-slate-800 space-y-3">
-                    <h4 className="text-xs font-extrabold text-amber-400 flex items-center gap-2">
-                      <i className="fi fi-rr-chart-pie text-amber-400 text-sm"></i>
-                      Subject Performance & Focus Analysis
-                    </h4>
+                  {highestSub && lowestSub && (
+                    <div className="bg-slate-900/50 p-4.5 rounded-2xl border border-slate-800 space-y-3">
+                      <h4 className="text-xs font-extrabold text-amber-400 flex items-center gap-2">
+                        <StarIcon className="w-4 h-4 text-amber-400" /> Subject Performance Analysis
+                      </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      {/* Highest Subject */}
-                      <div className="bg-emerald-500/10 p-3.5 rounded-xl border border-emerald-500/20 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-emerald-400 block">🏆 Highest Scoring Subject</span>
-                          <span className="font-bold text-white text-sm">{highestSub.subject} ({highestSub.examName})</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-emerald-500/10 p-3.5 rounded-xl border border-emerald-500/20 flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-emerald-400 block"> Highest Scoring Subject</span>
+                            <span className="font-bold text-white text-sm">{highestSub.subject} ({highestSub.examName})</span>
+                          </div>
+                          <span className="font-mono font-black text-emerald-400 text-base">{Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%</span>
                         </div>
-                        <span className="font-mono font-black text-emerald-400 text-base">{Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%</span>
-                      </div>
 
-                      {/* Lowest Subject */}
-                      <div className="bg-rose-500/10 p-3.5 rounded-xl border border-rose-500/20 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-rose-400 block">⚠️ Lowest Scoring Subject (Needs Focus)</span>
-                          <span className="font-bold text-white text-sm">{lowestSub.subject} ({lowestSub.examName})</span>
+                        <div className="bg-rose-500/10 p-3.5 rounded-xl border border-rose-500/20 flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-rose-400 block"> Lowest Scoring Subject</span>
+                            <span className="font-bold text-white text-sm">{lowestSub.subject} ({lowestSub.examName})</span>
+                          </div>
+                          <span className="font-mono font-black text-rose-400 text-base">{Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%</span>
                         </div>
-                        <span className="font-mono font-black text-rose-400 text-base">{Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%</span>
                       </div>
                     </div>
-
-                    {/* Analysis Note */}
-                    <div className="bg-amber-500/10 p-3.5 rounded-xl border border-amber-500/20 text-xs text-slate-200">
-                      <span className="font-bold text-amber-400 block mb-0.5">📌 Performance Recommendation Note:</span>
-                      <p className="text-[11px] leading-relaxed">
-                        Notice: <strong>{lowestSub.subject}</strong> ({Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%) is currently your lowest scoring subject compared to <strong>{highestSub.subject}</strong> ({Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%). Focus on revision and practice exercises in {lowestSub.subject}.
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Filter Controls Bar */}
                   <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[11px] font-extrabold text-amber-400 flex items-center gap-1.5 mr-1">
-                        <i className="fi fi-rr-filter text-amber-400"></i> Exam Category:
+                        Exam Category:
                       </span>
                       {[
                         { label: `All Test Results (${rawMarksList.length})`, val: "All" },
-                        { label: "🔬 Science & Lab Tests", val: "Science" },
                         { label: "Quarterly Exam", val: "Quarterly" },
                         { label: "Half Yearly Exam", val: "Half" },
-                        { label: "Annual Exam 2026", val: "Annual" },
-                        { label: "Board Model Prep", val: "Board" },
-                        { label: "Mock & Quiz Tests", val: "Mock" }
+                        { label: "Annual Exam", val: "Annual" }
                       ].map((tFilter, fIdx) => (
                         <button
                           key={fIdx}
@@ -1643,7 +1534,6 @@ function DigitalPortfolioContent() {
                       ))}
                     </div>
 
-                    {/* Subject Filter Dropdown */}
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold text-slate-400 shrink-0">Subject:</span>
                       <select
@@ -1659,7 +1549,7 @@ function DigitalPortfolioContent() {
                     </div>
                   </div>
 
-                  {/* Filtered All Term Exams Marks Percentage Table */}
+                  {/* Filtered Marks Table */}
                   {(() => {
                     const filteredList = rawMarksList.filter(mark => {
                       const matchesTerm = selectedTermFilter === "All" ||
@@ -1684,28 +1574,10 @@ function DigitalPortfolioContent() {
                             {filteredList.length > 0 ? (
                               filteredList.map((mark, idx) => {
                                 const pct = Math.round((mark.marksObtained / mark.maxMarks) * 100);
-                                const isLowest = mark.subject === lowestSub.subject && mark.examName === lowestSub.examName;
                                 return (
-                                  <tr key={idx} className={`hover:bg-slate-900/30 transition-colors ${isLowest ? "bg-rose-500/5" : ""}`}>
-                                    <td className="py-3.5 px-4 text-white font-bold flex items-center gap-2">
-                                      {mark.subject}
-                                      {isLowest && (
-                                        <span className="text-[9px] bg-rose-500/20 text-rose-400 font-extrabold px-2 py-0.5 rounded border border-rose-500/30 uppercase">
-                                          Needs Focus
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td className="py-3.5 px-4 text-slate-400 font-medium">
-                                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                        mark.examName.includes("Quarterly") ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
-                                        mark.examName.includes("Half") ? "bg-teal-500/10 text-teal-400 border border-teal-500/20" :
-                                        mark.examName.includes("Board") ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" :
-                                        mark.examName.includes("Mock") ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" :
-                                        "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                      }`}>
-                                        {mark.examName}
-                                      </span>
-                                    </td>
+                                  <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
+                                    <td className="py-3.5 px-4 text-white font-bold">{mark.subject}</td>
+                                    <td className="py-3.5 px-4 text-slate-400 font-medium">{mark.examName}</td>
                                     <td className="py-3.5 px-4 text-center">
                                       <span className={`px-3 py-1 rounded-xl font-mono text-xs font-black ${
                                         pct >= 90 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
@@ -1715,14 +1587,14 @@ function DigitalPortfolioContent() {
                                         {pct}%
                                       </span>
                                     </td>
-                                    <td className="py-3.5 px-4 text-slate-300 italic">{mark.remarks || "Good performance"}</td>
+                                    <td className="py-3.5 px-4 text-slate-300 italic">{mark.remarks || "—"}</td>
                                   </tr>
                                 );
                               })
                             ) : (
                               <tr>
                                 <td colSpan={4} className="py-8 text-center text-slate-500 text-xs italic">
-                                  No exam percentage records match the selected term or subject filter.
+                                  No exam percentage records match the selected filter.
                                 </td>
                               </tr>
                             )}
@@ -1733,42 +1605,39 @@ function DigitalPortfolioContent() {
                   })()}
                 </div>
 
-              {/* Science Lab & Practical Experiments (High School & HSC Only) */}
-              {extractClassNum(data.profile.class) > 8 && (() => {
-                const labList = data.labAttempts && data.labAttempts.length > 0 ? data.labAttempts : [
-                  { experimentTitle: "Ohm's Law Verification & Circuit Assembly", score: 96, completed: true, date: "2026-02-15" },
-                  { experimentTitle: "Acid-Base Neutralization Titration", score: 94, completed: true, date: "2026-02-18" },
-                  { experimentTitle: "Plant Cell Stomata Slide Observation", score: 95, completed: true, date: "2026-03-01" },
-                  { experimentTitle: "3D Optics Refraction Simulation", score: 98, completed: true, date: "2026-03-10" }
-                ];
-                return (
-                  <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                    <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                      <BoltIcon className="w-5 h-5 text-emerald-400" /> Science Lab & Experiments
-                    </h3>
-                    <div className="space-y-3">
-                      {labList.map((la, idx) => (
-                        <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                          <div>
-                            <h4 className="text-xs font-bold text-white">{la.experimentTitle}</h4>
-                            <p className="text-[10px] text-slate-500 mt-0.5">Attempted on {new Date(la.date).toLocaleDateString()}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs font-bold text-emerald-400 block">{la.score !== null ? `${la.score}% Score` : "Completed"}</span>
-                            <span className="text-[9px] uppercase font-bold text-slate-500">{la.completed ? "Verified" : "Pending review"}</span>
-                          </div>
+                {/* Science Lab & Practical Experiments */}
+                {extractClassNum(data.profile.class) > 8 && (() => {
+                  const labList = data.labAttempts || [];
+                  return (
+                    <div className="glass rounded-3xl p-6 border border-slate-700/50">
+                      <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <BoltIcon className="w-5 h-5 text-emerald-400" /> Science Lab & Experiments
+                      </h3>
+                      {labList.length > 0 ? (
+                        <div className="space-y-3">
+                          {labList.map((la, idx) => (
+                            <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                              <div>
+                                <h4 className="text-xs font-bold text-white">{la.experimentTitle}</h4>
+                                <p className="text-[10px] text-slate-500 mt-0.5">Attempted on {new Date(la.date).toLocaleDateString()}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-xs font-bold text-emerald-400 block">{la.score !== null ? `${la.score}% Score` : "Completed"}</span>
+                                <span className="text-[9px] uppercase font-bold text-slate-500">{la.completed ? "Verified" : "Pending review"}</span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">No lab experiment records found.</p>
+                      )}
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
 
-
-
-            </div>
-          );
-        })()}
+              </div>
+            );
+          })()}
 
           {/* Co-curricular & Experience Tab */}
           {activeTab === "activities" && (
@@ -1776,170 +1645,106 @@ function DigitalPortfolioContent() {
               
               {/* 1. Physical Education (PT / PET) Performance & Fitness Card */}
               {(() => {
-                const petRecords = petLoad(RECORDS_KEY, DEFAULT_RECORDS);
-                const teenuRecord = petRecords.find(r => r.name.toLowerCase().includes("teenu") || r.id === "fr-9") || {
-                  name: "Teenu",
-                  class: "10A",
-                  heightCm: 145,
-                  weightKg: 40,
-                  fitnessScore: 78,
-                  assessment: { endurance: 76, strength: 72, flexibility: 84, speed: 80, lastAssessed: "2026-06-20" },
-                  activityLevel: "Active",
-                  weeklyActivityHrs: 8,
-                  health: { restingHeartRate: 70, bloodGroup: "O+", vision: "Normal", lastCheckup: "2026-06-10" },
-                  mentalHealth: "Good",
-                  sport: "Athletics",
-                  status: "Healthy — Fit"
-                };
-
-                const sportsData = {
-                  stats: [
-                    { label: "PET Fitness Score Index", value: `${teenuRecord.fitnessScore}% (${teenuRecord.status})` },
-                    { label: "Physical Height / Weight", value: `${teenuRecord.heightCm} cm / ${teenuRecord.weightKg} kg` },
-                    { label: "Resting HR & Blood", value: `${teenuRecord.health.restingHeartRate} bpm (${teenuRecord.health.bloodGroup})` },
-                    { label: "Weekly PT Regimen", value: `${teenuRecord.weeklyActivityHrs} hrs / week (${teenuRecord.activityLevel})` }
-                  ],
-                  teams: [
-                    { name: "Holy Cross U-17 Athletics Squad", role: "Lead 100m Sprinter", match: "District Meet" },
-                    { name: `Class ${data.profile.class} Sports & Kho-Kho Team`, role: "Team Captain", match: "Intra-School League" }
-                  ],
-                  events: [
-                    { title: "Zonal Athletics Meet (100m Sprint)", date: "2026-06-15", type: "Gold Medal (Certificate Verified)" },
-                    { title: "District Kabaddi Championship (U-17)", date: "2026-07-18", type: "District Squad (Upcoming)" },
-                    { title: "Inter-House Football League", date: "2026-07-10", type: "Active Player" }
-                  ]
-                };
+                const sportsData = data.sports;
+                const hasSports = sportsData && ((sportsData.teams && sportsData.teams.length > 0) || (sportsData.stats && sportsData.stats.length > 0) || (sportsData.events && sportsData.events.length > 0));
 
                 return (
                   <div className="glass rounded-3xl p-6 border border-slate-700/50 space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                       <div>
                         <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                          <i className="fi fi-rr-running text-amber-400 text-xl"></i>
+                          <SportsIcon className="w-5 h-5 text-amber-400" />
                           Physical Education (PT / PET) & Athletic Performance
                         </h3>
                         <p className="text-xs text-slate-400">
-                          Track performance, physical fitness index, and Physical Education Teacher (PET) evaluation
+                          Track performance and Physical Education Teacher (PET) evaluation
                         </p>
                       </div>
-                      <div className="bg-amber-500/10 border border-amber-500/30 px-3.5 py-2 rounded-2xl shrink-0 text-center">
-                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">PET Fitness Index</span>
-                        <span className="text-xl font-black text-amber-400">{teenuRecord.fitnessScore}% ({teenuRecord.status})</span>
-                      </div>
                     </div>
 
-                    {/* Dynamic Fitness Metrics */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {sportsData.stats.map((fMetric, fIdx) => (
-                        <div key={fIdx} className="p-4 rounded-2xl border text-amber-400 border-amber-500/20 bg-amber-500/10 space-y-1">
-                          <span className="text-[10px] font-extrabold uppercase opacity-80 block">{fMetric.label}</span>
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-sm font-black text-white">{fMetric.value}</span>
-                            <span className="text-[9px] font-bold uppercase opacity-80 text-emerald-400">PET VERIFIED</span>
+                    {!hasSports ? (
+                      <p className="text-xs text-slate-500 italic py-2">No physical education or sports records available.</p>
+                    ) : (
+                      <>
+                        {/* Dynamic Fitness Metrics */}
+                        {sportsData.stats && sportsData.stats.length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {sportsData.stats.map((fMetric, fIdx) => (
+                              <div key={fIdx} className="p-4 rounded-2xl border text-amber-400 border-amber-500/20 bg-amber-500/10 space-y-1">
+                                <span className="text-[10px] font-extrabold uppercase opacity-80 block">{fMetric.label}</span>
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-sm font-black text-white">{fMetric.value}</span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        )}
 
-                    {/* Component Assessment Breakdown */}
-                    <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                      <span className="text-[11px] font-extrabold text-indigo-400 uppercase block tracking-wider">📊 PT Assessment Component Ratings</span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
-                          <span className="text-[10px] text-slate-400 block font-bold">Endurance</span>
-                          <span className="font-mono text-emerald-400 font-extrabold">{teenuRecord.assessment.endurance} / 100</span>
-                        </div>
-                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
-                          <span className="text-[10px] text-slate-400 block font-bold">Muscle Strength</span>
-                          <span className="font-mono text-teal-400 font-extrabold">{teenuRecord.assessment.strength} / 100</span>
-                        </div>
-                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
-                          <span className="text-[10px] text-slate-400 block font-bold">Flexibility</span>
-                          <span className="font-mono text-amber-400 font-extrabold">{teenuRecord.assessment.flexibility} / 100</span>
-                        </div>
-                        <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
-                          <span className="text-[10px] text-slate-400 block font-bold">Sprint Speed</span>
-                          <span className="font-mono text-indigo-400 font-extrabold">{teenuRecord.assessment.speed} / 100</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Represented Sports Teams & PT Events */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                        <span className="text-[11px] font-extrabold text-amber-400 uppercase block tracking-wider">🏆 Represented Sports Teams & Roles</span>
-                        <div className="space-y-2 text-xs">
-                          {sportsData.teams.map((tm, tIdx) => (
-                            <div key={tIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
-                              <div>
-                                <span className="font-bold text-white block">{tm.name}</span>
-                                <span className="text-[10px] text-slate-400">Role: {tm.role}</span>
+                        {/* Represented Sports Teams & PT Events */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {sportsData.teams && sportsData.teams.length > 0 && (
+                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                              <span className="text-[11px] font-extrabold text-amber-400 uppercase block tracking-wider">🏆 Represented Sports Teams & Roles</span>
+                              <div className="space-y-2 text-xs">
+                                {sportsData.teams.map((tm, tIdx) => (
+                                  <div key={tIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
+                                    <div>
+                                      <span className="font-bold text-white block">{tm.name}</span>
+                                      <span className="text-[10px] text-slate-400">Role: {tm.role}</span>
+                                    </div>
+                                    {tm.match && <span className="text-[10px] font-black text-amber-400 uppercase bg-amber-500/10 px-2 py-0.5 rounded">{tm.match}</span>}
+                                  </div>
+                                ))}
                               </div>
-                              <span className="text-[10px] font-black text-amber-400 uppercase bg-amber-500/10 px-2 py-0.5 rounded">{tm.match}</span>
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          )}
 
-                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                        <span className="text-[11px] font-extrabold text-teal-400 uppercase block tracking-wider">🏅 PT Events & Athletic Records</span>
-                        <div className="space-y-2 text-xs">
-                          {sportsData.events.map((ev, eIdx) => (
-                            <div key={eIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
-                              <div>
-                                <span className="font-bold text-white block">{ev.title}</span>
-                                <span className="text-[10px] text-slate-400">{ev.date}</span>
+                          {sportsData.events && sportsData.events.length > 0 && (
+                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                              <span className="text-[11px] font-extrabold text-teal-400 uppercase block tracking-wider">🏅 PT Events & Athletic Records</span>
+                              <div className="space-y-2 text-xs">
+                                {sportsData.events.map((ev, eIdx) => (
+                                  <div key={eIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
+                                    <div>
+                                      <span className="font-bold text-white block">{ev.title}</span>
+                                      <span className="text-[10px] text-slate-400">{ev.date}</span>
+                                    </div>
+                                    <span className="text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded">{ev.type}</span>
+                                  </div>
+                                ))}
                               </div>
-                              <span className="text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded">{ev.type}</span>
                             </div>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    </div>
-
-                    {/* PET Teacher Endorsement */}
-                    <div className="bg-slate-900/50 p-4.5 rounded-2xl border border-slate-800 space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-extrabold text-amber-400 flex items-center gap-1.5">
-                          <i className="fi fi-rr-user-add text-amber-400"></i> Physical Education Teacher (PET) Remarks:
-                        </span>
-                        <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">VERIFIED PET DASHBOARD RECORD</span>
-                      </div>
-                      <p className="text-xs text-slate-200 italic leading-relaxed">
-                        "{teenuRecord.name} exhibits regular attendance in physical training ({teenuRecord.weeklyActivityHrs} hrs/week), strong flexibility ({teenuRecord.assessment.flexibility}%), and high sprint speed ({teenuRecord.assessment.speed}%). Recommended for Zonal & State athletic trials."
-                      </p>
-                      <span className="text-[11px] font-bold text-slate-400 block text-right">— Shiva (Head PET Master, Holy Cross Higher Secondary School)</span>
-                    </div>
+                      </>
+                    )}
                   </div>
                 );
               })()}
-
-
 
               {/* Registered School Clubs */}
               <div className="glass rounded-3xl p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                   <UsersIcon className="w-5 h-5 text-teal-400" /> Registered Clubs & Societies
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(data.clubs && data.clubs.length > 0 ? data.clubs : [
-                    { name: "Science & Innovation Club", role: "Secretary", category: "STEM", themeColor: "teal" },
-                    { name: "Eco & Environment Club", role: "Active Member", category: "Eco", themeColor: "emerald" },
-                    { name: "Literary & Drama Society", role: "Lead Speaker", category: "Cultural", themeColor: "indigo" },
-                    { name: "National Cadet Corps (NCC)", role: "Cadet Corporal", category: "Defense", themeColor: "amber" }
-                  ]).map((club, idx) => (
-                    <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex items-start gap-3.5">
-                      <div className="p-3 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-xl text-2xl">
-                        {renderIconByName("club", "text-teal-400")}
+                {data.clubs && data.clubs.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.clubs.map((club, idx) => (
+                      <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex items-start gap-3.5">
+                        <div className="p-3 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-xl text-2xl">
+                          {renderIconByName("club", "text-teal-400")}
+                        </div>
+                        <div>
+                          <span className="text-[9px] uppercase font-black tracking-widest text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{club.category}</span>
+                          <h4 className="text-sm font-bold text-white mt-1.5">{club.name}</h4>
+                          <p className="text-xs text-slate-400 mt-0.5">Assigned Role: <span className="text-indigo-400 font-bold">{club.role}</span></p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-[9px] uppercase font-black tracking-widest text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{club.category}</span>
-                        <h4 className="text-sm font-bold text-white mt-1.5">{club.name}</h4>
-                        <p className="text-xs text-slate-400 mt-0.5">Assigned Role: <span className="text-indigo-400 font-bold">{club.role}</span></p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No registered clubs.</p>
+                )}
               </div>
 
               {/* Social Community Services (NSS/NCC) */}
@@ -1947,26 +1752,27 @@ function DigitalPortfolioContent() {
                 <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                   <StarIcon className="w-5 h-5 text-emerald-400" /> Social & Community Services (NCC/NSS)
                 </h3>
-                <div className="space-y-3">
-                  {(data.socialActivities && data.socialActivities.length > 0 ? data.socialActivities : [
-                    { activityType: "Plantation Drive", description: "Planted 50 saplings in school campus eco drive", date: "2026-01-15", points: 25, status: "APPROVED" },
-                    { activityType: "Clean Campus Movement", description: "Organized plastic-free awareness campaign", date: "2026-02-10", points: 20, status: "APPROVED" }
-                  ]).map((act, idx) => (
-                    <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                      <div>
-                        <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                          {act.activityType}
-                        </span>
-                        <p className="text-xs font-bold text-white mt-1">{act.description}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">{act.date}</p>
+                {data.socialActivities && data.socialActivities.length > 0 ? (
+                  <div className="space-y-3">
+                    {data.socialActivities.map((act, idx) => (
+                      <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                          <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            {act.activityType}
+                          </span>
+                          <p className="text-xs font-bold text-white mt-1">{act.description}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{act.date}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-black text-amber-400 block">+{act.points} Pts</span>
+                          <span className="text-[9px] uppercase font-bold text-emerald-400">{act.status}</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-black text-amber-400 block">+{act.points} Pts</span>
-                        <span className="text-[9px] uppercase font-bold text-emerald-400">{act.status}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No social activities logged.</p>
+                )}
               </div>
             </div>
           )}
