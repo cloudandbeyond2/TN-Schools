@@ -627,160 +627,44 @@ export default function StudentSportsPortal() {
         </div>
       )}
 
-      {/* Modern Glassmorphism Banner */}
-      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl py-4 px-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 shadow-sm ${
-            selectedGender === "Female"
-              ? "bg-pink-50 dark:bg-pink-950/40 border-pink-100 dark:border-pink-800/30"
-              : "bg-cyan-50 dark:bg-cyan-950/40 border-cyan-100 dark:border-cyan-800/30"
-          }`}>
-            <i className="fi fi-sr-trophy text-xl flex items-center" style={{ color: selectedGender === "Female" ? "#ec4899" : "#0891b2", WebkitTextFillColor: selectedGender === "Female" ? "#ec4899" : "#0891b2" }} />
+      {/* ── PAGE BANNER ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
+        {/* Left: title + description */}
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-100 dark:border-cyan-800/30 flex items-center justify-center shrink-0 shadow-sm">
+            <i className="fi fi-sr-trophy text-xl flex items-center text-cyan-500" />
           </div>
-          <div className="text-left">
-            <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 flex items-center gap-1.5 ${selectedGender === "Female" ? "text-pink-600 dark:text-pink-400" : "text-cyan-600 dark:text-cyan-400"}`}>
-              <i className="fi fi-sr-sparkles flex items-center text-amber-400 text-[10px]" />
-              Fit India & TN Schools ({currentData.ageGroup})
-            </span>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wider leading-none mb-1">
-              {currentData.studentName} · {dict.bannerTitle}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight max-w-xl">
-              {dict.bannerSubtitle}
+          <div className="min-w-0">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2 flex-wrap">
+              <i className="fi fi-sr-gym text-cyan-500 flex items-center" />
+              Sports & Athletics
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
+              Track your fitness, join teams, and excel in sports events.
             </p>
           </div>
         </div>
-        <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
-          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 border ${
-            selectedGender === "Female"
-              ? "bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800"
-              : "bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800"
-          }`}>
-            <i className="fi fi-sr-shield flex items-center" />
-            {selectedGender === "Female" ? dict.girlsDiv : dict.boysDiv}
-          </span>
-          <span className="text-[10px] font-black px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
-            <i className="fi fi-sr-check-circle flex items-center" />
-            {currentData.sportsQuotaEligible ? "Sports Quota Eligible" : "General Category"}
-          </span>
-        </div>
-      </div>
 
-      {/* STUDENT GENDER SELECTION & LANGUAGE TOGGLE BAR */}
-      <div className="mb-6 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 dark:text-slate-200">
-            <i className="fi fi-sr-compass text-cyan-500 flex items-center" />
-            <span>{dict.studentPersona}</span>
+        {/* Right: KPI chips + class badge */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Fit India Score chip */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-extrabold text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/40 shadow-sm">
+            <i className="fi fi-sr-heart flex items-center text-rose-500" />
+            <span>{currentData.petFitness ? `${currentData.petFitness.speed || 92}%` : "Grade A"} Fit Score</span>
           </div>
 
-          {/* Gender Selector Toggle */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
-            <button
-              onClick={() => setSelectedGender("Female")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${
-                selectedGender === "Female" 
-                  ? "bg-pink-500 text-white shadow-sm" 
-                  : "text-slate-600 dark:text-slate-400 hover:text-pink-500"
-              }`}
-            >
-              {dict.girlsDiv}
-            </button>
-            <button
-              onClick={() => setSelectedGender("Male")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${
-                selectedGender === "Male" 
-                  ? "bg-cyan-600 text-white shadow-sm" 
-                  : "text-slate-600 dark:text-slate-400 hover:text-cyan-500"
-              }`}
-            >
-              {dict.boysDiv}
-            </button>
+          {/* Teams chip */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl border border-blue-200/50 dark:border-blue-800/40 shadow-sm">
+            <i className="fi fi-sr-users flex items-center text-blue-500" />
+            <span>{currentData.teams?.length || 0} Teams</span>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {/* Language Toggle Button (English / தமிழ்) */}
-          <button
-            onClick={() => {
-              const next = currentLang === "English" ? "தமிழ்" : "English";
-              setCurrentLang(next);
-              localStorage.setItem("portal-language", next);
-              window.dispatchEvent(new Event("portal-language-change"));
-            }}
-            className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
-          >
-            <i className="fi fi-sr-globe text-cyan-500 flex items-center" />
-            <span>{dict.langToggle}</span>
-          </button>
-
-          {/* Class Level Selector */}
-          <select
-            value={selectedClassLevel}
-            onChange={(e) => setSelectedClassLevel(e.target.value as ClassLevel)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-extrabold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
-          >
-            <option value="Primary (Class 1-5)">Primary (Class 1-5 · U-11)</option>
-            <option value="Middle (Class 6-8)">Middle School (Class 6-8 · U-14)</option>
-            <option value="High School (Class 9-10)">High School (Class 9-10 · U-17)</option>
-            <option value="Higher Secondary (Class 11-12)">Higher Secondary (Class 11-12 · U-19)</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Quick KPI Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl ${
-            selectedGender === "Female" ? "bg-pink-50 text-pink-500 dark:bg-pink-900/30" : "bg-cyan-50 text-cyan-500 dark:bg-cyan-900/30"
-          } flex items-center justify-center shrink-0`}>
-            <i className="fi fi-sr-heart-rate flex items-center" />
-          </div>
-          <div>
-            <div className="text-lg font-black text-slate-800 dark:text-white">
-              {currentData.petFitness ? `${currentData.petFitness.speed || 92}%` : "Grade A"}
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dict.fitIndiaScore}</div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center shrink-0">
-            <i className="fi fi-sr-users flex items-center" />
-          </div>
-          <div>
-            <div className="text-lg font-black text-slate-800 dark:text-white">{currentData.teams?.length || 0}</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dict.activeTeams}</div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center shrink-0">
-            <i className="fi fi-sr-calendar flex items-center" />
-          </div>
-          <div>
-            <div className="text-lg font-black text-slate-800 dark:text-white">{eventStats.registered}</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dict.registeredEvents}</div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-yellow-500 flex items-center justify-center shrink-0">
-            <i className="fi fi-sr-trophy flex items-center" />
-          </div>
-          <div>
-            <div className="text-lg font-black text-slate-800 dark:text-white">{currentData.sportsQuotaPoints} Pts</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dict.sportsQuota}</div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center shrink-0">
-            <i className="fi fi-sr-flame flex items-center" />
-          </div>
-          <div>
-            <div className="text-lg font-black text-slate-800 dark:text-white">{totalCaloriesLogged} kcal</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dict.burned}</div>
+          {/* Class badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm">
+            <i className="fi fi-sr-shield flex items-center text-emerald-500" />
+            <span>
+              {selectedGender === "Female" ? dict.girlsDiv : dict.boysDiv} · {currentData.ageGroup}
+            </span>
           </div>
         </div>
       </div>
@@ -788,14 +672,10 @@ export default function StudentSportsPortal() {
       {/* Navigation Tabs */}
       <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full mb-8 overflow-x-auto gap-1">
         {[
-          { id: "overview", label: dict.tabOverview, iconClass: "fi fi-sr-heart-rate" },
+          { id: "overview", label: dict.tabOverview, iconClass: "fi fi-sr-heart" },
           { id: "teams", label: dict.tabTeams, iconClass: "fi fi-sr-users" },
           { id: "events", label: dict.tabEvents, iconClass: "fi fi-sr-calendar" },
-          { id: "awards", label: dict.tabAwards, iconClass: "fi fi-sr-trophy" },
-          { id: "house", label: dict.tabHouse, iconClass: "fi fi-sr-shield" },
-          { id: "logs", label: dict.tabLogs, iconClass: "fi fi-sr-dumbbell" },
-          { id: "injuries", label: dict.tabInjuries, iconClass: "fi fi-sr-heart" },
-          { id: "clubs", label: dict.tabClubs, iconClass: "fi fi-sr-medal" }
+          { id: "awards", label: dict.tabAwards, iconClass: "fi fi-sr-trophy" }
         ].map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -1095,7 +975,7 @@ export default function StudentSportsPortal() {
                       <span className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 text-xs font-bold flex items-center gap-1">
                         <i className="fi fi-sr-check-circle flex items-center" /> {dict.registered}
                       </span>
-                    ) : (
+                    ) : new Date(ev.date) < new Date(new Date().setHours(0,0,0,0)) ? null : (
                       <button
                         onClick={() => handleRegisterEvent(ev.id)}
                         disabled={registeringId === ev.id}
@@ -1163,125 +1043,7 @@ export default function StudentSportsPortal() {
         )}
 
         {/* TAB 5: HOUSE SYSTEM */}
-        {activeTab === "house" && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-              <i className="fi fi-sr-shield text-rose-500 flex items-center" /> {dict.houseTitle}
-            </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                { name: currentLang === "தமிழ்" ? "அக்னி (சிகப்பு இல்லம்)" : "Agni (Red House)", pts: 420, leader: "Priya S.", color: "from-rose-500 to-red-600", active: currentData.house.includes("Agni") },
-                { name: currentLang === "தமிழ்" ? "ஆகாய (நீல இல்லம்)" : "Akash (Blue House)", pts: 395, leader: "Arjun K.", color: "from-blue-500 to-cyan-600", active: currentData.house.includes("Akash") },
-                { name: currentLang === "தமிழ்" ? "பிருத்வி (பச்சை இல்லம்)" : "Prithvi (Green House)", pts: 360, leader: "Kavitha R.", color: "from-emerald-500 to-teal-600", active: currentData.house.includes("Prithvi") },
-                { name: currentLang === "தமிழ்" ? "திரிசூலம் (மஞ்சள் இல்லம்)" : "Trishul (Yellow House)", pts: 340, leader: "Rahul M.", color: "from-amber-500 to-orange-600", active: currentData.house.includes("Trishul") }
-              ].map((hs, i) => (
-                <div key={i} className={`p-6 rounded-3xl border shadow-sm flex flex-col justify-between ${
-                  hs.active 
-                    ? "bg-gradient-to-br " + hs.color + " text-white border-transparent" 
-                    : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-800 dark:text-white"
-                }`}>
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-2xl font-black">#{i+1} Rank</span>
-                      {hs.active && <span className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-black uppercase">{dict.myHouse}</span>}
-                    </div>
-                    <h3 className="font-extrabold text-lg">{hs.name}</h3>
-                    <p className="text-xs opacity-80 mt-1">{dict.leader} {hs.leader}</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-current/20 text-right">
-                    <span className="text-2xl font-black">{hs.pts} {dict.pts}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: WORKOUT LOGGER */}
-        {activeTab === "logs" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <i className="fi fi-sr-dumbbell text-cyan-500 flex items-center" /> {dict.trainingLog}
-              </h2>
-              <button
-                onClick={() => setIsLogModalOpen(true)}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold rounded-2xl shadow-sm flex items-center gap-1.5"
-              >
-                <i className="fi fi-sr-plus flex items-center" /> {dict.logWorkout}
-              </button>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {(currentData.logs || []).map((lg: any) => (
-                <div key={lg.id} className="p-5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-900/20 text-cyan-500 flex items-center justify-center shrink-0">
-                      <i className="fi fi-sr-flame flex items-center" />
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-slate-800 dark:text-white text-base">{lg.activity}</h4>
-                      <span className="text-xs font-semibold text-slate-400">{lg.duration} · {lg.intensity} · {lg.date}</span>
-                    </div>
-                  </div>
-                  <span className="text-base font-black text-rose-500">+{lg.calories} kcal</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 7: INJURY REPORTING */}
-        {activeTab === "injuries" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <i className="fi fi-sr-heart text-rose-500 flex items-center" /> {dict.injuryTitle}
-              </h2>
-              <button
-                onClick={() => setIsInjuryModalOpen(true)}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold rounded-2xl shadow-sm flex items-center gap-1.5"
-              >
-                <i className="fi fi-sr-plus flex items-center" /> {dict.reportInjuryBtn}
-              </button>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {(currentData.injuries || []).map((inj: any) => (
-                <div key={inj.id} className="p-5 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-extrabold text-slate-800 dark:text-white text-base">{inj.type}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{inj.description}</p>
-                  </div>
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-xs font-extrabold">
-                    {inj.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 8: SPORTS CLUBS */}
-        {activeTab === "clubs" && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-              <i className="fi fi-sr-medal text-purple-500 flex items-center" /> {dict.clubsTitle}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {(currentData.clubs || []).map((cl: any) => (
-                <div key={cl.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                  <h3 className="font-black text-slate-800 dark:text-white text-lg">{cl.club?.name}</h3>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-extrabold mt-1">Role: {cl.role}</p>
-                  <p className="text-xs text-slate-400 mt-4">{dict.coordinator} {cl.coordinator}</p>
-                  <p className="text-xs text-slate-400">{dict.meeting} {cl.meetingTime}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
 
@@ -1301,7 +1063,7 @@ export default function StudentSportsPortal() {
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setSelectedEventModal(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500">{dict.close}</button>
-              {!selectedEventModal.isRegistered && (
+              {!selectedEventModal.isRegistered && new Date(selectedEventModal.date) >= new Date(new Date().setHours(0,0,0,0)) && (
                 <button onClick={() => handleRegisterEvent(selectedEventModal.id)} className="px-5 py-2 bg-cyan-600 text-white rounded-xl text-xs font-extrabold">{dict.registerNow}</button>
               )}
             </div>
