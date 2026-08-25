@@ -103,21 +103,21 @@ router.get('/:studentId', async (req: Request, res: Response) => {
           data: {
             studentId: studentExists.id,
             bio: JSON.stringify({
-              bioText: "Welcome to my digital portfolio!",
-              strengths: ["Fast learner", "Team player"],
-              areasOfGrowth: ["Time management"],
-              termGoals: ["Score above 90% in Math", "Learn web programming"],
-              leadershipRoles: ["Class Monitor"],
-              vocationalSkills: ["Basic Electronics", "Scratch Programming"],
-              languageFluency: { "Tamil": "Native", "English": "Fluent" },
-              careerGoal: "Engineering (Computer Science & AI)",
-              subjectInterests: ["Environmental Science", "Mathematics", "Tamil Literature"],
-              talentPrep: ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"],
-              communicationRole: "Speaker / Lead",
-              teacherEndorsement: "Shows remarkable logical clarity and deep engagement in computer education.",
-              teacherName: "M. Kalai",
-              parentEndorsement: "Exhibits great dedication to self-study.",
-              parentName: "DevanDevi"
+              bioText: "",
+              strengths: [],
+              areasOfGrowth: [],
+              termGoals: [],
+              leadershipRoles: [],
+              vocationalSkills: [],
+              languageFluency: {},
+              careerGoal: "",
+              subjectInterests: [],
+              talentPrep: [],
+              communicationRole: "",
+              teacherEndorsement: "",
+              teacherName: "",
+              parentEndorsement: "",
+              parentName: ""
             }),
             stream: "General"
           },
@@ -136,24 +136,24 @@ router.get('/:studentId', async (req: Request, res: Response) => {
 
     const student = portfolio.student as any;
     const parentLinkUser = student.parentLinks?.[0]?.parent?.user?.name;
-    const dynamicParentName = student.parentName || student.fatherName || student.motherName || parentLinkUser || "Parent / Guardian";
+    const dynamicParentName = student.parentName || student.fatherName || student.motherName || parentLinkUser || "";
 
     // Parse the JSON bio to extract SWOT, leadership, vocational, and language skills
     let bioData = {
-      bioText: portfolio.bio || "Welcome to my digital portfolio!",
+      bioText: portfolio.bio || "",
       strengths: [] as string[],
       areasOfGrowth: [] as string[],
       termGoals: [] as string[],
-      leadershipRoles: ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"] as string[],
+      leadershipRoles: [] as string[],
       vocationalSkills: [] as string[],
       languageFluency: {} as Record<string, string>,
-      careerGoal: "Engineering (Computer Science & AI)",
-      subjectInterests: ["Environmental Science", "Mathematics", "Tamil Literature"] as string[],
-      talentPrep: ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"] as string[],
-      communicationRole: "Speaker / Lead",
-      teacherEndorsement: "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
-      teacherName: "Mrs. Abirami",
-      parentEndorsement: "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
+      careerGoal: "",
+      subjectInterests: [] as string[],
+      talentPrep: [] as string[],
+      communicationRole: "",
+      teacherEndorsement: "",
+      teacherName: "",
+      parentEndorsement: "",
       parentName: dynamicParentName
     };
 
@@ -161,24 +161,26 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       try {
         if (portfolio.bio.trim().startsWith('{')) {
           const parsed = JSON.parse(portfolio.bio);
-          const cleanParentName = (parsed.parentName && parsed.parentName !== "Mr. Balasubramanian") ? parsed.parentName : dynamicParentName;
+          const cleanParentName = parsed.parentName || dynamicParentName;
           bioData = {
-            bioText: parsed.bioText || "Welcome to my digital portfolio!",
+            bioText: parsed.bioText || "",
             strengths: parsed.strengths || [],
             areasOfGrowth: parsed.areasOfGrowth || [],
             termGoals: parsed.termGoals || [],
-            leadershipRoles: (Array.isArray(parsed.leadershipRoles) && parsed.leadershipRoles.length > 0) ? parsed.leadershipRoles : ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"],
+            leadershipRoles: Array.isArray(parsed.leadershipRoles) ? parsed.leadershipRoles : [],
             vocationalSkills: parsed.vocationalSkills || [],
             languageFluency: parsed.languageFluency || {},
-            careerGoal: parsed.careerGoal || "Engineering (Computer Science & AI)",
-            subjectInterests: parsed.subjectInterests || ["Environmental Science", "Mathematics", "Tamil Literature"],
-            talentPrep: parsed.talentPrep || ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"],
-            communicationRole: parsed.communicationRole || "Speaker / Lead",
-            teacherEndorsement: parsed.teacherEndorsement || "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
-            teacherName: parsed.teacherName || "Mrs. Abirami",
-            parentEndorsement: parsed.parentEndorsement || "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
+            careerGoal: parsed.careerGoal || "",
+            subjectInterests: parsed.subjectInterests || [],
+            talentPrep: parsed.talentPrep || [],
+            communicationRole: parsed.communicationRole || "",
+            teacherEndorsement: parsed.teacherEndorsement || "",
+            teacherName: parsed.teacherName || "",
+            parentEndorsement: parsed.parentEndorsement || "",
             parentName: cleanParentName
           };
+        } else {
+          bioData.bioText = portfolio.bio;
         }
       } catch (e) {
         console.error("Error parsing portfolio bio JSON:", e);
@@ -189,7 +191,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
     const attendanceRecords = portfolio.student.attendance || [];
     const totalDays = attendanceRecords.length;
     const presentDays = attendanceRecords.filter((r: any) => r.status === 'PRESENT').length;
-    const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 92; // Default to 92 if no records
+    const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0; // Default to 92 if no records
 
     // Format student record integrations
     const formattedData = {
@@ -292,22 +294,22 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const mergedBio = JSON.stringify({
-      bioText: bio !== undefined ? bio : (existingBioObj.bioText || "Welcome to my digital portfolio!"),
+      bioText: bio !== undefined ? bio : (existingBioObj.bioText || ""),
       strengths: strengths !== undefined ? strengths : (existingBioObj.strengths || []),
       areasOfGrowth: areasOfGrowth !== undefined ? areasOfGrowth : (existingBioObj.areasOfGrowth || []),
       termGoals: termGoals !== undefined ? termGoals : (existingBioObj.termGoals || []),
-      leadershipRoles: leadershipRoles !== undefined ? leadershipRoles : (existingBioObj.leadershipRoles || ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"]),
+      leadershipRoles: leadershipRoles !== undefined ? leadershipRoles : (existingBioObj.leadershipRoles || []),
       vocationalSkills: vocationalSkills !== undefined ? vocationalSkills : (existingBioObj.vocationalSkills || []),
       languageFluency: languageFluency !== undefined ? languageFluency : (existingBioObj.languageFluency || {}),
       languages: languages !== undefined ? languages : (existingBioObj.languages || []),
-      careerGoal: careerGoal !== undefined ? careerGoal : (existingBioObj.careerGoal || "Engineering (Computer Science & AI)"),
-      subjectInterests: subjectInterests !== undefined ? subjectInterests : (existingBioObj.subjectInterests || ["Environmental Science", "Mathematics", "Tamil Literature"]),
-      talentPrep: talentPrep !== undefined ? talentPrep : (existingBioObj.talentPrep || ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"]),
-      communicationRole: communicationRole !== undefined ? communicationRole : (existingBioObj.communicationRole || "Speaker / Lead"),
-      teacherEndorsement: teacherEndorsement !== undefined ? teacherEndorsement : (existingBioObj.teacherEndorsement || "Shows remarkable logical clarity and deep engagement in computer education."),
-      teacherName: teacherName !== undefined ? teacherName : (existingBioObj.teacherName || "kalai"),
-      parentEndorsement: parentEndorsement !== undefined ? parentEndorsement : (existingBioObj.parentEndorsement || "Exhibits great dedication to self-study."),
-      parentName: parentName !== undefined ? parentName : (existingBioObj.parentName || "DevanDevi")
+      careerGoal: careerGoal !== undefined ? careerGoal : (existingBioObj.careerGoal || ""),
+      subjectInterests: subjectInterests !== undefined ? subjectInterests : (existingBioObj.subjectInterests || []),
+      talentPrep: talentPrep !== undefined ? talentPrep : (existingBioObj.talentPrep || []),
+      communicationRole: communicationRole !== undefined ? communicationRole : (existingBioObj.communicationRole || ""),
+      teacherEndorsement: teacherEndorsement !== undefined ? teacherEndorsement : (existingBioObj.teacherEndorsement || ""),
+      teacherName: teacherName !== undefined ? teacherName : (existingBioObj.teacherName || ""),
+      parentEndorsement: parentEndorsement !== undefined ? parentEndorsement : (existingBioObj.parentEndorsement || ""),
+      parentName: parentName !== undefined ? parentName : (existingBioObj.parentName || "")
     });
 
     const portfolio = await prisma.portfolio.upsert({
