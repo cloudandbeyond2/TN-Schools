@@ -119,7 +119,16 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
         setSkills(json.data.skills || []);
         setAiEnabled(json.data.aiEnabled !== false);
       } catch (err) {
-        if (!cancelled) setCatalogError(String(err));
+        // A network-level failure means the API is unreachable (server down,
+        // wrong NEXT_PUBLIC_API_URL). Teachers should not be shown "TypeError:
+        // Failed to fetch" — say what is wrong and what to do.
+        if (cancelled) return;
+        const offline = err instanceof TypeError;
+        setCatalogError(
+          offline
+            ? "Can't reach the server. Check that the backend is running, then reload."
+            : String(err instanceof Error ? err.message : err)
+        );
       } finally {
         if (!cancelled) setCatalogLoading(false);
       }
@@ -529,10 +538,22 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
           )}
 
           {catalogError && (
-            <div className="text-[11px] text-rose-500 leading-relaxed p-2">{catalogError}</div>
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3">
+              <div className="text-[11px] font-bold text-rose-600 dark:text-rose-400 mb-1">
+                Skills unavailable
+              </div>
+              <div className="text-[10px] text-[var(--text-muted)] leading-relaxed">{catalogError}</div>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="mt-2 text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+              >
+                Reload
+              </button>
+            </div>
           )}
 
-          {!catalogLoading && grouped.length === 0 && (
+          {!catalogLoading && !catalogError && grouped.length === 0 && (
             <div className="text-[11px] text-[var(--text-muted)] p-2">No skill matches “{query}”.</div>
           )}
 
