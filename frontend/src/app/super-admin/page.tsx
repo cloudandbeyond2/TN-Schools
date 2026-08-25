@@ -1,7 +1,8 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 
 const systemStats = [
   { label: "Total Users", value: "49.3L+", icon: <i className="fi fi-rr-users"></i>, color: "text-violet-400", sub: "All roles combined", bg: "bg-violet-500/10 border-violet-500/20" },
@@ -64,16 +65,97 @@ const portalHealth = [
 
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "people" | "academics" | "system" | "governance">("all");
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await apiFetch("/api/superadmin/dashboard/stats");
+        const json = await res.json();
+        if (json.success) {
+          setStats(json.data);
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+      }
+    }
+    fetchStats();
+  }, []);
+
+  const dynamicStats = systemStats.map((kpi) => {
+    if (!stats) return { ...kpi, value: "...", sub: "Loading..." };
+    switch (kpi.label) {
+      case "Total Users":
+        return { ...kpi, value: stats.totalUsers };
+      case "Active Schools":
+        return { ...kpi, value: stats.activeSchools };
+      case "AI API Status":
+        return { ...kpi, value: stats.aiStatus };
+      case "System Uptime":
+        return { ...kpi, value: stats.systemUptime, sub: stats.uptimeSub || kpi.sub };
+      case "Active Portals":
+        return { ...kpi, value: stats.activePortals, sub: stats.activePortalsSub || kpi.sub };
+      case "Modules Enabled":
+        return { ...kpi, value: stats.modulesEnabled, sub: stats.modulesEnabledSub || kpi.sub };
+      case "Syllabus Items":
+        return { ...kpi, value: stats.syllabusItems };
+      case "Data Sync":
+        return { ...kpi, value: stats.dataSync, sub: stats.dataSyncSub || kpi.sub };
+      default:
+        return kpi;
+    }
+  });
+
+  const dynamicActions = quickActions.map((action) => {
+    if (!stats) return { ...action, badge: "..." };
+    let badge = action.badge;
+    switch (action.label) {
+      case "User Management":
+        badge = `${stats.totalUsers} users`;
+        break;
+      case "Role & Permissions":
+        badge = `9 roles`;
+        break;
+      case "School Management":
+        badge = `${stats.rawSchoolCount.toLocaleString("en-IN")} schools`;
+        break;
+      case "Headmaster Mgmt":
+        badge = `${stats.hmCount.toLocaleString("en-IN")} HMs`;
+        break;
+      case "DEO Management":
+        badge = `${stats.deoCount} DEOs`;
+        break;
+      case "Material Library":
+        badge = `${stats.materialsCount.toLocaleString("en-IN")} items`;
+        break;
+      case "Department Modules":
+        badge = `${stats.totalModules} modules`;
+        break;
+      case "AI Integration":
+        badge = `${stats.aiApisCount} APIs`;
+        break;
+      case "Feature Toggles":
+        badge = `${stats.enabledModules} on / ${stats.totalModules - stats.enabledModules} off`;
+        break;
+      case "Page Management":
+        badge = `${stats.pagesCount} pages`;
+        break;
+      case "Manage Ministers":
+        badge = `${stats.activeMinisters} active`;
+        break;
+    }
+    return { ...action, badge };
+  });
 
   const filterMap: Record<string, string[]> = {
-    all: quickActions.map((q) => q.href),
+    all: dynamicActions.map((q) => q.href),
     people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters", "/super-admin/deos"],
     academics: ["/super-admin/academics", "/super-admin/learning-hub", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
     system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };
 
-  const filteredActions = quickActions.filter((q) => filterMap[activeTab].includes(q.href));
+  const filteredActions = dynamicActions.filter((q) => filterMap[activeTab].includes(q.href));
 
   return (
     <PortalLayout>
@@ -95,11 +177,16 @@ export default function SuperAdminDashboard() {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6 fade-in">
-        {systemStats.map((kpi) => (
-          <div key={kpi.label} className={`rounded-xl p-3 border ${kpi.bg} text-center`}>
-            <div className={`text-xl mb-1 ${kpi.color}`}>{kpi.icon}</div>
-            <div className={`text-base font-extrabold ${kpi.color}`}>{kpi.value}</div>
-            <div className="text-[9px] text-slate-500 leading-tight mt-0.5">{kpi.label}</div>
+        {dynamicStats.map((kpi) => (
+          <div key={kpi.label} className={`rounded-xl p-3 border ${kpi.bg} text-center flex flex-col justify-between min-h-[90px]`}>
+            <div>
+              <div className={`text-xl mb-1 ${kpi.color}`}>{kpi.icon}</div>
+              <div className={`text-base font-extrabold ${kpi.color}`}>{kpi.value}</div>
+            </div>
+            <div>
+              <div className="text-[9px] text-slate-500 leading-tight mt-0.5 font-medium">{kpi.label}</div>
+              {kpi.sub && <div className="text-[8px] text-slate-400 mt-0.5 leading-none">{kpi.sub}</div>}
+            </div>
           </div>
         ))}
       </div>
