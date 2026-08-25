@@ -627,22 +627,13 @@ export default function StudentSportsPortal() {
         </div>
       )}
 
-      {/* ── PAGE BANNER ─────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
-        {/* Left: title + description */}
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-100 dark:border-cyan-800/30 flex items-center justify-center shrink-0 shadow-sm">
-            <i className="fi fi-sr-trophy text-xl flex items-center text-cyan-500" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2 flex-wrap">
-              <i className="fi fi-sr-gym text-cyan-500 flex items-center" />
-              Sports & Athletics
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
-              Track your fitness, join teams, and excel in sports events.
-            </p>
-          </div>
+      {/* ── PAGE HEADER ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-6">
+        {/* Left: description */}
+        <div className="max-w-xl">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-snug">
+            Track your fitness, join teams, and excel in sports events.
+          </p>
         </div>
 
         {/* Right: KPI chips + class badge */}
