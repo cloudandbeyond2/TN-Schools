@@ -423,6 +423,29 @@ export default function SubjectAnalyticsPage() {
       title={lang === "தமிழ்" ? "பாட பகுப்பு பகுப்பாய்வு" : "Subject Analytics"}
       subtitle={lang === "தமிழ்" ? "பாடத்திட்ட மூடிப்பை மேம்பாடு, தேர்வு மதிப்பெண்கள் மற்றும் கற்றல் இதழ்கள் பகுப்பாய்வு." : "Syllabus coverage progress, exam scores, and learning gaps analysis."}
     >
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-stats text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "பாடப் பகுப்பாய்வு மையம்" : "Subject Analytics Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "வகுப்புகளுக்கான பாடத்திட்ட நிறைவு நிலை, சராசரி மதிப்பெண்கள் மற்றும் AI காலக்கெடு கணிப்புகளை பகுப்பாய்வு செய்யவும்."
+                    : "Track syllabus completion velocity, chapter progress, class average benchmarks, and AI-predicted syllabus deadline completion."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       {/* Class Selector Bar */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] p-4 rounded-2xl border border-[var(--border)] mb-6">
         <div className="flex gap-2">
@@ -743,6 +766,7 @@ export default function SubjectAnalyticsPage() {
           </div>
         </div>
       )}
+      </div>
     </PortalLayout>
   );
 }

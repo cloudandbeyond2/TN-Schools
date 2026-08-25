@@ -582,6 +582,29 @@ export default function NEETPrepPage() {
 
   return (
     <PortalLayout title={lang === "தமிழ்" ? "NEET தயாரிப்பு" : "NEET Preparation"} subtitle={lang === "தமிழ்" ? "NEET பழக்க தேர்வுகள் திட்டமிடு, மாணவர் நேர்முக பதிவுகள், பாடத்திட்ட நிலை மற்றும் பயிற்சி தாள்கள் உருவாக்கு" : "Schedule NEET mock exams, check student dailyum logs, syllabus progress and generate practice sheets"}>
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-target text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "NEET தேர்வு தயாரிப்பு மையம்" : "NEET Preparation Console Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "மருத்துவ நுழைவுத் தேர்வுக்கான பாடத்திட்டம், மாதிரித் தேர்வுகள், AI வினாத் தாள் இயற்றி மற்றும் மாணவர் அறிக்கைகளை நிர்வகிக்கவும்."
+                    : "Track NEET competitive exam syllabus coverage, schedule mock tests, generate AI question sheets, and evaluate student accuracy metrics."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       
       {/* ── KPI Row ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -1176,6 +1199,7 @@ export default function NEETPrepPage() {
         </div>
       )}
 
+      </div>
     </PortalLayout>
   );
 }

@@ -1405,7 +1405,31 @@ export default function PETeacherSportsPage() {
       themeClass="theme-teacher"
       accentColor="#06b6d4"
     >
-      {isPE === false && (
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-500 rounded-xl shrink-0 border border-cyan-100 dark:border-cyan-900/50">
+                <Trophy className="w-6 h-6 text-cyan-500" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "விளையாட்டு & தடகள மையம்" : "Sports & Athletics Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "மாணவர்களின் உடற்தகுதி அளவீடுகள், விளையாட்டு அணிகள் வரைபடம், போட்டிகள் மற்றும் காயம் கண்காணிப்பை நிர்வகிக்கவும்."
+                    : "Track student physical vitals, sports team rosters, tournament schedules, and active injury medical clearance reports."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isPE === false && (
         <div className="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 p-4 rounded-2xl flex items-center gap-3 text-xs font-bold shadow-sm animate-in fade-in duration-300">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 animate-pulse" />
           <div>
@@ -2164,6 +2188,7 @@ export default function PETeacherSportsPage() {
           </div>
         </div>
       )}
+      </div>
     </PortalLayout>
   );
 }

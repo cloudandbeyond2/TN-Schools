@@ -444,6 +444,29 @@ export default function TeacherExamsPage() {
       themeClass="theme-teacher"
       accentColor="#f59e0b"
     >
+      <div className="space-y-6 text-left">
+        {/* Top Banner */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm text-left relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-500 rounded-xl shrink-0 border border-amber-100 dark:border-amber-900/50">
+                <i className="fi fi-rr-graduation-cap text-2xl text-amber-500"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                  {lang === "தமிழ்" ? "தேர்வு மையம் & பகுப்பாய்வு" : "Examination Center & Analytics Hub"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
+                  {lang === "தமிழ்"
+                    ? "பள்ளித் தேர்வு அட்டவணைகள், கண்காணிப்பு (இன்விஜிலேஷன்) கடமைகள் மற்றும் மாதிரித் தேர்வு முடிவுகளை நிர்வகிக்கவும்."
+                    : "Track published examination schedules, assigned invigilation hall duties, and student model exam performance analytics."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       {/* Tab Navigation */}
       <div className="flex bg-slate-950 border border-slate-800 p-1.5 rounded-2xl mb-6 w-fit">
         <button
@@ -949,6 +972,7 @@ export default function TeacherExamsPage() {
           )}
         </div>
       )}
+      </div>
     </PortalLayout>
   );
 }
