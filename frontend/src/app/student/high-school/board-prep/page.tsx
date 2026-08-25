@@ -300,7 +300,7 @@ export default function BoardPrepPage() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>({ id: "student-default-1", name: "Test Student", class: "10" });
   const [selectedGrade, setSelectedGrade] = useState<"9" | "10">("10");
-  const [activeTab, setActiveTab] = useState<"overview" | "ai-analysis" | "pyq" | "blueprint">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "focus" | "ai-analysis" | "pyq" | "blueprint">("overview");
 
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
 
@@ -781,6 +781,16 @@ export default function BoardPrepPage() {
           <BookOpen className="w-4 h-4" /> Syllabus Tracker ({syllabusPct}%)
         </button>
         <button 
+          onClick={() => setActiveTab("focus")}
+          className={`text-xs sm:text-sm font-extrabold px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 ${
+            activeTab === "focus" 
+              ? "bg-red-600 text-white shadow-md" 
+              : "bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-800 text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          }`}
+        >
+          <Target className="w-4 h-4 text-amber-500" /> Focus Subject Alert 🔥
+        </button>
+        <button 
           onClick={() => setActiveTab("ai-analysis")}
           className={`text-xs sm:text-sm font-extrabold px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 ${
             activeTab === "ai-analysis" 
@@ -902,6 +912,214 @@ export default function BoardPrepPage() {
                 </div>
               </div>
             )}
+
+            {/* TAB: FOCUS AREA & SUBJECT CONCENTRATION ADVICE */}
+            {activeTab === "focus" && (() => {
+              const subjectsList = ["Mathematics", "Science", "Social Science", "English", "Tamil"];
+              const subjectStats: Record<string, { totalMarks: number; count: number; avg: number; syllabusPct: number; weaknessCount: number; minAccuracy: number }> = {};
+
+              subjectsList.forEach((sub) => {
+                let totalMarks = 0;
+                let count = 0;
+                completedPapersWithScores.forEach((p) => {
+                  if (p.subjectMarks && p.subjectMarks[sub] !== undefined) {
+                    totalMarks += Number(p.subjectMarks[sub]);
+                    count++;
+                  }
+                });
+
+                const syl = currentSyllabus.find((s) => s.subject === sub);
+                const sylPct = syl && syl.totalChapters > 0 ? Math.round((syl.completed / syl.totalChapters) * 100) : 0;
+                const weaknesses = currentWeaknesses.filter((w) => w.subject === sub);
+                const minAcc = weaknesses.length > 0 ? Math.min(...weaknesses.map((w) => w.accuracy)) : 100;
+
+                const avg = count > 0 ? Math.round(totalMarks / count) : 80;
+
+                subjectStats[sub] = {
+                  totalMarks,
+                  count,
+                  avg,
+                  syllabusPct: sylPct,
+                  weaknessCount: weaknesses.length,
+                  minAccuracy: minAcc
+                };
+              });
+
+              // Sort subjects by score & diagnostic accuracy (lowest first)
+              const sortedSubjects = [...subjectsList].sort((a, b) => {
+                const scoreA = subjectStats[a].avg * 0.6 + subjectStats[a].minAccuracy * 0.4;
+                const scoreB = subjectStats[b].avg * 0.6 + subjectStats[b].minAccuracy * 0.4;
+                return scoreA - scoreB;
+              });
+
+              const primaryFocusSubject = sortedSubjects[0];
+              const secondaryFocusSubject = sortedSubjects[1];
+
+              return (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                  
+                  {/* Urgent Concentration Alert Banner */}
+                  <div className="bg-gradient-to-r from-red-950 via-slate-900 to-amber-950 p-6 rounded-2xl border-2 border-red-500/60 shadow-xl text-white">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 text-xs font-black text-red-400 uppercase tracking-widest mb-1.5">
+                          <ShieldAlert className="w-5 h-5 text-red-500 animate-bounce" />
+                          AI Exam Performance Concentration Directive
+                        </div>
+                        <h3 className="text-xl font-black text-white">
+                          Attention {userName}! Concentrate on <span className="text-amber-400 underline decoration-red-500 font-extrabold">{primaryFocusSubject}</span>
+                        </h3>
+                        <p className="text-xs text-slate-300 mt-2 leading-relaxed max-w-2xl font-medium">
+                          Based on your exam results, mock test mark sheets, and AI diagnostic tests, 
+                          <strong className="text-amber-300"> {primaryFocusSubject}</strong> (Mock Avg: {subjectStats[primaryFocusSubject].avg}/100, Quiz Accuracy: {subjectStats[primaryFocusSubject].minAccuracy}%) and 
+                          <strong className="text-amber-300"> {secondaryFocusSubject}</strong> require your urgent concentration. 
+                          Focusing revision on these subjects will yield the maximum boost to your overall Board score!
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const w = currentWeaknesses.find(w => w.subject === primaryFocusSubject) || currentWeaknesses[0];
+                          if (w) openPracticeDrill(w);
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white font-black text-xs px-5 py-3 rounded-xl transition-all shadow-lg whitespace-nowrap shrink-0 flex items-center gap-2 border border-red-400"
+                      >
+                        <Play className="w-4 h-4 fill-current" /> Start {primaryFocusSubject} Focus Drill
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Subject Priority Ranking Grid */}
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-red-600" /> Subject Concentration Priority Matrix
+                    </h4>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {sortedSubjects.map((sub, rankIdx) => {
+                        const stats = subjectStats[sub];
+                        const isPrimary = rankIdx === 0;
+                        const isSecondary = rankIdx === 1;
+
+                        const priorityBadge = isPrimary ? {
+                          label: "CRITICAL CONCENTRATION REQUIRED",
+                          style: "bg-red-600 text-white border-red-400 font-black animate-pulse"
+                        } : isSecondary ? {
+                          label: "HIGH REVISION PRIORITY",
+                          style: "bg-amber-600 text-white border-amber-400 font-black"
+                        } : {
+                          label: "GOOD PROGRESS — MAINTAIN FOCUS",
+                          style: "bg-emerald-600 text-white border-emerald-400 font-extrabold"
+                        };
+
+                        const subWeaknesses = currentWeaknesses.filter((w) => w.subject === sub);
+
+                        return (
+                          <div key={sub} className={`p-5 rounded-2xl border transition-all ${
+                            isPrimary 
+                              ? "bg-red-50 dark:bg-red-950/30 border-red-400 dark:border-red-800 shadow-md" 
+                              : isSecondary
+                              ? "bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800"
+                              : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
+                          }`}>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                              <div className="flex items-center gap-3">
+                                <span className={`w-8 h-8 rounded-xl font-black text-sm flex items-center justify-center ${
+                                  isPrimary ? "bg-red-600 text-white" : isSecondary ? "bg-amber-500 text-white" : "bg-slate-700 text-white"
+                                }`}>
+                                  #{rankIdx + 1}
+                                </span>
+                                <div>
+                                  <h5 className="text-base font-black text-slate-900 dark:text-white">{sub}</h5>
+                                  <span className="text-[11px] text-slate-500 font-bold">
+                                    Mock Test Avg: <strong className="text-slate-900 dark:text-white">{stats.avg}/100</strong> • Syllabus Completion: <strong className="text-slate-900 dark:text-white">{stats.syllabusPct}%</strong>
+                                  </span>
+                                </div>
+                              </div>
+                              <span className={`text-[10px] px-3 py-1 rounded-full border ${priorityBadge.style}`}>
+                                {priorityBadge.label}
+                              </span>
+                            </div>
+
+                            {/* Detailed breakdown & specific topics to revise */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs">
+                              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span className="text-[10px] font-bold text-slate-500 block uppercase">Mock Exam Score</span>
+                                <span className="text-base font-black text-slate-900 dark:text-white">{stats.avg} / 100</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Based on PYQ & Mock test papers</span>
+                              </div>
+                              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span className="text-[10px] font-bold text-slate-500 block uppercase">Diagnostic Accuracy</span>
+                                <span className={`text-base font-black ${stats.minAccuracy < 60 ? 'text-red-600' : 'text-emerald-500'}`}>{stats.minAccuracy}%</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Interactive quiz performance</span>
+                              </div>
+                              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <span className="text-[10px] font-bold text-slate-500 block uppercase">Action Recommended</span>
+                                <span className="text-xs font-extrabold text-slate-900 dark:text-white block mt-0.5">
+                                  {isPrimary ? `Devote 1.5 hrs daily to ${sub}` : isSecondary ? `Revise 5-mark Qs daily` : `Maintain weekly practice`}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Weak Topics in this subject */}
+                            {subWeaknesses.length > 0 && (
+                              <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
+                                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-2">
+                                  🎯 Key Topics to Concentrate & Master in {sub}:
+                                </span>
+                                <div className="space-y-2">
+                                  {subWeaknesses.map((w, wIdx) => (
+                                    <div key={wIdx} className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+                                      <div>
+                                        <strong className="font-extrabold text-slate-900 dark:text-white">{w.topic}</strong>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">{w.suggestion}</p>
+                                      </div>
+                                      <button
+                                        onClick={() => openPracticeDrill(w)}
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shrink-0 ml-3"
+                                      >
+                                        Practice Drill
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Daily Focus Time Allocation Guidance */}
+                  <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <h4 className="text-sm font-black text-amber-400 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400" /> Recommended Daily Subject Concentration Schedule
+                    </h4>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      To maximize your score before the Public Exams, adjust your daily study hours according to your subject priority matrix:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+                      <div className="bg-slate-800 p-3 rounded-xl border border-red-500/40">
+                        <span className="text-[10px] text-red-400 font-extrabold uppercase block">Priority 1 ({primaryFocusSubject})</span>
+                        <strong className="text-sm text-white font-black">90 Mins / Day</strong>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Formula practice & 5-mark exercise questions</p>
+                      </div>
+                      <div className="bg-slate-800 p-3 rounded-xl border border-amber-500/40">
+                        <span className="text-[10px] text-amber-400 font-extrabold uppercase block">Priority 2 ({secondaryFocusSubject})</span>
+                        <strong className="text-sm text-white font-black">60 Mins / Day</strong>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Chapter summary diagrams & PYQ solving</p>
+                      </div>
+                      <div className="bg-slate-800 p-3 rounded-xl border border-emerald-500/40">
+                        <span className="text-[10px] text-emerald-400 font-extrabold uppercase block">Remaining Core Subjects</span>
+                        <strong className="text-sm text-white font-black">45 Mins / Day</strong>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Quick weekly revision & key notes review</p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })()}
 
             {/* TAB 2: AI WEAKNESS DETECTOR & INTERACTIVE DRILLS */}
             {activeTab === "ai-analysis" && (
