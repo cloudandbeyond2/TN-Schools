@@ -6,7 +6,7 @@ async function run() {
   try {
     const originalClass = "10";
     const testClass = "11";
-    
+
     // Find our test student
     const student = await prisma.student.findFirst({
       where: { class: originalClass },
@@ -26,6 +26,7 @@ async function run() {
       where: { id: student.id },
       data: { class: testClass }
     });
+
 
     const apiUrl = "http://localhost:5000/api/centralized-content/subjects";
 

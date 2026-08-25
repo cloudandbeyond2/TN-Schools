@@ -1,20 +1,11 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const systemStats = [
-  { label: "Total Users", value: "49.3L+", icon: <i className="fi fi-rr-users"></i>, color: "text-violet-400", sub: "All roles combined", bg: "bg-violet-500/10 border-violet-500/20" },
-  { label: "Active Schools", value: "37,404", icon: <i className="fi fi-rr-building"></i>, color: "text-emerald-400", sub: "State-wide", bg: "bg-emerald-500/10 border-emerald-500/20" },
-  { label: "AI API Status", value: "Online", icon: <i className="fi fi-rr-robot"></i>, color: "text-cyan-400", sub: "All models active", bg: "bg-cyan-500/10 border-cyan-500/20" },
-  { label: "System Uptime", value: "99.9%", icon: <i className="fi fi-rr-check-circle"></i>, color: "text-amber-400", sub: "Last 30 days", bg: "bg-amber-500/10 border-amber-500/20" },
-  { label: "Active Portals", value: "9 / 9", icon: <i className="fi fi-rr-bank"></i>, color: "text-blue-400", sub: "All online", bg: "bg-blue-500/10 border-blue-500/20" },
-  { label: "Modules Enabled", value: "42", icon: <i className="fi fi-rr-settings"></i>, color: "text-orange-400", sub: "of 48 total", bg: "bg-orange-500/10 border-orange-500/20" },
-  { label: "Syllabus Items", value: "2,840", icon: <i className="fi fi-rr-book-alt"></i>, color: "text-pink-400", sub: "Class 6–12", bg: "bg-pink-500/10 border-pink-500/20" },
-  { label: "Data Sync", value: "Live", icon: <i className="fi fi-rr-refresh"></i>, color: "text-green-400", sub: "All pipelines OK", bg: "bg-green-500/10 border-green-500/20" },
-];
+// systemStats generated dynamically inside
 
-const quickActions = [
+const quickActionsStatic = [
   { label: "User Management", href: "/super-admin/users", icon: <i className="fi fi-rr-users"></i>, desc: "Create, edit & deactivate users", color: "from-violet-600 to-purple-700", badge: "49.3L users" },
   { label: "Role & Permissions", href: "/super-admin/roles", icon: <i className="fi fi-rr-lock"></i>, desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
   { label: "School Management", href: "/super-admin/schools", icon: <i className="fi fi-rr-building"></i>, desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
@@ -50,20 +41,70 @@ const recentActivity = [
   { action: "Module Disabled", target: "Career Aptitude — BEO Portal", user: "Super Admin", time: "5 hrs ago", type: "warning" },
 ];
 
-const portalHealth = [
-  { name: "Student", status: "active", users: "47.2L", load: 82 },
-  { name: "Teacher", status: "active", users: "2.1L", load: 65 },
-  { name: "Parent", status: "active", users: "38L", load: 44 },
-  { name: "Headmaster", status: "active", users: "37K", load: 38 },
-  { name: "BEO", status: "active", users: "385", load: 21 },
-  { name: "DEO", status: "active", users: "38", load: 15 },
-  { name: "Commissioner", status: "active", users: "12", load: 9 },
-  { name: "Minister", status: "active", users: "1", load: 5 },
-  { name: "Super Admin", status: "active", users: "3", load: 3 },
-];
-
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "people" | "academics" | "system" | "governance">("all");
+  const [statsData, setStatsData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // We call /api/users/count instead of the non-existent dashboard/stats
+        // Note: BackendAuthBridge will automatically inject the NextAuth session token
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/users/count`);
+        const data = await res.json();
+        if (data.success) {
+          const formatLakhs = (num: number) => {
+             if (num >= 100000) return (num / 100000).toFixed(1) + "L";
+             if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+             return num.toString();
+          };
+          setStatsData((prev: any) => ({ 
+            ...prev, 
+            totalUsers: formatLakhs(data.count),
+            activeSchools: data.activeSchools,
+            syllabusItems: data.syllabusItems,
+            rolesFormatted: data.rolesFormatted
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch superadmin stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const systemStats = [
+    { label: "Total Users", value: statsData?.totalUsers || "49.3L+", icon: <i className="fi fi-rr-users"></i>, color: "text-violet-400", sub: "All roles combined", bg: "bg-violet-500/10 border-violet-500/20" },
+    { label: "Active Schools", value: statsData?.activeSchools || "37,404", icon: <i className="fi fi-rr-building"></i>, color: "text-emerald-400", sub: "State-wide", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    { label: "AI API Status", value: "Online", icon: <i className="fi fi-rr-robot"></i>, color: "text-cyan-400", sub: "All models active", bg: "bg-cyan-500/10 border-cyan-500/20" },
+    { label: "System Uptime", value: "99.9%", icon: <i className="fi fi-rr-check-circle"></i>, color: "text-amber-400", sub: "Last 30 days", bg: "bg-amber-500/10 border-amber-500/20" },
+    { label: "Active Portals", value: "9 / 9", icon: <i className="fi fi-rr-bank"></i>, color: "text-blue-400", sub: "All online", bg: "bg-blue-500/10 border-blue-500/20" },
+    { label: "Modules Enabled", value: "42", icon: <i className="fi fi-rr-settings"></i>, color: "text-orange-400", sub: "of 48 total", bg: "bg-orange-500/10 border-orange-500/20" },
+    { label: "Syllabus Items", value: statsData?.syllabusItems || "2,840", icon: <i className="fi fi-rr-book-alt"></i>, color: "text-pink-400", sub: "Class 6–12", bg: "bg-pink-500/10 border-pink-500/20" },
+    { label: "Data Sync", value: "Live", icon: <i className="fi fi-rr-refresh"></i>, color: "text-green-400", sub: "All pipelines OK", bg: "bg-green-500/10 border-green-500/20" },
+  ];
+
+  const quickActions = quickActionsStatic.map((q) => {
+    if (q.label === "User Management") return { ...q, badge: `${statsData?.totalUsers || "49.3L+"} users` };
+    if (q.label === "School Management") return { ...q, badge: `${statsData?.activeSchools || "37,404"} schools` };
+    if (q.label === "Headmaster Mgmt") return { ...q, badge: `${statsData?.rolesFormatted?.headmasters || "37K"} HMs` };
+    if (q.label === "DEO Management") return { ...q, badge: `${statsData?.rolesFormatted?.deos || "38"} DEOs` };
+    if (q.label === "Material Library") return { ...q, badge: `${statsData?.syllabusItems || "2.8K"} items` };
+    if (q.label === "Manage Ministers") return { ...q, badge: `${statsData?.rolesFormatted?.ministers || "1"} active` };
+    return q;
+  });
+
+  const portalHealth = [
+    { name: "Student", status: "active", users: statsData?.rolesFormatted?.students || "47.2L", load: 82 },
+    { name: "Teacher", status: "active", users: statsData?.rolesFormatted?.teachers || "2.1L", load: 65 },
+    { name: "Parent", status: "active", users: statsData?.rolesFormatted?.parents || "38L", load: 44 },
+    { name: "Headmaster", status: "active", users: statsData?.rolesFormatted?.headmasters || "37K", load: 38 },
+    { name: "BEO", status: "active", users: statsData?.rolesFormatted?.beos || "385", load: 21 },
+    { name: "DEO", status: "active", users: statsData?.rolesFormatted?.deos || "38", load: 15 },
+    { name: "Commissioner", status: "active", users: statsData?.rolesFormatted?.commissioners || "12", load: 9 },
+    { name: "Minister", status: "active", users: statsData?.rolesFormatted?.ministers || "1", load: 5 },
+    { name: "Super Admin", status: "active", users: statsData?.rolesFormatted?.superAdmins || "3", load: 3 },
+  ];
 
   const filterMap: Record<string, string[]> = {
     all: quickActions.map((q) => q.href),
@@ -113,11 +154,10 @@ export default function SuperAdminDashboard() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`text-[10px] font-bold px-3 py-1 rounded-full transition capitalize ${
-                  activeTab === tab
-                    ? "bg-amber-500 text-slate-900"
-                    : "bg-slate-800 text-slate-400 hover:text-white border border-slate-700"
-                }`}
+                className={`text-[10px] font-bold px-3 py-1 rounded-full transition capitalize ${activeTab === tab
+                  ? "bg-amber-500 text-slate-900"
+                  : "bg-slate-800 text-slate-400 hover:text-white border border-slate-700"
+                  }`}
               >
                 <span className="flex items-center gap-1">
                   {tab === "all" ? "All Modules" : tab === "people" ? <><i className="fi fi-rr-users"></i> People</> : tab === "academics" ? <><i className="fi fi-rr-book-alt"></i> Academics</> : tab === "system" ? <><i className="fi fi-rr-settings"></i> System</> : <><i className="fi fi-rr-bank"></i> Governance</>}
@@ -154,9 +194,8 @@ export default function SuperAdminDashboard() {
           <div className="space-y-2">
             {recentActivity.map((item, i) => (
               <div key={i} className="flex items-center gap-3 bg-slate-900/40 rounded-xl px-3 py-2.5 border border-slate-800/50">
-                <span className={`w-2 h-2 rounded-full shrink-0 ${
-                  item.type === "success" ? "bg-emerald-500" : item.type === "warning" ? "bg-amber-500" : "bg-blue-500"
-                }`} />
+                <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === "success" ? "bg-emerald-500" : item.type === "warning" ? "bg-amber-500" : "bg-blue-500"
+                  }`} />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-semibold text-white">{item.action}</div>
                   <div className="text-[10px] text-slate-500 truncate">{item.target}</div>
@@ -178,9 +217,8 @@ export default function SuperAdminDashboard() {
                 <div className="w-20 text-[10px] font-semibold text-slate-300 shrink-0">{portal.name}</div>
                 <div className="flex-1 bg-slate-800 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full transition-all ${
-                      portal.load > 70 ? "bg-amber-500" : portal.load > 40 ? "bg-emerald-500" : "bg-blue-500"
-                    }`}
+                    className={`h-2 rounded-full transition-all ${portal.load > 70 ? "bg-amber-500" : portal.load > 40 ? "bg-emerald-500" : "bg-blue-500"
+                      }`}
                     style={{ width: `${portal.load}%` }}
                   />
                 </div>
