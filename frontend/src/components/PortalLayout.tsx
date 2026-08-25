@@ -138,6 +138,15 @@ const translations = {
       "AI Lesson Planner": "AI பாடத் திட்டமிடுபவர்",
       "Question Generator": "கேள்வி உருவாக்கி",
       "AI Evaluation": "AI மதிப்பீடு",
+      "AI Content Studio": "AI உள்ளடக்க அரங்கம்",
+      "AI Studio": "AI அரங்கம்",
+      "Teach & Explain": "கற்பித்தல் & விளக்கம்",
+      "Practice & Work": "பயிற்சி & பணி",
+      "Tests & Assess": "தேர்வு & மதிப்பீடு",
+      "Engage & Discuss": "ஈடுபாடு & கலந்துரையாடல்",
+      "Differentiate": "நிலைக்கேற்ப மாற்றம்",
+      "Feedback & Rubric": "கருத்துரை & மதிப்பீட்டு அட்டவணை",
+      "My AI Content": "எனது AI உள்ளடக்கம்",
       "Student Management": "மாணவர் நிர்வாகம்",
       "Student Profiles": "மாணவர் விவரங்கள்",
       "Student Status": "மாணவர் நிலை",
@@ -428,6 +437,14 @@ const headerTranslations: Record<string, Record<string, { title: string; subtitl
     "AI Evaluation": {
       title: "AI மதிப்பீடு",
       subtitle: "மாணவர்களின் விடைத்தாள்களை AI மூலம் தானியங்கி மதிப்பீடு செய்தல்."
+    },
+    "AI Content Studio": {
+      title: "AI உள்ளடக்க அரங்கம்",
+      subtitle: "உங்கள் பாடம் கற்பிக்கப்படும் முறைக்கு ஏற்ப மாறும் 20 AI கருவிகள்."
+    },
+    "My AI Content": {
+      title: "எனது AI உள்ளடக்கம்",
+      subtitle: "AI உள்ளடக்க அரங்கத்தில் நீங்கள் உருவாக்கி சேமித்த அனைத்தும்."
     },
     "Contribute to Library": {
       title: "நூலகத்திற்கு பங்களிப்பு",

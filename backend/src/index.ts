@@ -10,6 +10,8 @@ import path from 'path';
 
 // Route imports
 import aiRoutes from './routes/ai.routes';
+import aiStudioRoutes from './routes/aiStudio.routes';
+import superadminAiSkillsRoutes from './routes/superadmin.aiSkills.routes';
 import portfolioRoutes from './routes/portfolio.routes';
 import sportsRoutes from './routes/sports.routes';
 import petSportsRoutes from './routes/petSports.routes';
@@ -234,6 +236,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // ─── API Routes ──────────────────────────────────────────────
 app.use('/api/ai', aiRoutes);
+app.use('/api/ai-studio', aiStudioRoutes);
+app.use('/api/superadmin/ai-skills', superadminAiSkillsRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/sports', sportsRoutes);
 app.use('/api/pet/fitness-records', petFitnessRoutes);

@@ -522,6 +522,18 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
       { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
 
+      // AI Content Studio — 20 subject-adaptive content skills. The hub holds
+      // all of them; the six group entries open it pre-filtered.
+      { label: "AI Content Studio", href: "#", icon: "" },
+      { label: "AI Studio", href: "/teacher/ai-studio", icon: "fi fi-rr-magic-wand" },
+      { label: "Teach & Explain", href: "/teacher/ai-studio/teach", icon: "fi fi-rr-chalkboard-user" },
+      { label: "Practice & Work", href: "/teacher/ai-studio/practice", icon: "fi fi-rr-pencil" },
+      { label: "Tests & Assess", href: "/teacher/ai-studio/assess", icon: "fi fi-rr-list-check" },
+      { label: "Engage & Discuss", href: "/teacher/ai-studio/engage", icon: "fi fi-rr-comments" },
+      { label: "Differentiate", href: "/teacher/ai-studio/differentiate", icon: "fi fi-rr-users-alt" },
+      { label: "Feedback & Rubric", href: "/teacher/ai-studio/feedback", icon: "fi fi-rr-comment-check" },
+      { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
+
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
@@ -762,6 +774,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "System & AI", href: "#", icon: "" },
       { label: "Feature Toggles", href: "/super-admin/features", icon: "🔧" },
       { label: "AI Integration Setup", href: "/super-admin/ai-config", icon: "Bot" },
+      { label: "AI Skill Control", href: "/super-admin/ai-skills", icon: "Sparkles" },
       { label: "External Storage", href: "/super-admin/storage", icon: "Database" },
       { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: "RefreshCw" },
 

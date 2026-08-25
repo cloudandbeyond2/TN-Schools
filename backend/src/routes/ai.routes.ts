@@ -163,7 +163,11 @@ function robustParseJSON(text: string): any {
 // ---------------------------------------------------------------------------
 // Gemini API helper
 // ---------------------------------------------------------------------------
-export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000, base64Image?: string, mimeType?: string): Promise<any> {
+
+// Model used when a caller does not name one. AI Content Studio skills pass a
+// per-skill model resolved from the superadmin AI Skill Control panel.
+export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000, base64Image?: string, mimeType?: string, model: string = DEFAULT_GEMINI_MODEL): Promise<any> {
   // Superadmin-configured key (AI Integration Setup) wins; env var is the fallback.
   const GEMINI_API_KEY = await getGeminiApiKey();
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
@@ -171,7 +175,8 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
   }
 
   // API key goes in a header, not the query string, so it never lands in URL logs
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
+  const modelId = (model || DEFAULT_GEMINI_MODEL).trim();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent`;
 
   const parts: any[] = [{ text: prompt }];
   if (base64Image && mimeType) {

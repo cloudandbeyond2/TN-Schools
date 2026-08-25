@@ -786,3 +786,39 @@ const Saved3DModelSchema = new Schema<ISaved3DModel>({
 export const Saved3DModel = mongoose.models.Saved3DModel || mongoose.model<ISaved3DModel>('Saved3DModel', Saved3DModelSchema);
 
 
+
+// ─── AI Content Studio: per-skill superadmin overrides ───────
+// Registry defaults live in constants/aiSkills.ts. A doc here overrides them.
+// No doc for a key == that skill runs on its declared defaults, so
+// "Reset to default" in the superadmin UI is simply a delete.
+
+export interface IAiSkillConfig extends Document {
+  key: string;
+  isEnabled: boolean;
+  classMin?: number;
+  classMax?: number;
+  /** Named modelId, not model: Mongoose Document already owns `model`. */
+  modelId?: string;
+  maxTokens?: number;
+  /** Replaces AiSkillDef.basePrompt when set. */
+  promptOverride?: string;
+  /** Per-subject-pack structural directive override, keyed by SubjectPack. */
+  packOverrides: Map<string, string>;
+  updatedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AiSkillConfigSchema = new Schema<IAiSkillConfig>({
+  key:            { type: String, required: true, unique: true },
+  isEnabled:      { type: Boolean, default: true },
+  classMin:       { type: Number },
+  classMax:       { type: Number },
+  modelId:        { type: String },
+  maxTokens:      { type: Number },
+  promptOverride: { type: String },
+  packOverrides:  { type: Map, of: String, default: {} },
+  updatedBy:      { type: String },
+}, { timestamps: true });
+
+export const AiSkillConfig = mongoose.models.AiSkillConfig || mongoose.model<IAiSkillConfig>('AiSkillConfig', AiSkillConfigSchema);
