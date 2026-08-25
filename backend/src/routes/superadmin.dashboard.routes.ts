@@ -57,9 +57,21 @@ router.get('/stats', async (req: Request, res: Response) => {
     if (hours > 0 || days > 0) uptimeStr += `${hours}h `;
     uptimeStr += `${minutes}m`;
 
-    // 6. Calculate Active Portals based on roles represented in the User database
+    // 6. Calculate Active Portals and roll up counts per role
     let activePortals = '9 / 9';
     let activePortalsSub = 'All online';
+    const roles: Record<string, number> = {
+      student: 0,
+      teacher: 0,
+      parent: 0,
+      headmaster: 0,
+      beo: 0,
+      deo: 0,
+      commissioner: 0,
+      minister: 0,
+      superadmin: 0,
+    };
+
     try {
       const rolesWithUsers = await prisma.user.groupBy({
         by: ['role'],
@@ -70,6 +82,10 @@ router.get('/stats', async (req: Request, res: Response) => {
       if (activeRoles < 9) {
         activePortalsSub = `${9 - activeRoles} portal(s) inactive`;
       }
+      rolesWithUsers.forEach((g) => {
+        const r = String(g.role).toLowerCase();
+        if (r in roles) roles[r] = g._count.id;
+      });
     } catch (e) {
       console.warn('[Dashboard Stats] Error counting active portal roles:', e);
     }
@@ -120,6 +136,7 @@ router.get('/stats', async (req: Request, res: Response) => {
         aiApisCount,
         totalModules: totalModulesCount,
         enabledModules: enabledModulesCount,
+        roles,
       },
     });
   } catch (err) {
