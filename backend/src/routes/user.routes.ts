@@ -148,7 +148,7 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
 router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, mobile, password, schoolId, district, block, assignedRegion } = req.body;
+    const { name, email, mobile, password, schoolId, district, block, assignedRegion, isActive } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
@@ -187,6 +187,7 @@ router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) =>
         district: district !== undefined ? (district || null) : undefined,
         block: block !== undefined ? (block || null) : undefined,
         assignedRegion: assignedRegion !== undefined ? (assignedRegion || null) : undefined,
+        isActive: isActive !== undefined ? isActive : undefined,
       },
       select: SAFE_USER_SELECT,
     });
