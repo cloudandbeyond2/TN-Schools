@@ -47,6 +47,7 @@ interface GenerationResult {
   subject: string;
   className: string;
   section: string | null;
+  unit?: string | null;
   topic: string;
   language: string;
   payload: any;
