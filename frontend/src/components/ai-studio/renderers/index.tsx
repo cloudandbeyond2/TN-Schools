@@ -777,62 +777,219 @@ export function MatrixRenderer({ payload, onEdit }: RendererProps) {
 }
 
 // ---------------------------------------------------------------------------
-// cardList — /examples /simplify /revision /discussion /engage
+// cardList — /examples /simplify /revision /discussion /engage (Enhanced Key Concepts UI)
 // ---------------------------------------------------------------------------
 
 export function CardListRenderer({ payload, onEdit }: RendererProps) {
   const cards: any[] = Array.isArray(payload?.cards) ? payload.cards : [];
+  const [viewMode, setViewMode] = React.useState<"grid" | "focus">("grid");
+  const [focusIndex, setFocusIndex] = React.useState(0);
+
+  const activeCard = cards[Math.min(focusIndex, Math.max(cards.length - 1, 0))];
+
+  const prevFocus = () => setFocusIndex((prev) => (prev > 0 ? prev - 1 : cards.length - 1));
+  const nextFocus = () => setFocusIndex((prev) => (prev < cards.length - 1 ? prev + 1 : 0));
 
   return (
-    <div className="space-y-4">
-      <OutputHeader
-        title={payload?.title || ""}
-        path={["title"]}
-        onEdit={onEdit}
-        meta={<Pill tone="accent">{cards.length} cards</Pill>}
-      />
+    <div className="space-y-6">
+      {/* Hero Header Banner */}
+      <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-emerald-900/30 via-teal-900/20 to-indigo-900/30 p-5 sm:p-7 shadow-lg relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
 
-      {payload?.intro && (
-        <SectionCard tone="muted">
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                🧠 Key Concepts & Core Takeaways
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                ✨ {cards.length} Key Concept{cards.length > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-main)] border border-[var(--border)]">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`text-[11px] font-bold px-3 py-1 rounded-lg transition ${
+                  viewMode === "grid"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                }`}
+              >
+                🧩 Grid View
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("focus")}
+                className={`text-[11px] font-bold px-3 py-1 rounded-lg transition ${
+                  viewMode === "focus"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                }`}
+              >
+                🎴 Flashcard Study
+              </button>
+            </div>
+          </div>
+
           <Editable
-            value={payload.intro}
-            path={["intro"]}
+            as="h1"
+            value={payload?.title || "Key Concepts"}
+            path={["title"]}
             onEdit={onEdit}
-            className="text-xs leading-relaxed text-[var(--text-heading)]"
+            className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug"
           />
-        </SectionCard>
-      )}
+        </div>
+      </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {cards.map((c, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 hover:border-[var(--primary)]/40 transition"
-          >
-            <div className="flex items-start gap-2.5 mb-2">
-              <span className="text-xl leading-none shrink-0">{c?.icon || "•"}</span>
-              <Editable
-                as="h4"
-                value={c?.title || ""}
-                path={["cards", i, "title"]}
-                onEdit={onEdit}
-                className="text-xs font-bold text-[var(--text-heading)] leading-snug flex-1"
-              />
+      {/* Lesson Intro Callout */}
+      {payload?.intro && (
+        <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 p-4 sm:p-5 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-teal-400 to-emerald-500" />
+          <div className="pl-2 space-y-1">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-teal-400">
+              💡 Essential Lesson Overview
             </div>
             <Editable
-              value={c?.body || ""}
-              path={["cards", i, "body"]}
+              value={payload.intro}
+              path={["intro"]}
               onEdit={onEdit}
-              className="text-[11px] text-[var(--text-muted)] leading-relaxed whitespace-pre-wrap"
+              className="text-xs sm:text-sm text-[var(--text-heading)] leading-relaxed"
             />
-            {c?.tag && (
-              <div className="mt-2.5">
-                <Pill>{c.tag}</Pill>
+          </div>
+        </div>
+      )}
+
+      {/* Grid View Mode */}
+      {viewMode === "grid" && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {cards.map((c, i) => (
+            <div
+              key={i}
+              className="group relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 hover:border-[var(--primary)]/60 hover:shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden"
+            >
+              {/* Top hover gradient bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <div className="space-y-3">
+                {/* Card Header (Badge & Icon) */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20 text-base flex items-center justify-center shrink-0 font-bold shadow-sm">
+                    {c?.icon || "💡"}
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-muted)] border border-[var(--border)]">
+                    Concept #{String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <Editable
+                  as="h3"
+                  value={c?.title || ""}
+                  path={["cards", i, "title"]}
+                  onEdit={onEdit}
+                  className="text-sm sm:text-base font-extrabold text-[var(--text-heading)] leading-snug group-hover:text-[var(--primary)] transition-colors"
+                />
+
+                {/* Body */}
+                <Editable
+                  value={c?.body || ""}
+                  path={["cards", i, "body"]}
+                  onEdit={onEdit}
+                  className="text-xs sm:text-sm text-[var(--text-heading)]/90 leading-relaxed whitespace-pre-wrap"
+                />
+              </div>
+
+              {/* Tag Footer */}
+              {c?.tag && (
+                <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between">
+                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                    🏷️ {c.tag}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Focus / Flashcard Study View Mode */}
+      {viewMode === "focus" && activeCard && (
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="p-6 sm:p-8 rounded-3xl border-2 border-[var(--primary)]/30 bg-[var(--bg-card)] shadow-2xl space-y-6 relative overflow-hidden">
+            {/* Top Progress bar */}
+            <div className="h-1.5 w-full bg-[var(--border)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500 transition-all duration-300"
+                style={{ width: `${((focusIndex + 1) / cards.length) * 100}%` }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                Concept {focusIndex + 1} of {cards.length}
+              </span>
+              <span className="text-3xl">{activeCard?.icon || "💡"}</span>
+            </div>
+
+            <div className="space-y-3">
+              <Editable
+                as="h2"
+                value={activeCard?.title || ""}
+                path={["cards", focusIndex, "title"]}
+                onEdit={onEdit}
+                className="text-lg sm:text-xl font-black text-[var(--text-heading)] leading-snug"
+              />
+              <Editable
+                value={activeCard?.body || ""}
+                path={["cards", focusIndex, "body"]}
+                onEdit={onEdit}
+                className="text-sm text-[var(--text-heading)] leading-relaxed whitespace-pre-wrap"
+              />
+            </div>
+
+            {activeCard?.tag && (
+              <div className="pt-2">
+                <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                  🏷️ {activeCard.tag}
+                </span>
               </div>
             )}
+
+            {/* Flashcard Navigation */}
+            <div className="pt-6 border-t border-[var(--border)] flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={prevFocus}
+                className="px-4 py-2 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] text-xs font-bold text-[var(--text-heading)] hover:border-[var(--primary)] transition"
+              >
+                ← Previous Concept
+              </button>
+              <div className="flex items-center gap-1">
+                {cards.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setFocusIndex(idx)}
+                    className={`w-2.5 h-2.5 rounded-full transition ${
+                      idx === focusIndex ? "bg-[var(--primary)] w-5" : "bg-[var(--border)] hover:bg-[var(--primary)]/50"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={nextFocus}
+                className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:opacity-90 transition shadow-md"
+              >
+                Next Concept →
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
