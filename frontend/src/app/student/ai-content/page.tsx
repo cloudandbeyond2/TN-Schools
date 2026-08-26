@@ -60,6 +60,7 @@ export default function StudentAIContentPage() {
   const [subjectFilter, setSubjectFilter] = useState("ALL");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [isFullWidth, setIsFullWidth] = useState(false);
 
   const load = useCallback(async () => {
     if (!studentClass) return;
@@ -251,6 +252,17 @@ export default function StudentAIContentPage() {
             </div>
             <button
               type="button"
+              onClick={() => setIsFullWidth((v) => !v)}
+              className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition ${
+                isFullWidth
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+              }`}
+            >
+              {isFullWidth ? "↙ Standard View" : "⛶ Full View"}
+            </button>
+            <button
+              type="button"
               onClick={() =>
                 printOutput(open.outputKind, open.payload, {
                   skillLabel: KIND_BADGE[open.outputKind]?.label || "Material",
@@ -266,7 +278,7 @@ export default function StudentAIContentPage() {
             </button>
           </div>
 
-          <div className="mx-auto w-full max-w-4xl p-4 sm:p-6 lg:p-8">
+          <div className={`mx-auto w-full transition-all duration-300 p-4 sm:p-6 lg:p-8 ${isFullWidth ? "max-w-[96vw]" : "max-w-4xl"}`}>
             {/* No onEdit — students read, they never edit. */}
             <OutputRenderer outputKind={open.outputKind} payload={open.payload} />
           </div>

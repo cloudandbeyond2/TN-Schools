@@ -49,6 +49,21 @@ export default function AIContentLibraryPage() {
   const [groupFilter, setGroupFilter] = useState<string>("ALL");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [isFullView, setIsFullView] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isFullView) {
+          setIsFullView(false);
+        } else if (openId) {
+          setOpenId(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullView, openId]);
 
   const skillByKey = useMemo(
     () => skills.reduce((acc, s) => ({ ...acc, [s.key]: s }), {} as Record<string, StudioSkill>),
@@ -272,10 +287,24 @@ export default function AIContentLibraryPage() {
                   <div className="flex flex-wrap gap-1 pt-1 border-t border-[var(--border)]">
                     <button
                       type="button"
-                      onClick={() => setOpenId(row.id)}
-                      className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--primary)] text-white hover:opacity-90"
+                      onClick={() => {
+                        setOpenId(row.id);
+                        setIsFullView(false);
+                      }}
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--primary)] text-white hover:opacity-90 transition"
                     >
                       Open
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenId(row.id);
+                        setIsFullView(true);
+                      }}
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition flex items-center gap-0.5"
+                      title="Open in Full View mode for maximum width & alignment"
+                    >
+                      <span>⛶</span> Full View
                     </button>
                     <button
                       type="button"
@@ -289,21 +318,21 @@ export default function AIContentLibraryPage() {
                           teacherName: user?.name,
                         })
                       }
-                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
                     >
                       Print
                     </button>
                     <button
                       type="button"
                       onClick={() => togglePublish(row)}
-                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-500 hover:border-emerald-500/40"
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-500 hover:border-emerald-500/40 transition"
                     >
                       {row.isPublished ? "Unpublish" : "Publish"}
                     </button>
                     <button
                       type="button"
                       onClick={() => remove(row)}
-                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-rose-500 hover:border-rose-500/40 ml-auto"
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-rose-500 hover:border-rose-500/40 transition ml-auto"
                     >
                       Delete
                     </button>
@@ -318,52 +347,87 @@ export default function AIContentLibraryPage() {
       {/* viewer */}
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
           onClick={() => setOpenId(null)}
         >
           <div
-            className="theme-card w-full max-w-3xl my-4 p-5"
+            className={`theme-card w-full my-4 p-5 sm:p-6 transition-all duration-300 shadow-2xl ${
+              isFullView
+                ? "max-w-[96vw] xl:max-w-[92vw]"
+                : "max-w-3xl"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-[var(--border)]">
-              <span className="text-[11px] font-bold font-mono text-[var(--primary)] mr-auto">
-                {skillByKey[open.skillKey]?.command || open.skillKey}
-              </span>
-              {(skillByKey[open.skillKey]?.pushTargets || []).map((t) => (
+            <div className="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-[var(--border)]">
+              <div className="flex items-center gap-2 mr-auto min-w-0">
+                <span className="text-xs font-bold font-mono text-[var(--primary)] shrink-0">
+                  {skillByKey[open.skillKey]?.command || open.skillKey}
+                </span>
+                <span className="text-xs font-bold text-[var(--text-heading)] truncate">
+                  {open.title}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(skillByKey[open.skillKey]?.pushTargets || []).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => push(open, t)}
+                    className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
+                  >
+                    ➜ {PUSH_TARGET_LABEL[t]}
+                  </button>
+                ))}
                 <button
-                  key={t}
                   type="button"
-                  onClick={() => push(open, t)}
-                  className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+                  onClick={() =>
+                    printOutput(open.outputKind, open.payload, {
+                      skillLabel: skillByKey[open.skillKey]?.label || open.skillKey,
+                      subject: open.subject,
+                      className: open.className,
+                      section: open.section,
+                      topic: open.topic,
+                      teacherName: user?.name,
+                    })
+                  }
+                  className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
                 >
-                  ➜ {PUSH_TARGET_LABEL[t]}
+                  ⤓ Print
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  printOutput(open.outputKind, open.payload, {
-                    skillLabel: skillByKey[open.skillKey]?.label || open.skillKey,
-                    subject: open.subject,
-                    className: open.className,
-                    section: open.section,
-                    topic: open.topic,
-                    teacherName: user?.name,
-                  })
-                }
-                className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
-              >
-                ⤓ Print
-              </button>
-              <button
-                type="button"
-                onClick={() => setOpenId(null)}
-                className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-rose-500"
-              >
-                ✕ Close
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setIsFullView((prev) => !prev)}
+                  title={isFullView ? "Switch back to standard modal width" : "Expand to full width view for better alignment"}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition flex items-center gap-1 ${
+                    isFullView
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] shadow-sm"
+                      : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+                  }`}
+                >
+                  {isFullView ? (
+                    <>
+                      <span>↙</span> Standard View
+                    </>
+                  ) : (
+                    <>
+                      <span>⛶</span> Full View
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenId(null)}
+                  className="text-[10px] font-bold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-rose-500 hover:border-rose-500/40 transition"
+                >
+                  ✕ Close
+                </button>
+              </div>
             </div>
-            <OutputRenderer outputKind={open.outputKind} payload={open.payload} />
+
+            <div className={isFullView ? "w-full overflow-x-auto" : ""}>
+              <OutputRenderer outputKind={open.outputKind} payload={open.payload} />
+            </div>
           </div>
         </div>
       )}
