@@ -131,125 +131,230 @@ function OutputHeader({
 // document — /lesson /explain /activity /project /feedback
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// document — /lesson /explain /activity /project /feedback (Enhanced Study Notes)
+// ---------------------------------------------------------------------------
+
 export function DocumentRenderer({ payload, onEdit }: RendererProps) {
   const sections: any[] = Array.isArray(payload?.sections) ? payload.sections : [];
   const keyTerms: any[] = Array.isArray(payload?.keyTerms) ? payload.keyTerms : [];
   const notes: string[] = Array.isArray(payload?.teacherNotes) ? payload.teacherNotes : [];
   const totalMins = sections.reduce((n, s) => n + (Number(s?.durationMins) || 0), 0);
 
-  return (
-    <div className="space-y-4">
-      <OutputHeader
-        title={payload?.title || ""}
-        subtitle={payload?.subtitle}
-        path={["title"]}
-        onEdit={onEdit}
-        meta={
-          <>
-            {totalMins > 0 && <Pill tone="accent">⏱ {totalMins} min total</Pill>}
-            <Pill>{sections.length} sections</Pill>
-          </>
-        }
-      />
+  const scrollToSection = (index: number) => {
+    const el = document.getElementById(`doc-section-${index}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
+  return (
+    <div className="space-y-6">
+      {/* Hero Header Banner */}
+      <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900/50 p-5 sm:p-7 shadow-lg relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              📖 Study Notes & Lesson Guide
+            </span>
+            {totalMins > 0 && (
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                ⏱ {totalMins} min read
+              </span>
+            )}
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              {sections.length} section{sections.length > 1 ? "s" : ""}
+            </span>
+          </div>
+
+          <Editable
+            as="h1"
+            value={payload?.title || "Study Notes"}
+            path={["title"]}
+            onEdit={onEdit}
+            className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug"
+          />
+
+          {payload?.subtitle && (
+            <p className="text-xs sm:text-sm text-indigo-200/80 leading-relaxed max-w-3xl">
+              {payload.subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Table of Contents Section Jumper */}
+      {sections.length > 1 && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-3 space-y-2">
+          <div className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
+            <span>⚡ Quick Jump to Section:</span>
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {sections.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => scrollToSection(i)}
+                className="shrink-0 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-main)] text-xs font-semibold text-[var(--text-heading)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition truncate max-w-[200px]"
+              >
+                {i + 1}. {s?.heading || `Section ${i + 1}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Executive Summary Card */}
       {payload?.summary && (
-        <SectionCard tone="muted">
-          <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
-            Summary
+        <div className="rounded-2xl border-l-4 border-l-indigo-500 border border-[var(--border)] bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent p-5 space-y-2 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+            <span className="w-6 h-6 rounded-lg bg-indigo-500/20 flex items-center justify-center text-xs">
+              💡
+            </span>
+            <span>Key Summary</span>
           </div>
           <Editable
             value={payload.summary}
             path={["summary"]}
             onEdit={onEdit}
-            className="text-xs leading-relaxed text-[var(--text-heading)]"
+            className="text-xs sm:text-sm leading-relaxed text-[var(--text-heading)] font-medium"
           />
-        </SectionCard>
+        </div>
       )}
 
-      {sections.map((s, i) => (
-        <SectionCard key={i}>
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <Editable
-              as="h4"
-              value={s?.heading || ""}
-              path={["sections", i, "heading"]}
-              onEdit={onEdit}
-              className="text-sm font-bold text-[var(--text-heading)]"
-            />
-            {Number(s?.durationMins) > 0 && <Pill tone="accent">{s.durationMins} min</Pill>}
-          </div>
-          {s?.body && (
-            <Editable
-              value={s.body}
-              path={["sections", i, "body"]}
-              onEdit={onEdit}
-              className="text-xs leading-relaxed text-[var(--text-muted)] mb-2 whitespace-pre-wrap"
-            />
-          )}
-          {Array.isArray(s?.bullets) && s.bullets.length > 0 && (
-            <ul className="space-y-1.5">
-              {s.bullets.map((b: string, j: number) => (
-                <li key={j} className="flex gap-2 text-xs text-[var(--text-heading)] leading-relaxed">
-                  <span className="text-[var(--primary)] font-bold shrink-0 mt-0.5">▸</span>
-                  <Editable
-                    as="span"
-                    value={b}
-                    path={["sections", i, "bullets", j]}
-                    onEdit={onEdit}
-                    className="flex-1"
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-      ))}
+      {/* Main Sections List */}
+      <div className="space-y-5">
+        {sections.map((s, i) => (
+          <div
+            id={`doc-section-${i}`}
+            key={i}
+            className="theme-card p-5 sm:p-6 border border-[var(--border)] hover:border-[var(--primary)]/40 transition-all space-y-4 shadow-sm"
+          >
+            {/* Section Header */}
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-[var(--border)]">
+              <div className="flex items-start gap-3">
+                <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <Editable
+                  as="h3"
+                  value={s?.heading || ""}
+                  path={["sections", i, "heading"]}
+                  onEdit={onEdit}
+                  className="text-base sm:text-lg font-extrabold text-[var(--text-heading)] leading-snug"
+                />
+              </div>
 
-      {keyTerms.length > 0 && (
-        <SectionCard>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] mb-2">
-            Key Terms
+              {Number(s?.durationMins) > 0 && (
+                <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/30">
+                  ⏱ {s.durationMins} min
+                </span>
+              )}
+            </div>
+
+            {/* Section Main Body Text */}
+            {s?.body && (
+              <Editable
+                value={s.body}
+                path={["sections", i, "body"]}
+                onEdit={onEdit}
+                className="text-xs sm:text-sm leading-relaxed text-[var(--text-heading)] whitespace-pre-wrap font-normal"
+              />
+            )}
+
+            {/* Section Key Bullets / Takeaways */}
+            {Array.isArray(s?.bullets) && s.bullets.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  Key Points:
+                </div>
+                <div className="grid gap-2">
+                  {s.bullets.map((b: string, j: number) => (
+                    <div
+                      key={j}
+                      className="p-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border)] flex items-start gap-2.5 hover:border-[var(--primary)]/30 transition"
+                    >
+                      <span className="w-5 h-5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        ▸
+                      </span>
+                      <Editable
+                        as="div"
+                        value={b}
+                        path={["sections", i, "bullets", j]}
+                        onEdit={onEdit}
+                        className="flex-1 text-xs sm:text-sm text-[var(--text-heading)] leading-relaxed"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+        ))}
+      </div>
+
+      {/* Key Terms Glossary Grid */}
+      {keyTerms.length > 0 && (
+        <div className="theme-card p-5 sm:p-6 space-y-4 border border-[var(--border)]">
+          <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)]">
+            <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">
+              🔑
+            </span>
+            <h3 className="text-sm font-extrabold text-[var(--text-heading)] uppercase tracking-wide">
+              Key Glossary Terms ({keyTerms.length})
+            </h3>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
             {keyTerms.map((t, i) => (
-              <div key={i} className="rounded-lg border border-[var(--border)] bg-[var(--bg-main)] p-2.5">
-                <div className="flex items-baseline gap-2 flex-wrap">
+              <div
+                key={i}
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-main)] p-3.5 space-y-1.5 hover:border-emerald-500/40 transition"
+              >
+                <div className="flex items-baseline justify-between gap-2 flex-wrap">
                   <Editable
                     as="span"
                     value={t?.term || ""}
                     path={["keyTerms", i, "term"]}
                     onEdit={onEdit}
-                    className="text-xs font-bold text-[var(--text-heading)]"
+                    className="text-xs font-extrabold text-[var(--text-heading)]"
                   />
                   {t?.tamil && (
-                    <span className="text-[11px] text-[var(--primary)] font-semibold">{t.tamil}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      {t.tamil}
+                    </span>
                   )}
                 </div>
                 <Editable
                   value={t?.meaning || ""}
                   path={["keyTerms", i, "meaning"]}
                   onEdit={onEdit}
-                  className="text-[11px] text-[var(--text-muted)] mt-0.5 leading-relaxed"
+                  className="text-xs text-[var(--text-muted)] leading-relaxed"
                 />
               </div>
             ))}
           </div>
-        </SectionCard>
+        </div>
       )}
 
+      {/* Teacher Notes Callout */}
       {notes.length > 0 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-          <div className="text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-2">
-            📌 Teacher Notes
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 space-y-3">
+          <div className="text-xs font-extrabold uppercase tracking-wide text-amber-600 dark:text-amber-400 flex items-center gap-2">
+            <span className="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center text-xs">
+              📌
+            </span>
+            <span>Teacher Guidelines & Learning Tips</span>
           </div>
-          <ul className="space-y-1.5">
+          <div className="space-y-2">
             {notes.map((n, i) => (
-              <li key={i} className="flex gap-2 text-xs text-[var(--text-heading)] leading-relaxed">
-                <span className="text-amber-500 shrink-0">•</span>
+              <div key={i} className="flex gap-2.5 text-xs text-[var(--text-heading)] leading-relaxed">
+                <span className="text-amber-500 font-bold shrink-0">•</span>
                 <Editable as="span" value={n} path={["teacherNotes", i]} onEdit={onEdit} className="flex-1" />
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
@@ -733,102 +838,217 @@ export function CardListRenderer({ payload, onEdit }: RendererProps) {
 }
 
 // ---------------------------------------------------------------------------
-// slides — /presentation
+// slides — /presentation (Clean Single-Theme Slide Deck Renderer)
 // ---------------------------------------------------------------------------
 
 export function SlidesRenderer({ payload, onEdit }: RendererProps) {
   const slides: any[] = Array.isArray(payload?.slides) ? payload.slides : [];
   const [active, setActive] = React.useState(0);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isTheater, setIsTheater] = React.useState(false);
+
   const slide = slides[Math.min(active, Math.max(slides.length - 1, 0))];
+
+  // Auto-play interval
+  React.useEffect(() => {
+    if (!isPlaying || slides.length === 0) return;
+    const timer = setInterval(() => {
+      setActive((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isPlaying, slides.length]);
 
   if (slides.length === 0) {
     return <div className="text-xs text-[var(--text-muted)]">No slides were generated.</div>;
   }
 
-  return (
-    <div className="space-y-4">
-      <OutputHeader
-        title={payload?.title || ""}
-        path={["title"]}
-        onEdit={onEdit}
-        meta={<Pill tone="accent">{slides.length} slides</Pill>}
-      />
+  const prevSlide = () => setActive((prev) => (prev > 0 ? prev - 1 : slides.length - 1));
+  const nextSlide = () => setActive((prev) => (prev < slides.length - 1 ? prev + 1 : 0));
 
-      {/* Projector-style stage */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden">
-        <div className="aspect-[16/9] p-6 flex flex-col">
-          <Editable
-            as="h3"
-            value={slide?.title || ""}
-            path={["slides", active, "title"]}
-            onEdit={onEdit}
-            className="text-base font-bold text-[var(--text-heading)] mb-4 pb-3 border-b border-[var(--border)]"
+  const progressPercent = Math.round(((active + 1) / slides.length) * 100);
+
+  return (
+    <div className={`space-y-5 ${isTheater ? "fixed inset-0 z-50 bg-[var(--bg-main)] p-4 sm:p-8 overflow-y-auto" : ""}`}>
+      {/* Top Header & Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <OutputHeader
+          title={payload?.title || "Presentation Deck"}
+          path={["title"]}
+          onEdit={onEdit}
+          meta={<Pill tone="accent">📊 {slides.length} Interactive Slides</Pill>}
+        />
+
+        <div className="flex items-center gap-2 ml-auto">
+          <button
+            type="button"
+            onClick={() => setIsPlaying((v) => !v)}
+            className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition flex items-center gap-1.5 ${
+              isPlaying
+                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-extrabold"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]/40 hover:text-[var(--text-heading)]"
+            }`}
+          >
+            {isPlaying ? "⏸ Pause Slideshow" : "▶ Auto-Play"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsTheater((v) => !v)}
+            className={`text-xs font-bold px-3.5 py-1.5 rounded-xl border transition ${
+              isTheater
+                ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]/40 hover:text-[var(--text-heading)]"
+            }`}
+          >
+            {isTheater ? "↙ Exit Theater" : "⛶ Theater Mode"}
+          </button>
+        </div>
+      </div>
+
+      {/* Slide Presentation Canvas */}
+      <div className="theme-card rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-lg overflow-hidden flex flex-col justify-between min-h-[360px] sm:min-h-[440px] relative">
+        {/* Top Progress Line */}
+        <div className="h-1.5 w-full bg-[var(--border)]">
+          <div
+            className="h-full bg-[var(--primary)] transition-all duration-300 rounded-r-full"
+            style={{ width: `${progressPercent}%` }}
           />
-          <ul className="space-y-2.5 flex-1 overflow-y-auto">
-            {(Array.isArray(slide?.bullets) ? slide.bullets : []).map((b: string, j: number) => (
-              <li key={j} className="flex gap-2.5 text-sm text-[var(--text-heading)] leading-relaxed">
-                <span className="text-[var(--primary)] font-bold shrink-0">▸</span>
+        </div>
+
+        {/* Slide Stage Header */}
+        <div className="p-4 sm:p-5 pb-3 border-b border-[var(--border)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)] animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] truncate max-w-xs sm:max-w-md">
+              {payload?.title || "Presentation"}
+            </span>
+          </div>
+
+          <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[var(--primary)]">
+            SLIDE {String(active + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+          </span>
+        </div>
+
+        {/* Slide Body Content */}
+        <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between space-y-6">
+          {/* Slide Heading */}
+          <div className="space-y-2">
+            <Editable
+              as="h2"
+              value={slide?.title || ""}
+              path={["slides", active, "title"]}
+              onEdit={onEdit}
+              className="text-lg sm:text-xl font-extrabold text-[var(--text-heading)] leading-snug"
+            />
+          </div>
+
+          {/* Slide Bullet Point Cards */}
+          <div className="space-y-2.5 my-auto overflow-y-auto max-h-[340px] pr-1">
+            {(Array.isArray(slide?.bullets) ? slide.bullets : []).map((bullet: string, j: number) => (
+              <div
+                key={j}
+                className="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] flex items-start gap-3 hover:border-[var(--primary)]/40 transition"
+              >
+                <span className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  ▸
+                </span>
                 <Editable
-                  as="span"
-                  value={b}
+                  as="div"
+                  value={bullet}
                   path={["slides", active, "bullets", j]}
                   onEdit={onEdit}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm font-semibold text-[var(--text-heading)] leading-relaxed"
                 />
-              </li>
+              </div>
             ))}
-          </ul>
-          <div className="text-[10px] text-[var(--text-muted)] text-right mt-2">
-            {active + 1} / {slides.length}
+          </div>
+
+          {/* Slide Navigation Footer */}
+          <div className="pt-4 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={prevSlide}
+                className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] text-[var(--text-heading)] font-bold hover:border-[var(--primary)] hover:text-[var(--primary)] transition flex items-center gap-1"
+              >
+                ← Prev Slide
+              </button>
+              <button
+                type="button"
+                onClick={nextSlide}
+                className="px-3.5 py-1.5 rounded-xl bg-[var(--primary)] text-white font-bold hover:opacity-90 transition flex items-center gap-1 shadow-sm"
+              >
+                Next Slide →
+              </button>
+            </div>
+
+            {slides[active + 1] && (
+              <span className="text-[11px] text-[var(--text-muted)] truncate max-w-[240px] hidden sm:inline-block">
+                Next: <span className="font-semibold text-[var(--text-heading)]">{slides[active + 1]?.title}</span>
+              </span>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Filmstrip Thumbnail Bar */}
+      <div className="space-y-2">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] px-1">
+          Slides Navigation ({slides.length}):
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          {slides.map((s, i) => {
+            const isActive = i === active;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActive(i)}
+                className={`shrink-0 text-left w-36 sm:w-44 p-2.5 rounded-xl border transition ${
+                  isActive
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-bold shadow-sm"
+                    : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:border-[var(--primary)]/30"
+                }`}
+              >
+                <div className="flex items-center justify-between text-[9px] font-bold mb-1">
+                  <span>Slide #{i + 1}</span>
+                  <span>{(s?.bullets || []).length} pts</span>
+                </div>
+                <div className="text-xs truncate">{s?.title || `Slide ${i + 1}`}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Visual Hint & Speaker Notes Cards */}
       <div className="grid gap-3 sm:grid-cols-2">
         {slide?.visualHint && (
           <SectionCard tone="muted">
-            <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
-              🎨 Show / draw this
+            <div className="text-[10px] font-extrabold uppercase tracking-wide text-[var(--primary)] mb-1.5 flex items-center gap-1.5">
+              <span>🎨 Visual & Drawing Guide</span>
             </div>
             <Editable
               value={slide.visualHint}
               path={["slides", active, "visualHint"]}
               onEdit={onEdit}
-              className="text-[11px] text-[var(--text-heading)] leading-relaxed"
+              className="text-xs text-[var(--text-heading)] leading-relaxed"
             />
           </SectionCard>
         )}
         {slide?.speakerNotes && (
           <SectionCard tone="muted">
-            <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
-              🗣 Say this
+            <div className="text-[10px] font-extrabold uppercase tracking-wide text-[var(--primary)] mb-1.5 flex items-center gap-1.5">
+              <span>🗣️ Speaker Notes</span>
             </div>
             <Editable
               value={slide.speakerNotes}
               path={["slides", active, "speakerNotes"]}
               onEdit={onEdit}
-              className="text-[11px] text-[var(--text-heading)] leading-relaxed"
+              className="text-xs text-[var(--text-heading)] leading-relaxed"
             />
           </SectionCard>
         )}
-      </div>
-
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {slides.map((s, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setActive(i)}
-            title={s?.title}
-            className={`shrink-0 px-3 py-2 rounded-lg border text-[10px] font-bold max-w-[120px] truncate transition ${
-              i === active
-                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--primary)]/40"
-            }`}
-          >
-            {i + 1}. {s?.title || "Slide"}
-          </button>
-        ))}
       </div>
     </div>
   );
