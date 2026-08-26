@@ -674,103 +674,235 @@ export function WorksheetRenderer({ payload, onEdit }: RendererProps) {
 }
 
 // ---------------------------------------------------------------------------
-// matrix — /rubric /differentiate
+// matrix — /rubric /learning-guide /matrix (Enhanced Learning Guide UI)
 // ---------------------------------------------------------------------------
 
 export function MatrixRenderer({ payload, onEdit }: RendererProps) {
   const columns: string[] = Array.isArray(payload?.columns) ? payload.columns : [];
   const rows: any[] = Array.isArray(payload?.rows) ? payload.rows : [];
   const legend: string[] = Array.isArray(payload?.legend) ? payload.legend : [];
+  const [viewMode, setViewMode] = React.useState<"table" | "cards">("table");
+
+  const levelBadges = [
+    { title: "🏆 Exemplary", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" },
+    { title: "⭐ Proficient", color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30" },
+    { title: "📈 Developing", color: "text-amber-400 bg-amber-500/10 border-amber-500/30" },
+    { title: "🌱 Needs Practice", color: "text-rose-400 bg-rose-500/10 border-rose-500/30" },
+  ];
 
   return (
-    <div className="space-y-4">
-      <OutputHeader
-        title={payload?.title || ""}
-        path={["title"]}
-        onEdit={onEdit}
-        meta={
-          <>
-            <Pill tone="accent">{rows.length} criteria</Pill>
-            <Pill>{columns.length} levels</Pill>
-          </>
-        }
-      />
+    <div className="space-y-6">
+      {/* Hero Rubric Header Banner */}
+      <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-blue-900/35 via-indigo-900/25 to-purple-900/35 p-5 sm:p-7 shadow-lg relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
 
-      {payload?.description && (
-        <SectionCard tone="muted">
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                📊 Learning Guide & Competency Rubric
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                🎯 {rows.length} Criteria
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                🏆 {columns.length} Achievement Levels
+              </span>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-main)] border border-[var(--border)]">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`text-[11px] font-bold px-3 py-1 rounded-lg transition ${
+                  viewMode === "table"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                }`}
+              >
+                📊 Rubric Matrix
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`text-[11px] font-bold px-3 py-1 rounded-lg transition ${
+                  viewMode === "cards"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                }`}
+              >
+                🎴 Criteria Cards
+              </button>
+            </div>
+          </div>
+
           <Editable
-            value={payload.description}
-            path={["description"]}
+            as="h1"
+            value={payload?.title || "Learning Guide"}
+            path={["title"]}
             onEdit={onEdit}
-            className="text-xs leading-relaxed text-[var(--text-heading)]"
+            className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug"
           />
-        </SectionCard>
-      )}
-
-      {/* Wide tables must scroll inside their own container, never the page */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-        <table className="w-full min-w-[640px] border-collapse text-left">
-          <thead>
-            <tr className="bg-[var(--bg-main)]">
-              <th className="p-3 text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] border-b border-[var(--border)] sticky left-0 bg-[var(--bg-main)] min-w-[140px]">
-                Criterion
-              </th>
-              {columns.map((c, i) => (
-                <th
-                  key={i}
-                  className="p-3 text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] border-b border-l border-[var(--border)] min-w-[160px]"
-                >
-                  <Editable as="span" value={c} path={["columns", i]} onEdit={onEdit} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i} className="align-top">
-                <td className="p-3 border-b border-[var(--border)] sticky left-0 bg-[var(--bg-card)]">
-                  <Editable
-                    value={r?.label || ""}
-                    path={["rows", i, "label"]}
-                    onEdit={onEdit}
-                    className="text-xs font-bold text-[var(--text-heading)] leading-snug"
-                  />
-                  {r?.weight && String(r.weight).trim() !== "" && (
-                    <div className="mt-1">
-                      <Pill tone="accent">{r.weight}</Pill>
-                    </div>
-                  )}
-                </td>
-                {columns.map((_, j) => (
-                  <td key={j} className="p-3 border-b border-l border-[var(--border)]">
-                    <Editable
-                      value={(Array.isArray(r?.cells) ? r.cells[j] : "") || ""}
-                      path={["rows", i, "cells", j]}
-                      onEdit={onEdit}
-                      className="text-[11px] text-[var(--text-muted)] leading-relaxed"
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        </div>
       </div>
 
-      {legend.length > 0 && (
-        <SectionCard tone="muted">
-          <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)] mb-2">
-            How to use this
+      {/* Description / Student Guide Callout */}
+      {payload?.description && (
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 sm:p-5 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-400 via-indigo-500 to-purple-500" />
+          <div className="pl-2 space-y-1">
+            <div className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">
+              💡 Student Self-Evaluation & Improvement Guide
+            </div>
+            <Editable
+              value={payload.description}
+              path={["description"]}
+              onEdit={onEdit}
+              className="text-xs sm:text-sm text-[var(--text-heading)] leading-relaxed"
+            />
           </div>
-          <ul className="space-y-1.5">
+        </div>
+      )}
+
+      {/* Table Mode */}
+      {viewMode === "table" && (
+        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-lg">
+          <table className="w-full min-w-[700px] border-collapse text-left">
+            <thead>
+              <tr className="bg-[var(--bg-main)] border-b border-[var(--border)]">
+                <th className="p-4 text-xs font-black uppercase tracking-wider text-[var(--primary)] min-w-[160px] sticky left-0 bg-[var(--bg-main)] z-10 shadow-sm">
+                  🎯 Criteria
+                </th>
+                {columns.map((c, i) => {
+                  const badge = levelBadges[i % levelBadges.length];
+                  return (
+                    <th
+                      key={i}
+                      className="p-4 text-xs font-bold border-l border-[var(--border)] min-w-[180px]"
+                    >
+                      <div className="space-y-1">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badge.color}`}>
+                          {badge.title}
+                        </span>
+                        <div className="text-xs font-bold text-[var(--text-heading)]">
+                          <Editable as="span" value={c} path={["columns", i]} onEdit={onEdit} />
+                        </div>
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="align-top border-b border-[var(--border)] hover:bg-[var(--primary)]/5 transition-colors">
+                  <td className="p-4 sticky left-0 bg-[var(--bg-card)] z-10 shadow-sm space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-extrabold flex items-center justify-center">
+                        #{i + 1}
+                      </span>
+                      <Editable
+                        as="span"
+                        value={r?.label || ""}
+                        path={["rows", i, "label"]}
+                        onEdit={onEdit}
+                        className="text-xs font-extrabold text-[var(--text-heading)] leading-snug"
+                      />
+                    </div>
+                    {r?.weight && String(r.weight).trim() !== "" && (
+                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                        Weight: {r.weight}
+                      </span>
+                    )}
+                  </td>
+
+                  {columns.map((_, j) => (
+                    <td key={j} className="p-4 border-l border-[var(--border)]">
+                      <div className="p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-main)]/60 hover:border-[var(--primary)]/40 hover:bg-[var(--bg-card)] transition-all">
+                        <Editable
+                          value={(Array.isArray(r?.cells) ? r.cells[j] : "") || ""}
+                          path={["rows", i, "cells", j]}
+                          onEdit={onEdit}
+                          className="text-xs text-[var(--text-heading)] leading-relaxed whitespace-pre-wrap"
+                        />
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Cards View Mode */}
+      {viewMode === "cards" && (
+        <div className="space-y-4">
+          {rows.map((r, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6 shadow-md space-y-4"
+            >
+              <div className="flex items-center gap-2 pb-3 border-b border-[var(--border)]">
+                <span className="w-7 h-7 rounded-lg bg-[var(--primary)] text-white text-xs font-black flex items-center justify-center">
+                  #{i + 1}
+                </span>
+                <Editable
+                  as="h3"
+                  value={r?.label || ""}
+                  path={["rows", i, "label"]}
+                  onEdit={onEdit}
+                  className="text-sm sm:text-base font-extrabold text-[var(--text-heading)]"
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {columns.map((c, j) => {
+                  const badge = levelBadges[j % levelBadges.length];
+                  return (
+                    <div
+                      key={j}
+                      className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] space-y-2 hover:border-[var(--primary)]/40 transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${badge.color}`}>
+                          {badge.title}
+                        </span>
+                        <span className="text-[10px] font-bold text-[var(--text-muted)]">{c}</span>
+                      </div>
+                      <Editable
+                        value={(Array.isArray(r?.cells) ? r.cells[j] : "") || ""}
+                        path={["rows", i, "cells", j]}
+                        onEdit={onEdit}
+                        className="text-xs text-[var(--text-heading)] leading-relaxed"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Legend & How to Use Guide */}
+      {legend.length > 0 && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5 space-y-3 shadow-sm">
+          <div className="text-xs font-black uppercase tracking-wider text-[var(--primary)] flex items-center gap-1.5">
+            <span>📌 Student Guide & Usage Instructions</span>
+          </div>
+          <ul className="space-y-2">
             {legend.map((l, i) => (
-              <li key={i} className="flex gap-2 text-xs text-[var(--text-heading)] leading-relaxed">
-                <span className="text-[var(--primary)] shrink-0">•</span>
+              <li key={i} className="flex items-start gap-2.5 text-xs text-[var(--text-heading)] leading-relaxed">
+                <span className="w-5 h-5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  ✓
+                </span>
                 <Editable as="span" value={l} path={["legend", i]} onEdit={onEdit} className="flex-1" />
               </li>
             ))}
           </ul>
-        </SectionCard>
+        </div>
       )}
     </div>
   );
