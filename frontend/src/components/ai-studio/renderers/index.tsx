@@ -36,7 +36,7 @@ function Editable({
   path: (string | number)[];
   onEdit?: EditFn;
   className?: string;
-  as?: "div" | "span" | "h3" | "h4" | "p" | "li";
+  as?: "div" | "span" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "li";
   placeholder?: string;
 }) {
   const Tag = as as any;
