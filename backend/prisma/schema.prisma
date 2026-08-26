@@ -2331,6 +2331,7 @@ model AiContent {
   subject     String
   className   String
   section     String?
+  unit        String?
   topic       String
   title       String
   language    String    @default("english")

@@ -234,6 +234,7 @@ router.post('/generate', async (req: Request, res: Response) => {
         subject: ctx.subject,
         className: ctx.className,
         section: section || null,
+        unit: ctx.unit || unit || null,
         topic: ctx.topic,
         language: ctx.language,
         model: skill.model,
@@ -304,7 +305,7 @@ router.post('/content', async (req: Request, res: Response) => {
   try {
     const {
       skillKey, outputKind, subjectPack, subject, className, section, topic,
-      title, language, payload, schoolId, teacherId, classRoomId,
+      title, language, payload, schoolId, teacherId, classRoomId, unit,
     } = req.body || {};
 
     if (!skillKey || !payload) {
@@ -320,6 +321,7 @@ router.post('/content', async (req: Request, res: Response) => {
         subject: subject || '',
         className: className || '',
         section: section || null,
+        unit: unit || payload?.unit || null,
         topic: topic || '',
         title: title || payload?.title || topic || def?.label || 'Untitled',
         language: language || 'english',

@@ -140,6 +140,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -220,6 +221,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -396,6 +398,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
