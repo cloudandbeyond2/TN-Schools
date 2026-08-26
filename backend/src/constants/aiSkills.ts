@@ -18,7 +18,8 @@ export type SkillGroup =
   | 'ASSESS'
   | 'ENGAGE'
   | 'DIFFERENTIATE'
-  | 'FEEDBACK';
+  | 'FEEDBACK'
+  | 'PLAN';
 
 export type OutputKind =
   | 'document'
@@ -26,7 +27,11 @@ export type OutputKind =
   | 'worksheet'
   | 'matrix'
   | 'cardList'
-  | 'slides';
+  | 'slides'
+  // A real visual poster, not text cards. Shares its shape with
+  // VISUAL_DESIGN_SCHEMA in routes/ai.routes.ts so the existing
+  // components/InfographicRenderer.tsx can draw it unchanged.
+  | 'infographic';
 
 export type SubjectPack =
   | 'MATHS'
@@ -115,6 +120,13 @@ export const SKILL_GROUPS: Record<
     icon: 'fi fi-rr-comment-check',
     blurb: 'Constructive, specific feedback on student work',
   },
+  PLAN: {
+    key: 'PLAN',
+    slug: 'plan',
+    label: 'Plan & Organise',
+    icon: 'fi fi-rr-clipboard-list',
+    blurb: 'Trips, cover lessons, stations and post-lesson review',
+  },
 };
 
 export const GROUP_BY_SLUG: Record<string, SkillGroup> = Object.values(SKILL_GROUPS).reduce(
@@ -167,6 +179,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
         'Each card is one worked micro-example or one real-life measurement/money/geometry situation where this topic is actually used.',
       slides:
         'One idea per slide. Formula slides must show the formula on its own line and then a substituted example underneath. Include at least two board-work slides where the teacher solves live.',
+      infographic:
+        'lawOrFormula is the centrepiece — put the actual formula there with every variable named. keyFacts must carry real numbers (typical values, ranges, worked results). examples are situations where the formula is applied with actual figures. whatIsIt states the rule in words before symbols.',
     },
   },
   SCIENCE: {
@@ -192,6 +206,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
         'Each card is one everyday phenomenon or application, with the scientific principle named explicitly in the body.',
       slides:
         'Alternate between a phenomenon slide and a mechanism slide. Every diagram slide must include a visualHint precise enough to sketch on the board.',
+      infographic:
+        'lawOrFormula carries the governing law, word equation or balanced reaction. whatIsIt describes the observable phenomenon. keyFacts must be measured values with correct units. applications are real technologies or natural processes. centralImageUrl should picture the phenomenon itself.',
     },
   },
   LANGUAGE: {
@@ -217,6 +233,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
         'Each card is one usage example, idiom, or sentence pattern, with an English meaning and a natural Tamil equivalent.',
       slides:
         'Show the language before naming the rule. Each slide should carry one model sentence in large text plus its breakdown.',
+      infographic:
+        'lawOrFormula holds the language pattern or rule (e.g. the sentence structure) with variables naming each part of speech. whatIsIt gives meaning and usage. keyFacts are usage rules with a model sentence each. examples are sentences in context, with the Tamil gloss in the description.',
     },
   },
   SOCIAL: {
@@ -242,6 +260,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
         'Each card is one event, personality, provision or present-day parallel, dated and placed.',
       slides:
         'Lead with a timeline slide, then one slide per cause and per consequence. Include one map slide with a precise visualHint.',
+      infographic:
+        'lawOrFormula holds the key principle, constitutional provision or cause-effect chain, with variables naming each factor. keyFacts must carry real dates, places and figures. examples are actual historical events or present-day parallels. whatIsIt sets time and place first.',
     },
   },
   COMPUTER: {
@@ -267,6 +287,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
         'Each card is one snippet or one real application, with the code inline in the body.',
       slides:
         'Code slides must contain the full snippet with line breaks preserved. Follow each code slide with a trace slide.',
+      infographic:
+        'lawOrFormula holds the syntax pattern or algorithm, with variables naming each part. keyFacts are language rules with real values. examples are short working snippets in the description. applications are real software or systems the student uses.',
     },
   },
   GENERAL: {
@@ -285,6 +307,8 @@ export const SUBJECT_PACKS: Record<SubjectPack, SubjectPackDef> = {
       matrix: 'Rows are the assessable criteria for this task; columns are performance bands with observable descriptors.',
       cardList: 'Each card is one self-contained idea or example.',
       slides: 'One idea per slide, with a concrete example on each.',
+      infographic:
+        'lawOrFormula holds the single most important rule or relationship for this topic, with its parts named. keyFacts are concrete, checkable facts. examples are situations the student has seen.',
     },
   },
 };
@@ -524,6 +548,164 @@ const SLIDES_SCHEMA = {
   required: ['title', 'slides'],
 };
 
+// Mirrors VISUAL_DESIGN_SCHEMA in routes/ai.routes.ts field for field, so the
+// payload drops straight into the existing InfographicRenderer.
+const INFOGRAPHIC_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' },
+    subtitle: { type: 'STRING' },
+    introduction: { type: 'STRING' },
+    centralImageUrl: {
+      type: 'STRING',
+      description: 'A single Unsplash search keyword for the hero image, e.g. "leaf" or "galaxy"',
+    },
+    whatIsIt: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'A Flaticon uicons name, e.g. fi-rr-leaf, fi-rr-bulb' },
+          text: { type: 'STRING' },
+        },
+        required: ['icon', 'text'],
+      },
+    },
+    lawOrFormula: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        subtitle: { type: 'STRING' },
+        formula: { type: 'STRING', description: 'The equation, word equation or key rule. Never leave blank.' },
+        variables: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              symbol: { type: 'STRING' },
+              explanation: { type: 'STRING' },
+            },
+            required: ['symbol', 'explanation'],
+          },
+        },
+      },
+      required: ['title', 'subtitle', 'formula', 'variables'],
+    },
+    keyFacts: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'A Flaticon uicons name, e.g. fi-rr-sun' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' },
+        },
+        required: ['icon', 'title', 'description'],
+      },
+    },
+    didYouKnow: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        description: { type: 'STRING' },
+      },
+      required: ['title', 'description'],
+    },
+    examples: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          imageKeyword: { type: 'STRING', description: 'A single Unsplash keyword' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' },
+        },
+        required: ['imageKeyword', 'title', 'description'],
+      },
+    },
+    applications: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          icon: { type: 'STRING', description: 'A Flaticon uicons name' },
+          title: { type: 'STRING' },
+          description: { type: 'STRING' },
+        },
+        required: ['icon', 'title', 'description'],
+      },
+    },
+    quote: {
+      type: 'OBJECT',
+      properties: {
+        text: { type: 'STRING' },
+        author: { type: 'STRING' },
+      },
+      required: ['text', 'author'],
+    },
+    remember: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        text: { type: 'STRING' },
+      },
+      required: ['title', 'text'],
+    },
+  },
+  required: [
+    'title', 'subtitle', 'introduction', 'centralImageUrl', 'whatIsIt', 'lawOrFormula',
+    'keyFacts', 'didYouKnow', 'examples', 'applications', 'quote', 'remember',
+  ],
+};
+
+// Icon names the bundled Flaticon uicons-regular-rounded font actually ships.
+// The model happily invents plausible-but-absent names (fi-rr-plant,
+// fi-rr-atom), which render as blank squares, so anything outside this list is
+// swapped for a safe default after generation.
+export const SAFE_ICONS = new Set([
+  'fi-rr-bulb', 'fi-rr-book', 'fi-rr-book-alt', 'fi-rr-brain', 'fi-rr-leaf', 'fi-rr-sun',
+  'fi-rr-water', 'fi-rr-drop', 'fi-rr-flame', 'fi-rr-wind', 'fi-rr-globe', 'fi-rr-tree',
+  'fi-rr-flask', 'fi-rr-microscope', 'fi-rr-dna', 'fi-rr-calculator', 'fi-rr-ruler',
+  'fi-rr-chart-pie', 'fi-rr-chart-bar', 'fi-rr-stats', 'fi-rr-clock', 'fi-rr-calendar',
+  'fi-rr-bolt', 'fi-rr-rocket', 'fi-rr-heart', 'fi-rr-eye', 'fi-rr-star', 'fi-rr-shield',
+  'fi-rr-target', 'fi-rr-key', 'fi-rr-lock', 'fi-rr-gem', 'fi-rr-medal', 'fi-rr-trophy',
+  'fi-rr-users', 'fi-rr-user', 'fi-rr-home', 'fi-rr-building', 'fi-rr-school', 'fi-rr-bank',
+  'fi-rr-map', 'fi-rr-compass', 'fi-rr-marker', 'fi-rr-computer', 'fi-rr-laptop',
+  'fi-rr-smartphone', 'fi-rr-camera', 'fi-rr-music', 'fi-rr-palette', 'fi-rr-paint-brush',
+  'fi-rr-pencil', 'fi-rr-document', 'fi-rr-folder', 'fi-rr-search', 'fi-rr-settings',
+  'fi-rr-tools', 'fi-rr-wrench', 'fi-rr-box', 'fi-rr-coins', 'fi-rr-scale', 'fi-rr-balance-scale-left',
+  'fi-rr-fish', 'fi-rr-paw', 'fi-rr-bug', 'fi-rr-mountains', 'fi-rr-restaurant', 'fi-rr-utensils',
+  'fi-rr-running', 'fi-rr-walking', 'fi-rr-gym', 'fi-rr-stethoscope', 'fi-rr-medical-star',
+  'fi-rr-layer-group', 'fi-rr-layers', 'fi-rr-grid', 'fi-rr-list', 'fi-rr-check', 'fi-rr-info',
+]);
+
+const FALLBACK_ICON = 'fi-rr-bulb';
+
+/** Comma-separated list for the prompt, so the model picks from real names. */
+export const SAFE_ICON_LIST = Array.from(SAFE_ICONS).join(', ');
+
+/**
+ * Post-generation cleanup. Currently only the infographic kind needs it: its
+ * icon fields are free text and a wrong name renders as an empty box.
+ */
+export function sanitizePayload(outputKind: OutputKind, payload: any): any {
+  if (outputKind !== 'infographic' || !payload || typeof payload !== 'object') return payload;
+
+  const fixIcon = (v: unknown) => {
+    const name = String(v || '').trim().replace(/^fi\s+/, '');
+    return SAFE_ICONS.has(name) ? name : FALLBACK_ICON;
+  };
+
+  for (const field of ['whatIsIt', 'keyFacts', 'applications'] as const) {
+    if (Array.isArray(payload[field])) {
+      for (const item of payload[field]) {
+        if (item && typeof item === 'object') item.icon = fixIcon(item.icon);
+      }
+    }
+  }
+  return payload;
+}
+
 export const SCHEMAS: Record<OutputKind, any> = {
   document: DOCUMENT_SCHEMA,
   questionSet: QUESTION_SET_SCHEMA,
@@ -531,6 +713,7 @@ export const SCHEMAS: Record<OutputKind, any> = {
   matrix: MATRIX_SCHEMA,
   cardList: CARD_LIST_SCHEMA,
   slides: SLIDES_SCHEMA,
+  infographic: INFOGRAPHIC_SCHEMA,
 };
 
 // ---------------------------------------------------------------------------
@@ -1061,6 +1244,474 @@ Requirements:
 - Address the student directly as "you". Be warm but honest — do not soften a wrong answer into a right one.
 - teacherNotes: what this answer reveals about the student's understanding, and what to reteach.`,
   },
+
+  // ── TEACH (added) ────────────────────────────────────────────────────────
+  {
+    key: 'infographic',
+    command: '/infographic',
+    label: 'Infographic',
+    description: 'Create an infographic on this topic to explain key points visually.',
+    group: 'TEACH',
+    outputKind: 'infographic',
+    icon: 'fi fi-rr-chart-pie',
+    accent: 'bg-sky-500',
+    preview: 'A designed visual poster — hero image, formula panel, fact tiles and applications',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 14000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      {
+        key: 'focus',
+        label: 'Poster style',
+        type: 'select',
+        options: ['Exam point of view', 'General knowledge', 'Know more'],
+        default: 'General knowledge',
+      },
+    ],
+    pushTargets: ['smartClass'],
+    basePrompt: `Design a visual infographic poster on "{{topic}}" ({{subject}}, {{class}}). Style: {{focus}}.
+This is a POSTER, not an article. Every field is a panel on a wall chart, so text must be short enough to read from across a classroom.
+Requirements:
+- title: the topic as a poster headline. subtitle: one line naming the class and the angle.
+- introduction: 2-3 sentences maximum — the hook a student reads first.
+- centralImageUrl: ONE Unsplash search keyword picturing the topic (e.g. "leaf", "dam", "circuit"). One word, lowercase, no spaces.
+- whatIsIt: 3-4 definition points, each under 20 words, each with a fitting Flaticon icon name.
+- lawOrFormula: the governing rule, equation or word equation for this topic, with every symbol explained in variables. If the topic genuinely has no formula, use its key principle stated as a short rule and name its parts.
+- keyFacts: exactly 4 facts, each with a real number, unit, date or measured value. No vague claims.
+- examples: 3 real-world examples, each with a one-word Unsplash imageKeyword.
+- applications: 3 places this is actually used, each with a Flaticon icon name.
+- didYouKnow: one genuinely surprising true fact.
+- quote: DO NOT attribute a quotation to a named person unless you are certain that person actually said it. If you are not certain, write a plain statement of the topic's importance and set author to "Tamil Nadu State Board" — a fabricated attribution is worse than no attribution.
+- remember: the single thing a student must not forget, in one sentence.
+- Every icon field must be chosen from EXACTLY this list, copied character for character. Any other name renders as a blank box: {{iconList}}`,
+  },
+  {
+    key: 'simulation',
+    command: '/simulation',
+    label: 'Class Simulation',
+    description: 'Create a classroom simulation or role-play with instructions.',
+    group: 'TEACH',
+    outputKind: 'document',
+    icon: 'fi fi-rr-chess-knight',
+    accent: 'bg-indigo-500',
+    preview: 'Roles, scenario, run-sheet and debrief questions for a live simulation',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [3, 12],
+    inputs: [
+      { key: 'duration', label: 'Time available', type: 'select', options: ['20 minutes', '30 minutes', '45 minutes'], default: '30 minutes' },
+    ],
+    pushTargets: [],
+    basePrompt: `Design a classroom simulation or role-play that teaches "{{topic}}" ({{subject}}, {{class}}) in {{duration}}.
+Requirements:
+- sections: "The Scenario", "Roles" (one bullet per role, with what that role wants), "How To Run It" (numbered, with durationMins), "Debrief Questions", "What Students Should Realise".
+- Every student must have a role — include roles for a class of 40, using groups where needed.
+- The simulation must make the concept felt, not just described: the outcome should change depending on what students decide.
+- Needs nothing but the classroom, chalk and paper slips.`,
+  },
+  {
+    key: 'graphic-organizer',
+    command: '/graphic-organizer',
+    label: 'Graphic Organizer',
+    description: 'Create a graphic organizer to help students organize their thinking.',
+    group: 'TEACH',
+    outputKind: 'matrix',
+    icon: 'fi fi-rr-layer-group',
+    accent: 'bg-cyan-600',
+    preview: 'A ready-to-draw organizer grid with a worked example in every cell',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'organizer', label: 'Organizer type', type: 'select', options: ['KWL chart', 'Venn diagram', 'Cause and effect', 'Compare and contrast', 'Mind map', 'Sequence / flow chart', 'Frayer model'], default: 'KWL chart' },
+    ],
+    pushTargets: ['smartClass'],
+    basePrompt: `Build a {{organizer}} graphic organizer for "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- columns: the headings of the {{organizer}} as a student would draw them on paper.
+- rows: 3-5 rows. Each row is one prompt or one item to compare.
+- Every cell must contain a filled-in model answer for "{{topic}}", so the teacher can show a completed example before students make their own blank copy.
+- description: how to draw this organizer on the board in under a minute.
+- legend: 2 notes on what students usually get wrong with this organizer.`,
+  },
+
+  // ── PRACTICE (added) ─────────────────────────────────────────────────────
+  {
+    key: 'real-world-project',
+    command: '/real-world-project',
+    label: 'Real-World Project',
+    description: 'Suggest a real-world project on this topic with steps and outcomes.',
+    group: 'PRACTICE',
+    outputKind: 'document',
+    icon: 'fi fi-rr-globe',
+    accent: 'bg-emerald-600',
+    preview: 'A project connecting the topic to something real in the students own town',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [4, 12],
+    inputs: [
+      { key: 'duration', label: 'Project length', type: 'select', options: ['1 week', '2 weeks', '1 month'], default: '2 weeks' },
+    ],
+    pushTargets: [],
+    basePrompt: `Design a real-world project on "{{topic}}" ({{subject}}, {{class}}) lasting {{duration}}.
+Requirements:
+- The project must engage something real and local — the school, the street, the market, a farm, a water body, a family business — not a hypothetical.
+- sections: "The Real Problem", "What Students Investigate", "Steps" (numbered, with durationMins), "What They Produce", "Who Sees The Result".
+- Students must collect their own data or observations; the answer must not be findable in the textbook.
+- teacherNotes: permissions or safety to arrange, and how to help students who cannot travel.`,
+  },
+  {
+    key: 'literacy-activity',
+    command: '/literacy-activity',
+    label: 'Literacy Activity',
+    description: 'Suggest a literacy activity on this topic to improve reading skills.',
+    group: 'PRACTICE',
+    outputKind: 'document',
+    icon: 'fi fi-rr-book-open-reader',
+    accent: 'bg-amber-500',
+    preview: 'A reading-and-language activity built on this topic, with materials and assessment',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 10000,
+    defaultClassRange: [1, 10],
+    inputs: [
+      { key: 'focus', label: 'Literacy focus', type: 'select', options: ['Reading fluency', 'Vocabulary', 'Comprehension', 'Speaking', 'Writing'], default: 'Comprehension' },
+    ],
+    pushTargets: [],
+    basePrompt: `Design a literacy activity built around "{{topic}}" ({{subject}}, {{class}}), focused on {{focus}}.
+Requirements:
+- sections: "Activity Description", "Objectives", "Materials Needed", "How To Run It" (numbered, with durationMins), "How To Assess It".
+- Literacy is the skill being built; "{{topic}}" is the content it is practised on. Both must be genuinely served.
+- Include the actual text, word list or sentence frames the activity needs — do not tell the teacher to "prepare a passage".
+- teacherNotes: how to include a student who is reading well below grade level.`,
+  },
+  {
+    key: 'stem-challenge',
+    command: '/stem-challenge',
+    label: 'STEM Challenge',
+    description: 'Create a STEM challenge related to this topic, with steps and evaluation.',
+    group: 'PRACTICE',
+    outputKind: 'document',
+    icon: 'fi fi-rr-bolt',
+    accent: 'bg-orange-600',
+    preview: 'A hands-on build-and-test challenge with constraints and judging criteria',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [3, 12],
+    inputs: [
+      { key: 'duration', label: 'Time available', type: 'select', options: ['30 minutes', '45 minutes', '1 period', '2 periods'], default: '45 minutes' },
+      { key: 'mode', label: 'Teams of', type: 'select', options: ['Pairs', 'Groups of 4', 'Groups of 6'], default: 'Groups of 4' },
+    ],
+    pushTargets: [],
+    basePrompt: `Design a STEM challenge on "{{topic}}" ({{subject}}, {{class}}) for {{mode}}, completed in {{duration}}.
+Requirements:
+- sections: "The Challenge", "Constraints" (what they may and may not use), "Materials", "Build Steps" (numbered, with durationMins), "How It Is Tested", "Judging Criteria".
+- Materials must be scrap and household items — paper, string, tape, bottles, straws, clay. Nothing purchased.
+- There must be a measurable test with a number (height, distance, time, weight held) so teams can compare fairly.
+- The challenge must fail in an instructive way if the underlying concept is ignored.`,
+  },
+  {
+    key: 'science-experiment',
+    command: '/science-experiment',
+    label: 'Science Experiment',
+    description: 'Suggest a simple science experiment for this topic with materials and procedure.',
+    group: 'PRACTICE',
+    outputKind: 'document',
+    icon: 'fi fi-rr-flask',
+    accent: 'bg-teal-600',
+    preview: 'A classroom-safe experiment with materials, procedure, expected result and the science behind it',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'setting', label: 'Run as', type: 'select', options: ['Teacher demonstration', 'Student groups', 'Individual'], default: 'Teacher demonstration' },
+    ],
+    pushTargets: [],
+    basePrompt: `Design a simple experiment demonstrating "{{topic}}" ({{subject}}, {{class}}), run as {{setting}}.
+Requirements:
+- sections: "Aim", "Materials", "Procedure" (numbered steps, with durationMins), "Observation Table" (describe the columns), "Expected Result", "The Science Behind It", "Safety".
+- Materials must be available in a Tamil Nadu government school or a local shop. No specialised lab apparatus, no hazardous chemicals.
+- State the expected result honestly, including roughly how long it takes to appear.
+- Safety is mandatory and specific — name the actual hazard, not "be careful".
+- teacherNotes: the two most common reasons this experiment fails, and how to recover the lesson if it does.`,
+  },
+  {
+    key: 'math-problem-set',
+    command: '/math-problem-set',
+    label: 'Math Problem Set',
+    description: 'Create a set of math problems on this topic, graded by difficulty.',
+    group: 'PRACTICE',
+    outputKind: 'worksheet',
+    icon: 'fi fi-rr-calculator',
+    accent: 'bg-blue-500',
+    preview: 'Easy, medium and challenge problems with full working in the key',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 18000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(15, 'Total problems'), DIFFICULTY_INPUT],
+    pushTargets: ['homework'],
+    basePrompt: `Create a set of about {{count}} problems on "{{topic}}" ({{subject}}, {{class}}). Difficulty: {{difficulty}}.
+Requirements:
+- Sections must be "Easy Problems", "Medium Problems", "Challenge Problems", in that order, with the count weighted towards the middle.
+- Number continuously from 1 across all sections.
+- Every problem must be solvable with the methods a {{class}} student has been taught — never require a technique from a later class.
+- answerKey must show the full working, one step per entry, not just the final value.
+- commonErrors: at least 4 slips specific to this topic.`,
+  },
+
+  // ── ASSESS (added) ───────────────────────────────────────────────────────
+  {
+    key: 'reading-comprehension',
+    command: '/reading-comprehension',
+    label: 'Reading Comprehension',
+    description: 'Create reading comprehension questions for a passage on this topic.',
+    group: 'ASSESS',
+    outputKind: 'worksheet',
+    icon: 'fi fi-rr-book-open-cover',
+    accent: 'bg-rose-500',
+    preview: 'An original passage with literal, inferential and critical questions plus a key',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 18000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'passageLength', label: 'Passage length', type: 'select', options: ['Short (100 words)', 'Medium (200 words)', 'Long (350 words)'], default: 'Medium (200 words)' },
+    ],
+    pushTargets: ['homework'],
+    basePrompt: `Write a reading comprehension exercise on "{{topic}}" ({{subject}}, {{class}}). Passage length: {{passageLength}}.
+Requirements:
+- passage: an ORIGINAL passage of the stated length about "{{topic}}", written at {{class}} reading level. Every fact in it must be true.
+- Sections must be "Literal Questions" (answer is stated in the passage), "Inferential Questions" (answer must be worked out from it), and "Critical Questions" (opinion, supported by the passage).
+- Every question must be answerable from the passage alone — never require outside knowledge.
+- answerKey: model answers quoting the relevant line for literal and inferential items.
+- commonErrors: what students do when they answer from memory instead of from the text.`,
+  },
+  {
+    key: 'argumentative-writing',
+    command: '/argumentative-writing',
+    label: 'Argumentative Writing',
+    description: 'Give a writing prompt and outline for an argumentative essay on this topic.',
+    group: 'ASSESS',
+    outputKind: 'document',
+    icon: 'fi fi-rr-balance-scale-left',
+    accent: 'bg-fuchsia-500',
+    preview: 'A debatable prompt, model thesis, paragraph outline and writing tips',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [6, 12],
+    inputs: [
+      { key: 'length', label: 'Essay length', type: 'select', options: ['150 words', '250 words', '400 words'], default: '250 words' },
+    ],
+    pushTargets: ['homework'],
+    basePrompt: `Create an argumentative writing task on "{{topic}}" ({{subject}}, {{class}}), for a {{length}} essay.
+Requirements:
+- sections: "The Prompt", "Model Thesis Statement", "Outline" (Introduction / Body 1 / Body 2 / Counter-argument / Conclusion, each as a bullet saying what goes in it), "Evidence Students Can Use", "Writing Tips".
+- The prompt must be genuinely arguable — a reasonable person could take either side. If "{{topic}}" has no arguable angle, find the closest one and say what it is.
+- The counter-argument section is compulsory: name the strongest objection and how to answer it.
+- Evidence must be real facts a {{class}} student would know or could look up in the textbook.`,
+  },
+
+  // ── ENGAGE (added) ───────────────────────────────────────────────────────
+  {
+    key: 'character-education',
+    command: '/character-education',
+    label: 'Character Education',
+    description: 'Suggest activities to teach character education alongside this topic.',
+    group: 'ENGAGE',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-heart',
+    accent: 'bg-pink-500',
+    preview: 'Value-led discussion and reflection activities tied to the lesson',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'value', label: 'Value to build', type: 'select', options: ['Honesty', 'Respect', 'Responsibility', 'Empathy', 'Perseverance', 'Fairness', 'Teamwork'], default: 'Responsibility' },
+      COUNT_INPUT(5, 'Number of activities'),
+    ],
+    pushTargets: [],
+    basePrompt: `Suggest {{count}} character-education activities that build {{value}} through "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one activity: what the teacher says or sets up, and the reflection question that follows.
+- The value must arise from the lesson content honestly — do not bolt a moral onto an unrelated topic. If the link is thin, use the way the subject is practised (checking your work honestly, sharing equipment fairly).
+- Include at least one activity that is a dilemma with no comfortable answer.
+- tag: "Discussion", "Reflection", "Action" or "Story".
+- Keep every activity under 10 minutes.`,
+  },
+
+  // ── DIFFERENTIATE (added) ────────────────────────────────────────────────
+  {
+    key: 'differentiated-worksheet',
+    command: '/differentiated-worksheet',
+    label: 'Differentiated Worksheet',
+    description: 'Create three levelled worksheets: easy, medium and hard, for different learners.',
+    group: 'DIFFERENTIATE',
+    outputKind: 'worksheet',
+    icon: 'fi fi-rr-layers',
+    accent: 'bg-sky-600',
+    preview: 'One worksheet at three levels so every student works on the same idea',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 20000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(6, 'Questions per level')],
+    pushTargets: ['homework'],
+    basePrompt: `Create a levelled worksheet on "{{topic}}" ({{subject}}, {{class}}) with about {{count}} questions at each level.
+Requirements:
+- Sections must be exactly "Level 1 — Support", "Level 2 — Core", "Level 3 — Stretch".
+- All three levels must cover the SAME concept. Level 1 scaffolds it (worked example given, steps started, sentence frames); Level 2 is grade standard; Level 3 extends it (multi-step, justify, generalise).
+- No level may be busywork: a Level 1 student must still do real thinking.
+- Number continuously from 1 across all three levels.
+- answerKey covers every numbered item.
+- commonErrors: one per level, describing what that level's learners typically slip on.`,
+  },
+
+  // ── FEEDBACK (added) ─────────────────────────────────────────────────────
+  {
+    key: 'student-goal-setting',
+    command: '/student-goal-setting',
+    label: 'Student Goal Setting',
+    description: 'Create a goal-setting template for students to track their learning.',
+    group: 'FEEDBACK',
+    outputKind: 'matrix',
+    icon: 'fi fi-rr-bullseye',
+    accent: 'bg-lime-600',
+    preview: 'A goal tracker students fill in themselves, with a worked example row',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [3, 12],
+    inputs: [
+      { key: 'horizon', label: 'Goal period', type: 'select', options: ['This week', 'This month', 'This term'], default: 'This month' },
+    ],
+    pushTargets: [],
+    basePrompt: `Create a student goal-setting tracker for "{{topic}}" ({{subject}}, {{class}}), covering {{horizon}}.
+Requirements:
+- columns: exactly "My goal", "How I will get there", "How I will know I did it", "Check-in".
+- rows: 4-5 rows. Row 1 must be a fully worked EXAMPLE row so students see what a good goal looks like; the rest are prompts for the student to complete, phrased in the first person ("I will be able to ...").
+- Goals must be specific and checkable by the student without the teacher marking anything.
+- description: how the teacher introduces this in 5 minutes.
+- legend: how often to revisit, and what to do when a student misses a goal.`,
+  },
+
+  // ── PLAN & ORGANISE ──────────────────────────────────────────────────────
+  {
+    key: 'learning-stations',
+    command: '/learning-stations',
+    label: 'Learning Stations',
+    description: 'Give ideas for learning stations for this topic with rotations.',
+    group: 'PLAN',
+    outputKind: 'matrix',
+    icon: 'fi fi-rr-grid',
+    accent: 'bg-violet-500',
+    preview: 'Rotating stations laid out as a grid, with timings and materials',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'stations', label: 'How many stations', type: 'select', options: ['3', '4', '5'], default: '4' },
+      { key: 'duration', label: 'Total time', type: 'select', options: ['30 minutes', '40 minutes', '1 period'], default: '40 minutes' },
+    ],
+    pushTargets: [],
+    basePrompt: `Plan {{stations}} learning stations on "{{topic}}" ({{subject}}, {{class}}), rotating within {{duration}}.
+Requirements:
+- rows: one per station, labelled "Station 1 — <name>" and so on.
+- columns: exactly "Activity", "Materials", "Time", "Success looks like".
+- weight: the minutes for that station; they must sum to {{duration}} minus 5 minutes of rotation time.
+- Each station must teach a different facet of "{{topic}}" and must work without the teacher standing there — a student should be able to read the instruction and start.
+- One station must be quiet/individual so the room does not become uniformly loud.
+- legend: how to signal rotations, and what to do with a group that finishes early.`,
+  },
+  {
+    key: 'field-trip',
+    command: '/field-trip',
+    label: 'Field Trip Plan',
+    description: 'Plan an educational field trip for this topic with learning objectives.',
+    group: 'PLAN',
+    outputKind: 'document',
+    icon: 'fi fi-rr-compass',
+    accent: 'bg-emerald-500',
+    preview: 'Destination options, objectives, itinerary, safety and a follow-up task',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 12000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'duration', label: 'Trip length', type: 'select', options: ['Half day', 'Full day', 'Within school grounds'], default: 'Half day' },
+    ],
+    pushTargets: [],
+    basePrompt: `Plan a {{duration}} educational field trip that teaches "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- sections: "Where To Go" (2-3 realistic options in or near a Tamil Nadu town, including a zero-cost option), "Learning Objectives", "Before The Trip", "Itinerary" (with durationMins), "What Students Record", "Safety & Permissions", "After The Trip".
+- If travel is not feasible, the "Within school grounds" option must still genuinely teach the topic.
+- Students must have a specific recording task — a tally, sketch, interview or measurement — not "observe and enjoy".
+- Safety must name real risks (road crossing, water, heat, headcount points) and the staff-to-student ratio.
+- teacherNotes: what to do about students who cannot pay or cannot attend.`,
+  },
+  {
+    key: 'substitute-plan',
+    command: '/substitute-plan',
+    label: 'Substitute Plan',
+    description: 'Create an easy-to-follow substitute teacher plan for one class period.',
+    group: 'PLAN',
+    outputKind: 'document',
+    icon: 'fi fi-rr-user-check',
+    accent: 'bg-slate-500',
+    preview: 'A self-contained period plan any teacher can pick up and run cold',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [1, 12],
+    inputs: [
+      { key: 'duration', label: 'Period length', type: 'select', options: ['30 minutes', '40 minutes', '45 minutes', '60 minutes'], default: '45 minutes' },
+    ],
+    pushTargets: [],
+    basePrompt: `Write a substitute teacher plan for one {{duration}} period on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Assume the substitute does NOT know this subject. Everything they need must be on this page — no "refer to the textbook chapter", no prior context.
+- sections: "Lesson Overview (read this first)", "What To Write On The Board", "Instructions" (numbered, scripted, with durationMins), "Student Work", "If You Finish Early", "Leave A Note For Me".
+- Instructions must be literally sayable — write the words, including the questions to ask and the answers to expect.
+- Nothing requiring subject judgement, marking, or new teaching of a hard concept. Consolidation only.
+- teacherNotes: what the regular teacher should set up in advance for this to run smoothly.`,
+  },
+  {
+    key: 'end-of-lesson',
+    command: '/end-of-lesson',
+    label: 'End of Lesson',
+    description: 'Create engaging wrap-up activities to conclude a lesson.',
+    group: 'PLAN',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-hourglass',
+    accent: 'bg-amber-600',
+    preview: 'Quick closers that check understanding before the bell',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 8000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(6, 'Number of wrap-ups')],
+    pushTargets: [],
+    basePrompt: `Give {{count}} ways to close a lesson on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each must fit in 3-5 minutes and end with the teacher KNOWING who understood and who did not.
+- Body: exactly what the teacher says, and what a correct student response sounds like.
+- Vary the form: one written exit ticket, one oral round, one hands-up check, one pair-share, one prediction of next lesson, one summarise-in-one-sentence.
+- tag: "Written", "Oral", "Quick check" or "Preview".`,
+  },
+  {
+    key: 'lesson-reflection',
+    command: '/lesson-reflection',
+    label: 'Lesson Reflection',
+    description: 'Create a lesson reflection template to improve future lessons.',
+    group: 'PLAN',
+    outputKind: 'document',
+    icon: 'fi fi-rr-mind-share',
+    accent: 'bg-violet-600',
+    preview: 'A short post-lesson review the teacher fills in while it is fresh',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [],
+    pushTargets: [],
+    basePrompt: `Create a post-lesson reflection template for a lesson on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- sections: "What Went Well", "Where They Struggled", "Evidence I Have", "What I Would Change", "Next Lesson Must Start With".
+- Each section's bullets are PROMPTS for the teacher to answer, phrased as specific questions about "{{topic}}" — not generic ones. Reference the parts of this topic students actually find hard.
+- Keep it to something a teacher can complete honestly in 5 minutes between periods.
+- teacherNotes: the two or three signals during this particular topic that indicate the class has not understood, even when they say they have.`,
+  },
 ];
 
 export const SKILL_BY_KEY: Record<string, AiSkillDef> = AI_SKILLS.reduce((acc, s) => {
@@ -1102,6 +1753,8 @@ function fillPlaceholders(template: string, ctx: PromptContext, def: AiSkillDef)
     subject: String(ctx.subject || ''),
     topic: String(ctx.topic || ''),
     unit: String(ctx.unit || ''),
+    // Available to any prompt that needs the model to emit real icon names.
+    iconList: SAFE_ICON_LIST,
   };
   for (const input of def.inputs) {
     const raw = ctx.extras?.[input.key];

@@ -216,6 +216,45 @@ function slidesBody(p: any): string {
     .join("");
 }
 
+function infographicBody(p: any): string {
+  const list = (arr: any[], render: (x: any) => string) =>
+    Array.isArray(arr) ? arr.map(render).join("") : "";
+  const f = p?.lawOrFormula;
+  return `
+    ${p?.introduction ? `<div class="box">${nl2br(p.introduction)}</div>` : ""}
+    ${
+      Array.isArray(p?.whatIsIt) && p.whatIsIt.length
+        ? `<h2>What Is It</h2><ul>${list(p.whatIsIt, (i) => `<li>${nl2br(i?.text)}</li>`)}</ul>`
+        : ""
+    }
+    ${
+      f
+        ? `<h2>${esc(f.title)}</h2>
+           ${f.subtitle ? `<p style="color:#6b7280">${esc(f.subtitle)}</p>` : ""}
+           <div class="box" style="text-align:center;font-size:15pt;font-weight:700">${esc(f.formula)}</div>
+           ${Array.isArray(f.variables) && f.variables.length ? `<ul>${list(f.variables, (v) => `<li><b>${esc(v?.symbol)}</b> — ${esc(v?.explanation)}</li>`)}</ul>` : ""}`
+        : ""
+    }
+    ${
+      Array.isArray(p?.keyFacts) && p.keyFacts.length
+        ? `<h2>Key Facts</h2><div class="cards">${list(p.keyFacts, (k) => `<div class="box"><h3>${esc(k?.title)}</h3><div>${nl2br(k?.description)}</div></div>`)}</div>`
+        : ""
+    }
+    ${
+      Array.isArray(p?.examples) && p.examples.length
+        ? `<h2>Examples</h2><ul>${list(p.examples, (e) => `<li><b>${esc(e?.title)}</b> — ${esc(e?.description)}</li>`)}</ul>`
+        : ""
+    }
+    ${
+      Array.isArray(p?.applications) && p.applications.length
+        ? `<h2>Where It Is Used</h2><ul>${list(p.applications, (a) => `<li><b>${esc(a?.title)}</b> — ${esc(a?.description)}</li>`)}</ul>`
+        : ""
+    }
+    ${p?.didYouKnow ? `<div class="box"><h3>${esc(p.didYouKnow.title)}</h3><div>${nl2br(p.didYouKnow.description)}</div></div>` : ""}
+    ${p?.remember ? `<div class="box"><h3>${esc(p.remember.title)}</h3><div>${nl2br(p.remember.text)}</div></div>` : ""}
+    ${p?.quote?.text ? `<div class="box" style="font-style:italic">“${esc(p.quote.text)}” — ${esc(p.quote.author)}</div>` : ""}`;
+}
+
 const BODIES: Record<OutputKind, (p: any) => string> = {
   document: documentBody,
   questionSet: questionSetBody,
@@ -223,6 +262,7 @@ const BODIES: Record<OutputKind, (p: any) => string> = {
   matrix: matrixBody,
   cardList: cardListBody,
   slides: slidesBody,
+  infographic: infographicBody,
 };
 
 export function buildPrintHtml(outputKind: OutputKind, payload: any, meta: PrintMeta): string {

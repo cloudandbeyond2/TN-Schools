@@ -147,6 +147,8 @@ const translations = {
       "Differentiate": "நிலைக்கேற்ப மாற்றம்",
       "Feedback & Rubric": "கருத்துரை & மதிப்பீட்டு அட்டவணை",
       "My AI Content": "எனது AI உள்ளடக்கம்",
+      "Plan & Organise": "திட்டமிடல் & ஒழுங்கமைப்பு",
+      "Class Materials": "வகுப்பு பாடப்பொருள்கள்",
       "Student Management": "மாணவர் நிர்வாகம்",
       "Student Profiles": "மாணவர் விவரங்கள்",
       "Student Status": "மாணவர் நிலை",

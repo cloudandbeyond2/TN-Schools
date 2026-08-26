@@ -87,7 +87,7 @@ const RAW_CATALOG: FeatureModuleEntry[] = [
   entry("question-generator", "Question Generator", "❓", "AI question paper generation for teachers", "AI & Learning", "FEATURE", ["/teacher/questions"]),
   // Category "AI & Learning" means the global Enable AI Features switch in
   // Portal Settings already disables the whole studio — see feature.routes.ts.
-  entry("teacher-ai-studio", "AI Content Studio", "✨", "20 subject-adaptive AI content skills for teachers", "AI & Learning", "FEATURE", ["/teacher/ai-studio", "/teacher/ai-studio/teach", "/teacher/ai-studio/practice", "/teacher/ai-studio/assess", "/teacher/ai-studio/engage", "/teacher/ai-studio/differentiate", "/teacher/ai-studio/feedback", "/teacher/ai-studio/library", "/teacher/ai-prompts"]),
+  entry("teacher-ai-studio", "AI Content Studio", "✨", "20 subject-adaptive AI content skills for teachers", "AI & Learning", "FEATURE", ["/teacher/ai-studio", "/teacher/ai-studio/teach", "/teacher/ai-studio/practice", "/teacher/ai-studio/assess", "/teacher/ai-studio/engage", "/teacher/ai-studio/differentiate", "/teacher/ai-studio/feedback", "/teacher/ai-studio/plan", "/teacher/ai-studio/library", "/teacher/ai-prompts", "/student/ai-content"]),
   entry("personal-guide", "Personal Guide", "🧭", "AI wellbeing and self-care companion", "AI & Learning", "FEATURE", ["/student/personal-guide", "/teacher/personal-guide"]),
   entry("smart-class", "Smart Class", "📽️", "Fullscreen classroom projection mode", "Content", "FEATURE", ["/teacher/smart-class"]),
   entry("personal-counsellor", "Personal Counsellor", "🫶", "Confidential student counselling bookings", "Support", "FEATURE", ["/student/counsellor"]),

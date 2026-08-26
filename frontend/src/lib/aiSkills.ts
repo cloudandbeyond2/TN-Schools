@@ -14,7 +14,8 @@ export type SkillGroup =
   | "ASSESS"
   | "ENGAGE"
   | "DIFFERENTIATE"
-  | "FEEDBACK";
+  | "FEEDBACK"
+  | "PLAN";
 
 export type OutputKind =
   | "document"
@@ -22,7 +23,8 @@ export type OutputKind =
   | "worksheet"
   | "matrix"
   | "cardList"
-  | "slides";
+  | "slides"
+  | "infographic";
 
 export type SubjectPack =
   | "MATHS"
@@ -86,7 +88,19 @@ export const STUDIO_GROUPS: StudioGroup[] = [
   { key: "ENGAGE", slug: "engage", label: "Engage & Discuss", icon: "fi fi-rr-comments", blurb: "Get the class talking and involved" },
   { key: "DIFFERENTIATE", slug: "differentiate", label: "Differentiate", icon: "fi fi-rr-users-alt", blurb: "Adapt for mixed-ability classrooms and grade fairly" },
   { key: "FEEDBACK", slug: "feedback", label: "Feedback", icon: "fi fi-rr-comment-check", blurb: "Constructive, specific feedback on student work" },
+  { key: "PLAN", slug: "plan", label: "Plan & Organise", icon: "fi fi-rr-clipboard-list", blurb: "Trips, cover lessons, stations and post-lesson review" },
 ];
+
+/** Short tab label for the palette — the first word of the group label. */
+export const GROUP_SHORT: Record<SkillGroup, string> = {
+  TEACH: "Teach",
+  PRACTICE: "Practice",
+  ASSESS: "Assess",
+  ENGAGE: "Engage",
+  DIFFERENTIATE: "Differentiate",
+  FEEDBACK: "Feedback",
+  PLAN: "Plan",
+};
 
 export const GROUP_BY_SLUG: Record<string, StudioGroup> = STUDIO_GROUPS.reduce(
   (acc, g) => {
@@ -119,6 +133,7 @@ export const OUTPUT_KIND_LABEL: Record<OutputKind, string> = {
   matrix: "Matrix",
   cardList: "Cards",
   slides: "Slide deck",
+  infographic: "Infographic poster",
 };
 
 /**

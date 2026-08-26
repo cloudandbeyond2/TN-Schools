@@ -142,6 +142,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -221,6 +222,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -396,6 +398,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
 
       // ===================== STUDY PLANNER =====================
       { label: "---", href: "#", icon: "" },
@@ -532,6 +535,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Engage & Discuss", href: "/teacher/ai-studio/engage", icon: "fi fi-rr-comments" },
       { label: "Differentiate", href: "/teacher/ai-studio/differentiate", icon: "fi fi-rr-users-alt" },
       { label: "Feedback & Rubric", href: "/teacher/ai-studio/feedback", icon: "fi fi-rr-comment-check" },
+      { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
 
       // Student Management

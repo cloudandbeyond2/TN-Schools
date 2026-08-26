@@ -11,6 +11,7 @@
 
 import React from "react";
 import type { OutputKind } from "@/lib/aiSkills";
+import { InfographicRenderer } from "@/components/InfographicRenderer";
 
 export type EditFn = (path: (string | number)[], value: string) => void;
 
@@ -837,6 +838,49 @@ export function SlidesRenderer({ payload, onEdit }: RendererProps) {
 // Dispatcher + loading skeletons
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// infographic — /infographic
+//
+// Delegates to the existing poster renderer used by AI Lesson Creator. The
+// studio schema mirrors VISUAL_DESIGN_SCHEMA field for field, so no adapter is
+// needed. Not inline-editable: it is a laid-out visual, not a text document —
+// regenerate or refine it instead.
+// ---------------------------------------------------------------------------
+
+const INFOGRAPHIC_STYLES = ["Exam point of view", "General knowledge", "Know more"] as const;
+
+export function InfographicOutput({ payload }: RendererProps) {
+  const [style, setStyle] = React.useState<string>(payload?.__focus || "General knowledge");
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mr-1">
+          Poster style
+        </span>
+        {INFOGRAPHIC_STYLES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStyle(s)}
+            className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition ${
+              style === s
+                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto">
+        <InfographicRenderer data={payload} focus={style} />
+      </div>
+    </div>
+  );
+}
+
 const RENDERERS: Record<OutputKind, React.ComponentType<RendererProps>> = {
   document: DocumentRenderer,
   questionSet: QuestionSetRenderer,
@@ -844,6 +888,7 @@ const RENDERERS: Record<OutputKind, React.ComponentType<RendererProps>> = {
   matrix: MatrixRenderer,
   cardList: CardListRenderer,
   slides: SlidesRenderer,
+  infographic: InfographicOutput,
 };
 
 export function OutputRenderer({
@@ -895,6 +940,23 @@ export function OutputSkeleton({ outputKind }: { outputKind: OutputKind }) {
               <Bar w="80%" />
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+  if (outputKind === "infographic") {
+    return (
+      <div className="space-y-3">
+        <Bar w="40%" h="1.1rem" />
+        <div className="rounded-xl border border-[var(--border)] p-5 space-y-4">
+          <Bar w="65%" h="1.6rem" />
+          <Bar w="45%" />
+          <Bar h="9rem" />
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Bar key={i} h="3.5rem" />
+            ))}
+          </div>
         </div>
       </div>
     );

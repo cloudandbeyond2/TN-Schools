@@ -12,6 +12,7 @@ import {
   subjectToPack,
   renderPrompt,
   gradeFromClassName,
+  sanitizePayload,
   AiSkillDef,
   SubjectPack,
   PromptContext,
@@ -211,7 +212,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       packDirective: skill.packOverrides[pack],
     });
 
-    const payload = await callGemini(
+    const raw = await callGemini(
       prompt,
       true,
       SCHEMAS[skill.def.outputKind],
@@ -221,6 +222,8 @@ router.post('/generate', async (req: Request, res: Response) => {
       undefined,
       skill.model
     );
+    // Free-text icon fields can come back as names the font does not ship.
+    const payload = sanitizePayload(skill.def.outputKind, raw);
 
     res.json({
       success: true,
@@ -498,19 +501,32 @@ router.post('/content/:id/push', async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 router.get('/published', async (req: Request, res: Response) => {
   try {
+    // Accept either `class` (what the student session carries, e.g. "10") or
+    // `className` (what the teacher saved, e.g. "Class 10"). Grade is compared
+    // numerically so the two formats match.
     const { schoolId, className, section, subject } = req.query;
+    const classParam = (req.query.class as string) ?? (className as string) ?? '';
+    const grade = gradeFromClassName(classParam);
+
     const items = await prisma.aiContent.findMany({
       where: {
         isPublished: true,
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
-        ...(className ? { className: String(className) } : {}),
-        ...(section ? { section: String(section) } : {}),
         ...(subject ? { subject: String(subject) } : {}),
       },
       orderBy: { publishedAt: 'desc' },
-      take: 100,
+      take: 300,
     });
-    res.json({ success: true, count: items.length, data: items });
+
+    const filtered = items.filter((item) => {
+      if (grade && gradeFromClassName(item.className) !== grade) return false;
+      // Content saved without a section is for the whole class, so it is
+      // visible to every section — only a mismatched section is excluded.
+      if (section && item.section && item.section !== String(section)) return false;
+      return true;
+    });
+
+    res.json({ success: true, count: filtered.length, data: filtered.slice(0, 100) });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
