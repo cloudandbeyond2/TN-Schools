@@ -75,9 +75,41 @@ export default function HeadmasterDashboard() {
     }
   }, [mySchoolId]);
 
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/announcements?role=Headmaster`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAnnouncements(json.data);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    fetchAnnouncements();
+  }, [fetchDashboardData, fetchAnnouncements]);
+
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("dismissed-announcements");
+      if (saved) setDismissedIds(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleDismiss = (id: string) => {
+    const updated = [...dismissedIds, String(id)];
+    setDismissedIds(updated);
+    try {
+      sessionStorage.setItem("dismissed-announcements", JSON.stringify(updated));
+    } catch {}
+  };
+
+  const visibleAnnouncements = announcements.filter((a) => !dismissedIds.includes(String(a.id)));
 
   const highRisk = students.filter((s) => s.risk === "High").length;
   const totalStudents = students.length;
@@ -130,6 +162,49 @@ export default function HeadmasterDashboard() {
           sub={`${excellentStaff} rated excellent`}
         />
       </div>
+
+      {/* Broadcast Announcements Banner */}
+      {visibleAnnouncements.length > 0 && (
+        <div className="mb-4 space-y-2 fade-in">
+          {visibleAnnouncements.map((ann) => (
+            <div
+              key={ann.id}
+              className={`p-4 rounded-xl border flex items-start justify-between gap-4 shadow-sm ${
+                ann.priority === "critical"
+                  ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300"
+                  : ann.priority === "warning"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
+                  : "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0">
+                  {ann.priority === "critical" ? "🚨" : ann.priority === "warning" ? "⚠️" : "📢"}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-sm">{ann.title}</h3>
+                    {ann.target && ann.target.toUpperCase() !== "ALL" && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-slate-100/10 font-semibold uppercase">
+                        Target: {ann.target}
+                      </span>
+                    )}
+                    <span className="text-[11px] opacity-75">{ann.createdAt}</span>
+                  </div>
+                  <p className="text-xs mt-1 leading-relaxed opacity-90">{ann.body}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleDismiss(String(ann.id))}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900/10 hover:bg-slate-900/20 dark:bg-white/10 dark:hover:bg-white/20 transition flex items-center gap-1 shrink-0"
+                title="Clear announcement"
+              >
+                <span>Clear</span> ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Distributions + promotion outcomes */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 fade-in-2">

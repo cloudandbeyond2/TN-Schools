@@ -822,3 +822,31 @@ const AiSkillConfigSchema = new Schema<IAiSkillConfig>({
 }, { timestamps: true });
 
 export const AiSkillConfig = mongoose.models.AiSkillConfig || mongoose.model<IAiSkillConfig>('AiSkillConfig', AiSkillConfigSchema);
+
+// ─── System Announcements Model ───────────────
+export interface IAnnouncement extends Document {
+  title: string;
+  body: string;
+  priority: 'info' | 'warning' | 'critical';
+  target: 'All' | 'Student' | 'Teacher' | 'Parent' | 'Headmaster' | 'BEO' | 'DEO' | 'Commissioner' | 'Minister';
+  createdBy: string;
+  expiresAt?: Date;
+  status: 'active' | 'scheduled' | 'expired';
+  views: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AnnouncementSchema = new Schema<IAnnouncement>({
+  title:     { type: String, required: true },
+  body:      { type: String, required: true },
+  priority:  { type: String, enum: ['info', 'warning', 'critical'], default: 'info' },
+  target:    { type: String, required: true, default: 'All' },
+  createdBy: { type: String, default: 'Super Admin' },
+  expiresAt: { type: Date },
+  status:    { type: String, enum: ['active', 'scheduled', 'expired'], default: 'active' },
+  views:     { type: Number, default: 0 },
+}, { timestamps: true });
+
+export const Announcement = mongoose.models.Announcement || mongoose.model<IAnnouncement>('Announcement', AnnouncementSchema);
+
