@@ -262,13 +262,18 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
   // ── filtered palette ─────────────────────────────────────────────────────
   const visibleSkills = useMemo(() => {
     const q = query.trim().toLowerCase().replace(/^\//, "");
+    const clean = (str: string) => str.toLowerCase().replace(/[-_\s]/g, "");
+    const cleanQ = clean(q);
     return skills.filter((s) => {
       if (activeGroup !== "ALL" && s.group !== activeGroup) return false;
       if (!q) return true;
       return (
         s.command.toLowerCase().includes(q) ||
+        clean(s.command).includes(cleanQ) ||
         s.label.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q)
+        clean(s.label).includes(cleanQ) ||
+        s.description.toLowerCase().includes(q) ||
+        clean(s.description).includes(cleanQ)
       );
     });
   }, [skills, activeGroup, query]);

@@ -1712,6 +1712,221 @@ Requirements:
 - Keep it to something a teacher can complete honestly in 5 minutes between periods.
 - teacherNotes: the two or three signals during this particular topic that indicate the class has not understood, even when they say they have.`,
   },
+
+  // ── AI STUDIO OPTIONS (11-20) ─────────────────────────────────────────────
+  {
+    key: 'educational-video',
+    command: '/educational-video',
+    label: 'Educational Video Ideas',
+    description: 'Suggest ideas for educational video topics on this topic for classroom or self-study.',
+    group: 'TEACH',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-film',
+    accent: 'bg-blue-600',
+    preview: 'Video concepts with hooks, visual script ideas, key concepts and takeaways',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 10000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(5, 'Number of video ideas')],
+    pushTargets: ['smartClass'],
+    basePrompt: `Suggest {{count}} educational video topic ideas for teaching "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card represents one video concept idea.
+- Title: Video idea title.
+- Body: 1) Video Hook / Opener, 2) Visual concepts & demonstration, 3) Key takeaway points for students.
+- Tag: estimated duration (e.g. "3 mins", "5 mins").
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'thinking-questions',
+    command: '/thinking-questions',
+    label: 'Higher-Order Thinking Questions',
+    description: 'Generate higher-order thinking questions on this topic to improve critical thinking.',
+    group: 'ASSESS',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-brain',
+    accent: 'bg-purple-600',
+    preview: 'Questions mapped across Bloom\'s Taxonomy: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 12000,
+    defaultClassRange: [1, 12],
+    inputs: [],
+    pushTargets: ['questionBank'],
+    basePrompt: `Generate higher-order thinking questions on "{{topic}}" ({{subject}}, {{class}}) to improve student critical thinking.
+Requirements:
+- Exactly 6 cards, corresponding to Bloom's Taxonomy levels:
+  1) Remembering Questions
+  2) Understanding Questions
+  3) Applying Questions
+  4) Analyzing Questions
+  5) Evaluating Questions
+  6) Creating Questions
+- Title: Level name (e.g. "Analyzing Questions").
+- Body: 2-3 deep questions for that level, plus guiding notes for classroom facilitation.
+- Tag: Bloom's level.
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'projects',
+    command: '/projects',
+    label: 'Project Ideas',
+    description: 'Suggest project ideas on this topic for this grade level with steps and expected outcomes.',
+    group: 'PRACTICE',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-diploma',
+    accent: 'bg-pink-600',
+    preview: 'Project ideas with steps to follow, required resources and expected outcomes',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 11000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(4, 'Number of project ideas')],
+    pushTargets: [],
+    basePrompt: `Suggest {{count}} project ideas on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one project idea.
+- Title: Project title.
+- Body: 1) Concept overview, 2) Steps to follow, 3) Expected outcome / deliverable.
+- Tag: duration / team mode (e.g. "1 Week - Pairs").
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'lessonhook',
+    command: '/lessonhook',
+    label: 'Lesson Hook & Starter',
+    description: 'Give an attention-grabbing lesson hook or starter activity on this topic.',
+    group: 'TEACH',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-bolt',
+    accent: 'bg-amber-500',
+    preview: 'Attention-grabbing lesson starters with usage steps, purpose and expected student responses',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(3, 'Number of hook ideas')],
+    pushTargets: ['smartClass'],
+    basePrompt: `Give {{count}} attention-grabbing lesson hooks or starter activities on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one hook/starter idea.
+- Title: Hook / Starter Idea.
+- Body: 1) How to Use, 2) Purpose, 3) Expected Student Response.
+- Tag: duration (e.g. "3 mins", "5 mins").
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'vocabulary',
+    command: '/vocabulary',
+    label: 'Vocabulary List',
+    description: 'List important vocabulary words related to this topic with meanings and examples.',
+    group: 'TEACH',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-document',
+    accent: 'bg-pink-600',
+    preview: 'Vocabulary words with student-friendly meanings, Tamil gloss, and example sentences',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(6, 'Number of vocabulary words')],
+    pushTargets: ['smartClass'],
+    basePrompt: `List {{count}} important vocabulary words related to "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card represents one vocabulary word.
+- Title: Vocabulary word.
+- Body: 1) Meaning in simple classroom English, 2) Tamil translation / equivalent, 3) Example sentence in context.
+- Tag: difficulty / word type.
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'class-discussion',
+    command: '/class-discussion',
+    label: 'Class Discussion Topics',
+    description: 'Suggest thought-provoking discussion topics on this topic for classroom discussion.',
+    group: 'ENGAGE',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-comments',
+    accent: 'bg-lime-600',
+    preview: 'Discussion topics with guiding questions, opposing viewpoints, and facilitation tips',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(5, 'Number of discussion topics')],
+    pushTargets: [],
+    basePrompt: `Suggest {{count}} thought-provoking discussion topics on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one discussion topic.
+- Title: Discussion Topic.
+- Body: 1) Core question / dilemma, 2) Guiding questions to keep the conversation going, 3) Key insights to reach.
+- Tag: discussion format (e.g. "Debate", "Open Discussion", "Think-Pair-Share").
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'formative-assessment',
+    command: '/formative-assessment',
+    label: 'Formative Assessment',
+    description: 'Create quick formative assessment ideas to check understanding of this topic.',
+    group: 'ASSESS',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-check-circle',
+    accent: 'bg-emerald-600',
+    preview: 'Quick formative check ideas with step-by-step instructions and key observations',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 9000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(5, 'Number of assessment ideas')],
+    pushTargets: ['questionBank'],
+    basePrompt: `Create {{count}} quick formative assessment ideas to check understanding of "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one formative assessment technique.
+- Title: Assessment Idea (e.g. "Exit Slip", "3-2-1 Summary", "Whiteboard Check").
+- Body: 1) How to Use, 2) Purpose, 3) What to look for / How to gauge understanding.
+- Tag: duration (e.g. "2 mins", "5 mins").
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'remedial-activity',
+    command: '/remedial-activity',
+    label: 'Remedial Activity',
+    description: 'Suggest remedial activities for students who are struggling with this topic.',
+    group: 'DIFFERENTIATE',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-chart-line-up',
+    accent: 'bg-amber-600',
+    preview: 'Targeted remedial activities for struggling students with step-by-step guidance',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 10000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(5, 'Number of activities')],
+    pushTargets: [],
+    basePrompt: `Suggest {{count}} remedial activities for students struggling with "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one remedial activity.
+- Title: Activity name.
+- Body: 1) Activity steps & scaffolding, 2) Misconception addressed, 3) Implementation tips for the teacher.
+- Tag: targeted skill area.
+- Icon: fitting emoji.`,
+  },
+  {
+    key: 'enrichment-activity',
+    command: '/enrichment-activity',
+    label: 'Enrichment Activity',
+    description: 'Suggest enrichment activities for advanced learners on this topic.',
+    group: 'DIFFERENTIATE',
+    outputKind: 'cardList',
+    icon: 'fi fi-rr-trophy',
+    accent: 'bg-indigo-600',
+    preview: 'Challenging enrichment tasks for advanced learners with clear learning outcomes',
+    defaultModel: 'gemini-2.5-flash',
+    defaultMaxTokens: 10000,
+    defaultClassRange: [1, 12],
+    inputs: [COUNT_INPUT(5, 'Number of activities')],
+    pushTargets: [],
+    basePrompt: `Suggest {{count}} enrichment activities for advanced learners on "{{topic}}" ({{subject}}, {{class}}).
+Requirements:
+- Each card is one enrichment task.
+- Title: Activity name.
+- Body: 1) Challenge description & steps, 2) Deep-dive concept, 3) Expected Learning Outcome.
+- Tag: challenge focus (e.g. "Research", "Design", "Synthesis").
+- Icon: fitting emoji.`,
+  },
 ];
 
 export const SKILL_BY_KEY: Record<string, AiSkillDef> = AI_SKILLS.reduce((acc, s) => {
