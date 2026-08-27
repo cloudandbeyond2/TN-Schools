@@ -173,16 +173,19 @@ const getFlaticon = (key: string) => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between sm:justify-start gap-3">
                       <h3 className="text-sm font-bold text-white truncate">{feature.name}</h3>
-                      {/* Mobile toggle (shows next to title on small screens if wrapping happens, else hidden) */}
+                      {/* Mobile toggle */}
                       <button
+                        type="button"
                         onClick={() => toggleFeature(feature.key, feature.isEnabled)}
-                        className={`relative w-10 h-5 sm:hidden rounded-full transition-colors shrink-0 ${
-                          feature.isEnabled ? "bg-green-500" : "bg-slate-700"
+                        className={`relative sm:hidden inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          feature.isEnabled
+                            ? "bg-emerald-500 hover:bg-emerald-600"
+                            : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
                         }`}
                       >
                         <span
-                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                            feature.isEnabled ? "translate-x-5" : "translate-x-0.5"
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            feature.isEnabled ? "translate-x-5" : "translate-x-0"
                           }`}
                         />
                       </button>
@@ -204,14 +207,17 @@ const getFlaticon = (key: string) => {
                 </div>
                 {/* Desktop toggle */}
                 <button
+                  type="button"
                   onClick={() => toggleFeature(feature.key, feature.isEnabled)}
-                  className={`hidden sm:block relative w-12 h-6 rounded-full transition-colors shrink-0 ${
-                    feature.isEnabled ? "bg-green-500" : "bg-slate-700"
+                  className={`hidden sm:inline-flex relative h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    feature.isEnabled
+                      ? "bg-emerald-500 hover:bg-emerald-600"
+                      : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                      feature.isEnabled ? "translate-x-6" : "translate-x-0.5"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      feature.isEnabled ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
                 </button>

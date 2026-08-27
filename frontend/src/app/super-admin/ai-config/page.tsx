@@ -293,10 +293,20 @@ export default function AIConfig() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <button
+                      type="button"
                       onClick={() => toggleStatus(s)}
-                      className={`relative w-10 h-5 rounded-full transition-colors ${s.isEnabled ? "bg-emerald-500" : "bg-slate-700"}`}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        s.isEnabled
+                          ? "bg-emerald-500 hover:bg-emerald-600"
+                          : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
+                      }`}
+                      title={s.isEnabled ? "Service Enabled" : "Service Disabled"}
                     >
-                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${s.isEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          s.isEnabled ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
                     </button>
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${s.isEnabled ? "text-emerald-400" : "text-slate-500"}`}>
                       {s.isEnabled ? "ENABLED" : "DISABLED"}

@@ -318,9 +318,21 @@ export default function UserManagement() {
                     </td>
                     <td>{u.joined}</td>
                     <td>
-                      <button onClick={() => toggleStatus(u.id, u.status)}
-                        className={`relative w-10 h-5 rounded-full transition-colors ${u.status === "active" ? "bg-emerald-500" : "bg-slate-700"}`}>
-                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${u.status === "active" ? "translate-x-5" : "translate-x-0.5"}`} />
+                      <button 
+                        type="button"
+                        onClick={() => toggleStatus(u.id, u.status)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          u.status === "active"
+                            ? "bg-emerald-500 hover:bg-emerald-600"
+                            : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
+                        }`}
+                        title={u.status === "active" ? "User Active (Click to deactivate)" : "User Inactive (Click to activate)"}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            u.status === "active" ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
                       </button>
                     </td>
                     <td className="text-right">

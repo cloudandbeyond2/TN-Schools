@@ -547,6 +547,28 @@ export default function PortalLayout({
     }
   };
 
+  const formatNotifTime = (dateVal: any) => {
+    if (!dateVal) return "Just now";
+    if (typeof dateVal === "string") {
+      if (dateVal === "Just now" || dateVal.toLowerCase().includes("ago")) return dateVal;
+      const d = new Date(dateVal);
+      if (!isNaN(d.getTime())) {
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        if (diffMs >= 0) {
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMins / 60);
+          if (diffMins < 1) return "Just now";
+          if (diffMins < 60) return `${diffMins}m ago`;
+          if (diffHours < 24) return `${diffHours}h ago`;
+        }
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      }
+      return dateVal;
+    }
+    return "Just now";
+  };
+
   const fetchNotifications = async () => {
     let role = (session?.user as any)?.role;
     if (!role) {
@@ -570,9 +592,11 @@ export default function PortalLayout({
         if (annData.success && Array.isArray(annData.data)) {
           announcementsList = annData.data.map((a: any) => ({
             id: `ann-${a.id}`,
-            message: `📢 [${a.title}] ${a.body}`,
+            title: `📢 ${a.title}`,
+            description: a.body || "",
+            message: `📢 ${a.title}`,
             read: false,
-            createdAt: a.createdAt || "Just now",
+            createdAt: a.createdAt || new Date().toISOString(),
             isAnnouncement: true,
           }));
         }
@@ -591,6 +615,8 @@ export default function PortalLayout({
         if (data.success && Array.isArray(data.data)) {
           mappedUserNotifs = data.data.map((n: any) => ({
             id: n.id,
+            title: n.title || "",
+            description: n.message || "",
             message: n.title ? (n.message ? `${n.title}: ${n.message}` : n.title) : (n.message || ""),
             read: n.isRead !== undefined ? n.isRead : n.read,
             createdAt: n.createdAt
@@ -1328,9 +1354,22 @@ export default function PortalLayout({
                             }`}
                         >
                           <div className="flex-1">
-                            <div>{notif.message}</div>
+                            {notif.isAnnouncement ? (
+                              <>
+                                <div className="font-bold text-xs text-[var(--text-heading)] leading-snug">
+                                  {notif.title || notif.message}
+                                </div>
+                                {notif.description && notif.description !== notif.title && (
+                                  <div className="text-[10px] text-[var(--text-main)] opacity-80 leading-normal mt-0.5 font-normal">
+                                    {notif.description}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div>{notif.message}</div>
+                            )}
                             <div className="text-[9px] text-[var(--text-muted)] mt-1 font-normal">
-                              {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {formatNotifTime(notif.createdAt)}
                             </div>
                           </div>
                           {!notif.read && (

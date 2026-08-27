@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { Upload, FileText, CheckCircle2, AlertCircle, Building, Book } from "lucide-react";
+import { Upload, FileText, CheckCircle2, AlertCircle, Building, Book, Library, Sparkles, FolderKanban } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 const CATEGORIES = [
@@ -111,8 +111,59 @@ export default function SuperAdminDigitalLibraryPage() {
 
   return (
     <PortalLayout title="Digital Library Management" subtitle="Upload and distribute resources to schools" accentColor="#8b5cf6">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         
+        {/* Top Hero Banner */}
+        <div 
+          className="banner-text-white relative overflow-hidden rounded-3xl p-6 md:p-8 shadow-xl text-white"
+          style={{ background: 'linear-gradient(135deg, #5b21b6 0%, #4338ca 50%, #6b21a8 100%)', color: '#ffffff' }}
+        >
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-xl">
+              <div 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border border-white/30 shadow-sm"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
+              >
+                <Library className="w-3.5 h-3.5 text-amber-300" style={{ color: '#fcd34d' }} />
+                <span className="font-bold tracking-wide" style={{ color: '#ffffff' }}>State Digital Repository</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight drop-shadow-sm" style={{ color: '#ffffff' }}>
+                Digital Library Management
+              </h1>
+              <p className="text-xs md:text-sm font-medium leading-relaxed" style={{ color: '#f3e8ff' }}>
+                Upload, catalog, and distribute educational materials, e-books, research guides, and video lessons directly to school libraries across Tamil Nadu.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div 
+                className="px-4 py-3 rounded-2xl border border-white/25 text-center min-w-[95px] shadow-sm"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
+              >
+                <div className="text-2xl font-black" style={{ color: '#ffffff' }}>{schools.length || "38+"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: '#f3e8ff' }}>Schools</div>
+              </div>
+              <div 
+                className="px-4 py-3 rounded-2xl border border-white/25 text-center min-w-[95px] shadow-sm"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
+              >
+                <div className="text-2xl font-black" style={{ color: '#ffffff' }}>{CATEGORIES.length}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: '#f3e8ff' }}>Categories</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Decorative background glow circles */}
+          <div 
+            className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full blur-2xl pointer-events-none" 
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+          />
+          <div 
+            className="absolute left-1/2 -top-12 w-48 h-48 rounded-full blur-3xl pointer-events-none" 
+            style={{ backgroundColor: 'rgba(192, 132, 252, 0.25)' }}
+          />
+        </div>
+
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 bg-violet-100 dark:bg-violet-900/30 text-violet-600 rounded-xl">

@@ -262,16 +262,19 @@ export default function PageManagement() {
                           </div>
                         </div>
                         <button
+                          type="button"
                           onClick={() => togglePage(page._id, page.isEnabled)}
-                          className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${
-                            page.isEnabled ? "bg-green-500" : "bg-slate-700"
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            page.isEnabled
+                              ? "bg-emerald-500 hover:bg-emerald-600"
+                              : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
                           }`}
                           title={page.isEnabled ? "Disable page" : "Enable page"}
                           aria-label={page.isEnabled ? `Disable ${page.title}` : `Enable ${page.title}`}
                         >
                           <span
-                            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                              page.isEnabled ? "translate-x-6" : "translate-x-0.5"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              page.isEnabled ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
                         </button>
