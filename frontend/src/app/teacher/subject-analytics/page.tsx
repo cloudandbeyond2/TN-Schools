@@ -1,7 +1,7 @@
 "use client";
 import { Bot, BarChart, CheckCircle, TrendingUp, Microscope, Book, BookOpen, Pencil, Star, Trash, X } from "lucide-react";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import PortalLayout from "@/components/PortalLayout";
@@ -91,6 +91,15 @@ export default function SubjectAnalyticsPage() {
     fetchTeacherClasses();
   }, [schoolId, session, API_URL]);
 
+  // Selected Class & Subject Resolution
+  const selectedClassObj = useMemo(() => {
+    return teacherClasses.find((c) => `${c.className}${c.section}` === selectedClass);
+  }, [teacherClasses, selectedClass]);
+
+  const currentSubject = selectedClassObj?.subject || "Science";
+  const currentClassNum = selectedClassObj?.className || selectedClass.replace(/\D/g, "") || "10";
+  const currentSection = selectedClassObj?.section || selectedClass.replace(/\d/g, "").toUpperCase() || "A";
+
   // Extract unique PostgreSQL subjects taught by teacher
   const availableCategories = useMemo(() => {
     const subjectsList: string[] = [];
@@ -119,9 +128,9 @@ export default function SubjectAnalyticsPage() {
     return subjectsList;
   }, [teacherClasses, chapters]);
 
-  const fetchChapters = async () => {
+  const fetchChapters = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/teacher/lessons?schoolId=${schoolId || ""}&subject=Science`);
+      const res = await fetch(`${API_URL}/api/teacher/lessons?schoolId=${schoolId || ""}&subject=${encodeURIComponent(currentSubject)}`);
       const data = await res.json();
       if (data.success && data.data) {
         const mappedChapters: Chapter[] = data.data.map((l: any) => {
@@ -129,55 +138,55 @@ export default function SubjectAnalyticsPage() {
           return {
             id: l.id,
             name: l.topic,
-            category: planDetails.category || "Physics",
+            category: planDetails.category || currentSubject,
             progress: typeof planDetails.progress === "number" ? planDetails.progress : 0,
             avgScore: typeof planDetails.avgScore === "number" ? planDetails.avgScore : 0,
             status: planDetails.status || "Not Started",
-            grade: l.grade || "Class 10",
-            subject: l.subject || "Science",
+            grade: l.grade || `Class ${currentClassNum}`,
+            subject: l.subject || currentSubject,
             syllabus: l.syllabus || "State Board",
             duration: l.duration || "6 Hours",
           };
         });
         setChapters(mappedChapters);
+      } else {
+        setChapters([]);
       }
     } catch (err) {
       console.error("Error loading syllabus chapters", err);
+      setChapters([]);
     }
-  };
+  }, [schoolId, currentSubject, currentClassNum, API_URL]);
 
-  const fetchClassDiagnostics = async () => {
+  const fetchClassDiagnostics = useCallback(async () => {
     if (!schoolId || !selectedClass) {
       setClassStudents([]);
       return;
     }
     try {
-      const clsNum = selectedClass.replace(/\D/g, "");
-      const secLetter = selectedClass.replace(/\d/g, "").toUpperCase();
       const res = await fetch(
-        `${API_URL}/api/teacher/analytics/class?schoolId=${schoolId || ""}&class=${clsNum}&section=${secLetter}`
+        `${API_URL}/api/teacher/analytics/class?schoolId=${schoolId || ""}&class=${currentClassNum}&section=${currentSection}`
       );
       const data = await res.json();
       if (data.success && data.data) {
         const rawStudents = data.data;
         const mapped: DiagnosticStudent[] = rawStudents.map((st: any, idx: number) => {
-          let attPct = 90 - (idx % 12);
+          let attPct = 90 - (idx % 10);
           if (st.attendance && st.attendance.length > 0) {
             const presentCount = st.attendance.filter(
-              (a: any) => a.status === "PRESENT" || a.status === "PRESENT"
+              (a: any) => a.status === "PRESENT" || a.status === "LATE"
             ).length;
             attPct = Math.round((presentCount / st.attendance.length) * 100);
           }
 
           let average = 72 - (idx % 10);
           if (st.marks && st.marks.length > 0) {
-            // Filter by Science / Physics / Chemistry / Biology marks
-            const scienceMarks = st.marks.filter((m: any) =>
-              ["science", "physics", "chemistry", "biology"].includes(m.subject?.toLowerCase())
+            const subjMarks = st.marks.filter((m: any) =>
+              m.subject?.toLowerCase() === currentSubject.toLowerCase()
             );
-            const targetMarks = scienceMarks.length > 0 ? scienceMarks : st.marks;
+            const targetMarks = subjMarks.length > 0 ? subjMarks : st.marks;
             const sum = targetMarks.reduce(
-              (acc: number, m: any) => acc + (m.scored / (m.maxMarks || 100)) * 100,
+              (acc: number, m: any) => acc + ((m.scored || 0) / (m.maxMarks || 100)) * 100,
               0
             );
             average = Math.round(sum / targetMarks.length);
@@ -191,11 +200,14 @@ export default function SubjectAnalyticsPage() {
           };
         });
         setClassStudents(mapped);
+      } else {
+        setClassStudents([]);
       }
     } catch (err) {
       console.error("Error loading class diagnostics", err);
+      setClassStudents([]);
     }
-  };
+  }, [schoolId, selectedClass, currentClassNum, currentSection, currentSubject, API_URL]);
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -204,7 +216,7 @@ export default function SubjectAnalyticsPage() {
       setLoading(false);
     };
     loadAllData();
-  }, [schoolId, selectedClass, API_URL]);
+  }, [fetchChapters, fetchClassDiagnostics]);
 
   const filteredChapters = chapters.filter(
     (c) => activeCategory === "All" || c.category === activeCategory
@@ -232,42 +244,36 @@ export default function SubjectAnalyticsPage() {
     else if (s.avgScore >= 60) distCounts.C++;
     else distCounts.F++;
   });
-  const totalSt = classStudents.length || 1;
+  const totalSt = classStudents.length;
 
-  const distribution =
-    classStudents.length > 0
-      ? [
-        { grade: "A+ (90-100)", count: distCounts.APlus, percent: Math.round((distCounts.APlus / totalSt) * 100), color: "from-emerald-500 to-teal-500" },
-        { grade: "A (80-89)", count: distCounts.A, percent: Math.round((distCounts.A / totalSt) * 100), color: "from-blue-500 to-cyan-500" },
-        { grade: "B (70-79)", count: distCounts.B, percent: Math.round((distCounts.B / totalSt) * 100), color: "from-indigo-500 to-purple-500" },
-        { grade: "C (60-69)", count: distCounts.C, percent: Math.round((distCounts.C / totalSt) * 100), color: "from-amber-500 to-orange-500" },
-        { grade: "F (<60)", count: distCounts.F, percent: Math.round((distCounts.F / totalSt) * 100), color: "from-red-500 to-pink-500" },
-      ]
-      : [
-        { grade: "A+ (90-100)", count: 24, percent: 35, color: "from-emerald-500 to-teal-500" },
-        { grade: "A (80-89)", count: 32, percent: 45, color: "from-blue-500 to-cyan-500" },
-        { grade: "B (70-79)", count: 18, percent: 25, color: "from-indigo-500 to-purple-500" },
-        { grade: "C (60-69)", count: 12, percent: 18, color: "from-amber-500 to-orange-500" },
-        { grade: "F (<60)", count: 4, percent: 6, color: "from-red-500 to-pink-500" },
-      ];
+  const distribution = [
+    { grade: "A+ (90-100)", count: distCounts.APlus, percent: totalSt > 0 ? Math.round((distCounts.APlus / totalSt) * 100) : 0, color: "from-emerald-500 to-teal-500" },
+    { grade: "A (80-89)", count: distCounts.A, percent: totalSt > 0 ? Math.round((distCounts.A / totalSt) * 100) : 0, color: "from-blue-500 to-cyan-500" },
+    { grade: "B (70-79)", count: distCounts.B, percent: totalSt > 0 ? Math.round((distCounts.B / totalSt) * 100) : 0, color: "from-indigo-500 to-purple-500" },
+    { grade: "C (60-69)", count: distCounts.C, percent: totalSt > 0 ? Math.round((distCounts.C / totalSt) * 100) : 0, color: "from-amber-500 to-orange-500" },
+    { grade: "F (<60)", count: distCounts.F, percent: totalSt > 0 ? Math.round((distCounts.F / totalSt) * 100) : 0, color: "from-red-500 to-pink-500" },
+  ];
+
+  const dynamicPredictionText = useMemo(() => {
+    const velocity = (1.5 + (syllabusProgressPct / 100) * 0.8).toFixed(1);
+    const daysNeeded = Math.max(7, Math.round(((100 - syllabusProgressPct) / 100) * 45));
+    const estDate = new Date();
+    estDate.setDate(estDate.getDate() + daysNeeded);
+    const dateStr = estDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const daysAhead = Math.max(4, 28 - Math.round(daysNeeded / 2));
+
+    return lang === "தமிழ்"
+      ? `தற்போதைய கற்பித்தல் வேகத்தின் அடிப்படையில் (சுமார் ${velocity} பாடங்கள்/வாரம்) மற்றும் வரவிருக்கும் விடுமுறை நாட்களைக் கருத்தில் கொண்டு, வகுப்பு ${selectedClass} - ${currentSubject} பாடத்திட்டம் ${dateStr} நாளுக்குள் முழுமையாக நிறைவடையும் எனக் கணிக்கப்பட்டுள்ளது. இது மாநில அரசின் கடைசிநாளை விட ${daysAhead} நாட்கள் முன்னதாகும்!`
+      : `Based on current velocity (approx. ${velocity} lessons/week) and upcoming academic schedule, the ${currentSubject} syllabus for Class ${selectedClass} is projected to be fully completed by ${dateStr}. This is ${daysAhead} days ahead of the state-mandated deadline!`;
+  }, [syllabusProgressPct, currentSubject, selectedClass, lang]);
 
   const handlePredictCompletion = () => {
     setIsProjecting(true);
     setProjectionResult(null);
     setTimeout(() => {
       setIsProjecting(false);
-      const days = Math.max(5, Math.round((100 - syllabusProgressPct) * 0.8));
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + days);
-      const dateStr = targetDate.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-      setProjectionResult(
-        `Based on current velocity (approx. ${(1.8 + (syllabusProgressPct / 120)).toFixed(1)} lessons/week) and upcoming holidays, the Science syllabus is projected to be fully completed by ${dateStr}. This is ${Math.round(days / 6) + 1} days ahead of the state-mandated deadline! `
-      );
-    }, 1200);
+      setProjectionResult(dynamicPredictionText);
+    }, 1000);
   };
 
   const handleAddClick = () => {
@@ -678,16 +684,17 @@ export default function SubjectAnalyticsPage() {
                 </div>
               )}
 
-              {projectionResult && (
-                <div className="mt-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-xs text-slate-300 leading-relaxed">
-                  {projectionResult}
-                </div>
-              )}
+              <div className="mt-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-xs text-slate-300 leading-relaxed">
+                {projectionResult || dynamicPredictionText}
+              </div>
             </div>
 
             {/* Score distribution visual report */}
             <div className="glass rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-base font-semibold text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Grade Distribution — Science</h2>
+              <h2 className="text-base font-semibold text-white mb-4">
+                <BarChart className="w-4 h-4 inline mr-1 text-emerald-500" />
+                {lang === "தமிழ்" ? `மதிப்பெண் பரவல் — ${currentSubject} (${selectedClass})` : `Grade Distribution — ${currentSubject} (${selectedClass})`}
+              </h2>
               <div className="space-y-3.5">
                 {distribution.map((item) => (
                   <div key={item.grade} className="space-y-1">

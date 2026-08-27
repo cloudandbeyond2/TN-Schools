@@ -85,6 +85,7 @@ export default function StudentLessonsPage() {
   }, [session, status]);
 
   const studentSection: string | null = (session?.user as any)?.section || null;
+  const schoolId: string | null = (session?.user as any)?.schoolId || null;
 
   useEffect(() => {
     if (!studentClass) return;
@@ -92,7 +93,8 @@ export default function StudentLessonsPage() {
       setLoading(true);
       try {
         const sectionParam = studentSection ? `&section=${encodeURIComponent(studentSection)}` : "";
-        const res = await fetch(`${API_URL}/api/students/lessons?class=${studentClass}${sectionParam}`);
+        const schoolParam = schoolId ? `&schoolId=${encodeURIComponent(schoolId)}` : "";
+        const res = await fetch(`${API_URL}/api/students/lessons?class=${studentClass}${sectionParam}${schoolParam}`);
         const json = await res.json();
         if (json.success) setLessons(json.data);
       } catch (err) {
@@ -102,7 +104,7 @@ export default function StudentLessonsPage() {
       }
     };
     fetchLessons();
-  }, [studentClass, studentSection, API_URL]);
+  }, [studentClass, studentSection, schoolId, API_URL]);
 
   const subjects = ["All", ...Array.from(new Set(lessons.map((l) => l.subject)))];
   const filtered = subjectFilter === "All" ? lessons : lessons.filter((l) => l.subject === subjectFilter);

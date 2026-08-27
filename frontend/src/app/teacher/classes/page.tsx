@@ -43,7 +43,9 @@ const SUBJECTS = [
   "Computer Science", "Commerce", "Economics", "Accountancy",
 ];
 
-const CLASS_NUMS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+const CORE_SUBJECTS = ["Tamil", "English", "Mathematics", "Science", "Social Science"];
+
+const CLASS_NUMS = ["6", "7", "8", "9", "10", "11", "12"];
 const SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 const YEARS = ["2023-24", "2024-25", "2025-26", "2026-27"];
 
@@ -162,10 +164,14 @@ export default function ClassesPage() {
 
   // ── Fetch ────────────────────────────────────────────────────
   const availableClasses = useMemo(() => {
+    let list = CLASS_NUMS;
     if (masterClasses && masterClasses.length > 0) {
-      return Array.from(new Set(masterClasses.map(c => c.name.replace(/^Class\s+/i, '').trim()))).sort((a, b) => parseInt(a) - parseInt(b));
+      list = Array.from(new Set(masterClasses.map(c => c.name.replace(/^Class\s+/i, '').trim()))).sort((a, b) => parseInt(a) - parseInt(b));
     }
-    return CLASS_NUMS;
+    return list.filter(c => {
+      const num = parseInt(c, 10);
+      return !isNaN(num) && num >= 6 && num <= 12;
+    });
   }, [masterClasses]);
 
   const availableSubjects = useMemo(() => {
@@ -174,6 +180,26 @@ export default function ClassesPage() {
     }
     return SUBJECTS;
   }, [masterSubjects]);
+
+  // For classes 6th to 10th (and 1st-10th), only Tamil, English, Maths, Science, Social Science are displayed.
+  // For 11th and 12th, all subjects can be shown.
+  const modalSubjects = useMemo(() => {
+    if (!form.className) return availableSubjects;
+    const num = parseInt(form.className, 10);
+    if (!isNaN(num) && num <= 10) {
+      return CORE_SUBJECTS;
+    }
+    return availableSubjects;
+  }, [form.className, availableSubjects]);
+
+  useEffect(() => {
+    if (form.className) {
+      const num = parseInt(form.className, 10);
+      if (!isNaN(num) && num <= 10 && form.subject && !CORE_SUBJECTS.includes(form.subject)) {
+        setForm((prev) => ({ ...prev, subject: "" }));
+      }
+    }
+  }, [form.className, form.subject]);
 
   const fetchClasses = useCallback(async () => {
     if (!schoolId || !teacherId) return;
@@ -979,7 +1005,7 @@ export default function ClassesPage() {
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 >
                   <option value="" disabled>Select Subject</option>
-                  {availableSubjects.map((s) => (
+                  {modalSubjects.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

@@ -22,10 +22,12 @@ export default function StudentInfographicsPage() {
         const user = session?.user as any;
         const className = user?.class || "10";
         const section = user?.section || "";
+        const schoolId = user?.schoolId;
 
         const query = new URLSearchParams();
         query.append("className", className);
         if (section) query.append("section", section);
+        if (schoolId) query.append("schoolId", schoolId);
         query.append("_t", Date.now().toString());
 
         const token = user?.backendToken;
