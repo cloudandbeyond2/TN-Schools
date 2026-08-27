@@ -381,8 +381,8 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
           title: result.payload?.title || result.topic,
           language: result.language,
           payload: { ...result.payload, unit: result.unit || unit || null },
-          schoolId,
-          teacherId,
+          // schoolId and teacherId are taken from the auth token server-side,
+          // so content can only ever be filed under the signed-in teacher.
         }),
       });
       const json = await res.json();
