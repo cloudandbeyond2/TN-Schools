@@ -708,7 +708,11 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)]">Class</span>
                 <select
                   value={className}
-                  onChange={(e) => setClassName(e.target.value)}
+                  onChange={(e) => {
+                    setClassName(e.target.value);
+                    setUnit("");
+                    setTopic("");
+                  }}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
                   {classOptions.map((c) => (
@@ -740,6 +744,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                     setSubject(e.target.value);
                     setPackOverride(null); // re-detect the pack from the new subject
                     setUnit("");
+                    setTopic("");
                   }}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
@@ -754,6 +759,8 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                   onChange={(e) => {
                     setSubject(e.target.value);
                     setPackOverride(null);
+                    setUnit("");
+                    setTopic("");
                   }}
                   placeholder="e.g. Mathematics"
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
@@ -767,8 +774,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 <select
                   value={unit}
                   onChange={(e) => {
-                    setUnit(e.target.value);
-                    if (e.target.value && !topic) setTopic(e.target.value);
+                    const selectedUnit = e.target.value;
+                    setUnit(selectedUnit);
+                    setTopic(selectedUnit);
                   }}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
