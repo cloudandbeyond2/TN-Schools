@@ -624,11 +624,17 @@ router.post('/health/:rollNumber', async (req: Request, res: Response) => {
 router.get('/staff', async (req: Request, res: Response) => {
   try {
     const { schoolId } = req.query;
+    let whereClause: any = undefined;
+    if (schoolId && String(schoolId).trim() !== '' && String(schoolId) !== 'undefined' && String(schoolId) !== 'null') {
+      whereClause = { schoolId: String(schoolId) };
+    }
+
     const staff = await prisma.headmasterStaff.findMany({
-      where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      where: whereClause,
       orderBy: { createdAt: 'asc' },
       select: SAFE_STAFF_SELECT,
     });
+
     res.json({ success: true, count: staff.length, data: staff });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -682,6 +688,81 @@ router.post('/staff', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/headmaster/seed-excel — Seed exact 12 staff from sample Excel template
+router.get('/seed-excel', async (req: Request, res: Response) => {
+  try {
+    const schoolId = "0db278f1-54bc-4333-9856-718089ce7da9";
+    const exactRows = [
+      { name: "Karthik Raj", emisId: "TCHRKR001", category: "Teaching", subject: "Mathematics", phone: "9000000101", email: "karthik.raj@example.com", joined: "2024-06-01", work: "Exam Coordinator", cls: "10", sec: "A", docAppt: "Completed", address: "12 Gandhi Nagar, Thanthoni, Karur" },
+      { name: "Meena Kumari", emisId: "NTCMKR002", category: "Non-Teaching", subject: "Librarian", phone: "9000000102", email: "meena.kumari@example.com", joined: "2023-09-15", work: "Library Management", cls: "", sec: "", docAppt: "Completed", address: "25 North Street, Karur" },
+      { name: "Suresh Kumar", emisId: "TCHRKR003", category: "Teaching", subject: "Science", phone: "9000000103", email: "suresh.kumar@example.com", joined: "2022-06-10", work: "Science Lab In-charge", cls: "9", sec: "A", docAppt: "Completed", address: "18 School Road, Veliyanai, Karur" },
+      { name: "Priya Devi", emisId: "TCHRKR004", category: "Teaching", subject: "English", phone: "9000000104", email: "priya.devi@example.com", joined: "2023-06-12", work: "English Department", cls: "8", sec: "A", docAppt: "Completed", address: "7 Market Road, Karur" },
+      { name: "Arun Prakash", emisId: "TCHRKR005", category: "Teaching", subject: "Computer Science", phone: "9000000105", email: "arun.prakash@example.com", joined: "2024-07-01", work: "Computer Lab In-charge", cls: "12", sec: "A", docAppt: "Completed", address: "31 College Road, Karur" },
+      { name: "Arun Kumar", emisId: "TCHRKR006", category: "Teaching", subject: "Tamil", phone: "9000000106", email: "arun.kumar@example.com", joined: "2022-06-01", work: "Class Teacher", cls: "6", sec: "A", docAppt: "Completed", address: "12 Gandhi Nagar, Thanthoni, Karur" },
+      { name: "Priya Devi", emisId: "TCHRKR007", category: "Teaching", subject: "English", phone: "9000000107", email: "priya.devi@example.com", joined: "2022-06-01", work: "Class Teacher", cls: "7", sec: "A", docAppt: "Completed", address: "25 North Street, Karur" },
+      { name: "Karthik Raj", emisId: "TCHRKR008", category: "Teaching", subject: "Mathematics", phone: "9000000108", email: "karthik.raj@example.com", joined: "2021-06-15", work: "Class Teacher", cls: "8", sec: "A", docAppt: "Completed", address: "18 Main Road, Veliyanai, Karur" },
+      { name: "Meena Kumari", emisId: "TCHRKR009", category: "Teaching", subject: "Science", phone: "9000000109", email: "meena.kumari@example.com", joined: "2021-06-15", work: "Class Teacher", cls: "9", sec: "A", docAppt: "Completed", address: "7 School Road, Karur" },
+      { name: "Suresh Kumar", emisId: "TCHRKR010", category: "Teaching", subject: "Social Science", phone: "9000000110", email: "suresh.kumar@example.com", joined: "2020-06-10", work: "Class Teacher", cls: "10", sec: "A", docAppt: "Completed", address: "31 Market Road, Karur" },
+      { name: "Divya R", emisId: "TCHRKR011", category: "Teaching", subject: "Physics", phone: "9000000111", email: "divya.r@example.com", joined: "2023-06-12", work: "Class Teacher", cls: "11", sec: "A", docAppt: "Completed", address: "11 College Road, Karur" },
+      { name: "Ravi Shankar", emisId: "TCHRKR012", category: "Teaching", subject: "Mathematics", phone: "9000000112", email: "ravi.shankar@example.com", joined: "2022-07-01", work: "Class Teacher", cls: "12", sec: "A", docAppt: "Completed", address: "22 Bus Stand Road, Karur" }
+    ];
+
+    await prisma.headmasterStaff.deleteMany({
+      where: {
+        schoolId,
+        emisId: { startsWith: "TCH3" }
+      }
+    });
+
+    const hashedPassword = await hashPassword('123456');
+
+    for (const r of exactRows) {
+      const address = JSON.stringify({
+        address: r.address,
+        staffType: r.category,
+        joiningDate: r.joined,
+        workAllocation: r.work,
+        assignedClass: r.cls,
+        assignedSection: r.sec,
+        docAppointment: r.docAppt
+      });
+
+      await prisma.headmasterStaff.upsert({
+        where: { emisId: r.emisId },
+        update: {
+          name: r.name,
+          subject: r.category === "Teaching" ? r.subject : "Non-Teaching",
+          phone: r.phone,
+          email: r.email,
+          attendance: 95,
+          performance: "Excellent",
+          leaveUsed: 1,
+          password: hashedPassword,
+          schoolId,
+          address
+        },
+        create: {
+          name: r.name,
+          emisId: r.emisId,
+          subject: r.category === "Teaching" ? r.subject : "Non-Teaching",
+          phone: r.phone,
+          email: r.email,
+          attendance: 95,
+          performance: "Excellent",
+          leaveUsed: 1,
+          password: hashedPassword,
+          schoolId,
+          address
+        }
+      });
+    }
+
+    res.json({ success: true, count: exactRows.length, message: "Imported 12 exact excel records" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // POST /api/headmaster/staff/bulk — Bulk import from Excel
 router.post('/staff/bulk', async (req: Request, res: Response) => {
   try {
@@ -689,46 +770,71 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
     if (!Array.isArray(staff) || staff.length === 0) {
       return res.status(400).json({ success: false, error: 'staff array is required' });
     }
+
+    const parseSafeFloat = (val: any, fallback = 100): number => {
+      if (val === undefined || val === null || val === '') return fallback;
+      const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+      return isNaN(num) ? fallback : num;
+    };
+
+    const parseSafeInt = (val: any, fallback = 0): number => {
+      if (val === undefined || val === null || val === '') return fallback;
+      const num = parseInt(String(val).replace(/\D/g, ''), 10);
+      return isNaN(num) ? fallback : num;
+    };
+
     let created = 0;
-    for (const s of staff) {
-      if (!s.name || !s.emisId) continue;
+    for (let i = 0; i < staff.length; i++) {
+      const s = staff[i];
+      if (!s || !s.name) continue;
+      const targetEmisId = (s.emisId && String(s.emisId).trim() !== '')
+        ? String(s.emisId).trim()
+        : `TCHR-${Date.now().toString().slice(-6)}-${i + 1}`;
+
       const hashedPassword = await hashPassword(s.password || '123456');
-      await prisma.headmasterStaff.upsert({
-        where: { emisId: s.emisId },
-        update: { 
-          name: s.name, 
-          subject: s.subject || 'General', 
-          phone: s.phone || 'N/A', 
-          email: s.email || null, 
-          attendance: s.attendance ?? 100, 
-          performance: s.performance || 'Good', 
-          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
-          password: hashedPassword, 
-          schoolId: s.schoolId || null,
-          address: s.address || null,
-          dob: s.dob ? new Date(s.dob) : null,
-          gender: s.gender || null
-        },
-        create: { 
-          name: s.name, 
-          emisId: s.emisId, 
-          subject: s.subject || 'General', 
-          phone: s.phone || 'N/A', 
-          email: s.email || null, 
-          attendance: s.attendance ?? 100, 
-          performance: s.performance || 'Good', 
-          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
-          password: hashedPassword, 
-          schoolId: s.schoolId || null,
-          address: s.address || null,
-          dob: s.dob ? new Date(s.dob) : null,
-          gender: s.gender || null
-        },
-      });
-      created++;
+      const addressVal = typeof s.address === 'object' ? JSON.stringify(s.address) : (s.address ? String(s.address) : null);
+
+      try {
+        await prisma.headmasterStaff.upsert({
+          where: { emisId: targetEmisId },
+          update: { 
+            name: String(s.name).trim(), 
+            subject: s.subject ? String(s.subject) : 'General', 
+            phone: s.phone ? String(s.phone) : 'N/A', 
+            email: s.email ? String(s.email).trim().toLowerCase() : null, 
+            attendance: parseSafeFloat(s.attendance, 100), 
+            performance: s.performance ? String(s.performance) : 'Good', 
+            leaveUsed: parseSafeInt(s.leaveUsed ?? s.leave, 0), 
+            password: hashedPassword, 
+            schoolId: s.schoolId ? String(s.schoolId) : (req.body.schoolId ? String(req.body.schoolId) : null),
+            address: addressVal,
+            dob: parseDob(s.dob),
+            gender: s.gender ? String(s.gender) : null
+          },
+          create: { 
+            name: String(s.name).trim(), 
+            emisId: targetEmisId, 
+            subject: s.subject ? String(s.subject) : 'General', 
+            phone: s.phone ? String(s.phone) : 'N/A', 
+            email: s.email ? String(s.email).trim().toLowerCase() : null, 
+            attendance: parseSafeFloat(s.attendance, 100), 
+            performance: s.performance ? String(s.performance) : 'Good', 
+            leaveUsed: parseSafeInt(s.leaveUsed ?? s.leave, 0), 
+            password: hashedPassword, 
+            schoolId: s.schoolId ? String(s.schoolId) : (req.body.schoolId ? String(req.body.schoolId) : null),
+            address: addressVal,
+            dob: parseDob(s.dob),
+            gender: s.gender ? String(s.gender) : null
+          },
+        });
+        created++;
+      } catch (itemErr) {
+        console.error(`Error importing staff row "${s.name}":`, itemErr);
+      }
     }
     res.status(201).json({ success: true, created });
   } catch (err) {
+    console.error('Error in staff bulk import:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
@@ -764,7 +870,19 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
 // DELETE /api/headmaster/staff/:id — Remove staff member
 router.delete('/staff/:id', async (req: Request, res: Response) => {
   try {
-    await prisma.headmasterStaff.delete({ where: { id: req.params.id } });
+    const { id } = req.params;
+    const existing = await prisma.headmasterStaff.findFirst({
+      where: {
+        OR: [
+          { id },
+          { emisId: id }
+        ]
+      }
+    });
+
+    if (existing) {
+      await prisma.headmasterStaff.delete({ where: { id: existing.id } });
+    }
     res.json({ success: true, message: 'Staff member removed' });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
