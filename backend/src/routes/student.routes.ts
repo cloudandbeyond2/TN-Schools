@@ -41,12 +41,18 @@ const router = Router();
 // Lessons with section = null are visible to ALL sections of that class.
 router.get('/lessons', async (req: Request, res: Response) => {
   try {
-    const { class: cls, subject, section } = req.query;
+    const { class: cls, subject, section, schoolId } = req.query;
     const classNum = cls ? (String(cls).match(/\d+/) || [])[0] : undefined;
     const studentSection = section ? String(section).trim().toUpperCase() : null;
+    const schoolIdStr = schoolId ? String(schoolId).trim() : (req.user?.schoolId || null);
 
     // Build AND conditions so multiple OR clauses don't overwrite each other.
     const andConditions: any[] = [{ isPublished: true }];
+
+    if (schoolIdStr) {
+      // Show lessons published for this student's school, or global templates (schoolId IS NULL)
+      andConditions.push({ OR: [{ schoolId: schoolIdStr }, { schoolId: null }] });
+    }
 
     if (classNum) {
       andConditions.push({ OR: [{ className: classNum }, { grade: { contains: classNum } }] });

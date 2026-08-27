@@ -1941,29 +1941,55 @@ router.get('/visualdesign/list', async (req: Request, res: Response) => {
 // ===========================================================================
 router.get('/visualdesign/published', async (req: Request, res: Response) => {
   try {
-    const { className, section } = req.query;
+    const { className, section, schoolId } = req.query;
 
     if (!className) {
       return res.status(400).json({ success: false, message: "Class is required" });
     }
 
     const classNum = (String(className).match(/\d+/) || [])[0];
+    const schoolIdStr = schoolId ? String(schoolId).trim() : (req.user?.schoolId || null);
 
-    const whereClause: any = {
-      isPublished: true,
-      class: classNum || String(className),
-    };
+    const andConditions: any[] = [
+      { isPublished: true },
+      { class: classNum || String(className) }
+    ];
 
-    if (section) {
-      whereClause.publishedSections = {
-        has: String(section).toUpperCase().trim()
-      };
+    if (schoolIdStr) {
+      const schoolUsers = await prisma.user.findMany({
+        where: { schoolId: schoolIdStr },
+        select: { id: true }
+      });
+      const userIds = schoolUsers.map(u => u.id);
+
+      const schoolTeachers = await prisma.teacher.findMany({
+        where: { schoolId: schoolIdStr },
+        select: { id: true, userId: true }
+      });
+      schoolTeachers.forEach(t => {
+        if (t.id) userIds.push(t.id);
+        if (t.userId) userIds.push(t.userId);
+      });
+
+      const uniqueTeacherIds = Array.from(new Set(userIds));
+      andConditions.push({
+        OR: [
+          { teacherId: { in: uniqueTeacherIds } },
+          { teacherId: null }
+        ]
+      });
     }
 
-    console.log("[GET /api/ai/visualdesign/published] Query:", JSON.stringify(whereClause));
+    if (section) {
+      andConditions.push({
+        publishedSections: {
+          has: String(section).toUpperCase().trim()
+        }
+      });
+    }
 
     const list = await prisma.infographicLesson.findMany({
-      where: whereClause,
+      where: { AND: andConditions },
       orderBy: { createdAt: 'desc' }
     });
 
