@@ -1,12 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { apiFetch } from "@/lib/api";
 
 type Priority = "info" | "warning" | "critical";
 type TargetPortal = "All" | "Student" | "Teacher" | "Parent" | "Headmaster" | "BEO" | "DEO" | "Commissioner" | "Minister";
 
 interface Announcement {
-  id: number;
+  id: string | number;
   title: string;
   body: string;
   priority: Priority;
@@ -49,6 +50,26 @@ export default function Announcements() {
   const [form, setForm] = useState({ title:"", body:"", priority:"info" as Priority, target:"All" as TargetPortal, expiresAt:"" });
   const [preview, setPreview] = useState<Announcement | null>(null);
 
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await apiFetch("/api/announcements");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        setAnnouncements((prev) => {
+          const apiIds = new Set(json.data.map((d: any) => String(d.id)));
+          const filteredPrev = prev.filter((p) => !apiIds.has(String(p.id)));
+          return [...json.data, ...filteredPrev];
+        });
+      }
+    } catch (e) {
+      console.warn("Could not fetch announcements from API", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
   const filtered = announcements.filter((a) => {
     const matchP = filterPriority === "All" || a.priority === filterPriority;
     const matchT = filterTarget === "All" || a.target === filterTarget || a.target === "All";
@@ -56,19 +77,47 @@ export default function Announcements() {
     return matchP && matchT && matchS;
   });
 
-  const publish = () => {
+  const publish = async () => {
     if (!form.title || !form.body) return;
-    setAnnouncements((prev) => [{
-      id: Date.now(), ...form, createdBy:"Super Admin",
-      createdAt: new Date().toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }),
-      status:"active", views:0,
-    }, ...prev]);
+    try {
+      const res = await apiFetch("/api/announcements", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setAnnouncements((prev) => [json.data, ...prev]);
+      } else {
+        setAnnouncements((prev) => [{
+          id: Date.now(), ...form, createdBy:"Super Admin",
+          createdAt: new Date().toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }),
+          status:"active", views:0,
+        }, ...prev]);
+      }
+    } catch {
+      setAnnouncements((prev) => [{
+        id: Date.now(), ...form, createdBy:"Super Admin",
+        createdAt: new Date().toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }),
+        status:"active", views:0,
+      }, ...prev]);
+    }
     setShowModal(false);
     setForm({ title:"", body:"", priority:"info", target:"All", expiresAt:"" });
   };
 
-  const expire = (id: number) => setAnnouncements((prev) => prev.map((a) => a.id === id ? { ...a, status:"expired" } : a));
-  const deleteAnn = (id: number) => setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+  const expire = async (id: number | string) => {
+    setAnnouncements((prev) => prev.map((a) => a.id === id ? { ...a, status:"expired" } : a));
+    try {
+      await apiFetch(`/api/announcements/${id}/expire`, { method: "PUT" });
+    } catch {}
+  };
+
+  const deleteAnn = async (id: number | string) => {
+    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    try {
+      await apiFetch(`/api/announcements/${id}`, { method: "DELETE" });
+    } catch {}
+  };
 
   const active = announcements.filter((a) => a.status === "active").length;
   const totalViews = announcements.reduce((a, b) => a + b.views, 0);

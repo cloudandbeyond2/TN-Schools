@@ -548,27 +548,60 @@ export default function PortalLayout({
   };
 
   const fetchNotifications = async () => {
-    if (!session?.user) return;
-    const userId = (session.user as any).id;
-    const role = (session.user as any).role;
-    if (!userId) return;
+    let role = (session?.user as any)?.role;
+    if (!role) {
+      if (pathname.startsWith("/headmaster")) role = "Headmaster";
+      else if (pathname.startsWith("/teacher")) role = "Teacher";
+      else if (pathname.startsWith("/student")) role = "Student";
+      else if (pathname.startsWith("/parent")) role = "Parent";
+      else if (pathname.startsWith("/block-education-officer")) role = "BEO";
+      else if (pathname.startsWith("/district-education-officer")) role = "DEO";
+      else if (pathname.startsWith("/commissioner")) role = "Commissioner";
+      else if (pathname.startsWith("/minister")) role = "Minister";
+      else role = "All";
+    }
+
     try {
-      let url = `${API_URL}/api/notifications?userId=${userId}`;
-      if (role === "PARENT") {
-        url = `${API_URL}/api/parent/${userId}/notifications`;
+      // 1. Fetch system announcements matching target portal role
+      let announcementsList: any[] = [];
+      try {
+        const annRes = await fetch(`${API_URL}/api/announcements?role=${role}`);
+        const annData = await annRes.json();
+        if (annData.success && Array.isArray(annData.data)) {
+          announcementsList = annData.data.map((a: any) => ({
+            id: `ann-${a.id}`,
+            message: `📢 [${a.title}] ${a.body}`,
+            read: false,
+            createdAt: a.createdAt || "Just now",
+            isAnnouncement: true,
+          }));
+        }
+      } catch (e) {
+        console.warn("Could not fetch announcements", e);
       }
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        // Map parent notifications (or general ones) to standard format
-        const mapped = data.data.map((n: any) => ({
-          id: n.id,
-          message: n.title ? (n.message ? `${n.title}: ${n.message}` : n.title) : (n.message || ""),
-          read: n.isRead !== undefined ? n.isRead : n.read,
-          createdAt: n.createdAt
-        }));
-        setNotificationsList(mapped);
-        setUnreadCount(mapped.filter((n: any) => !n.read).length);
+
+      // 2. Fetch user-specific notifications
+      const userId = (session?.user as any)?.id;
+      let mappedUserNotifs: any[] = [];
+      if (userId) {
+        let url = `${API_URL}/api/notifications?userId=${userId}`;
+        if (role === "PARENT") url = `${API_URL}/api/parent/${userId}/notifications`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          mappedUserNotifs = data.data.map((n: any) => ({
+            id: n.id,
+            message: n.title ? (n.message ? `${n.title}: ${n.message}` : n.title) : (n.message || ""),
+            read: n.isRead !== undefined ? n.isRead : n.read,
+            createdAt: n.createdAt
+          }));
+        }
+      }
+
+      const combined = [...announcementsList, ...mappedUserNotifs];
+      if (combined.length > 0) {
+        setNotificationsList(combined);
+        setUnreadCount(combined.filter((n: any) => !n.read).length);
       }
     } catch (err) {
       console.error("Error fetching notifications", err);
@@ -576,7 +609,11 @@ export default function PortalLayout({
   };
 
   const handleMarkAllRead = async () => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      setNotificationsList(notificationsList.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+      return;
+    }
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
     if (!userId) return;
@@ -604,7 +641,9 @@ export default function PortalLayout({
   };
 
   const handleMarkSingleRead = async (id: string) => {
-    if (!session?.user) return;
+    setNotificationsList(notificationsList.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    if (!session?.user || id.startsWith("ann-")) return;
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
     try {
@@ -612,26 +651,17 @@ export default function PortalLayout({
       if (role === "PARENT") {
         url = `${API_URL}/api/parent/${userId}/notifications/${id}/read`;
       }
-      const res = await fetch(url, {
-        method: "PUT",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setNotificationsList(notificationsList.map(n => n.id === id ? { ...n, read: true } : n));
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      await fetch(url, { method: "PUT" });
     } catch (err) {
       console.error("Error marking notification as read", err);
     }
   };
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 10000);
-      return () => clearInterval(interval);
-    }
-  }, [status, session]);
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 5000);
+    return () => clearInterval(interval);
+  }, [status, session, pathname]);
 
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
