@@ -211,23 +211,29 @@ export default function DepartmentModules() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap gap-3 mb-5 items-center">
+        <div className="flex gap-2 flex-wrap items-center">
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Category:</span>
           {["All", ...categories].map((cat) => (
             <button key={cat} onClick={() => setFilterCat(cat)}
-              className={`text-[10px] font-bold px-3 py-1 rounded-full transition ${
-                filterCat === cat ? "bg-fuchsia-600 text-white" : "bg-slate-800 text-slate-400 border border-slate-700 hover:text-white"
+              className={`text-[10px] font-bold px-3 py-1 rounded-full transition-all border ${
+                filterCat === cat 
+                  ? "bg-fuchsia-600 text-white border-fuchsia-600 shadow-md shadow-fuchsia-500/20" 
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800"
               }`}>{cat}</button>
           ))}
         </div>
-        <div className="flex gap-2 flex-wrap ml-4">
+        <div className="flex gap-2 flex-wrap items-center sm:ml-4">
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Portal:</span>
           {["All", ...MODULE_PORTALS].map((p) => (
             <button key={p} onClick={() => setFilterPortal(p)}
-              className={`text-[10px] font-bold px-2 py-1 rounded-full transition ${
-                filterPortal === p ? "text-white" : "bg-slate-800 text-slate-500 border border-slate-700 hover:text-white"
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-all border ${
+                filterPortal === p 
+                  ? "text-white shadow-sm" 
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800"
               }`}
-              style={filterPortal === p && p !== "All" ? { backgroundColor: portalColors[p] + "33", borderColor: portalColors[p] + "55", color: portalColors[p] } : {}}>
-              {p === "All" ? "All" : PORTAL_DISPLAY[p]}
+              style={filterPortal === p ? (p === "All" ? { backgroundColor: "#c026d3", borderColor: "#c026d3", color: "#ffffff" } : { backgroundColor: portalColors[p], borderColor: portalColors[p], color: "#ffffff" }) : {}}>
+              {p === "All" ? "All Portals" : PORTAL_DISPLAY[p]}
             </button>
           ))}
         </div>
@@ -240,30 +246,39 @@ export default function DepartmentModules() {
       ) : (
         <div className="space-y-3">
           {filtered.map((mod) => (
-            <div key={mod.key} className={`glass rounded-2xl p-5 border transition-all ${mod.isEnabled ? "border-slate-800 hover:border-slate-600" : "border-red-500/20 opacity-70"}`}>
+            <div key={mod.key} className={`glass rounded-2xl p-5 border transition-all ${mod.isEnabled ? "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600" : "border-red-500/20 opacity-70"}`}>
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-2xl shrink-0">{mod.icon || "📦"}</div>
+                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">{mod.icon || "📦"}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <h3 className="text-sm font-bold text-white">{mod.name}</h3>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white">{mod.name}</h3>
                     {mod.category && (
-                      <span className="text-[9px] font-bold text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/20 px-2 py-0.5 rounded">{mod.category}</span>
+                      <span className="text-[9px] font-bold text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-500/15 border border-fuchsia-500/30 px-2 py-0.5 rounded">{mod.category}</span>
                     )}
                     {!mod.isEnabled && (
-                      <span className="text-[9px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded">DISABLED</span>
+                      <span className="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded">DISABLED</span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-400">{mod.description}</p>
-                  <p className="text-[9px] text-slate-600 font-mono mt-0.5">{mod.routes.join(", ")}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{mod.description}</p>
+                  <p className="text-[9px] text-slate-400 dark:text-slate-600 font-mono mt-0.5">{mod.routes.join(", ")}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-[10px] font-bold text-slate-500">{enabledCount(mod)}/{MODULE_PORTALS.length} portals</div>
                   <button
+                    type="button"
                     onClick={() => toggleMaster(mod)}
                     title={mod.isEnabled ? "Disable module everywhere" : "Enable module"}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${mod.isEnabled ? "bg-green-500" : "bg-slate-700"}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      mod.isEnabled
+                        ? "bg-emerald-500 hover:bg-emerald-600"
+                        : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600"
+                    }`}
                   >
-                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${mod.isEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                        mod.isEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
                   </button>
                 </div>
               </div>
@@ -272,14 +287,19 @@ export default function DepartmentModules() {
               <div className="flex flex-wrap gap-2">
                 {MODULE_PORTALS.map((portal) => {
                   const isOn = mod.portals?.[portal] === true;
+                  const color = portalColors[portal] || "#6366f1";
                   return (
                     <button key={portal} onClick={() => togglePortal(mod, portal)}
-                      className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                      className={`flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-xl border transition-all ${
                         isOn
-                          ? "text-white border-transparent"
-                          : "bg-slate-900 text-slate-600 border-slate-800 hover:border-slate-600 hover:text-slate-400"
+                          ? "shadow-sm border-transparent"
+                          : "bg-slate-100 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600"
                       }`}
-                      style={isOn ? { backgroundColor: portalColors[portal] + "33", borderColor: portalColors[portal] + "66", color: portalColors[portal] } : {}}>
+                      style={isOn ? { 
+                        backgroundColor: color, 
+                        borderColor: color, 
+                        color: "#ffffff" 
+                      } : {}}>
                       {isOn ? "✓" : "+"} {PORTAL_DISPLAY[portal]}
                     </button>
                   );

@@ -1253,7 +1253,11 @@ export default function StudentsMonitoringPage() {
         setIsModalOpen(false);
         fetchWatchlist();
       } else {
-        showToast(`❌ Could not save: ${json.error}`, "error");
+        const rawErr = String(json.error || "Failed to save student record.");
+        const cleanErr = rawErr.includes("Unique constraint failed")
+          ? "A student with this roll number or email already exists. Please use a unique roll number."
+          : rawErr.replace(/^PrismaClientKnownRequestError:?\s*/i, "").replace(/Invocation in.*$/i, "").trim();
+        showToast(`❌ Could not save: ${cleanErr}`, "error");
       }
     } catch {
       showToast("🔴 Server offline — could not save record.", "error");

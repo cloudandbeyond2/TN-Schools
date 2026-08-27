@@ -250,10 +250,27 @@ router.post('/generate', async (req: Request, res: Response) => {
 // Library CRUD — always scoped to the caller's school + teacher id
 // ---------------------------------------------------------------------------
 
+/**
+ * Whose content the caller may see. Identity comes from the JWT, never from the
+ * query string — otherwise any teacher could read another teacher's library by
+ * passing ?teacherId=<someone-else>. Only SUPERADMIN may look at another
+ * teacher's shelf, and only by asking explicitly.
+ */
 function scope(req: Request) {
-  const schoolId = (req.query.schoolId as string) || req.user?.schoolId || null;
-  const teacherId = (req.query.teacherId as string) || req.user?.id || null;
-  return { schoolId, teacherId };
+  const isSuperadmin = req.user?.role === 'SUPERADMIN';
+  if (isSuperadmin) {
+    return {
+      schoolId: (req.query.schoolId as string) || null,
+      teacherId: (req.query.teacherId as string) || null,
+    };
+  }
+  return { schoolId: req.user?.schoolId || null, teacherId: req.user?.id || null };
+}
+
+/** Owner check used by every single-item route. Unowned rows are not public. */
+function ownsItem(req: Request, item: { teacherId: string | null }): boolean {
+  if (req.user?.role === 'SUPERADMIN') return true;
+  return Boolean(item.teacherId) && item.teacherId === req.user?.id;
 }
 
 router.get('/content', async (req: Request, res: Response) => {
@@ -265,6 +282,12 @@ router.get('/content', async (req: Request, res: Response) => {
       group && typeof group === 'string'
         ? AI_SKILLS.filter((s) => s.group === group.toUpperCase()).map((s) => s.key)
         : null;
+
+    // A non-superadmin with no resolvable teacher id must see nothing, never
+    // everything — so fail closed rather than dropping the filter.
+    if (!teacherId && req.user?.role !== 'SUPERADMIN') {
+      return res.json({ success: true, count: 0, data: [] });
+    }
 
     const items = await prisma.aiContent.findMany({
       where: {
@@ -292,7 +315,7 @@ router.get('/content/:id', async (req: Request, res: Response) => {
   try {
     const item = await prisma.aiContent.findUnique({ where: { id: req.params.id } });
     if (!item) return res.status(404).json({ success: false, error: 'Not found' });
-    if (req.user?.role !== 'SUPERADMIN' && item.teacherId && item.teacherId !== req.user?.id) {
+    if (!ownsItem(req, item)) {
       return res.status(403).json({ success: false, error: 'Not your content' });
     }
     res.json({ success: true, data: item });
@@ -326,8 +349,10 @@ router.post('/content', async (req: Request, res: Response) => {
         title: title || payload?.title || topic || def?.label || 'Untitled',
         language: language || 'english',
         payload,
-        schoolId: schoolId || req.user?.schoolId || null,
-        teacherId: teacherId || req.user?.id || null,
+        // Ownership is taken from the token so a teacher cannot file content
+        // under another teacher's name. Body values are ignored.
+        schoolId: req.user?.schoolId || null,
+        teacherId: req.user?.id || null,
         classRoomId: classRoomId || null,
       },
     });
@@ -341,7 +366,7 @@ router.put('/content/:id', async (req: Request, res: Response) => {
   try {
     const existing = await prisma.aiContent.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ success: false, error: 'Not found' });
-    if (req.user?.role !== 'SUPERADMIN' && existing.teacherId && existing.teacherId !== req.user?.id) {
+    if (!ownsItem(req, existing)) {
       return res.status(403).json({ success: false, error: 'Not your content' });
     }
     const { title, payload } = req.body || {};
@@ -362,7 +387,7 @@ router.delete('/content/:id', async (req: Request, res: Response) => {
   try {
     const existing = await prisma.aiContent.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ success: false, error: 'Not found' });
-    if (req.user?.role !== 'SUPERADMIN' && existing.teacherId && existing.teacherId !== req.user?.id) {
+    if (!ownsItem(req, existing)) {
       return res.status(403).json({ success: false, error: 'Not your content' });
     }
     await prisma.aiContent.delete({ where: { id: req.params.id } });
@@ -377,7 +402,7 @@ router.put('/content/:id/publish', async (req: Request, res: Response) => {
   try {
     const existing = await prisma.aiContent.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ success: false, error: 'Not found' });
-    if (req.user?.role !== 'SUPERADMIN' && existing.teacherId && existing.teacherId !== req.user?.id) {
+    if (!ownsItem(req, existing)) {
       return res.status(403).json({ success: false, error: 'Not your content' });
     }
     const isPublished = req.body?.isPublished !== false;
@@ -399,7 +424,7 @@ router.post('/content/:id/push', async (req: Request, res: Response) => {
     const { target } = req.body || {};
     const item = await prisma.aiContent.findUnique({ where: { id: req.params.id } });
     if (!item) return res.status(404).json({ success: false, error: 'Not found' });
-    if (req.user?.role !== 'SUPERADMIN' && item.teacherId && item.teacherId !== req.user?.id) {
+    if (!ownsItem(req, item)) {
       return res.status(403).json({ success: false, error: 'Not your content' });
     }
 
@@ -503,17 +528,52 @@ router.post('/content/:id/push', async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 router.get('/published', async (req: Request, res: Response) => {
   try {
-    // Accept either `class` (what the student session carries, e.g. "10") or
-    // `className` (what the teacher saved, e.g. "Class 10"). Grade is compared
-    // numerically so the two formats match.
-    const { schoolId, className, section, subject } = req.query;
-    const classParam = (req.query.class as string) ?? (className as string) ?? '';
-    const grade = gradeFromClassName(classParam);
+    const { subject } = req.query;
+    const role = req.user?.role;
+
+    // Which school + class this caller is allowed to read. For a STUDENT this
+    // is read from their own Student record, never from the query string —
+    // otherwise a student could pass ?class=12&schoolId=<other> and read
+    // another class's or another school's material.
+    let schoolId: string | null = req.user?.schoolId || null;
+    let grade = 0;
+    let section: string | null = null;
+
+    if (role === 'STUDENT') {
+      if (!req.user?.studentId) {
+        return res.status(403).json({ success: false, error: 'No student record on this account.' });
+      }
+      const student = await prisma.student.findUnique({
+        where: { id: req.user.studentId },
+        select: { schoolId: true, class: true, section: true },
+      });
+      if (!student) {
+        return res.status(403).json({ success: false, error: 'Student record not found.' });
+      }
+      schoolId = student.schoolId;
+      grade = gradeFromClassName(student.class);
+      section = student.section || null;
+    } else if (role === 'SUPERADMIN') {
+      // Only a superadmin may look outside their own scope.
+      schoolId = (req.query.schoolId as string) || null;
+      grade = gradeFromClassName((req.query.class as string) || (req.query.className as string) || '');
+      section = (req.query.section as string) || null;
+    } else {
+      // Teachers and other staff: school is fixed by their token; they may
+      // narrow to a class/section they are looking at.
+      grade = gradeFromClassName((req.query.class as string) || (req.query.className as string) || '');
+      section = (req.query.section as string) || null;
+    }
+
+    // Fail closed: without a school we would be querying across every school.
+    if (!schoolId && role !== 'SUPERADMIN') {
+      return res.json({ success: true, count: 0, data: [] });
+    }
 
     const items = await prisma.aiContent.findMany({
       where: {
         isPublished: true,
-        ...(schoolId ? { schoolId: String(schoolId) } : {}),
+        ...(schoolId ? { schoolId } : {}),
         ...(subject ? { subject: String(subject) } : {}),
       },
       orderBy: { publishedAt: 'desc' },
@@ -522,9 +582,9 @@ router.get('/published', async (req: Request, res: Response) => {
 
     const filtered = items.filter((item) => {
       if (grade && gradeFromClassName(item.className) !== grade) return false;
-      // Content saved without a section is for the whole class, so it is
-      // visible to every section — only a mismatched section is excluded.
-      if (section && item.section && item.section !== String(section)) return false;
+      // Content saved without a section is meant for the whole class, so every
+      // section sees it; only a mismatched section is excluded.
+      if (section && item.section && item.section !== section) return false;
       return true;
     });
 

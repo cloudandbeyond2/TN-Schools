@@ -52,7 +52,6 @@ export default function StudentAIContentPage() {
   const user = session?.user as any;
   const studentClass: string | undefined = user?.class;
   const studentSection: string | null = user?.section || null;
-  const schoolId: string | undefined = user?.schoolId;
 
   const [items, setItems] = useState<PublishedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,11 +66,9 @@ export default function StudentAIContentPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      params.set("class", String(studentClass));
-      if (studentSection) params.set("section", studentSection);
-      if (schoolId) params.set("schoolId", schoolId);
-      const res = await apiFetch(`/api/ai-studio/published?${params.toString()}`);
+      // No class/section/school params: the server reads them from this
+      // student's own record, so the list cannot be widened from the client.
+      const res = await apiFetch("/api/ai-studio/published");
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Could not load your class materials");
       setItems(json.data || []);
@@ -84,7 +81,7 @@ export default function StudentAIContentPage() {
     } finally {
       setLoading(false);
     }
-  }, [studentClass, studentSection, schoolId]);
+  }, [studentClass]);
 
   useEffect(() => {
     load();

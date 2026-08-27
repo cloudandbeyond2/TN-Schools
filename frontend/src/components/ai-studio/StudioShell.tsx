@@ -20,8 +20,6 @@ import {
   STUDIO_GROUPS,
   PACK_DISPLAY,
   PUSH_TARGET_LABEL,
-  OUTPUT_KIND_LABEL,
-  GROUP_SHORT,
   subjectToPack,
   skillBlockedReason,
   gradeFromClassName,
@@ -47,7 +45,6 @@ interface GenerationResult {
   subject: string;
   className: string;
   section: string | null;
-  unit?: string | null;
   topic: string;
   language: string;
   payload: any;
@@ -100,8 +97,6 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
   const [savedId, setSavedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  /** Output pane expanded to the full viewport for reading long content. */
-  const [fullscreen, setFullscreen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
 
@@ -237,10 +232,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
         e.preventDefault();
         searchRef.current?.focus();
       }
-      if (e.key === "Escape") {
-        setPackMenuOpen(false);
-        setFullscreen(false);
-      }
+      if (e.key === "Escape") setPackMenuOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -262,18 +254,13 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
   // ── filtered palette ─────────────────────────────────────────────────────
   const visibleSkills = useMemo(() => {
     const q = query.trim().toLowerCase().replace(/^\//, "");
-    const clean = (str: string) => str.toLowerCase().replace(/[-_\s]/g, "");
-    const cleanQ = clean(q);
     return skills.filter((s) => {
       if (activeGroup !== "ALL" && s.group !== activeGroup) return false;
       if (!q) return true;
       return (
         s.command.toLowerCase().includes(q) ||
-        clean(s.command).includes(cleanQ) ||
         s.label.toLowerCase().includes(q) ||
-        clean(s.label).includes(cleanQ) ||
-        s.description.toLowerCase().includes(q) ||
-        clean(s.description).includes(cleanQ)
+        s.description.toLowerCase().includes(q)
       );
     });
   }, [skills, activeGroup, query]);
@@ -376,11 +363,10 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
           subject: result.subject,
           className: result.className,
           section: result.section,
-          unit: result.unit || unit || null,
           topic: result.topic,
           title: result.payload?.title || result.topic,
           language: result.language,
-          payload: { ...result.payload, unit: result.unit || unit || null },
+          payload: result.payload,
           schoolId,
           teacherId,
         }),
@@ -485,6 +471,29 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
     return Array.from(new Set(list));
   }, [classes, className]);
 
+  const availableSubjects = useMemo(() => {
+    const list: string[] = [];
+
+    classes.forEach(c => {
+      const cName = c.className?.startsWith("Class") ? c.className : `Class ${c.className}`;
+      if (cName === className && c.subject && !list.includes(c.subject)) {
+        list.push(c.subject);
+      }
+    });
+
+    subjectOptions.forEach(s => {
+      if (s.name && !list.includes(s.name)) {
+        list.push(s.name);
+      }
+    });
+
+    if (subject && !list.includes(subject)) {
+      list.push(subject);
+    }
+
+    return list.sort();
+  }, [classes, className, subjectOptions, subject]);
+
   const pack = PACK_DISPLAY[activePack];
 
   if (!aiEnabled) {
@@ -514,15 +523,14 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">🔍</span>
         </div>
 
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-1 -mx-1 px-1">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           <button
             type="button"
             onClick={() => setActiveGroup("ALL")}
-            className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${
-              activeGroup === "ALL"
-                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)]"
-            }`}
+            className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${activeGroup === "ALL"
+              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+              : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+              }`}
           >
             All 20
           </button>
@@ -531,13 +539,12 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
               key={g.key}
               type="button"
               onClick={() => setActiveGroup(g.key)}
-              className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${
-                activeGroup === g.key
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)]"
-              }`}
+              className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${activeGroup === g.key
+                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                }`}
             >
-              {GROUP_SHORT[g.key]}
+              {g.label.split(" ")[0]}
             </button>
           ))}
         </div>
@@ -581,95 +588,29 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                   const reason = skillBlockedReason(s, className);
                   const isSelected = s.key === selectedKey;
                   return (
-                    <div key={s.key} className="relative group/skill">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedKey(s.key)}
-                        className={`w-full text-left rounded-xl px-2 py-2 border transition flex items-start gap-2 ${
-                          isSelected
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                            : "border-transparent hover:border-[var(--border)] hover:bg-[var(--bg-main)]"
-                        } ${reason ? "opacity-50" : ""}`}
-                      >
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => setSelectedKey(s.key)}
+                      title={reason || s.description}
+                      className={`w-full text-left rounded-xl px-2.5 py-2 border transition group ${isSelected
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                        : "border-transparent hover:border-[var(--border)] hover:bg-[var(--bg-main)]"
+                        } ${reason ? "opacity-45" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.accent}`} />
                         <span
-                          className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-white text-[13px] ${s.accent} ${
-                            reason ? "grayscale" : ""
-                          }`}
-                        >
-                          <i className={s.icon} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className={`block text-[11px] font-bold font-mono truncate ${
-                              isSelected ? "text-[var(--primary)]" : "text-[var(--text-heading)]"
+                          className={`text-[11px] font-bold font-mono ${isSelected ? "text-[var(--primary)]" : "text-[var(--text-heading)]"
                             }`}
-                          >
-                            {s.command}
-                          </span>
-                          <span className="block text-[10px] text-[var(--text-muted)] leading-snug truncate">
-                            {reason ? (
-                              <span className="text-amber-600 dark:text-amber-400">🔒 {reason}</span>
-                            ) : (
-                              s.label
-                            )}
-                          </span>
+                        >
+                          {s.command}
                         </span>
-                      </button>
-
-                      {/* Hover card — the full brief for this skill. Pointer-events
-                          off so it never blocks the click underneath. */}
-                      <div className="pointer-events-none absolute left-full top-0 ml-2 z-40 w-64 opacity-0 translate-x-1 group-hover/skill:opacity-100 group-hover/skill:translate-x-0 transition-all duration-150 hidden lg:block">
-                        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-xl p-3">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center text-white text-[11px] ${s.accent}`}>
-                              <i className={s.icon} />
-                            </span>
-                            <div className="min-w-0">
-                              <div className="text-[11px] font-bold text-[var(--text-heading)] leading-tight">
-                                {s.label}
-                              </div>
-                              <div className="text-[9px] font-mono text-[var(--primary)]">{s.command}</div>
-                            </div>
-                          </div>
-
-                          <p className="text-[10px] text-[var(--text-muted)] leading-relaxed mb-2">
-                            {s.description}
-                          </p>
-
-                          <div className="rounded-lg bg-[var(--bg-main)] border border-[var(--border)] px-2 py-1.5 mb-2">
-                            <div className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-0.5">
-                              You get
-                            </div>
-                            <div className="text-[10px] text-[var(--text-heading)] leading-relaxed">
-                              {s.preview}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1">
-                            <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-muted)]">
-                              {OUTPUT_KIND_LABEL[s.outputKind] || s.outputKind}
-                            </span>
-                            <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-muted)]">
-                              Class {s.classMin}–{s.classMax}
-                            </span>
-                            {s.pushTargets.map((t) => (
-                              <span
-                                key={t}
-                                className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[var(--primary)]"
-                              >
-                                ➜ {PUSH_TARGET_LABEL[t]}
-                              </span>
-                            ))}
-                          </div>
-
-                          {reason && (
-                            <div className="mt-2 pt-2 border-t border-[var(--border)] text-[9px] font-bold text-amber-600 dark:text-amber-400">
-                              🔒 {reason}
-                            </div>
-                          )}
-                        </div>
                       </div>
-                    </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug pl-3.5">
+                        {reason ? <span className="text-amber-600 dark:text-amber-400">🔒 {reason}</span> : s.label}
+                      </div>
+                    </button>
                   );
                 })}
               </div>
@@ -708,11 +649,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)]">Class</span>
                 <select
                   value={className}
-                  onChange={(e) => {
-                    setClassName(e.target.value);
-                    setUnit("");
-                    setTopic("");
-                  }}
+                  onChange={(e) => setClassName(e.target.value)}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
                   {classOptions.map((c) => (
@@ -737,20 +674,19 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
 
             <label className="block">
               <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)]">Subject</span>
-              {subjectOptions.length > 0 ? (
+              {availableSubjects.length > 0 ? (
                 <select
                   value={subject}
                   onChange={(e) => {
                     setSubject(e.target.value);
                     setPackOverride(null); // re-detect the pack from the new subject
                     setUnit("");
-                    setTopic("");
                   }}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
                   <option value="">Select subject</option>
-                  {subjectOptions.map((s) => (
-                    <option key={s.id} value={s.name}>{s.name}</option>
+                  {availableSubjects.map((s) => (
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               ) : (
@@ -759,8 +695,6 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                   onChange={(e) => {
                     setSubject(e.target.value);
                     setPackOverride(null);
-                    setUnit("");
-                    setTopic("");
                   }}
                   placeholder="e.g. Mathematics"
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
@@ -774,9 +708,8 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 <select
                   value={unit}
                   onChange={(e) => {
-                    const selectedUnit = e.target.value;
-                    setUnit(selectedUnit);
-                    setTopic(selectedUnit);
+                    setUnit(e.target.value);
+                    if (e.target.value && !topic) setTopic(e.target.value);
                   }}
                   className="mt-1 w-full rounded-xl bg-[var(--bg-card)] border border-[var(--border)] px-2.5 py-2 text-xs text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
                 >
@@ -827,11 +760,10 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                         setPackOverride(k);
                         setPackMenuOpen(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-[11px] transition ${
-                        k === activePack
-                          ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold"
-                          : "text-[var(--text-heading)] hover:bg-[var(--bg-main)]"
-                      }`}
+                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-[11px] transition ${k === activePack
+                        ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold"
+                        : "text-[var(--text-heading)] hover:bg-[var(--bg-main)]"
+                        }`}
                     >
                       <span>{PACK_DISPLAY[k].icon}</span>
                       {PACK_DISPLAY[k].label}
@@ -891,9 +823,8 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                   key={l}
                   type="button"
                   onClick={() => setLanguage(l)}
-                  className={`flex-1 text-[11px] font-bold py-1.5 rounded-lg transition ${
-                    language === l ? "bg-[var(--primary)] text-white" : "text-[var(--text-muted)]"
-                  }`}
+                  className={`flex-1 text-[11px] font-bold py-1.5 rounded-lg transition ${language === l ? "bg-[var(--primary)] text-white" : "text-[var(--text-muted)]"
+                    }`}
                 >
                   {l === "english" ? "English" : "தமிழ்"}
                 </button>
@@ -939,16 +870,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
       </section>
 
       {/* ── Pane 3: output ────────────────────────────────────────────────── */}
-      {/* Expanding swaps this pane's grid slot for a fixed full-viewport panel.
-          Same element and same state, so nothing re-renders or is lost. */}
-      <section
-        className={
-          fullscreen
-            ? "fixed inset-0 z-50 overflow-y-auto bg-[var(--bg-main)] p-4 sm:p-6 lg:p-10"
-            : "theme-card p-4 xl:col-span-1 lg:col-span-2 xl:col-start-3 min-h-[320px]"
-        }
-      >
-        <div className={fullscreen ? "mx-auto w-full max-w-5xl" : "contents"}>
+      <section className="theme-card p-4 xl:col-span-1 lg:col-span-2 xl:col-start-3 min-h-[320px]">
         {generating && selectedSkill && (
           <div>
             <div className="flex items-center gap-2 mb-4 text-[11px] font-bold text-[var(--primary)]">
@@ -997,11 +919,10 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
               <button
                 type="button"
                 onClick={() => setEditMode((v) => !v)}
-                className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition ${
-                  editMode
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                    : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
-                }`}
+                className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition ${editMode
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
+                  }`}
               >
                 {editMode ? "✓ Editing" : "✎ Edit"}
               </button>
@@ -1037,19 +958,6 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
               >
                 ⇧ Publish
               </button>
-
-              <button
-                type="button"
-                onClick={() => setFullscreen((v) => !v)}
-                title={fullscreen ? "Back to the studio (Esc)" : "Read it full width"}
-                className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition ml-auto ${
-                  fullscreen
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                    : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
-                }`}
-              >
-                {fullscreen ? "✕ Close full view" : "⛶ Full view"}
-              </button>
             </div>
 
             {editMode && (
@@ -1084,7 +992,6 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
             </div>
           </>
         )}
-        </div>
       </section>
     </div>
   );

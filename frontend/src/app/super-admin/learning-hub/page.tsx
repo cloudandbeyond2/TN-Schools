@@ -769,7 +769,7 @@ export default function CentralLearningHubAdmin() {
     >
       {/* Toast Alert */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-lg border text-sm font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 duration-300 ${
+        <div className={`fixed top-20 right-6 z-50 p-4 rounded-xl shadow-lg border text-sm font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 duration-300 ${
           toast.type === "success" 
             ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" 
             : "bg-red-500/15 border-red-500/30 text-red-400"
@@ -790,8 +790,8 @@ export default function CentralLearningHubAdmin() {
                 onClick={() => setSelectedClass(cls)}
                 className={`px-4 py-2 text-xs font-bold rounded-xl transition-all border ${
                   selectedClass === cls
-                    ? "bg-indigo-650 text-white border-indigo-500 shadow-md"
-                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
+                    : "bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white"
                 }`}
               >
                 Grade {cls}th Std
@@ -827,7 +827,7 @@ export default function CentralLearningHubAdmin() {
                     className={`p-3 rounded-xl border flex items-center justify-between transition-all group cursor-pointer ${
                       selectedSubject?.id === sub.id
                         ? "bg-indigo-600 border-indigo-600 text-white shadow-md font-bold"
-                        : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                        : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                     }`}
                     onClick={() => handleSelectSubject(sub)}
                   >
@@ -913,7 +913,7 @@ export default function CentralLearningHubAdmin() {
                       className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         selectedUnit?.id === u.id
                           ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-sm"
-                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                       onClick={() => {
                         setSelectedUnit(u);
@@ -981,7 +981,7 @@ export default function CentralLearningHubAdmin() {
                       className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         selectedTopic?.id === t.id
                           ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-sm"
-                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                       onClick={() => handleSelectTopic(t)}
                     >
@@ -1027,7 +1027,7 @@ export default function CentralLearningHubAdmin() {
           {selectedTopic ? (
             <div className="glass p-6 rounded-3xl border border-slate-700/50 space-y-6 animate-in fade-in duration-200">
               {/* Header */}
-              <div className="flex justify-between items-start border-b border-slate-850 pb-4">
+              <div className="flex justify-between items-start border-b border-slate-800 pb-4">
                 <div>
                   <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                     Subunit {selectedTopic.topicNumber} Workspace
@@ -1039,7 +1039,7 @@ export default function CentralLearningHubAdmin() {
                 </div>
                 <button
                   onClick={() => setShowAddContent(true)}
-                  className="px-3.5 py-1.5 bg-indigo-650 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow transition-all flex items-center gap-1"
+                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow transition-all flex items-center gap-1"
                 >
                   ➕ Upload Materials
                 </button>
@@ -1092,7 +1092,7 @@ export default function CentralLearningHubAdmin() {
                       return (
                         <div
                           key={item.id}
-                          className="p-4 rounded-2xl border border-slate-850 bg-slate-900/40 hover:bg-slate-900/70 transition-all flex flex-col gap-3"
+                          className="p-4 rounded-2xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/70 transition-all flex flex-col gap-3"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-3">
@@ -1146,7 +1146,7 @@ export default function CentralLearningHubAdmin() {
                                     href={item.fileUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-indigo-400 hover:text-indigo-350 transition-all font-bold px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[10px] inline-flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer ml-1"
+                                    className="text-indigo-400 hover:text-indigo-400 transition-all font-bold px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[10px] inline-flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer ml-1"
                                   >
                                     <span>🎨</span> View Infographic Card
                                   </a>
@@ -1155,7 +1155,7 @@ export default function CentralLearningHubAdmin() {
                                     href={item.fileUrl.startsWith("http") ? item.fileUrl : `${API_URL}${item.fileUrl}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-indigo-400 hover:text-indigo-350 hover:underline transition-colors ml-1 font-semibold"
+                                    className="text-indigo-400 hover:text-indigo-400 hover:underline transition-colors ml-1 font-semibold"
                                   >
                                     {item.fileUrl.startsWith("http") ? item.fileUrl : `${API_URL}${item.fileUrl}`}
                                   </a>
@@ -1248,7 +1248,7 @@ export default function CentralLearningHubAdmin() {
                           <button
                             disabled={generatingInfographic}
                             onClick={handleGenerateInfographic}
-                            className="px-2.5 py-1 bg-purple-550 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                            className="px-2.5 py-1 bg-purple-700 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
                           >
                             {generatingInfographic ? "Generating..." : "⚡ Regenerate"}
                           </button>
@@ -1257,7 +1257,7 @@ export default function CentralLearningHubAdmin() {
                         <button
                           disabled={generatingInfographic || contents.length === 0}
                           onClick={handleGenerateInfographic}
-                          className="px-3 py-1 bg-indigo-650 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           title={contents.length === 0 ? "Upload reference materials first to extract content" : "Generate infographic"}
                         >
                           {generatingInfographic ? "Generating..." : "⚡ Generate Infographic"}
@@ -1325,7 +1325,7 @@ export default function CentralLearningHubAdmin() {
                           <button
                             disabled={generatingPresentation}
                             onClick={handleGeneratePresentation}
-                            className="px-2.5 py-1 bg-purple-550 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                            className="px-2.5 py-1 bg-purple-700 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
                           >
                             {generatingPresentation ? "Generating..." : "⚡ Regenerate"}
                           </button>
@@ -1334,7 +1334,7 @@ export default function CentralLearningHubAdmin() {
                         <button
                           disabled={generatingPresentation || contents.length === 0}
                           onClick={handleGeneratePresentation}
-                          className="px-3 py-1 bg-indigo-650 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           title={contents.length === 0 ? "Upload reference materials first to extract content" : "Generate presentation"}
                         >
                           {generatingPresentation ? "Generating..." : "⚡ Generate Presentation"}
@@ -1342,7 +1342,7 @@ export default function CentralLearningHubAdmin() {
                       )}
                     </div>
 
-                    <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-900/60 text-xs text-slate-350 flex justify-between items-center">
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-900/60 text-xs text-slate-300 flex justify-between items-center">
                       <div>
                         <span className="font-bold text-white block mb-0.5">Presentation Status:</span>
                         {presentationItem 
@@ -1434,7 +1434,7 @@ export default function CentralLearningHubAdmin() {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1.5 font-bold">Theme Color</label>
                   <div className="flex gap-3 items-center mb-2">
-                    <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-850 shrink-0 bg-slate-900 flex items-center justify-center hover:border-slate-650 transition-colors">
+                    <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-800 shrink-0 bg-slate-900 flex items-center justify-center hover:border-slate-650 transition-colors">
                       <input
                         type="color"
                         className="absolute inset-0 w-full h-full p-0 border-0 opacity-0 cursor-pointer"
@@ -1492,7 +1492,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-650 rounded-xl text-xs font-bold text-white transition-all shadow-md shadow-indigo-500/20"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-600 rounded-xl text-xs font-bold text-white transition-all shadow-md shadow-indigo-500/20"
                 >
                   Create Subject
                 </button>
@@ -1568,7 +1568,7 @@ export default function CentralLearningHubAdmin() {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1.5 font-bold">Theme Color</label>
                   <div className="flex gap-3 items-center mb-2">
-                    <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-850 shrink-0 bg-slate-900 flex items-center justify-center hover:border-slate-650 transition-colors">
+                    <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-800 shrink-0 bg-slate-900 flex items-center justify-center hover:border-slate-650 transition-colors">
                       <input
                         type="color"
                         className="absolute inset-0 w-full h-full p-0 border-0 opacity-0 cursor-pointer"
@@ -1629,7 +1629,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md"
                 >
                   Save Changes
                 </button>
@@ -1684,7 +1684,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
                 >
                   Create Unit
                 </button>
@@ -1751,7 +1751,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
                 >
                   Save Changes
                 </button>
@@ -1806,7 +1806,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
                 >
                   Create Subunit
                 </button>
@@ -1873,7 +1873,7 @@ export default function CentralLearningHubAdmin() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all"
                 >
                   Save Changes
                 </button>
@@ -1946,7 +1946,7 @@ export default function CentralLearningHubAdmin() {
                         ? 'bg-rose-950/15 border-rose-900/40' 
                         : item.status === 'success' 
                         ? 'bg-emerald-950/15 border-emerald-900/40'
-                        : 'bg-slate-900/40 border-slate-850'
+                        : 'bg-slate-900/40 border-slate-800'
                     }`}
                   >
                     <div className="flex justify-between items-start">
@@ -2037,7 +2037,7 @@ export default function CentralLearningHubAdmin() {
             )}
 
             {/* Actions */}
-            <div className="pt-3 border-t border-slate-850 flex gap-3 flex-shrink-0">
+            <div className="pt-3 border-t border-slate-800 flex gap-3 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -2052,7 +2052,7 @@ export default function CentralLearningHubAdmin() {
               <button
                 type="button"
                 onClick={handleUploadQueueMaterials}
-                className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md shadow-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md shadow-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={
                   uploadQueue.length === 0 || 
                   uploadQueue.every(f => f.status === 'error' || f.status === 'success') ||
@@ -2091,10 +2091,10 @@ export default function CentralLearningHubAdmin() {
                 <div className="absolute top-0 right-0 p-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl -mr-4 -mt-4"></div>
                 <span className="text-4xl">🧠</span>
                 <div>
-                  <h4 className="font-black text-sm md:text-base text-indigo-455 dark:text-indigo-400">
+                  <h4 className="font-black text-sm md:text-base text-indigo-400 dark:text-indigo-400">
                     {infographicPreviewData.topicTitle || selectedTopic?.name}
                   </h4>
-                  <p className="text-xs text-slate-350 mt-1 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed font-medium">
                     {infographicPreviewData.overallSummary}
                   </p>
                 </div>
@@ -2108,7 +2108,7 @@ export default function CentralLearningHubAdmin() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {infographicPreviewData.visualFlow?.map((step: any, idx: number) => (
-                    <div key={idx} className="relative flex flex-col p-4 rounded-xl border border-slate-800 bg-slate-900/20 shadow-xs hover:border-indigo-850 transition-colors">
+                    <div key={idx} className="relative flex flex-col p-4 rounded-xl border border-slate-800 bg-slate-900/20 shadow-xs hover:border-indigo-800 transition-colors">
                       <div className="flex justify-between items-center mb-2 flex-shrink-0">
                         <span className="text-lg" title="Concept Icon">{step.icon || "💡"}</span>
                         <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-indigo-950/40 text-indigo-400 rounded-md border border-indigo-500/10">
@@ -2116,7 +2116,7 @@ export default function CentralLearningHubAdmin() {
                         </span>
                       </div>
                       <h6 className="font-bold text-xs text-white leading-tight mb-1">{step.title}</h6>
-                      <p className="text-[11px] text-slate-450 leading-relaxed font-medium mt-1">
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-medium mt-1">
                         {step.description}
                       </p>
                     </div>
@@ -2153,7 +2153,7 @@ export default function CentralLearningHubAdmin() {
                   <div className="space-y-2.5">
                     {infographicPreviewData.mnemonics?.map((item: any, idx: number) => (
                       <div key={idx} className="p-3.5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 flex flex-col gap-1">
-                        <span className="font-black text-xs text-emerald-350">
+                        <span className="font-black text-xs text-emerald-400">
                           💡 {item.phrase}
                         </span>
                         <span className="text-[10px] text-slate-400 leading-relaxed font-medium mt-0.5">
@@ -2171,7 +2171,7 @@ export default function CentralLearningHubAdmin() {
                   <h5 className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
                     <span>🃏</span> 3D Flip Flashcards (Active Recall)
                   </h5>
-                  <span className="text-[10px] text-slate-550 font-medium">Click card to reveal answer</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Click card to reveal answer</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -2189,21 +2189,21 @@ export default function CentralLearningHubAdmin() {
                           }`}
                         >
                           {/* Front face */}
-                          <div className="absolute inset-0 w-full h-full rounded-xl border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between [backface-visibility:hidden] shadow-xs group-hover:border-indigo-850 transition-colors">
+                          <div className="absolute inset-0 w-full h-full rounded-xl border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between [backface-visibility:hidden] shadow-xs group-hover:border-indigo-800 transition-colors">
                             <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider">Question {idx + 1}</span>
                             <p className="text-xs text-slate-200 font-bold leading-snug line-clamp-3 my-auto">
                               {card.front}
                             </p>
-                            <span className="text-[8px] text-slate-450 text-right mt-1 font-bold group-hover:text-indigo-400">🔄 CLICK TO REVEAL</span>
+                            <span className="text-[8px] text-slate-400 text-right mt-1 font-bold group-hover:text-indigo-400">🔄 CLICK TO REVEAL</span>
                           </div>
 
                           {/* Back face */}
                           <div className="absolute inset-0 w-full h-full rounded-xl border border-indigo-500/35 bg-indigo-950/40 p-4 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-md">
-                            <span className="text-[9px] font-black uppercase text-indigo-455 tracking-wider">Answer / Fact</span>
+                            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-wider">Answer / Fact</span>
                             <p className="text-xs text-indigo-300 font-medium leading-snug line-clamp-4 my-auto">
                               {card.back}
                             </p>
-                            <span className="text-[8px] text-indigo-450 text-right mt-1 font-bold">🔄 CLICK TO FLIP BACK</span>
+                            <span className="text-[8px] text-indigo-400 text-right mt-1 font-bold">🔄 CLICK TO FLIP BACK</span>
                           </div>
                         </div>
                       </div>
@@ -2260,7 +2260,7 @@ export default function CentralLearningHubAdmin() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
                       
                       {/* Left: Text bullets content */}
-                      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-850 flex flex-col justify-between">
+                      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
                         <div className="space-y-4">
                           <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md">
                             Slide {currentSlide.slideNumber} of {presentationPreviewData.slides.length}
@@ -2271,7 +2271,7 @@ export default function CentralLearningHubAdmin() {
                           
                           <ul className="space-y-3.5 pt-2">
                             {currentSlide.bulletPoints?.map((bp: string, bpi: number) => (
-                              <li key={bpi} className="text-xs md:text-sm text-slate-205 flex items-start gap-2.5 leading-relaxed font-medium">
+                              <li key={bpi} className="text-xs md:text-sm text-slate-200 flex items-start gap-2.5 leading-relaxed font-medium">
                                 <span className="text-indigo-400 select-none mt-0.5">•</span>
                                 <span>{bp}</span>
                               </li>
@@ -2304,9 +2304,9 @@ export default function CentralLearningHubAdmin() {
                     </div>
 
                     {/* Speaker Notes / Explanation */}
-                    <div className="p-4 rounded-xl border border-slate-850 bg-slate-900/30 leading-relaxed text-xs text-slate-300">
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/30 leading-relaxed text-xs text-slate-300">
                       <span className="font-bold text-white block mb-1">📢 Presenter Notes & bilingual Explanation:</span>
-                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-350">
+                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-300">
                         {currentSlide.speakerNotes}
                       </p>
                     </div>
@@ -2330,7 +2330,7 @@ export default function CentralLearningHubAdmin() {
                   type="button"
                   disabled={currentPreviewSlide >= (presentationPreviewData.slides?.length || 0) - 1}
                   onClick={() => setCurrentPreviewSlide(prev => prev + 1)}
-                  className="py-1.5 px-3 rounded-lg bg-indigo-650 hover:bg-indigo-500 text-xs font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next Slide ▶
                 </button>

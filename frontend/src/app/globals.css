@@ -1180,6 +1180,20 @@ h1, h2, h3, h4, h5, h6 {
   color: #4b5563; /* Slate-600 body text */
 }
 
+/* White text overrides for dark hero banners in light mode */
+:root:not(.dark) .banner-text-white,
+:root:not(.dark) .banner-text-white h1,
+:root:not(.dark) .banner-text-white h2,
+:root:not(.dark) .banner-text-white h3,
+:root:not(.dark) .banner-text-white p,
+:root:not(.dark) .banner-text-white span,
+:root:not(.dark) .banner-text-white div {
+  color: #ffffff !important;
+}
+:root:not(.dark) .banner-text-white .text-sub {
+  color: #f3e8ff !important;
+}
+
 /* Hide colored top gradient banner in both light and dark themes */
 .main-content-header-bg {
   display: none !important;

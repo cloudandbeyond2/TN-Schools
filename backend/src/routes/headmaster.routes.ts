@@ -108,10 +108,19 @@ router.post('/students', async (req: Request, res: Response) => {
     const { classVal, sectionVal } = parseClassSection(cls || '10');
 
     const result = await prisma.$transaction(async (tx) => {
+      const studentEmail = cleanRoll
+        ? `stu_${cleanRoll.toLowerCase().replace(/[^a-z0-9]/g, '')}_${schoolId.slice(-6)}@tn.gov.in`
+        : `stu_${Date.now()}_${Math.floor(Math.random() * 10000)}@tn.gov.in`;
+
+      const existingUserEmail = await tx.user.findFirst({ where: { email: studentEmail } });
+      const finalEmail = existingUserEmail
+        ? `stu_${cleanRoll || 'roll'}_${Date.now()}@tn.gov.in`
+        : studentEmail;
+
       const user = await tx.user.create({
         data: {
           name,
-          email: cleanRoll ? `${cleanRoll.toLowerCase()}@tn.gov.in` : null,
+          email: finalEmail,
           mobile: mobileValue,
           passwordHash: await hashPassword(cleanPhone || '123456'),
           role: 'STUDENT',
@@ -226,9 +235,24 @@ router.post('/students', async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ success: true, data: result });
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error creating student:', err);
-    res.status(500).json({ success: false, error: String(err) });
+    let errorMsg = 'Failed to save student record.';
+    const errStr = String(err);
+    if (err?.code === 'P2002' || errStr.includes('Unique constraint failed')) {
+      if (errStr.includes('email')) {
+        errorMsg = 'A user or parent with this email address already exists. Please use a unique email address.';
+      } else if (errStr.includes('mobile')) {
+        errorMsg = 'A user with this mobile number already exists. Please use a unique phone number.';
+      } else {
+        errorMsg = 'A student with duplicate unique fields (roll number or EMIS) already exists.';
+      }
+    } else if (err?.message) {
+      errorMsg = err.message;
+    } else {
+      errorMsg = errStr;
+    }
+    res.status(400).json({ success: false, error: errorMsg });
   }
 });
 
