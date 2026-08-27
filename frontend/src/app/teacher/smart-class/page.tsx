@@ -10,9 +10,11 @@ import type {
   UnitDetail,
 } from "@/components/smart-class/types";
 import { API_URL, apiFetch } from "@/lib/api";
-import { BookOpen, FileText, HelpCircle, MonitorPlay, Presentation } from "lucide-react";
+import { BookOpen, Eye, FileText, HelpCircle, MonitorPlay, Presentation, Printer, Sparkles, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
+import { OutputRenderer } from "@/components/ai-studio/renderers";
+import { printOutput } from "@/components/ai-studio/printable";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 
@@ -62,11 +64,53 @@ interface BoardPayload {
   mcqs: BoardMcq[];
 }
 
+interface PublishedAiItem {
+  id: string;
+  skillKey: string;
+  outputKind: any;
+  subjectPack: any;
+  subject: string;
+  className: string;
+  section: string | null;
+  unit?: string | null;
+  topic: string;
+  title: string;
+  language: string;
+  payload: any;
+  publishedAt: string | null;
+}
+
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 
 /** Uploaded files come back as backend-relative "/uploads/..." paths. */
 const resolveFileUrl = (u: string | null | undefined): string | null =>
   !u ? null : u.startsWith("/") ? `${API_URL}${u}` : u;
+
+/** Helper to safely convert strings or objects ({term, tamil, meaning}, etc.) into text */
+const stringifyItem = (item: any): string => {
+  if (item == null) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "number" || typeof item === "boolean") return String(item);
+  if (typeof item === "object") {
+    if (item.term || item.word || item.concept || item.misconception || item.heading || item.title) {
+      const main = item.term || item.word || item.concept || item.misconception || item.heading || item.title;
+      const sub = item.tamil || item.meaning || item.definition || item.correction || item.description || item.explanation;
+      if (main && sub) return `${main} — ${sub}`;
+      if (main) return main;
+      if (sub) return sub;
+    }
+    return Object.values(item)
+      .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v)))
+      .filter(Boolean)
+      .join(" - ");
+  }
+  return String(item);
+};
+
+const stringifyArr = (arr: any): string[] => {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(stringifyItem).filter(Boolean);
+};
 
 /**
  * CentralContent.mcqs holds { question, options, answer, rationale } where
@@ -122,6 +166,10 @@ export default function TeacherSmartClassPage() {
   const [loadingPayload, setLoadingPayload] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
 
+  const [aiStudioItems, setAiStudioItems] = useState<PublishedAiItem[]>([]);
+  const [loadingAiItems, setLoadingAiItems] = useState(false);
+  const [activeAiItem, setActiveAiItem] = useState<PublishedAiItem | null>(null);
+
   /* ── Teacher's classes ── */
   const fetchTeacherClasses = useCallback(async () => {
     if (!schoolId || !teacherId) return;
@@ -149,6 +197,34 @@ export default function TeacherSmartClassPage() {
     if (classOptions.length > 0 && !selectedClass) setSelectedClass(classOptions[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teacherClasses]);
+
+  /* ── Published AI Studio Items ── */
+  const fetchAiStudioItems = useCallback(async () => {
+    if (!selectedClass) return;
+    setLoadingAiItems(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("class", selectedClass);
+      if (selectedSubject) params.set("subject", selectedSubject.name);
+      if (schoolId) params.set("schoolId", schoolId);
+      const res = await apiFetch(`/api/ai-studio/published?${params.toString()}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAiStudioItems(json.data);
+      } else {
+        setAiStudioItems([]);
+      }
+    } catch (err) {
+      console.error("Error fetching published AI Studio items:", err);
+      setAiStudioItems([]);
+    } finally {
+      setLoadingAiItems(false);
+    }
+  }, [selectedClass, selectedSubject, schoolId]);
+
+  useEffect(() => {
+    fetchAiStudioItems();
+  }, [fetchAiStudioItems]);
 
   /* ── Subjects for the class ── */
   useEffect(() => {
@@ -274,6 +350,69 @@ export default function TeacherSmartClassPage() {
     }
   };
 
+  const launchAiLessonOnBoard = (item: PublishedAiItem) => {
+    const payloadData = item.payload || {};
+    const sections = Array.isArray(payloadData.sections)
+      ? payloadData.sections
+      : Array.isArray(payloadData.steps)
+      ? payloadData.steps
+      : Array.isArray(payloadData.slides)
+      ? payloadData.slides
+      : Array.isArray(payloadData.cards)
+      ? payloadData.cards
+      : Array.isArray(payloadData.items)
+      ? payloadData.items
+      : [];
+
+    const keyTermsRaw = payloadData.keyTerms || payloadData.vocabulary || payloadData.keyConcepts || payloadData.keyIdeas || payloadData.terms || [];
+    const realWorldRaw = payloadData.realWorldConnections || payloadData.examples || payloadData.applications || [];
+    const misconceptionsRaw = payloadData.misconceptions || payloadData.commonMisconceptions || [];
+    const objectivesRaw = payloadData.objectives || payloadData.goals || payloadData.outcomes || payloadData.studentKeyPoints || [];
+
+    const detail: UnitDetail = {
+      en: {
+        keyConcepts: stringifyArr(keyTermsRaw),
+        realLifeConnections: stringifyArr(realWorldRaw),
+        commonMisconceptions: stringifyArr(misconceptionsRaw),
+        teachingFlow: sections.map((s: any, idx: number) => ({
+          step: stringifyItem(s.heading || s.title || s.name || s.topic || `Section ${idx + 1}`),
+          minutes: Number(s.durationMins || s.minutes || s.time) || 10,
+          description: Array.isArray(s.keyIdeas)
+            ? stringifyArr(s.keyIdeas).join(". ")
+            : Array.isArray(s.items)
+            ? stringifyArr(s.items).join(". ")
+            : Array.isArray(s.points)
+            ? stringifyArr(s.points).join(". ")
+            : stringifyItem(s.description || s.teacherNotes || s.content || s.text || s.prompt || s.body || "")
+        })),
+        teacherScript: stringifyItem(payloadData.summary || payloadData.overview || payloadData.introduction || payloadData.description || item.title || item.topic),
+        studentKeyPoints: stringifyArr(objectivesRaw)
+      },
+      ta: null
+    };
+
+    setPayload({
+      unit: {
+        name: item.unit || item.topic || item.title,
+        unitNumber: 1,
+        subjectName: item.subject,
+        className: item.className
+      },
+      detail,
+      infographicUrl: item.outputKind === "INFOGRAPHIC" && item.payload?.imageUrl ? resolveFileUrl(item.payload.imageUrl) : null,
+      pdfs: [],
+      mcqs: Array.isArray(payloadData.questions)
+        ? normalizeMcqs(payloadData.questions)
+        : Array.isArray(payloadData.mcqs)
+        ? normalizeMcqs(payloadData.mcqs)
+        : []
+    });
+    setBoardOpen(true);
+    if (typeof document !== "undefined" && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  };
+
   /* ── Fullscreen board mode ── */
   const enterBoard = () => {
     if (!payload) return;
@@ -383,6 +522,94 @@ export default function TeacherSmartClassPage() {
                 <span>{sub.icon || ""}</span> {sub.name}
               </button>
             ))}
+          </div>
+
+          {/* AI Studio Pushed Contents Section */}
+          <div className="mb-8 p-5 glass rounded-3xl border border-amber-500/20 bg-amber-500/5 dark:bg-amber-950/20 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                  {lang === "தமிழ்" ? "AI ஸ்டுடியோவிலிருந்து அனுப்பப்பட்ட உள்ளடக்கங்கள்" : "AI Studio Pushed Contents"}
+                </h3>
+                {aiStudioItems.length > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                    {aiStudioItems.length}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={fetchAiStudioItems}
+                className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                ⟳ {lang === "தமிழ்" ? "புதுப்பி" : "Refresh"}
+              </button>
+            </div>
+
+            {loadingAiItems ? (
+              <div className="flex items-center gap-2 py-3 text-xs text-slate-500 font-medium">
+                <div className="w-4 h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                {lang === "தமிழ்" ? "அனுப்பப்பட்ட உள்ளடக்கங்கள் ஏற்றப்படுகின்றன..." : "Loading pushed AI contents..."}
+              </div>
+            ) : aiStudioItems.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                {lang === "தமிழ்"
+                  ? "AI Studio-வில் உருவாகிய பாடங்களை '➜ Smart Class' கிளிக் செய்து இங்கே அனுப்பலாம்."
+                  : "Content pushed from AI Studio using '➜ Smart Class' will appear here ready for presentation."}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {aiStudioItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-amber-500/30 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between shadow-sm transition hover:shadow-md"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider bg-amber-500/10 px-2 py-0.5 rounded-md">
+                          /{item.skillKey}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ""}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-2 mb-1">
+                        {item.title || item.topic}
+                      </h4>
+                      {item.unit && (
+                        <p className="text-xs text-slate-500 truncate mb-3">
+                          {lang === "தமிழ்" ? `அலகு: ${item.unit}` : `Unit: ${item.unit}`}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+                      <button
+                        onClick={() => {
+                          if (item.outputKind === "LESSON_PLAN" || item.payload?.sections) {
+                            launchAiLessonOnBoard(item);
+                          } else {
+                            setActiveAiItem(item);
+                          }
+                        }}
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-amber-600 transition"
+                      >
+                        <MonitorPlay className="w-3.5 h-3.5" />
+                        {lang === "தமிழ்" ? "போர்டில் திரையிடு" : "Present on Board"}
+                      </button>
+
+                      <button
+                        onClick={() => setActiveAiItem(item)}
+                        title="Preview / Print"
+                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Unit cards */}
@@ -520,6 +747,55 @@ export default function TeacherSmartClassPage() {
           mcqs={payload.mcqs}
           onExit={exitBoard}
         />
+      )}
+
+      {/* AI Content Preview / Presenter Modal */}
+      {activeAiItem && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950">
+              <div>
+                <div className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400">
+                  /{activeAiItem.skillKey} · {activeAiItem.subject} · {activeAiItem.className}
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {activeAiItem.title || activeAiItem.topic}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    printOutput(activeAiItem.outputKind, activeAiItem.payload, {
+                      skillLabel: activeAiItem.skillKey,
+                      subject: activeAiItem.subject,
+                      className: activeAiItem.className,
+                      topic: activeAiItem.topic,
+                      teacherName: user?.name
+                    });
+                  }}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold flex items-center gap-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <Printer className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "அச்சிடு / PDF" : "Print / PDF"}
+                </button>
+
+                <button
+                  onClick={() => setActiveAiItem(null)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              <OutputRenderer
+                outputKind={activeAiItem.outputKind}
+                payload={activeAiItem.payload}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </PortalLayout>
   );

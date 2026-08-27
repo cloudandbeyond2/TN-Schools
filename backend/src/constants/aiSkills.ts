@@ -758,7 +758,7 @@ export const AI_SKILLS: AiSkillDef[] = [
     inputs: [
       { key: 'duration', label: 'Period length', type: 'select', options: ['30 minutes', '40 minutes', '45 minutes', '60 minutes', 'Double period'], default: '45 minutes' },
     ],
-    pushTargets: ['lessonPlan', 'smartClass'],
+    pushTargets: ['smartClass'],
     basePrompt: `Build a complete, teachable lesson plan for "{{topic}}" ({{subject}}, {{class}}), to be delivered in {{duration}}.
 Requirements:
 - summary: what the teacher is trying to achieve this period, in 2-3 sentences.

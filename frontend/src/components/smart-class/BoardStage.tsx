@@ -33,6 +33,26 @@ interface BoardStageProps {
 
 const PEN_COLORS = ["#dc2626", "#2563eb", "#059669", "#0f172a", "#facc15"];
 
+const safeStr = (val: any): string => {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "number" || typeof val === "boolean") return String(val);
+  if (typeof val === "object") {
+    if (val.term || val.word || val.concept || val.misconception || val.heading || val.title) {
+      const main = val.term || val.word || val.concept || val.misconception || val.heading || val.title;
+      const sub = val.tamil || val.meaning || val.definition || val.correction || val.description || val.explanation;
+      if (main && sub) return `${main} — ${sub}`;
+      if (main) return main;
+      if (sub) return sub;
+    }
+    return Object.values(val)
+      .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v)))
+      .filter(Boolean)
+      .join(" - ");
+  }
+  return String(val);
+};
+
 const TABS: { key: BoardTab; label: string; icon: typeof BookOpen }[] = [
   { key: "lesson", label: "Lesson", icon: BookOpen },
   { key: "media", label: "Media", icon: ImageIcon },
@@ -328,7 +348,7 @@ function LessonView({
                   {i + 1}
                 </span>
                 <span className="text-2xl md:text-3xl font-bold leading-snug" style={{ color: "#1e293b" }}>
-                  {c}
+                  {safeStr(c)}
                 </span>
               </li>
             ))}
@@ -348,7 +368,7 @@ function LessonView({
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xl font-black" style={{ color: "#1d4ed8" }}>
-                    {i + 1}. {step.step}
+                    {i + 1}. {safeStr(step.step)}
                   </span>
                   {step.minutes > 0 && (
                     <span
@@ -360,7 +380,7 @@ function LessonView({
                   )}
                 </div>
                 <p className="text-xl leading-relaxed" style={{ color: "#334155" }}>
-                  {step.description}
+                  {safeStr(step.description)}
                 </p>
               </div>
             ))}
@@ -374,7 +394,7 @@ function LessonView({
           <ul className="flex flex-col gap-3">
             {detail.realLifeConnections.map((c, i) => (
               <li key={i} className="text-2xl leading-snug flex gap-3" style={{ color: "#1e293b" }}>
-                <span style={{ color: "#059669" }}>●</span> {c}
+                <span style={{ color: "#059669" }}>●</span> {safeStr(c)}
               </li>
             ))}
           </ul>
@@ -391,7 +411,7 @@ function LessonView({
                 className="text-2xl leading-snug rounded-2xl p-4"
                 style={{ background: "#fef2f2", color: "#7f1d1d", border: "2px solid #fecaca" }}
               >
-                {m}
+                {safeStr(m)}
               </li>
             ))}
           </ul>
@@ -405,7 +425,7 @@ function LessonView({
             className="text-2xl leading-relaxed rounded-2xl p-6"
             style={{ background: "#faf5ff", color: "#3b0764", border: "2px solid #e9d5ff" }}
           >
-            {detail.teacherScript}
+            {safeStr(detail.teacherScript)}
           </p>
         </Section>
       )}
@@ -416,7 +436,7 @@ function LessonView({
           <ul className="flex flex-col gap-3">
             {detail.studentKeyPoints.map((p, i) => (
               <li key={i} className="text-2xl leading-snug flex gap-3" style={{ color: "#1e293b" }}>
-                <span style={{ color: "#0891b2" }}>✔</span> {p}
+                <span style={{ color: "#0891b2" }}>✔</span> {safeStr(p)}
               </li>
             ))}
           </ul>

@@ -547,7 +547,7 @@ export default function TeacherUnitDetailPage() {
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">
                       <i className="fi fi-rr-comment inline-block mr-1 text-inherit"></i><i className="fi fi-rr-star inline-block mr-1 text-inherit"></i>{" "}
                       {lang === "en"
-                        ? "How I&apos;d Explain This to My Class"
+                        ? "How I'd Explain This to My Class"
                         : "என் வகுப்பிற்கு இதை எப்படி விளக்குவேன்"}
                     </h3>
                     <p className="text-xs text-slate-500 mb-4">
