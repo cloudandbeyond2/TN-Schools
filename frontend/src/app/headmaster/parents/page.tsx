@@ -48,7 +48,13 @@ interface Student {
   class: string;
   section: string;
   rollNumber: string | null;
-  user: { name: string };
+  fatherName?: string | null;
+  motherName?: string | null;
+  parentName?: string | null;
+  parentMobile?: string | null;
+  phoneNumber?: string | null;
+  parentEmail?: string | null;
+  user: { name: string; mobile?: string | null; email?: string | null };
 }
 
 interface PTAMeeting {
@@ -85,11 +91,12 @@ interface ParsedPreviewPTAMember {
 }
 
 interface Grievance {
+  id?: string;
   topic: string;
   raisedBy: string;
   status: "Under Review" | "Approved" | "Resolved";
-  border: string;
-  bg: string;
+  border?: string;
+  bg?: string;
 }
 
 export default function ParentsPage() {
@@ -101,6 +108,7 @@ export default function ParentsPage() {
   const [committee, setCommittee] = useState<CommitteeMember[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [ptaMeetings, setPtaMeetings] = useState<PTAMeeting[]>([]);
+  const [grievances, setGrievances] = useState<Grievance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -121,11 +129,6 @@ export default function ParentsPage() {
   }, []);
 
 
-  const [grievances] = useState<Grievance[]>([
-    { topic: "Transport facility delays in Zone B", raisedBy: "12 parents", status: "Under Review", border: "border-amber-500/20", bg: "bg-amber-500/10 text-amber-400" },
-    { topic: "Request for extra special classes for 10th", raisedBy: "PTA Committee", status: "Approved", border: "border-emerald-500/20", bg: "bg-emerald-500/10 text-emerald-400" },
-    { topic: "RO Water filter service required in block C", raisedBy: "Class 7 Representative", status: "Resolved", border: "border-blue-500/20", bg: "bg-blue-500/10 text-blue-400" },
-  ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPtaModalOpen, setIsPtaModalOpen] = useState(false);
@@ -139,6 +142,69 @@ export default function ParentsPage() {
   const [newPassword, setNewPassword] = useState("123456");
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
+  const handleStudentSelect = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    if (!studentId) return;
+
+    const found = students.find(s => s.id === studentId);
+    if (found) {
+      const pName = found.parentName || found.fatherName || found.motherName || `${found.user?.name || "Student"}'s Parent`;
+      const pPhone = found.parentMobile || found.phoneNumber || found.user?.mobile || "";
+      const pEmail = found.parentEmail || found.user?.email || "";
+
+      if (pName) setNewName(pName);
+      if (pPhone) setNewPhone(pPhone);
+      if (pEmail) setNewEmail(pEmail);
+    }
+  };
+
+  // Grievance Form & Handlers
+  const [isGrvModalOpen, setIsGrvModalOpen] = useState(false);
+  const [newGrvTopic, setNewGrvTopic] = useState("");
+  const [newGrvRaisedBy, setNewGrvRaisedBy] = useState("PTA Committee");
+
+  const handleCreateGrievance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGrvTopic.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/grievances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: mySchoolId,
+          topic: newGrvTopic,
+          raisedBy: newGrvRaisedBy,
+          status: "Under Review"
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setGrievances(prev => [json.data, ...prev]);
+        showToast("✅ Grievance submitted dynamically!");
+        setIsGrvModalOpen(false);
+        setNewGrvTopic("");
+      }
+    } catch {
+      showToast("🔴 Error submitting grievance", "error");
+    }
+  };
+
+  const handleUpdateGrievanceStatus = async (id: string, newStatus: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/grievances/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setGrievances(prev => prev.map(g => g.id === id ? { ...g, status: newStatus as any } : g));
+        showToast(`✅ Status updated to ${newStatus}`);
+      }
+    } catch {
+      showToast("🔴 Error updating status", "error");
+    }
+  };
   // PTA Meeting Form
   const [newPtaTitle, setNewPtaTitle] = useState("");
   const [newPtaDesc, setNewPtaDesc] = useState("");
@@ -160,23 +226,26 @@ export default function ParentsPage() {
   };
 
   const fetchData = useCallback(async () => {
-    if (!mySchoolId) return; // wait until session has loaded
     setIsLoading(true);
     try {
-      const [parRes, stuRes, ptaRes] = await Promise.all([
-        fetch(`${API_BASE}/api/headmaster/parents?schoolId=${mySchoolId}`),
-        fetch(`${API_BASE}/api/students?schoolId=${mySchoolId}`),
-        fetch(`${API_BASE}/api/headmaster/pta-meetings?schoolId=${mySchoolId}`)
+      const q = mySchoolId ? `?schoolId=${encodeURIComponent(mySchoolId)}` : "";
+      const [parRes, stuRes, ptaRes, grvRes] = await Promise.all([
+        fetch(`${API_BASE}/api/headmaster/parents${q}`),
+        fetch(`${API_BASE}/api/students${q}`),
+        fetch(`${API_BASE}/api/headmaster/pta-meetings${q}`),
+        fetch(`${API_BASE}/api/headmaster/grievances${q}`)
       ]);
-      const [parJson, stuJson, ptaJson] = await Promise.all([
+      const [parJson, stuJson, ptaJson, grvJson] = await Promise.all([
         parRes.json(),
         stuRes.json(),
-        ptaRes.json()
+        ptaRes.json(),
+        grvRes.json()
       ]);
 
       if (parJson.success) setCommittee(parJson.data);
       if (stuJson.success) setStudents(stuJson.data);
       if (ptaJson.success) setPtaMeetings(ptaJson.data);
+      if (grvJson.success) setGrievances(grvJson.data);
     } catch {
       showToast("🔴 Server offline — could not load data.", "error");
     } finally {
@@ -552,7 +621,7 @@ export default function ParentsPage() {
           <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Parent & PTA data is scoped to your assigned school only.</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
-          <span className="text-blue-400 text-base">🏫</span>
+          <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           <span className="text-xs font-bold text-blue-300">
             {schools.find((s) => s.id === mySchoolId)?.name || (mySchoolId ? "Your School" : "No school linked")}
           </span>
@@ -588,66 +657,9 @@ export default function ParentsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Core committee */}
-        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <h3 className="text-sm font-bold text-white">PTA Core Committee Officers</h3>
-              {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
-            >
-              + Register PTA Officer
-            </button>
-          </div>
-          <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
-            {committee.length === 0 && !isLoading ? (
-              <div className="text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
-                No PTA committee officers found.
-              </div>
-            ) : (
-              committee.map((p) => {
-                const linkedNames = p.linkedStudents?.map(l => `${l.student.user.name} (Cls ${l.student.class})`).join(', ');
-                const displayWard = linkedNames ? linkedNames : (p.studentName !== "N/A" ? `${p.studentName} (${p.studentClass})` : "N/A");
-
-                return (
-                  <div key={p.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 group">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex flex-col">
-                        <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{p.name}</div>
-                        <div className="text-[10px] sm:text-xs text-blue-600 font-bold mt-0.5 mb-1.5">{p.role}</div>
-                        <div className="text-[10px] sm:text-xs text-slate-700 font-bold">{p.phone}</div>
-                        {p.email && <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 break-all">{p.email}</div>}
-                      </div>
-                      <button
-                        onClick={() => setParentToDelete(p)}
-                        className="shrink-0 text-[9px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Remove
-                      </button>
-                    </div>
-                    <div className="border-t border-slate-100 mt-2.5 pt-2 flex flex-col gap-1 text-[9px] sm:text-[10px] text-slate-500 font-semibold">
-                      <span>Ward: <span className="text-slate-800 font-bold">{displayWard}</span></span>
-                      <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
-                        <span>Pwd: <span className="text-blue-650 font-bold">{p.password || "123456"}</span></span>
-                        <span>Term: {p.term}</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-
-        {/* PTA Meetings List & Scheduler */}
-        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 mb-6">
+        {/* Scheduled PTA Meetings List & Scheduler (60% Portion) */}
+        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col lg:col-span-6">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <h3 className="text-sm font-bold text-white">Scheduled PTA Meetings</h3>
@@ -655,9 +667,10 @@ export default function ParentsPage() {
             </div>
             <button
               onClick={() => setIsPtaModalOpen(true)}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap animate-pulse animate-duration-1000"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap animate-pulse animate-duration-1000 flex items-center gap-1.5"
             >
-              + Schedule PTA Meeting
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+              Schedule PTA Meeting
             </button>
           </div>
           <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
@@ -681,7 +694,7 @@ export default function ParentsPage() {
 
                         {/* Status badges */}
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border ${
+                          <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border flex items-center gap-1 ${
                             expired
                               ? "bg-amber-100 text-amber-700 border-amber-300"
                               : m.status === "Upcoming"
@@ -690,7 +703,15 @@ export default function ParentsPage() {
                               ? "bg-blue-50 text-blue-600 border-blue-200"
                               : "bg-slate-100 text-slate-600 border-slate-200"
                           }`}>
-                            {expired ? "⏰ Expired" : m.status === "Upcoming" ? "📅 Upcoming" : m.status === "Completed" ? "✅ Completed" : "🚫 Cancelled"}
+                            {expired ? (
+                              <><svg className="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Expired</>
+                            ) : m.status === "Upcoming" ? (
+                              <><svg className="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Upcoming</>
+                            ) : m.status === "Completed" ? (
+                              <><svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Completed</>
+                            ) : (
+                              <><svg className="w-2.5 h-2.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>Cancelled</>
+                            )}
                           </span>
                           {expired && (
                             <span className="text-[8px] font-bold text-amber-600 bg-amber-100/80 border border-amber-200 px-2 py-0.5 rounded">
@@ -700,15 +721,25 @@ export default function ParentsPage() {
                         </div>
 
                         <div className="font-extrabold text-slate-900 text-xs sm:text-sm mt-2 truncate">{m.title}</div>
-                        <div className="text-[10px] text-slate-500 font-bold mt-1">📅 {fmtDate(m.meetingDate)}</div>
-                        <div className="text-[10px] text-blue-650 font-bold mt-0.5">📍 {m.venue}</div>
+                        <div className="text-[10px] text-slate-500 font-bold mt-1 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          {fmtDate(m.meetingDate)}
+                        </div>
+                        <div className="text-[10px] text-blue-650 font-bold mt-0.5 flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          {m.venue}
+                        </div>
 
                         {/* RSVP Summary */}
                         <div className="flex items-center gap-2 text-[9px] font-bold text-slate-650 mt-2 bg-slate-100/80 p-2 rounded-xl w-full max-w-max border border-slate-200/50">
-                          <span className="text-emerald-700 flex items-center gap-0.5">✅ Accepted: <strong className="font-black">{m.acceptCount || 0}</strong></span>
+                          <span className="text-emerald-700 flex items-center gap-1">
+                            <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                            Accepted: <strong className="font-black">{m.acceptCount || 0}</strong>
+                          </span>
                           <span className="text-slate-400">|</span>
-                          <span className="text-rose-700 flex items-center gap-0.5">
-                            ❌ Declined: <strong className="font-black">{m.declineCount || 0}</strong>
+                          <span className="text-rose-700 flex items-center gap-1">
+                            <svg className="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                            Declined: <strong className="font-black">{m.declineCount || 0}</strong>
                             {(m.declineCount || 0) > 0 && (
                               <button
                                 onClick={() => showDeclineReasons(m)}
@@ -761,32 +792,76 @@ export default function ParentsPage() {
             )}
           </div>
         </div>
-      </div>
 
-      {/* Grievances list */}
-      <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
-        <h3 className="text-sm font-bold text-white mb-4">Recent Parental Grievances & Status</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {grievances.map((g, i) => (
-            <div key={i} className={`p-3.5 border-l-2 ${g.border} bg-slate-900/60 rounded-r-xl`}>
-              <div className="flex justify-between items-start gap-2 mb-1.5">
-                <h4 className="text-xs font-bold text-white leading-relaxed">{g.topic}</h4>
-                <span className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full ${g.bg} whitespace-nowrap`}>
-                  {g.status}
-                </span>
-              </div>
-              <div className="text-[10px] text-slate-500 font-semibold">Raised by: {g.raisedBy}</div>
+        {/* PTA Core Committee Officers (40% Portion) */}
+        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col lg:col-span-4">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">PTA Core Officers</h3>
+              {isLoading && <div className="w-3.5 h-3.5 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
             </div>
-          ))}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap self-start xl:self-auto"
+            >
+              + Register PTA Officer
+            </button>
+          </div>
+          <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
+            {committee.length === 0 && !isLoading ? (
+              <div className="text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
+                No PTA committee officers found.
+              </div>
+            ) : (
+              committee.map((p) => {
+                const linkedNames = p.linkedStudents?.map(l => `${l.student.user.name} (Cls ${l.student.class})`).join(', ');
+                const displayWard = linkedNames ? linkedNames : (p.studentName !== "N/A" ? `${p.studentName} (${p.studentClass})` : "N/A");
+
+                return (
+                  <div key={p.id} className="p-3 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 group">
+                    <div className="flex justify-between items-start gap-1">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="font-extrabold text-slate-900 text-xs truncate">{p.name}</div>
+                        <div className="text-[10px] text-blue-600 font-bold mt-0.5 mb-1 truncate">{p.role}</div>
+                        <div className="text-[10px] text-slate-700 font-bold">{p.phone}</div>
+                        {p.email && <div className="text-[9px] text-slate-500 font-medium mt-0.5 break-all">{p.email}</div>}
+                      </div>
+                      <button
+                        onClick={() => setParentToDelete(p)}
+                        className="shrink-0 text-[9px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-1.5 py-0.5 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-0.5"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Remove
+                      </button>
+                    </div>
+                    <div className="border-t border-slate-100 mt-2 pt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500 font-semibold">
+                      <span>Ward: <span className="text-slate-800 font-bold">{displayWard}</span></span>
+                      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                        <span>Pwd: <span className="text-blue-650 font-bold">{p.password || "123456"}</span></span>
+                        <span>Term: {p.term}</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </div>
       </div>
+
+
 
       {/* Add Parent Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">👪 Register PTA Committee Member</h3>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 100 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                Register PTA Committee Member
+              </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xs font-semibold">✕ Close</button>
             </div>
 
@@ -794,40 +869,54 @@ export default function ParentsPage() {
               {/* Form Input */}
               <form onSubmit={handleManualSubmit} className="space-y-3">
                 <div className="text-xs font-bold text-blue-650 uppercase tracking-wider mb-1">Manual Entry</div>
+
+                {/* Step 1: Select Student First */}
+                <div>
+                  <label className="block text-[10px] text-blue-400 mb-1 font-bold">1. Select Student / Ward (Auto-fills Parent Details)</label>
+                  <select
+                    value={selectedStudentId}
+                    onChange={e => handleStudentSelect(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
+                  >
+                    <option value="">-- Choose Student / Ward --</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>{s.user.name} ({s.rollNumber || "No Roll"}) - Class {s.class}{s.section}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Parent Name</label>
-                    <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">2. Parent Name</label>
+                    <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold" />
                   </div>
                   <div>
                     <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Committee Role</label>
-                    <input type="text" required value={newRole} onChange={(e) => setNewRole(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
+                    <select
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
+                    >
+                      <option value="PTA President">PTA President</option>
+                      <option value="PTA Vice President">PTA Vice President</option>
+                      <option value="PTA Secretary">PTA Secretary</option>
+                      <option value="PTA Treasurer">PTA Treasurer</option>
+                      <option value="Executive Committee Member">Executive Committee Member</option>
+                      <option value="Parent Representative">Parent Representative</option>
+                      <option value="Teacher Representative">Teacher Representative</option>
+                    </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
-                    <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
+                    <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold" />
                   </div>
                   <div>
                     <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
-                    <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
+                    <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold" />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Link Student (Optional but recommended)</label>
-                  <select
-                    value={selectedStudentId}
-                    onChange={e => setSelectedStudentId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800"
-                  >
-                    <option value="">-- Do not link student --</option>
-                    {students.map(s => (
-                      <option key={s.id} value={s.id}>{s.user.name} ({s.rollNumber}) - Class {s.class}{s.section}</option>
-                    ))}
-                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -851,10 +940,13 @@ export default function ParentsPage() {
                 <div className="space-y-4">
                   <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
                     <span>Excel Import</span>
-                    <button onClick={downloadExcelTemplate} type="button" className="text-[10px] text-blue-400 font-bold underline">📥 Template</button>
+                    <button onClick={downloadExcelTemplate} type="button" className="text-[10px] text-blue-400 font-bold flex items-center gap-1 hover:underline">
+                      <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      Template
+                    </button>
                   </div>
                   <div onClick={() => fileInputRef.current?.click()} className="rounded-2xl p-6 text-center cursor-pointer min-h-[160px] border-2 border-dashed border-slate-700 bg-slate-950/20 hover:border-emerald-500 flex flex-col items-center justify-center space-y-3">
-                    <span className="text-4xl">📊</span>
+                    <svg className="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     <span className="text-xs font-bold text-white">Import PTA Roster</span>
                     <span className="text-[9px] text-slate-400">Drag & drop Excel or click</span>
                   </div>
@@ -871,7 +963,10 @@ export default function ParentsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-3xl p-6 space-y-4 relative bg-slate-900 border border-slate-800 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">🤝 Schedule PTA Meeting</h3>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Schedule PTA Meeting
+              </h3>
               <button onClick={() => setIsPtaModalOpen(false)} className="text-slate-400 hover:text-white text-xs font-semibold">✕ Close</button>
             </div>
             <form onSubmit={handleCreateMeeting} className="space-y-4">
