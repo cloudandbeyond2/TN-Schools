@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { roleConfigs, NavItem, applyStudentGroup, StudentGroup } from "@/lib/navConfig";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
@@ -518,6 +518,7 @@ export default function PortalLayout({
     }
   }, []);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [sidebarSearchQuery, setSidebarSearchQuery] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsList, setNotificationsList] = useState<any[]>([]);
   const [activeStudentLevel, setActiveStudentLevel] = useState("STUDENT_HIGHER");
@@ -911,6 +912,22 @@ export default function PortalLayout({
     return true;
   });
 
+  const searchedNavItems = useMemo(() => {
+    if (!sidebarSearchQuery.trim()) return filteredNavItems;
+    const term = sidebarSearchQuery.toLowerCase().trim();
+    const matches: NavItem[] = [];
+
+    for (let i = 0; i < filteredNavItems.length; i++) {
+      const item = filteredNavItems[i];
+      if (item.href === "#" || item.label === "---") continue;
+      const translatedText = currentLanguage === "தமிழ்" ? (translations["தமிழ்"].nav[item.label as keyof typeof translations["தமிழ்"]["nav"]] || item.label) : item.label;
+      if (item.label.toLowerCase().includes(term) || translatedText.toLowerCase().includes(term)) {
+        matches.push(item);
+      }
+    }
+    return matches;
+  }, [filteredNavItems, sidebarSearchQuery, currentLanguage]);
+
   let resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
   let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
 
@@ -1129,57 +1146,125 @@ export default function PortalLayout({
           </div>
         </div>
 
+        {/* Sidebar Menu Search Input */}
+        <div className="px-4 mb-4 relative">
+          <div className="relative flex items-center">
+            <i className="fi fi-rr-search absolute left-3 text-xs text-[var(--text-muted)] pointer-events-none" />
+            <input
+              type="text"
+              value={sidebarSearchQuery}
+              onChange={(e) => setSidebarSearchQuery(e.target.value)}
+              placeholder={currentLanguage === "தமிழ்" ? "மெனுவைத் தேடு..." : "Search menu items..."}
+              className="w-full pl-8 pr-7 py-1.5 bg-slate-100/80 dark:bg-slate-900/40 border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all"
+            />
+            {sidebarSearchQuery && (
+              <button
+                onClick={() => setSidebarSearchQuery("")}
+                className="absolute right-2 text-xs text-[var(--text-muted)] hover:text-slate-900 dark:hover:text-white p-1 rounded-full transition-colors"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Navigation */}
         <nav ref={navRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
-          <div className="px-5 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-            MAIN
-          </div>
-          {filteredNavItems.map((item, index) => {
-            if (item.label === "---") {
-              return <div key={`sep-${index}`} className="my-4 mx-4 border-t border-[var(--border)]" />;
-            }
-            if (item.href === "#") {
-              return (
-                <div key={`header-${index}`} className="px-5 mt-6 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  {currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}
+          {sidebarSearchQuery.trim() ? (
+            <div>
+              <div className="px-5 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                {currentLanguage === "தமிழ்" ? "தேடல் முடிவுகள்" : "SEARCH RESULTS"} ({searchedNavItems.length})
+              </div>
+              {searchedNavItems.length === 0 ? (
+                <div className="px-5 py-6 text-center text-xs text-[var(--text-muted)] font-medium">
+                  {currentLanguage === "தமிழ்" ? "மெனு எதுவும் கிடைக்கவில்லை" : "No matching menu found"}
                 </div>
-              );
-            }
-
-            const isActive = pathname === item.href || (
-              pathname.startsWith(item.href + "/") &&
-              !filteredNavItems.some(otherItem =>
-                otherItem.href !== item.href &&
-                otherItem.href !== "#" &&
-                pathname.startsWith(otherItem.href + "/") &&
-                otherItem.href.length > item.href.length
-              ) &&
-              !filteredNavItems.some(otherItem =>
-                otherItem.href !== item.href &&
-                otherItem.href !== "#" &&
-                pathname === otherItem.href
-              )
-            );
-            return (
-              <Link
-                key={`${item.href}-${index}`}
-                href={item.href}
-                className={`sidebar-item ${isActive ? "active" : ""}`}
-                scroll={false}
-              >
-                <span className={`flex items-center justify-center transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
-                  {item.icon ? (
-                    item.icon.startsWith("fi ") || item.icon.startsWith("fi-") ? (
-                      <i className={`${item.icon} text-[18px]`} />
-                    ) : (
-                      <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" />
+              ) : (
+                searchedNavItems.map((item, index) => {
+                  const isActive = pathname === item.href || (
+                    pathname.startsWith(item.href + "/") &&
+                    !searchedNavItems.some(otherItem =>
+                      otherItem.href !== item.href &&
+                      pathname.startsWith(otherItem.href + "/") &&
+                      otherItem.href.length > item.href.length
                     )
-                  ) : null}
-                </span>
-                <span>{currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}</span>
-              </Link>
-            );
-          })}
+                  );
+                  return (
+                    <Link
+                      key={`search-${item.href}-${index}`}
+                      href={item.href}
+                      className={`sidebar-item ${isActive ? "active" : ""}`}
+                      scroll={false}
+                    >
+                      <span className={`flex items-center justify-center transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+                        {item.icon ? (
+                          item.icon.startsWith("fi ") || item.icon.startsWith("fi-") ? (
+                            <i className={`${item.icon} text-[18px]`} />
+                          ) : (
+                            <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" />
+                          )
+                        ) : null}
+                      </span>
+                      <span>{currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}</span>
+                    </Link>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="px-5 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                MAIN
+              </div>
+              {filteredNavItems.map((item, index) => {
+                if (item.label === "---") {
+                  return <div key={`sep-${index}`} className="my-4 mx-4 border-t border-[var(--border)]" />;
+                }
+                if (item.href === "#") {
+                  return (
+                    <div key={`header-${index}`} className="px-5 mt-6 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                      {currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}
+                    </div>
+                  );
+                }
+
+                const isActive = pathname === item.href || (
+                  pathname.startsWith(item.href + "/") &&
+                  !filteredNavItems.some(otherItem =>
+                    otherItem.href !== item.href &&
+                    otherItem.href !== "#" &&
+                    pathname.startsWith(otherItem.href + "/") &&
+                    otherItem.href.length > item.href.length
+                  ) &&
+                  !filteredNavItems.some(otherItem =>
+                    otherItem.href !== item.href &&
+                    otherItem.href !== "#" &&
+                    pathname === otherItem.href
+                  )
+                );
+                return (
+                  <Link
+                    key={`${item.href}-${index}`}
+                    href={item.href}
+                    className={`sidebar-item ${isActive ? "active" : ""}`}
+                    scroll={false}
+                  >
+                    <span className={`flex items-center justify-center transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+                      {item.icon ? (
+                        item.icon.startsWith("fi ") || item.icon.startsWith("fi-") ? (
+                          <i className={`${item.icon} text-[18px]`} />
+                        ) : (
+                          <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" />
+                        )
+                      ) : null}
+                    </span>
+                    <span>{currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}</span>
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         <div className="px-4 mt-4 mb-4">
