@@ -1373,6 +1373,115 @@ router.delete('/pta-meetings/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ─── Parental Grievances Endpoints (Dynamic) ──────────────────────
+const GRIEVANCES_FILE = path.join(__dirname, '../../data/grievances.json');
+
+function readGrievances(): any[] {
+  try {
+    if (!fs.existsSync(GRIEVANCES_FILE)) return [];
+    const content = fs.readFileSync(GRIEVANCES_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch {
+    return [];
+  }
+}
+
+function writeGrievances(data: any[]) {
+  try {
+    const dir = path.dirname(GRIEVANCES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(GRIEVANCES_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error writing grievances:', err);
+  }
+}
+
+// Initial default seed if empty
+function getOrSeedGrievances(schoolId?: string): any[] {
+  let list = readGrievances();
+  if (list.length === 0) {
+    list = [
+      { id: 'grv-1', schoolId: schoolId || null, topic: "Transport facility delays in Zone B", raisedBy: "12 parents", status: "Under Review", createdAt: new Date().toISOString() },
+      { id: 'grv-2', schoolId: schoolId || null, topic: "Request for extra special classes for 10th", raisedBy: "PTA Committee", status: "Approved", createdAt: new Date().toISOString() },
+      { id: 'grv-3', schoolId: schoolId || null, topic: "RO Water filter service required in block C", raisedBy: "Class 7 Representative", status: "Resolved", createdAt: new Date().toISOString() },
+    ];
+    writeGrievances(list);
+  }
+  return list;
+}
+
+// GET /api/headmaster/grievances
+router.get('/grievances', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    const all = getOrSeedGrievances(schoolId ? String(schoolId) : undefined);
+    const filtered = schoolId 
+      ? all.filter(g => !g.schoolId || g.schoolId === String(schoolId))
+      : all;
+    res.json({ success: true, count: filtered.length, data: filtered });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/grievances — Raise new grievance
+router.post('/grievances', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, topic, raisedBy, status } = req.body;
+    if (!topic || !topic.trim()) {
+      return res.status(400).json({ success: false, error: 'topic is required' });
+    }
+    const all = getOrSeedGrievances(schoolId);
+    const newGrievance = {
+      id: `grv-${Date.now()}`,
+      schoolId: schoolId || null,
+      topic: topic.trim(),
+      raisedBy: raisedBy ? raisedBy.trim() : 'Parent / PTA Member',
+      status: status || 'Under Review',
+      createdAt: new Date().toISOString()
+    };
+    all.unshift(newGrievance);
+    writeGrievances(all);
+    res.status(201).json({ success: true, data: newGrievance });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/grievances/:id — Update grievance status
+router.put('/grievances/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, topic, raisedBy } = req.body;
+    const all = readGrievances();
+    const idx = all.findIndex(g => g.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, error: 'Grievance not found' });
+    }
+    if (status) all[idx].status = status;
+    if (topic) all[idx].topic = topic;
+    if (raisedBy) all[idx].raisedBy = raisedBy;
+
+    writeGrievances(all);
+    res.json({ success: true, data: all[idx] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/grievances/:id — Remove grievance
+router.delete('/grievances/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    let all = readGrievances();
+    all = all.filter(g => g.id !== id);
+    writeGrievances(all);
+    res.json({ success: true, message: 'Grievance removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ─── Parent → Student Link (Headmaster action) ────────────────────
 
 // POST /api/headmaster/parents/:id/link-student
