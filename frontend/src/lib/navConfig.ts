@@ -616,6 +616,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Monitoring", href: "/headmaster/students", icon: "fi fi-rr-graduation-cap" },
       { label: "Promotions", href: "/headmaster/promotions", icon: "fi fi-rr-stats" },
       { label: "Staff Management", href: "/headmaster/staff", icon: "fi fi-rr-user" },
+      { label: "Class Teachers", href: "/headmaster/class-teacher", icon: "fi fi-rr-chalkboard-user" },
       { label: "Leave Requests", href: "/headmaster/leave", icon: "fi fi-rr-calendar" },
       { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "fi fi-rr-users" },
       { label: "Parents Details", href: "/headmaster/parents", icon: "fi fi-rr-users" },
