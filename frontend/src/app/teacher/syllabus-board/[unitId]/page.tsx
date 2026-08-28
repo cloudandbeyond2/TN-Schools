@@ -4,6 +4,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 
@@ -49,6 +50,8 @@ type Lang = "en" | "ta";
 export default function TeacherUnitDetailPage() {
   const params = useParams();
   const unitId = params.unitId as string;
+  const { data: session, status: sessionStatus } = useSession();
+  const schoolId = (session?.user as any)?.schoolId || "";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [unit, setUnit] = useState<UnitInfo | null>(null);
@@ -64,11 +67,14 @@ export default function TeacherUnitDetailPage() {
 
   /* ── Data loading ──────────────────────────────────────────────────────── */
 
-  const loadUnit = async () => {
+  const loadUnit = async (currentSchoolId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/units/${unitId}`);
+      const url = currentSchoolId
+        ? `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${encodeURIComponent(currentSchoolId)}`
+        : `${API_URL}/api/centralized-content/units/${unitId}`;
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success) {
         setUnit(json.data.unit);
@@ -91,9 +97,10 @@ export default function TeacherUnitDetailPage() {
   };
 
   useEffect(() => {
-    loadUnit();
+    if (sessionStatus === "loading") return;
+    loadUnit(schoolId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitId]);
+  }, [unitId, schoolId, sessionStatus]);
 
   /* ── AI generation ─────────────────────────────────────────────────────── */
 
@@ -107,7 +114,7 @@ export default function TeacherUnitDetailPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ regenerate }),
+          body: JSON.stringify({ regenerate, schoolId }),
         }
       );
       const json = await res.json();
@@ -145,7 +152,7 @@ export default function TeacherUnitDetailPage() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isApproved, editedDetail: detail }),
+          body: JSON.stringify({ isApproved, editedDetail: detail, schoolId }),
         }
       );
       const json = await res.json();

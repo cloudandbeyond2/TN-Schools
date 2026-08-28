@@ -123,7 +123,10 @@ export default function StudentSyllabusBoardPage() {
     setLoadingUnits(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units`);
+      const schoolId = (session?.user as any)?.schoolId || "";
+      const cleanClass = selectedClass.match(/\d+/)?.[0] || selectedClass;
+      const url = `${API_URL}/api/centralized-content/subjects/${sub.id}/units?schoolId=${schoolId}&approvedOnly=true&class=${cleanClass}`;
+      const res = await fetch(url);
       const json = await res.json();
       if (!json.success) return;
 

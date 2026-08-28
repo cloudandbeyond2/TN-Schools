@@ -5,6 +5,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import html2canvas from "html2canvas";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
@@ -54,6 +55,9 @@ const getSubjectIcon = (name: string): string => {
 export default function StudentUnitDetailPage() {
   const params = useParams();
   const unitId = params.unitId as string;
+  const { data: session, status: sessionStatus } = useSession();
+  const schoolId = (session?.user as any)?.schoolId || "";
+  const studentClass = (session?.user as any)?.class || "";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [unit, setUnit] = useState<UnitInfo | null>(null);
@@ -70,11 +74,14 @@ export default function StudentUnitDetailPage() {
   /* ── Data loading ──────────────────────────────────────────────────────── */
 
   useEffect(() => {
+    if (sessionStatus === "loading") return;
     const loadUnit = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_URL}/api/centralized-content/units/${unitId}`);
+        const cleanClass = String(studentClass).match(/\d+/)?.[0] || String(studentClass);
+        const url = `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${encodeURIComponent(schoolId)}&forStudent=true&class=${cleanClass}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setUnit(json.data.unit);
@@ -88,7 +95,7 @@ export default function StudentUnitDetailPage() {
             setDetail(null);
           }
         } else {
-          setError(json.error || "Unit not found");
+          setError(json.error || "This unit lesson guide is not published by your school for your grade standard yet.");
         }
       } catch {
         setError("Could not load this unit.");
@@ -99,7 +106,7 @@ export default function StudentUnitDetailPage() {
 
     loadUnit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitId]);
+  }, [unitId, schoolId, studentClass, sessionStatus]);
 
   /* ── JPG download ──────────────────────────────────────────────────────── */
 
