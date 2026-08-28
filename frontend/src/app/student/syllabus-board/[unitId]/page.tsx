@@ -55,7 +55,7 @@ const getSubjectIcon = (name: string): string => {
 export default function StudentUnitDetailPage() {
   const params = useParams();
   const unitId = params.unitId as string;
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
   const studentClass = (session?.user as any)?.class || "";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -74,12 +74,13 @@ export default function StudentUnitDetailPage() {
   /* ── Data loading ──────────────────────────────────────────────────────── */
 
   useEffect(() => {
+    if (sessionStatus === "loading") return;
     const loadUnit = async () => {
       setLoading(true);
       setError(null);
       try {
         const cleanClass = String(studentClass).match(/\d+/)?.[0] || String(studentClass);
-        const url = `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${schoolId}&forStudent=true&class=${cleanClass}`;
+        const url = `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${encodeURIComponent(schoolId)}&forStudent=true&class=${cleanClass}`;
         const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
@@ -105,7 +106,7 @@ export default function StudentUnitDetailPage() {
 
     loadUnit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitId, schoolId, studentClass]);
+  }, [unitId, schoolId, studentClass, sessionStatus]);
 
   /* ── JPG download ──────────────────────────────────────────────────────── */
 

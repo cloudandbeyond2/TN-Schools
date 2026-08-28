@@ -50,7 +50,7 @@ type Lang = "en" | "ta";
 export default function TeacherUnitDetailPage() {
   const params = useParams();
   const unitId = params.unitId as string;
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -67,12 +67,12 @@ export default function TeacherUnitDetailPage() {
 
   /* ── Data loading ──────────────────────────────────────────────────────── */
 
-  const loadUnit = async () => {
+  const loadUnit = async (currentSchoolId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const url = schoolId
-        ? `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${schoolId}`
+      const url = currentSchoolId
+        ? `${API_URL}/api/centralized-content/units/${unitId}?schoolId=${encodeURIComponent(currentSchoolId)}`
         : `${API_URL}/api/centralized-content/units/${unitId}`;
       const res = await fetch(url);
       const json = await res.json();
@@ -97,9 +97,10 @@ export default function TeacherUnitDetailPage() {
   };
 
   useEffect(() => {
-    loadUnit();
+    if (sessionStatus === "loading") return;
+    loadUnit(schoolId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitId, schoolId]);
+  }, [unitId, schoolId, sessionStatus]);
 
   /* ── AI generation ─────────────────────────────────────────────────────── */
 

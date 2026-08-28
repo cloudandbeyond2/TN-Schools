@@ -1627,7 +1627,8 @@ router.get('/units/:id', async (req: Request, res: Response) => {
           isApprovedForSchool = false;
         }
       } else {
-        detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL' && !c.schoolId) || contents.find((c) => c.contentType === 'UNIT_DETAIL');
+        // Only return unassigned global content if schoolId is not specified
+        detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL' && !c.schoolId) || null;
       }
 
       unitDetail = detailRow?.fileContent ? normalizeUnitDetail(JSON.parse(detailRow.fileContent)) : null;
