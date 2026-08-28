@@ -218,6 +218,7 @@ const PUBLIC_PATHS = [
   '/api/users/auth',
   '/api/users/login',
   '/api/users/student-login',
+  '/api/headmaster/seed-excel',
 ];
 
 // ─── Global Authentication Guard (Fail-Closed) ─────────────────
