@@ -1175,9 +1175,14 @@ model CentralContent {
   fileSize     String?
   uploader     String?
   uploaderRole String?
+  schoolId     String?
+  isApproved   Boolean      @default(false)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @default(now()) @updatedAt
   topic        CentralTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId, schoolId, contentType])
+  @@index([schoolId])
 }
 
 model Message {

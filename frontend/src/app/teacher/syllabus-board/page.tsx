@@ -159,7 +159,10 @@ export default function TeacherSyllabusBoardPage() {
     setLoadingUnits(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units`);
+      const url = schoolId
+        ? `${API_URL}/api/centralized-content/subjects/${sub.id}/units?schoolId=${schoolId}`
+        : `${API_URL}/api/centralized-content/subjects/${sub.id}/units`;
+      const res = await fetch(url);
       const json = await res.json();
       if (!json.success) return;
 

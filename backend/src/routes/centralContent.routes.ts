@@ -722,12 +722,22 @@ router.get('/subjects/:id/units', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const approvedOnly = req.query.approvedOnly === 'true';
+    const schoolId = req.query.schoolId ? String(req.query.schoolId) : undefined;
+    const studentClass = req.query.class ? String(req.query.class).trim() : undefined;
 
-    // Try to query PostgreSQL
+    // Check student class match if provided
+    const subject = await prisma.centralSubject.findUnique({ where: { id } });
+    if (studentClass && subject) {
+      const normStudent = studentClass.match(/\d+/)?.[0] || studentClass;
+      const normSubject = subject.class.match(/\d+/)?.[0] || subject.class;
+      if (normStudent !== normSubject) {
+        return res.json({ success: true, data: [] });
+      }
+    }
+
     const units = await prisma.centralUnit.findMany({
       where: {
-        subjectId: id,
-        ...(approvedOnly ? { isApproved: true } : {})
+        subjectId: id
       },
       include: {
         topics: {
@@ -741,14 +751,41 @@ router.get('/subjects/:id/units', async (req: Request, res: Response) => {
       }
     });
 
+    const mappedUnits = await Promise.all(units.map(async (unit) => {
+      let isApprovedForSchool = unit.isApproved;
+      if (schoolId) {
+        const topic = unit.topics.find(t => t.topicNumber === 1) || unit.topics[0];
+        if (topic) {
+          const detailRow = await prisma.centralContent.findFirst({
+            where: {
+              topicId: topic.id,
+              contentType: 'UNIT_DETAIL',
+              schoolId
+            }
+          });
+          isApprovedForSchool = detailRow ? detailRow.isApproved : false;
+        } else {
+          isApprovedForSchool = false;
+        }
+      }
+      return {
+        ...unit,
+        isApproved: isApprovedForSchool
+      };
+    }));
+
+    let filteredUnits = mappedUnits;
+    if (approvedOnly) {
+      filteredUnits = mappedUnits.filter(u => u.isApproved);
+    }
+
     res.json({
       success: true,
-      data: units
+      data: filteredUnits
     });
   } catch (err: any) {
     console.warn(`⚠️ Database query failed for units of subject ${req.params.id}, falling back. Error:`, err.message || err);
 
-    // Fail-safe: retrieve from local mock map
     const subjectId = req.params.id;
     const units = fallbackUnits[subjectId] || [];
     res.json({
@@ -1552,24 +1589,60 @@ async function findOrCreateOverviewTopic(unitId: string) {
 router.get('/units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const schoolId = req.query.schoolId ? String(req.query.schoolId) : undefined;
+    const forStudent = req.query.forStudent === 'true';
+    const studentClass = req.query.class ? String(req.query.class).trim() : undefined;
+
     const unit = await prisma.centralUnit.findUnique({ where: { id }, include: { subject: true } });
     if (!unit) {
       return res.status(404).json({ success: false, error: 'Unit not found' });
     }
 
+    // Grade validation for students
+    if (forStudent && studentClass) {
+      const normStudent = studentClass.match(/\d+/)?.[0] || studentClass;
+      const normSubject = unit.subject.class.match(/\d+/)?.[0] || unit.subject.class;
+      if (normStudent !== normSubject) {
+        return res.status(403).json({ success: false, error: 'This unit does not belong to your grade standard.' });
+      }
+    }
+
     const topic = await prisma.centralTopic.findFirst({ where: { unitId: unit.id, topicNumber: 1 } });
     let infographic = null;
     let unitDetail = null;
+    let isApprovedForSchool = unit.isApproved;
 
     if (topic) {
       const contents = await prisma.centralContent.findMany({ where: { topicId: topic.id } });
       const infographicRow = contents.find((c) => c.contentType === 'INFOGRAPHIC');
-      const detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL');
       infographic = infographicRow ? { fileUrl: infographicRow.fileUrl, fileContent: infographicRow.fileContent } : null;
+
+      let detailRow = null;
+      if (schoolId) {
+        // Strict isolation: Content is shown ONLY if staff belonging to that school generated it!
+        detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL' && c.schoolId === schoolId);
+        if (detailRow) {
+          isApprovedForSchool = detailRow.isApproved;
+        } else {
+          isApprovedForSchool = false;
+        }
+      } else {
+        detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL' && !c.schoolId) || contents.find((c) => c.contentType === 'UNIT_DETAIL');
+      }
+
       unitDetail = detailRow?.fileContent ? normalizeUnitDetail(JSON.parse(detailRow.fileContent)) : null;
     }
 
-    res.json({ success: true, data: { unit, infographic, unitDetail } });
+    if (forStudent && !isApprovedForSchool) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'This unit lesson guide is not published by your school for your grade standard yet.',
+        unit: { ...unit, isApproved: false },
+        unitDetail: null
+      });
+    }
+
+    res.json({ success: true, data: { unit: { ...unit, isApproved: isApprovedForSchool }, infographic, unitDetail } });
   } catch (err: any) {
     console.error('Error fetching unit detail:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to fetch unit' });
@@ -1581,6 +1654,7 @@ router.post('/units/:id/generate-detail', async (req: Request, res: Response) =>
   try {
     const { id } = req.params;
     const regenerate = req.body?.regenerate === true;
+    const schoolId = req.body?.schoolId ? String(req.body.schoolId) : (req.query.schoolId ? String(req.query.schoolId) : undefined);
 
     const unit = await prisma.centralUnit.findUnique({ where: { id }, include: { subject: true } });
     if (!unit) {
@@ -1589,7 +1663,14 @@ router.post('/units/:id/generate-detail', async (req: Request, res: Response) =>
 
     const topic = await findOrCreateOverviewTopic(unit.id);
 
-    const existing = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'UNIT_DETAIL' } });
+    const existing = await prisma.centralContent.findFirst({ 
+      where: { 
+        topicId: topic.id, 
+        contentType: 'UNIT_DETAIL',
+        ...(schoolId ? { schoolId } : { schoolId: null })
+      } 
+    });
+
     if (existing && !regenerate) {
       return res.json({ success: true, cached: true, data: normalizeUnitDetail(JSON.parse(existing.fileContent || '{}')) });
     }
@@ -1632,7 +1713,9 @@ Keep everything concise and classroom-practical. Return only the JSON object.`;
           topicId: topic.id,
           contentType: 'UNIT_DETAIL',
           title: `AI Lesson Insights: ${unit.name}`,
-          fileContent: JSON.stringify(result)
+          fileContent: JSON.stringify(result),
+          schoolId: schoolId || null,
+          isApproved: false
         }
       });
     }
@@ -1644,11 +1727,12 @@ Keep everything concise and classroom-practical. Return only the JSON object.`;
   }
 });
 
-// PUT /api/centralized-content/units/:id/approve — Publish/unpublish a unit to students
+// PUT /api/centralized-content/units/:id/approve — Publish/unpublish a unit to students for a school
 router.put('/units/:id/approve', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { isApproved, editedDetail } = req.body;
+    const { isApproved, editedDetail, schoolId: bodySchoolId } = req.body;
+    const schoolId = bodySchoolId ? String(bodySchoolId) : (req.query.schoolId ? String(req.query.schoolId) : undefined);
 
     if (typeof isApproved !== 'boolean') {
       return res.status(400).json({ success: false, error: 'isApproved (boolean) is required' });
@@ -1659,20 +1743,41 @@ router.put('/units/:id/approve', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'Unit not found' });
     }
 
-    if (editedDetail) {
-      const topic = await findOrCreateOverviewTopic(unit.id);
-      const existing = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'UNIT_DETAIL' } });
-      if (existing) {
-        await prisma.centralContent.update({ where: { id: existing.id }, data: { fileContent: JSON.stringify(editedDetail) } });
-      } else {
-        await prisma.centralContent.create({
-          data: { topicId: topic.id, contentType: 'UNIT_DETAIL', title: `AI Lesson Insights: ${unit.name}`, fileContent: JSON.stringify(editedDetail) }
-        });
+    const topic = await findOrCreateOverviewTopic(unit.id);
+    const existing = await prisma.centralContent.findFirst({
+      where: {
+        topicId: topic.id,
+        contentType: 'UNIT_DETAIL',
+        ...(schoolId ? { schoolId } : { schoolId: null })
       }
+    });
+
+    if (existing) {
+      await prisma.centralContent.update({
+        where: { id: existing.id },
+        data: {
+          isApproved,
+          ...(editedDetail ? { fileContent: JSON.stringify(editedDetail) } : {})
+        }
+      });
+    } else {
+      await prisma.centralContent.create({
+        data: {
+          topicId: topic.id,
+          contentType: 'UNIT_DETAIL',
+          title: `AI Lesson Insights: ${unit.name}`,
+          fileContent: JSON.stringify(editedDetail || {}),
+          schoolId: schoolId || null,
+          isApproved
+        }
+      });
     }
 
-    const updated = await prisma.centralUnit.update({ where: { id }, data: { isApproved } });
-    res.json({ success: true, data: updated });
+    if (!schoolId) {
+      await prisma.centralUnit.update({ where: { id }, data: { isApproved } });
+    }
+
+    res.json({ success: true, data: { id, isApproved } });
   } catch (err: any) {
     console.error('Error updating unit approval:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to update unit approval' });
