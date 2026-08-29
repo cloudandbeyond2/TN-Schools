@@ -96,7 +96,7 @@ router.get('/', requireMinRole('HEADMASTER'), async (req: Request, res: Response
 // POST /api/users - Create a new user
 router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
-    const { name, email, mobile, role, password, schoolId } = req.body;
+    const { name, email, mobile, role, password, schoolId, district, block } = req.body;
     if (!name || !email || !role || !password) {
       return res.status(400).json({ success: false, error: 'Name, email, role, and password are required' });
     }
@@ -133,6 +133,8 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
         role: role as Role,
         passwordHash: await hashPassword(password),
         schoolId: schoolId || null,
+        district: district || null,
+        block: block || null,
       },
       select: SAFE_USER_SELECT,
     });

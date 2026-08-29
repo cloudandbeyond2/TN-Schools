@@ -6,7 +6,7 @@ import { apiFetch } from "@/lib/api";
 type Role = "STUDENT" | "TEACHER" | "PARENT" | "HEADMASTER" | "BEO" | "DEO" | "COMMISSIONER" | "MINISTER" | "SUPERADMIN";
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: Role;
@@ -36,9 +36,21 @@ const roleIcons: Record<Role, string> = {
   DEO:"🗺️", COMMISSIONER:"⚖️", MINISTER:"🏛️", SUPERADMIN:"🛠️",
 };
 
+const DISTRICTS = [
+  "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+  "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+  "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam",
+  "Kanyakumari", "Namakkal", "Perambalur", "Pudukkottai", "Ramanathapuram",
+  "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur",
+  "Theni", "Thiruvallur", "Thiruvarur", "Thoothukudi", "Tiruchirappalli",
+  "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "The Nilgiris",
+  "Vellore", "Viluppuram", "Virudhunagar"
+];
+
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schoolsList, setSchoolsList] = useState<any[]>([]);
   const [roleCounts, setRoleCounts] = useState<Record<string, string>>({
     STUDENT: "0", TEACHER: "0", PARENT: "0",
     HEADMASTER: "0", BEO: "0", DEO: "0",
@@ -48,6 +60,9 @@ export default function UserManagement() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"ALL" | Role>("ALL");
   const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
+  const [filterDistrict, setFilterDistrict] = useState<string>("ALL");
+  const [filterSchool, setFilterSchool] = useState<string>("ALL");
+
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [form, setForm] = useState({ name:"", email:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
@@ -58,7 +73,7 @@ export default function UserManagement() {
       const data = await res.json();
       if (data.success) {
         const mapped = data.data.map((u: any) => ({
-          id: u.id,
+          id: String(u.id),
           name: u.name,
           email: u.email,
           role: u.role,
@@ -97,10 +112,22 @@ export default function UserManagement() {
     }
   };
 
+  const fetchSchools = async () => {
+    try {
+      const res = await apiFetch("/api/schools");
+      const data = await res.json();
+      if (data.success) {
+        setSchoolsList(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching schools list:", err);
+    }
+  };
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchUsers(), fetchCounts()]);
+      await Promise.all([fetchUsers(), fetchCounts(), fetchSchools()]);
       setLoading(false);
     };
     loadAll();
@@ -111,10 +138,12 @@ export default function UserManagement() {
       u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = filterRole === "ALL" || u.role === filterRole;
     const matchStatus = filterStatus === "ALL" || u.status === filterStatus;
-    return matchSearch && matchRole && matchStatus;
+    const matchDistrict = filterDistrict === "ALL" || u.district === filterDistrict;
+    const matchSchool = filterSchool === "ALL" || u.school === filterSchool;
+    return matchSearch && matchRole && matchStatus && matchDistrict && matchSchool;
   });
 
-  const toggleStatus = async (id: number, currentStatus: string) => {
+  const toggleStatus = async (id: string, currentStatus: string) => {
     try {
       const newIsActive = currentStatus !== "active";
       const res = await apiFetch(`/api/users/${id}`, {
@@ -131,11 +160,109 @@ export default function UserManagement() {
     }
   };
 
-  const openAdd = () => { setEditUser(null); setForm({ name:"", email:"", password:"123456", role:"TEACHER", district:"", block:"", school:"" }); setShowModal(true); };
-  const openEdit = (u: User) => { setEditUser(u); setForm({ name:u.name, email:u.email, password: "", role:u.role, district:u.district, block:u.block, school:u.school }); setShowModal(true); };
+  const openAdd = () => { 
+    setEditUser(null); 
+    setForm({ name:"", email:"", password:"123456", role:"TEACHER", district:"", block:"", school:"" }); 
+    setShowModal(true); 
+  };
+
+  const openEdit = (u: User) => { 
+    setEditUser(u); 
+    setForm({ 
+      name: u.name, 
+      email: u.email, 
+      password: "", 
+      role: u.role, 
+      district: u.district === "—" ? "" : u.district, 
+      block: u.block === "—" ? "" : u.block, 
+      school: u.school === "—" ? "" : u.school 
+    }); 
+    setShowModal(true); 
+  };
+
+  const handleRoleChange = (newRole: Role) => {
+    setForm(f => {
+      const updated = { ...f, role: newRole };
+      if (["SUPERADMIN", "COMMISSIONER", "MINISTER"].includes(newRole)) {
+        updated.school = "";
+        updated.district = "";
+        updated.block = "";
+      } else if (newRole === "DEO") {
+        updated.school = "";
+        updated.block = "";
+      } else if (newRole === "BEO") {
+        updated.school = "";
+      }
+      return updated;
+    });
+  };
+
+  const handleSchoolChange = (schoolId: string) => {
+    const school = schoolsList.find(s => s.id === schoolId);
+    setForm(f => ({
+      ...f,
+      school: schoolId,
+      district: school ? school.district : "",
+      block: school ? school.block : "",
+    }));
+  };
+
+  const handleDistrictChange = (districtName: string) => {
+    setForm(f => ({
+      ...f,
+      district: districtName,
+      block: "", 
+      school: "", 
+    }));
+  };
+
+  const handleBlockChange = (blockName: string) => {
+    setForm(f => ({
+      ...f,
+      block: blockName,
+      school: "", 
+    }));
+  };
+
+  const validateForm = () => {
+    if (!form.name || !form.email) {
+      alert("Name and Email are required.");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      alert("Please enter a valid email address.");
+      return false;
+    }
+    if (!editUser && !form.password) {
+      alert("Password is required for new users.");
+      return false;
+    }
+    if (["TEACHER", "STUDENT", "HEADMASTER"].includes(form.role)) {
+      if (!form.school) {
+        alert("Please select a school for this role.");
+        return false;
+      }
+    } else if (form.role === "BEO") {
+      if (!form.district) {
+        alert("Please select a district for BEO.");
+        return false;
+      }
+      if (!form.block) {
+        alert("Please select a block for BEO.");
+        return false;
+      }
+    } else if (form.role === "DEO") {
+      if (!form.district) {
+        alert("Please select a district for DEO.");
+        return false;
+      }
+    }
+    return true;
+  };
 
   const saveUser = async () => {
-    if (!form.name || !form.email) return;
+    if (!validateForm()) return;
     try {
       if (editUser) {
         const res = await apiFetch(`/api/users/${editUser.id}`, {
@@ -145,9 +272,9 @@ export default function UserManagement() {
             name: form.name,
             email: form.email,
             role: form.role,
-            district: form.district,
-            block: form.block,
-            schoolId: form.school === "—" ? null : form.school,
+            district: form.district || null,
+            block: form.block || null,
+            schoolId: form.school || null,
             password: form.password || undefined,
           }),
         });
@@ -175,16 +302,16 @@ export default function UserManagement() {
             name: form.name,
             email: form.email,
             role: form.role,
-            district: form.district,
-            block: form.block,
-            schoolId: form.school === "—" ? null : form.school,
+            district: form.district || null,
+            block: form.block || null,
+            schoolId: form.school || null,
             password: form.password || "123456",
           }),
         });
         const data = await res.json();
         if (data.success) {
           const mappedNewUser = {
-            id: data.data.id,
+            id: String(data.data.id),
             name: data.data.name,
             email: data.data.email,
             role: data.data.role,
@@ -206,7 +333,7 @@ export default function UserManagement() {
     }
   };
 
-  const deleteUser = async (id: number) => {
+  const deleteUser = async (id: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       const res = await apiFetch(`/api/users/${id}`, {
@@ -221,6 +348,21 @@ export default function UserManagement() {
       console.error("Error deleting user:", err);
     }
   };
+
+  const getSchoolName = (schoolId: string) => {
+    if (!schoolId || schoolId === "—") return "—";
+    const school = schoolsList.find(s => s.id === schoolId);
+    return school ? school.name : schoolId;
+  };
+
+  // Get dynamic unique list of districts or fallback to static DISTRICTS array
+  const uniqueDistricts = Array.from(new Set(schoolsList.map(s => s.district))).filter(Boolean).sort();
+  const displayDistricts = uniqueDistricts.length > 0 ? uniqueDistricts : DISTRICTS;
+
+  // Filter blocks list dynamically for form
+  const availableBlocks = form.district
+    ? Array.from(new Set(schoolsList.filter(s => s.district === form.district).map(s => s.block))).filter(Boolean).sort()
+    : [];
 
   return (
     <PortalLayout>
@@ -260,7 +402,7 @@ export default function UserManagement() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="🔍 Search by name or email..."
-          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 w-64 focus:outline-none focus:border-violet-500"
+          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 w-56 focus:outline-none focus:border-violet-500"
         />
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value as any)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
@@ -273,6 +415,23 @@ export default function UserManagement() {
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
+
+        {/* District Filter */}
+        <select value={filterDistrict} onChange={(e) => { setFilterDistrict(e.target.value); setFilterSchool("ALL"); }}
+          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
+          <option value="ALL">All Districts</option>
+          {displayDistricts.map((d) => <option key={d} value={d}>{d}</option>)}
+        </select>
+
+        {/* School Filter */}
+        <select value={filterSchool} onChange={(e) => setFilterSchool(e.target.value)}
+          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 max-w-xs">
+          <option value="ALL">All Schools</option>
+          {schoolsList.filter(s => filterDistrict === "ALL" || s.district === filterDistrict).map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+
         <span className="text-[10px] text-slate-500 ml-auto">{filtered.length} users shown</span>
       </div>
 
@@ -314,7 +473,7 @@ export default function UserManagement() {
                     </td>
                     <td>
                       <div>{u.district}</div>
-                      {u.school !== "—" && <div className="text-slate-600 text-[10px]">{u.school}</div>}
+                      {u.school !== "—" && <div className="text-slate-600 text-[10px]">{getSchoolName(u.school)}</div>}
                     </td>
                     <td>{u.joined}</td>
                     <td>
@@ -352,37 +511,127 @@ export default function UserManagement() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
             <h3 className="text-base font-bold text-white mb-5">{editUser ? "✏️ Edit User" : "➕ Add New User"}</h3>
             <div className="space-y-3">
-              {[
-                { label:"Full Name", key:"name", placeholder:"Enter full name", type:"text" },
-                { label:"Email", key:"email", placeholder:"email@tn.gov.in", type:"email" },
-                { label:"Password", key:"password", placeholder: editUser ? "Leave blank to keep unchanged" : "Set account password", type:"text" },
-                { label:"District", key:"district", placeholder:"e.g. Coimbatore", type:"text" },
-                { label:"Block", key:"block", placeholder:"e.g. Coimbatore South", type:"text" },
-                { label:"School / Office ID", key:"school", placeholder:"School ID or —", type:"text" },
-              ].map(({ label, key, placeholder, type }) => (
-                <div key={key}>
-                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">{label}</label>
-                  <input
-                    type={type}
-                    value={(form as any)[key] || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Enter full name"
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="email@tn.gov.in"
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Password</label>
+                <input
+                  type="text"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  placeholder={editUser ? "Leave blank to keep unchanged" : "Set account password"}
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                />
+              </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Role</label>
-                <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as Role }))}
+                <select value={form.role} onChange={(e) => handleRoleChange(e.target.value as Role)}
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
                   {ROLES.map((r) => <option key={r} value={r}>{roleIcons[r]} {r}</option>)}
                 </select>
               </div>
+
+              {/* Dynamic Location selectors based on role */}
+              {["TEACHER", "STUDENT", "HEADMASTER"].includes(form.role) && (
+                <>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">School</label>
+                    <select
+                      value={form.school}
+                      onChange={(e) => handleSchoolChange(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500"
+                    >
+                      <option value="">— Select School —</option>
+                      {schoolsList.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.block})</option>
+                      ))}
+                    </select>
+                  </div>
+                  {form.school && (
+                    <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-850 rounded-lg border border-slate-800 text-[10px] text-slate-400">
+                      <div>
+                        <span className="font-bold block uppercase text-[8px] text-slate-500">District</span>
+                        {form.district || "—"}
+                      </div>
+                      <div>
+                        <span className="font-bold block uppercase text-[8px] text-slate-500">Block</span>
+                        {form.block || "—"}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {form.role === "BEO" && (
+                <>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District</label>
+                    <select
+                      value={form.district}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500"
+                    >
+                      <option value="">— Select District —</option>
+                      {displayDistricts.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Block</label>
+                    <select
+                      value={form.block}
+                      onChange={(e) => handleBlockChange(e.target.value)}
+                      disabled={!form.district}
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 disabled:opacity-50"
+                    >
+                      <option value="">— Select Block —</option>
+                      {availableBlocks.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {form.role === "DEO" && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District</label>
+                  <select
+                    value={form.district}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500"
+                  >
+                    <option value="">— Select District —</option>
+                    {displayDistricts.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-6 font-mono">
               <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700">Cancel</button>
               <button onClick={saveUser} className="flex-1 text-xs font-bold text-white bg-violet-600 hover:bg-violet-500 py-2 rounded-lg transition">
                 {editUser ? "Save Changes" : "Create User"}
