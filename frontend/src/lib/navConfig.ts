@@ -142,7 +142,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
@@ -165,7 +165,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
-      { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
+      // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       // { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
@@ -223,7 +223,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
@@ -253,7 +253,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       // Maths Formulas (/student/maths-formulas) is Class-6 Samacheer data only — not shown for 9-10.
-      { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
+      // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
@@ -400,7 +400,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
+      // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
 
       // ===================== STUDY PLANNER =====================
@@ -429,7 +429,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
-      { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "PencilRuler" },
+      // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "PencilRuler" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "Languages" },
 
       // ===================== LABS & PRACTICALS =====================
@@ -567,7 +567,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       // Interactive Modules & Centers
       { label: "Interactive Modules", href: "#", icon: "" },
-      { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "fi fi-rr-palette" },
+      // { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "fi fi-rr-palette" },
       // { label: "Science Fact", href: "/teacher/science-fact", icon: "fi fi-rr-bulb" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "fi fi-rr-calculator" },
       { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
