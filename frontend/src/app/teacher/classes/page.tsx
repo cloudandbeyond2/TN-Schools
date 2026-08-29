@@ -103,6 +103,38 @@ export default function ClassesPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  // Teacher Profile Assigned Class & Section
+  const [teacherAssignedClass, setTeacherAssignedClass] = useState<string>("");
+  const [teacherAssignedSection, setTeacherAssignedSection] = useState<string>("");
+
+  useEffect(() => {
+    if (!teacherId) return;
+    const token = user?.backendToken;
+    const reqHeaders: Record<string, string> = {};
+    if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/teacher/profile/${teacherId}`, { headers: reqHeaders })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          let aCls = json.data.assignedClass || "";
+          let aSec = json.data.assignedSection || "";
+          if (json.data.address && (!aCls || !aSec)) {
+            try {
+              const meta = JSON.parse(json.data.address);
+              if (!aCls) aCls = meta.assignedClass || "";
+              if (!aSec) aSec = meta.assignedSection || "";
+            } catch (e) {}
+          }
+          const parsedClsNum = (String(aCls).match(/\d+/) || [])[0] || "";
+          const parsedSecStr = String(aSec).toUpperCase().trim();
+          if (parsedClsNum) setTeacherAssignedClass(parsedClsNum);
+          if (parsedSecStr) setTeacherAssignedSection(parsedSecStr);
+        }
+      })
+      .catch((err) => console.error("Error fetching teacher assigned class/sec:", err));
+  }, [teacherId, API_URL, user?.backendToken]);
+
   // Daily Classes State
   const [todayClasses, setTodayClasses] = useState<DailyClass[]>([]);
   const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
@@ -370,11 +402,40 @@ export default function ClassesPage() {
   // ── Open modal (add / edit) ──────────────────────────────────
   const openAdd = () => {
     setEditingId(null);
+    const defaultCls = teacherAssignedClass || (String(user?.assignedClass || user?.class || "").match(/\d+/) || [])[0] || "";
+    const defaultSec = teacherAssignedSection || String(user?.assignedSection || user?.section || "").toUpperCase().trim() || "";
+
     setForm({
       ...EMPTY_FORM,
+      className: defaultCls,
+      section: defaultSec,
+      academicYear: "2024-25",
     });
     setIsModal(true);
   };
+
+  // Auto-fetch total students count & default academic year when Class & Section are selected in the modal
+  useEffect(() => {
+    if (!isModal) return;
+
+    if (!form.academicYear) {
+      setForm((prev) => ({ ...prev, academicYear: "2024-25" }));
+    }
+
+    if (form.className && form.section && schoolId) {
+      fetch(`${API_URL}/api/students?schoolId=${schoolId}&class=${form.className}&section=${form.section}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && typeof data.count === "number") {
+            const countVal = data.count > 0 ? String(data.count) : (Array.isArray(data.data) && data.data.length > 0 ? String(data.data.length) : "");
+            if (countVal) {
+              setForm((prev) => ({ ...prev, totalStudents: countVal }));
+            }
+          }
+        })
+        .catch((err) => console.error("Error auto-fetching student count:", err));
+    }
+  }, [form.className, form.section, schoolId, isModal, API_URL]);
 
   const openEdit = (c: ClassRoom) => {
     setEditingId(c.id);
@@ -382,7 +443,7 @@ export default function ClassesPage() {
       className: c.className,
       section: c.section,
       subject: c.subject,
-      academicYear: c.academicYear,
+      academicYear: c.academicYear || "2024-25",
       roomNumber: c.roomNumber ?? "",
       schedule: c.schedule ?? "",
       totalStudents: String(c.totalStudents),

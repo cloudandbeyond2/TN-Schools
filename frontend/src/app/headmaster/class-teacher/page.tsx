@@ -914,7 +914,7 @@ export default function HeadmasterClassTeachersPage() {
                 >
                   <option value="">-- Choose Teacher --</option>
                   {teachingStaff.map(t => {
-                    const currentCls = t.parsedMeta?.assignedClass && t.parsedMeta?.assignedSection 
+                    const currentCls = t.parsedMeta?.isClassTeacher && t.parsedMeta?.assignedClass && t.parsedMeta?.assignedSection 
                       ? ` (Currently Class Teacher: ${t.parsedMeta.assignedClass}${t.parsedMeta.assignedSection})` 
                       : "";
                     return (

@@ -404,6 +404,18 @@ return res.json({
             },
         });
 
+        let isClassTeacher = false;
+        let assignedClass = "";
+        let assignedSection = "";
+        if (teacher?.address) {
+            try {
+                const meta = JSON.parse(teacher.address);
+                isClassTeacher = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+                assignedClass = meta.assignedClass || "";
+                assignedSection = meta.assignedSection || "";
+            } catch (e) {}
+        }
+
         const teacherSubject = teacher?.subject ?? "General";
         const teacherRole = isPetSubject(teacherSubject) ? "PET" : "TEACHER";
         const teacherId = teacher?.id ?? pgUser.id;
@@ -417,6 +429,10 @@ return res.json({
                 role: teacherRole,
                 schoolId: teacherSchoolId,
                 subject: teacherSubject,
+                isClassTeacher,
+                assignedClass,
+                assignedSection,
+                class: assignedClass,
                 token: signAuthToken({
                     id: teacherId,
                     role: teacherRole,
@@ -457,6 +473,17 @@ return res.json({
         if (!(await verifyPassword(password, staffMember.password))) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
+        let isClassTeacher = false;
+        let assignedClass = "";
+        let assignedSection = "";
+        if (staffMember?.address) {
+          try {
+            const meta = JSON.parse(staffMember.address);
+            isClassTeacher = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+            assignedClass = meta.assignedClass || "";
+            assignedSection = meta.assignedSection || "";
+          } catch (e) {}
+        }
         const staffRole = isPetSubject(staffMember.subject) ? 'PET' : 'TEACHER';
         return res.json({
           success: true,
@@ -467,6 +494,10 @@ return res.json({
             role: staffRole,
             schoolId: staffMember.schoolId || null,
             subject: staffMember.subject || 'General',
+            isClassTeacher,
+            assignedClass,
+            assignedSection,
+            class: assignedClass,
             token: signAuthToken({
               id: String(staffMember.id),
               role: staffRole,

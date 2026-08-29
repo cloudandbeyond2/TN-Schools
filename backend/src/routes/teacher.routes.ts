@@ -1416,6 +1416,45 @@ router.get('/profile/:userId', async (req: Request, res: Response) => {
     });
 
     if (user) {
+      let staffObj = await prisma.headmasterStaff.findFirst({
+        where: {
+          OR: [
+            { userId: user.id },
+            { email: { equals: user.email || '', mode: 'insensitive' } }
+          ]
+        }
+      });
+
+      let isClassTeacher = false;
+      let assignedClass = "";
+      let assignedSection = "";
+      if (staffObj?.address) {
+        try {
+          const meta = JSON.parse(staffObj.address);
+          isClassTeacher = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+          assignedClass = meta.assignedClass || "";
+          assignedSection = meta.assignedSection || "";
+        } catch (e) {}
+      }
+
+      let subjectVal = staffObj?.subject || user.teacher?.subjects?.join(', ') || 'General';
+
+      // Query taught subjects from ClassRoom
+      const tIds = [user.id];
+      if (staffObj) tIds.push(staffObj.id);
+
+      const taughtClasses = await prisma.classRoom.findMany({
+        where: { teacherId: { in: tIds } },
+        select: { subject: true }
+      });
+
+      if (taughtClasses.length > 0) {
+        const uniqueSubjs = Array.from(new Set(taughtClasses.map(c => c.subject).filter(Boolean)));
+        if (uniqueSubjs.length > 0) {
+          subjectVal = uniqueSubjs.join(", ");
+        }
+      }
+
       return res.json({
         success: true,
         type: 'user',
@@ -1423,25 +1462,33 @@ router.get('/profile/:userId', async (req: Request, res: Response) => {
           id: user.id,
           name: user.name,
           email: user.email || '',
-          phone: user.mobile || '',
+          phone: user.mobile || staffObj?.phone || '',
           role: user.role,
-          schoolId: user.schoolId || user.teacher?.schoolId || '',
+          schoolId: user.schoolId || user.teacher?.schoolId || staffObj?.schoolId || '',
           schoolName: user.school?.name || user.teacher?.school?.name || 'Tamil Nadu School',
-          emisId: user.teacher?.employeeId || user.emisId || 'N/A',
-          subjects: user.teacher?.subjects || [],
-          subject: user.teacher?.subjects?.join(', ') || 'General',
+          emisId: staffObj?.emisId || user.teacher?.employeeId || user.emisId || 'N/A',
+          subjects: [subjectVal],
+          subject: subjectVal,
+          isClassTeacher,
+          assignedClass,
+          assignedSection,
           qualification: user.teacher?.qualification || 'N/A',
           joiningDate: user.teacher?.joiningDate ? user.teacher.joiningDate.toISOString().split('T')[0] : '',
-          address: user.teacher?.address || '',
-          gender: user.teacher?.gender || '',
-          dob: user.teacher?.dob ? user.teacher.dob.toISOString().split('T')[0] : ''
+          address: staffObj?.address || user.teacher?.address || '',
+          gender: staffObj?.gender || user.teacher?.gender || '',
+          dob: staffObj?.dob || (user.teacher?.dob ? user.teacher.dob.toISOString().split('T')[0] : '')
         }
       });
     }
 
     // 2. Try to find in HeadmasterStaff table
-    const staff = await prisma.headmasterStaff.findUnique({
-      where: { id: userId }
+    const staff = await prisma.headmasterStaff.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { emisId: userId }
+        ]
+      }
     });
 
     if (staff) {
@@ -1452,6 +1499,30 @@ router.get('/profile/:userId', async (req: Request, res: Response) => {
           select: { name: true }
         });
         if (school) schoolName = school.name;
+      }
+
+      let isClassTeacher = false;
+      let assignedClass = "";
+      let assignedSection = "";
+      if (staff.address) {
+        try {
+          const meta = JSON.parse(staff.address);
+          isClassTeacher = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+          assignedClass = meta.assignedClass || "";
+          assignedSection = meta.assignedSection || "";
+        } catch (e) {}
+      }
+
+      let subjectVal = staff.subject || 'General';
+      const staffClasses = await prisma.classRoom.findMany({
+        where: { teacherId: staff.id },
+        select: { subject: true }
+      });
+      if (staffClasses.length > 0) {
+        const uniqueSubjs = Array.from(new Set(staffClasses.map(c => c.subject).filter(Boolean)));
+        if (uniqueSubjs.length > 0) {
+          subjectVal = uniqueSubjs.join(", ");
+        }
       }
 
       return res.json({
@@ -1466,8 +1537,11 @@ router.get('/profile/:userId', async (req: Request, res: Response) => {
           schoolId: staff.schoolId || '',
           schoolName,
           emisId: staff.emisId || 'N/A',
-          subjects: [staff.subject],
-          subject: staff.subject || 'General',
+          subjects: [subjectVal],
+          subject: subjectVal,
+          isClassTeacher,
+          assignedClass,
+          assignedSection,
           qualification: 'N/A',
           joiningDate: staff.createdAt ? staff.createdAt.toISOString().split('T')[0] : '',
           address: staff.address || '',

@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as any).role;
         token.id = (user as any).id;
@@ -56,14 +56,23 @@ export const authOptions: NextAuthOptions = {
         token.schoolName = (user as any).schoolName || null;
         token.schoolDise = (user as any).schoolDise || null;
         token.class = (user as any).class;
-        token.section = (user as any).section;   // ✅ ADD THIS
-        token.subject = (user as any).subject;   // ✅ ADD THIS
+        token.section = (user as any).section;
+        token.subject = (user as any).subject;
+        token.isClassTeacher = (user as any).isClassTeacher || false;
+        token.assignedClass = (user as any).assignedClass || null;
+        token.assignedSection = (user as any).assignedSection || null;
         token.studentId = (user as any).studentId || null;   // Student record ID
         token.rollNumber = (user as any).rollNumber || null; // Student roll number
         // Governance scope fields
         token.district = (user as any).district || null;     // DEO assigned district
         token.block = (user as any).block || null;            // BEO assigned block
         token.assignedRegion = (user as any).assignedRegion || null; // Commissioner region
+      }
+      if (trigger === "update" && session?.user) {
+        if (session.user.subject !== undefined) token.subject = session.user.subject;
+        if (session.user.isClassTeacher !== undefined) token.isClassTeacher = session.user.isClassTeacher;
+        if (session.user.assignedClass !== undefined) token.assignedClass = session.user.assignedClass;
+        if (session.user.assignedSection !== undefined) token.assignedSection = session.user.assignedSection;
       }
       return token;
     },
@@ -78,6 +87,9 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).class = token.class;
         (session.user as any).section = token.section;   // ✅ ADD THIS
         (session.user as any).subject = token.subject;   // ✅ ADD THIS
+        (session.user as any).isClassTeacher = token.isClassTeacher || false;
+        (session.user as any).assignedClass = token.assignedClass || null;
+        (session.user as any).assignedSection = token.assignedSection || null;
         (session.user as any).studentId = token.studentId || null;
         (session.user as any).rollNumber = token.rollNumber || null;
         // Governance scope fields

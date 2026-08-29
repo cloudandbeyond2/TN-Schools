@@ -812,14 +812,15 @@ export default function StaffManagementPage() {
           const name = (row["Staff Name"] || row["Name"] || row["Full Name"] || row["Teacher Name"] || "").toString().trim();
           const emisId = (row["EMIS ID"] || row["EMIS"] || row["ID"] || row["Staff ID"] || row["Teacher ID"] || "").toString().trim() || `TCHR-${Date.now().toString().slice(-6)}-${index + 1}`;
           const staffType = row["Category"] || row["Staff Type"] || "Teaching";
-          const subject = row["Subject"] || row["Role"] || "General";
+          const subject = row["Subject/Role"] || row["Subject"] || row["Role"] || "General";
           const phone = row["Phone"] || row["Phone Number"] || "N/A";
           const email = row["Email"] || "";
           const joiningDate = row["Joined Date"] || row["Joining Date"] || "";
           const workAllocation = row["Work Allocation"] || "";
           const assignedClass = row["Assigned Class"] || "";
           const assignedSection = row["Assigned Section"] || "";
-          const docAppointment = row["Document Appointment"] || "";
+          const docAppointment = row["Document Appointment"] || row["Doc Appointment"] || "";
+          const isClassTeacher = Boolean(row["isClassTeacher"]) || workAllocation.toLowerCase().includes("class teacher");
 
           // Serialize extra fields into address
           const address = JSON.stringify({
@@ -829,7 +830,8 @@ export default function StaffManagementPage() {
             workAllocation,
             assignedClass,
             assignedSection,
-            docAppointment
+            docAppointment,
+            isClassTeacher
           });
 
           return {

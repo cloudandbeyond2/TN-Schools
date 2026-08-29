@@ -1,9 +1,11 @@
 "use client";
+// Updated teacher navigation visibility rules
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { roleConfigs, NavItem, applyStudentGroup, StudentGroup } from "@/lib/navConfig";
+import { getTeacherPermissions, canAccessTeacherNavItem } from "@/lib/teacherPermissions";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
 import { LucideIcon } from "@/components/LucideIcon";
@@ -526,8 +528,90 @@ export default function PortalLayout({
   const [studentGroupCode, setStudentGroupCode] = useState<string>("");
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [hasScienceProxyClass, setHasScienceProxyClass] = useState(false);
+  const [proxyAssignments, setProxyAssignments] = useState<any[]>([]);
+  const [teacherTimetableClasses, setTeacherTimetableClasses] = useState<string[]>([]);
+  const [teacherProfile, setTeacherProfile] = useState<{
+    subject: string;
+    assignedClass: string;
+    assignedSection?: string;
+    isClassTeacher: boolean;
+  } | null>(null);
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // Fetch teacher live profile, proxy duties & assigned classes
+  useEffect(() => {
+    const isTeacherRole = (session?.user as any)?.role?.toUpperCase() === "TEACHER" || (session?.user as any)?.role?.toUpperCase() === "PET" || pathname.startsWith("/teacher");
+    if (session?.user && isTeacherRole) {
+      const teacherId = (session.user as any).id;
+      if (!teacherId) return;
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const token = (session.user as any).backendToken;
+      const reqHeaders: Record<string, string> = {};
+      if (token) {
+        reqHeaders["Authorization"] = `Bearer ${token}`;
+      }
+
+      // 1. Fetch Teacher Profile from backend
+      fetch(`${apiUrl}/api/teacher/profile/${teacherId}`, { headers: reqHeaders })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.data) {
+            let isCT = false;
+            let aCls = json.data.assignedClass || "";
+            let aSec = json.data.assignedSection || "";
+            if (json.data.address) {
+              try {
+                const meta = JSON.parse(json.data.address);
+                isCT = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+                if (!aCls) aCls = meta.assignedClass || "";
+                if (!aSec) aSec = meta.assignedSection || "";
+              } catch (e) {}
+            }
+            setTeacherProfile({
+              subject: json.data.subject || (session.user as any).subject || "General",
+              assignedClass: aCls || (session.user as any).assignedClass || (session.user as any).class || "",
+              assignedSection: aSec || (session.user as any).assignedSection || (session.user as any).section || "",
+              isClassTeacher: isCT || !!(session.user as any).isClassTeacher || (session.user as any).workAllocation === "Class Teacher",
+            });
+          }
+        })
+        .catch(() => {});
+
+      // 2. Fetch Proxy assignments for science classes
+      fetch(`${apiUrl}/api/timetable/proxy/teacher/${teacherId}`, { headers: reqHeaders })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            setProxyAssignments(json.data);
+            const scienceKeywords = ["science", "physics", "chemistry", "biology", "zoology", "botany"];
+            const hasProxyScience = json.data.some((p: any) => {
+              const subj = (p.timetable?.subject || p.subject || "").toLowerCase();
+              return scienceKeywords.some((kw) => subj.includes(kw));
+            });
+            setHasScienceProxyClass(hasProxyScience);
+          }
+        })
+        .catch(() => {});
+
+      // 3. Fetch timetable & room classes taught by teacher
+      const schoolId = (session.user as any).schoolId;
+      const classFetchUrl = schoolId 
+        ? `${apiUrl}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`
+        : `${apiUrl}/api/timetable/teacher/${teacherId}`;
+      fetch(classFetchUrl, { headers: reqHeaders })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            const classesFound: string[] = json.data.map((slot: any) => String(slot.className || slot.class || ""));
+            setTeacherTimetableClasses(classesFound);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [session, pathname]);
 
   // Preserve and restore sidebar scroll position
   useEffect(() => {
@@ -782,21 +866,6 @@ export default function PortalLayout({
     }
   }, [status, router]);
 
-  // Loading indicator screen
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center text-center p-6">
-        <div className="w-10 h-10 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin mb-4" />
-        <p className="text-xs text-[var(--text-muted)]">Checking credentials...</p>
-      </div>
-    );
-  }
-
-  // Double check auth fallback
-  if (!session) {
-    return null;
-  }
-
   // Get active role from NextAuth token
   let userRole = (session?.user as any)?.role || "STUDENT";
 
@@ -853,9 +922,23 @@ export default function PortalLayout({
     "Computer Science": ["/teacher/computer-education"],
   };
 
-  const subjectRestrictedRoutes = new Set(Object.values(subjectRoutes).flat());
   const userSubject = (session?.user as any)?.subject || "";
   const userClass = (session?.user as any)?.class || "";
+
+  const isTeacherRole = userRole.toUpperCase() === "TEACHER" || userRole.toUpperCase() === "PET" || pathname.startsWith("/teacher");
+
+  // Single Centralized Teacher Permission Calculation
+  const teacherPermissions = getTeacherPermissions({
+    role: userRole,
+    subject: teacherProfile?.subject || (session?.user as any)?.subject || "",
+    isClassTeacher: teacherProfile?.isClassTeacher ?? !!(
+      (session?.user as any)?.isClassTeacher ||
+      (session?.user as any)?.workAllocation === "Class Teacher"
+    ),
+    assignedClass: teacherProfile?.assignedClass || (session?.user as any)?.assignedClass || (session?.user as any)?.class || "",
+    proxyAssignments,
+    timetableClasses: teacherTimetableClasses,
+  });
 
   let filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
@@ -865,10 +948,10 @@ export default function PortalLayout({
           return false;
         }
 
-        if (userRole === "TEACHER" && subjectRestrictedRoutes.has(item.href)) {
-          // It's a restricted route, check if teacher's subject allows it
-          const allowedRoutesForSubject = subjectRoutes[userSubject] || [];
-          return allowedRoutesForSubject.includes(item.href);
+        if (isTeacherRole) {
+          if (!canAccessTeacherNavItem(item, teacherPermissions)) {
+            return false;
+          }
         }
 
         if (item.label === "Maths Formulas") {
@@ -879,6 +962,12 @@ export default function PortalLayout({
         if (item.label === "Botany Centre") {
           const classNum = String(userClass).match(/\d+/)?.[0];
           if (classNum === "6" || classNum === "7") {
+            return false;
+          }
+        }
+
+        if (item.label === "Computer Education" || item.href.includes("computer-education")) {
+          if (userRole === "STUDENT_MIDDLE" || (sessionClassNum > 0 && sessionClassNum <= 8)) {
             return false;
           }
         }
@@ -1020,6 +1109,21 @@ export default function PortalLayout({
     fallbackPath = "/super-admin";
   }
 
+  // Loading indicator screen
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-10 h-10 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin mb-4" />
+        <p className="text-xs text-[var(--text-muted)]">Checking credentials...</p>
+      </div>
+    );
+  }
+
+  // Double check auth fallback
+  if (!session) {
+    return null;
+  }
+
   // Render Access Denied error sheet if unauthorized role tries to access
   if (!isAuthorized) {
     let defaultDest = "/";
@@ -1102,7 +1206,31 @@ export default function PortalLayout({
   const displayName = session?.user?.name || resolvedTitle;
   const displayEmail = session?.user?.email || resolvedSubtitle;
   const userSection = (session?.user as any)?.section;
-  const classDisplay = userClass && userSection ? `Class ${userClass} - ${userSection}` : (userClass ? `Class ${userClass}` : "");
+
+  const activeSubject = teacherProfile?.subject || (session?.user as any)?.subject || "";
+  const activeClass = teacherProfile?.assignedClass || (session?.user as any)?.assignedClass || userClass || "";
+  const activeSection = teacherProfile?.assignedSection || (session?.user as any)?.assignedSection || userSection || "";
+  const isCT = teacherProfile?.isClassTeacher ?? !!(
+    (session?.user as any)?.isClassTeacher ||
+    (session?.user as any)?.workAllocation === "Class Teacher"
+  );
+
+  let classDisplay = "";
+  if (userRole === "TEACHER" || userRole === "PET") {
+    const classStr = activeClass ? `Class ${activeClass}${activeSection ? `-${activeSection}` : ""}` : "";
+    const subjStr = activeSubject || "";
+
+    if (classStr && subjStr) {
+      classDisplay = `${classStr} · ${subjStr}`;
+    } else if (classStr) {
+      classDisplay = classStr;
+    } else if (subjStr) {
+      classDisplay = `${subjStr} Teacher`;
+    }
+  } else {
+    classDisplay = userClass && userSection ? `Class ${userClass} - ${userSection}` : (userClass ? `Class ${userClass}` : "");
+  }
+
   const letter = displayName ? displayName.charAt(0).toUpperCase() : resolvedAvatarLetter;
 
   return (
@@ -1137,7 +1265,9 @@ export default function PortalLayout({
           <div className="min-w-0 text-left flex flex-col justify-center">
             <div className="text-sm font-bold text-[var(--text-heading)] truncate">{displayName}</div>
             {classDisplay && <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{classDisplay}</div>}
-            <div className="text-[10px] text-[var(--text-muted)] truncate capitalize">{userRole.replace(/_/g, " ").toLowerCase()}</div>
+            <div className="text-[10px] text-[var(--text-muted)] truncate capitalize">
+              {(userRole === "TEACHER" || userRole === "PET") && isCT ? "Class Teacher" : userRole.replace(/_/g, " ").toLowerCase()}
+            </div>
             {userRole === "STUDENT_HIGHER" && studentGroup && (
               <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium line-clamp-2 leading-snug mt-0.5">
                 {studentGroup} Group {studentGroupCode ? `(${studentGroupCode})` : ""}

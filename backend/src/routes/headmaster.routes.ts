@@ -635,7 +635,38 @@ router.get('/staff', async (req: Request, res: Response) => {
       select: SAFE_STAFF_SELECT,
     });
 
-    res.json({ success: true, count: staff.length, data: staff });
+    // Dynamically derive taught subjects from ClassRoom entries if present
+    const updatedStaff = await Promise.all(staff.map(async (s) => {
+      let currentSubject = s.subject;
+      let tIds: string[] = [s.id];
+
+      if (s.email) {
+        const matchedUser = await prisma.user.findFirst({
+          where: { email: { equals: s.email, mode: 'insensitive' } },
+          select: { id: true }
+        });
+        if (matchedUser) tIds.push(matchedUser.id);
+      }
+
+      const classes = await prisma.classRoom.findMany({
+        where: { teacherId: { in: tIds } },
+        select: { subject: true }
+      });
+
+      if (classes.length > 0) {
+        const uniqueSubjects = Array.from(new Set(classes.map(c => c.subject).filter(Boolean)));
+        if (uniqueSubjects.length > 0) {
+          currentSubject = uniqueSubjects.join(", ");
+        }
+      }
+
+      return {
+        ...s,
+        subject: currentSubject
+      };
+    }));
+
+    res.json({ success: true, count: updatedStaff.length, data: updatedStaff });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
