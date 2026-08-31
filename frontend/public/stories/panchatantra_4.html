@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body, html { width: 1920px; height: 1080px; overflow: hidden; background: #020617; font-family: system-ui, -apple-system, sans-serif; }
+  .banner {
+    position: absolute; bottom: 0; left: 0; width: 1920px; height: 160px;
+    background: rgba(2, 6, 23, 0.94); border-top: 2px solid rgba(255,255,255,0.12);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
+  }
+  .title-en { color: #ffffff; font-size: 42px; font-weight: 800; letter-spacing: 1px; }
+  .title-ta { color: #fbbf24; font-size: 26px; font-weight: 600; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <canvas id="cv" width="1920" height="1080"></canvas>
+  <div class="banner">
+    <div class="title-en">Scene 4: Rewarding Feast</div>
+    <div class="title-ta">பயந்து ஓடாமல் ஆராய்ந்ததால் சுவையான உணவை அடைந்து மகிழ்தல்</div>
+  </div>
+  <script>
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    
+      ctx.fillStyle = '#065f46'; ctx.fillRect(0,0,1920,1080);
+      const feastGlow = ctx.createRadialGradient(960, 540, 50, 960, 540, 600);
+      feastGlow.addColorStop(0, 'rgba(251, 191, 36, 0.75)'); feastGlow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = feastGlow; ctx.beginPath(); ctx.arc(960, 540, 600, 0, Math.PI*2); ctx.fill();
+
+      ctx.fillStyle = '#d97706'; ctx.beginPath(); ctx.arc(960, 420, 110, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#451a03'; ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.arc(960, 450, 45, 0, Math.PI); ctx.stroke();
+      ctx.fillStyle = '#b45309'; ctx.fillRect(780, 640, 360, 180);
+    
+  </script>
+</body>
+</html>

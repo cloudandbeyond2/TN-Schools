@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgRaman3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#31103f"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bgRaman3)"/>
+
+  <!-- Molecular Structure & Light Scattering Rays -->
+  <g transform="translate(800, 400)">
+    <!-- Central Water Molecule (H2O) -->
+    <circle cx="0" cy="0" r="80" fill="#0284c7" opacity="0.9" stroke="#38bdf8" stroke-width="6"/>
+    <circle cx="-110" cy="-70" r="45" fill="#e0f2fe" opacity="0.9"/>
+    <circle cx="110" cy="-70" r="45" fill="#e0f2fe" opacity="0.9"/>
+
+    <!-- Incident Light Ray (Monochromatic Light) -->
+    <line x1="-700" y1="-200" x2="0" y2="0" stroke="#f59e0b" stroke-width="10" stroke-dasharray="15,10"/>
+
+    <!-- Scattered Raman Light Rays (Shifted Wavelengths) -->
+    <line x1="0" y1="0" x2="600" y2="-250" stroke="#a855f7" stroke-width="12"/>
+    <line x1="0" y1="0" x2="650" y2="0" stroke="#38bdf8" stroke-width="10"/>
+    <line x1="0" y1="0" x2="600" y2="250" stroke="#ec4899" stroke-width="12"/>
+  </g>
+
+  <!-- Banner -->
+  <rect x="0" y="780" width="1600" height="120" fill="#020617" opacity="0.95"/>
+  <text x="800" y="830" font-family="sans-serif" font-size="36" font-weight="bold" fill="#ffffff" text-anchor="middle">Scene 3: The Raman Effect (1928)</text>
+  <text x="800" y="870" font-family="sans-serif" font-size="22" fill="#c084fc" text-anchor="middle">1928 பிப்ரவரி 28 அன்று ஒளியின் சிதறலை 'ராமன் விளைவு' மூலம் நிரூபித்தல்</text>
+</svg>

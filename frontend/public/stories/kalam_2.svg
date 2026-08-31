@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgKal2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="50%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bgKal2)"/>
+
+  <!-- Cozy Cotton Nest with Heart Glow -->
+  <g transform="translate(680, 250)">
+    <circle cx="120" cy="120" r="140" fill="#f43f5e" opacity="0.15"/>
+    <!-- Nest -->
+    <ellipse cx="120" cy="200" rx="140" ry="60" fill="#78350f" stroke="#b45309" stroke-width="6"/>
+    <ellipse cx="120" cy="190" rx="110" ry="40" fill="#fef08a" opacity="0.8"/>
+    <!-- Bird sitting safely in nest -->
+    <path d="M100 160 C80 130, 140 120, 150 150 Z" fill="#d97706"/>
+  </g>
+
+  <!-- Banner -->
+  <rect x="0" y="780" width="1600" height="120" fill="#020617" opacity="0.95"/>
+  <text x="800" y="830" font-family="sans-serif" font-size="36" font-weight="bold" fill="#ffffff" text-anchor="middle">Scene 2: Gentle Care &amp; Healing</text>
+  <text x="800" y="870" font-family="sans-serif" font-size="22" fill="#34d399" text-anchor="middle">குருவியை வீட்டிற்குத் தூக்கி வந்து கனிவோடு பராமரித்துக் குணப்படுத்துதல்</text>
+</svg>

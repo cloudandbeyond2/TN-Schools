@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body, html { width: 1920px; height: 1080px; overflow: hidden; background: #020617; font-family: system-ui, -apple-system, sans-serif; }
+  .banner {
+    position: absolute; bottom: 0; left: 0; width: 1920px; height: 160px;
+    background: rgba(2, 6, 23, 0.94); border-top: 2px solid rgba(255,255,255,0.12);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
+  }
+  .title-en { color: #ffffff; font-size: 42px; font-weight: 800; letter-spacing: 1px; }
+  .title-ta { color: #fbbf24; font-size: 26px; font-weight: 600; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <canvas id="cv" width="1920" height="1080"></canvas>
+  <div class="banner">
+    <div class="title-en">Scene 3: The Raman Effect (1928)</div>
+    <div class="title-ta">1928 பிப்ரவரி 28 அன்று ஒளியின் சிதறலை ராமன் விளைவு மூலம் நிரூபித்தல்</div>
+  </div>
+  <script>
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    
+      ctx.fillStyle = '#31103f'; ctx.fillRect(0,0,1920,1080);
+      const rGlow = ctx.createRadialGradient(960, 540, 20, 960, 540, 650);
+      rGlow.addColorStop(0, 'rgba(168, 85, 247, 0.75)'); rGlow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = rGlow; ctx.beginPath(); ctx.arc(960, 540, 650, 0, Math.PI*2); ctx.fill();
+
+      // Water Molecule Structure
+      ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 14;
+      ctx.beginPath(); ctx.arc(960, 540, 140, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e0f2fe';
+      ctx.beginPath(); ctx.arc(780, 400, 75, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(1140, 400, 75, 0, Math.PI*2); ctx.fill();
+
+      // Incident & Scattered Beams
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 22;
+      ctx.beginPath(); ctx.moveTo(0, 240); ctx.lineTo(840, 480); ctx.stroke();
+      ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 22;
+      ctx.beginPath(); ctx.moveTo(1080, 480); ctx.lineTo(1920, 180); ctx.stroke();
+      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 22;
+      ctx.beginPath(); ctx.moveTo(1080, 600); ctx.lineTo(1920, 900); ctx.stroke();
+    
+  </script>
+</body>
+</html>
