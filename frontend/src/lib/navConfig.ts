@@ -577,7 +577,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "3D Preview", href: "/teacher/3d-preview", icon: "Box" },
       { label: "Celebrations", href: "/teacher/celebrations", icon: "fi fi-rr-party-horn" },
       { label: "Cultural Events", href: "/teacher/cultural-events", icon: "fi fi-rr-music" },
-      { label: "Computer Education", href: "/teacher/computer-education", icon: "fi fi-rr-computer" },
+      // { label: "Computer Education", href: "/teacher/computer-education", icon: "fi fi-rr-computer" },
       { label: "School Press", href: "/teacher/school-press", icon: "fi fi-rr-newspaper" },
     ],
   },
@@ -820,7 +820,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
     { label: "Chemistry Center", href: "/student/chemistry-lab", icon: "FlaskConical" },
     { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
-    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+    // { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
   ],
   Commerce: [
     // { label: "Commerce Campus", href: "/student/science-campus", icon: "Sparkles" },
@@ -830,7 +830,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Accountancy Practice", href: "/student/science/accountancy", icon: "Calculator" },
     { label: "Economics Data Center", href: "/student/science/economics", icon: "TrendingUp" },
     { label: "Business Statistics", href: "/student/science/business-stats", icon: "BarChart3" },
-    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+    // { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
   ],
   ComputerScience: [
     { label: "CS Campus", href: "/student/science-campus", icon: "Sparkles" },
@@ -842,7 +842,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Database & SQL Lab", href: "/student/science/database-lab", icon: "Database" },
     { label: "AI & Machine Learning", href: "/student/science/ai-ml", icon: "Bot" },
     { label: "Robotics & AI Lab", href: "/student/science/robotics", icon: "Bot" },
-    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+    // { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
   ],
   Arts: [
     { label: "Arts Campus", href: "/student/science-campus", icon: "Sparkles" },
