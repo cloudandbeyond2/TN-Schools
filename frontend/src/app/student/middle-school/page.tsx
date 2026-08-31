@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
+import KpiCard from "@/components/kpi/KpiCard";
 import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -82,6 +83,13 @@ export default function MiddleSchoolDashboard() {
   const [recentMarks,          setRecentMarks]          = useState<any[]>([]);
   const [loadingMarks,         setLoadingMarks]         = useState(true);
   const [todayProgress,        setTodayProgress]        = useState<any>(null);
+  const [loadingProgress,      setLoadingProgress]      = useState(true);
+  const [analytics,            setAnalytics]            = useState<any>(null);
+  const [loadingAnalytics,     setLoadingAnalytics]     = useState(true);
+  const [pointsVal,            setPointsVal]            = useState<string>("—");
+  const [loadingPoints,        setLoadingPoints]        = useState(true);
+  const [quizzesVal,           setQuizzesVal]           = useState<string>("—");
+  const [loadingQuizzes,       setLoadingQuizzes]       = useState(true);
 
   /* ── Fetch all data ──────────────────────────────────── */
   useEffect(() => {
@@ -97,10 +105,12 @@ export default function MiddleSchoolDashboard() {
       .finally(() => setLoadingNotifications(false));
 
     /* today progress */
+    setLoadingProgress(true);
     fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${userId}`)
       .then(r => r.json())
       .then(j => { if (j.success) setTodayProgress(j.data); })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoadingProgress(false));
 
     /* student + marks + badges */
     fetch(`${API_BASE}/api/students`)
@@ -116,6 +126,35 @@ export default function MiddleSchoolDashboard() {
           .then(j => { if (j.success) setRecentMarks(j.data.slice(0, 6)); })
           .catch(console.error)
           .finally(() => setLoadingMarks(false));
+
+        /* fetch student analytics */
+        setLoadingAnalytics(true);
+        fetch(`${API_BASE}/api/analytics/student/${s.id}`)
+          .then(r => r.json())
+          .then(j => { if (j.success) setAnalytics(j.data); })
+          .catch(console.error)
+          .finally(() => setLoadingAnalytics(false));
+
+        /* fetch rewards (points) */
+        setLoadingPoints(true);
+        fetch(`${API_BASE}/api/personal-guide/rewards?studentId=${s.id}`)
+          .then(r => r.json())
+          .then(j => { if (j.success && j.data) setPointsVal(String(j.data.points)); })
+          .catch(console.error)
+          .finally(() => setLoadingPoints(false));
+
+        /* fetch quizzes (completed count) */
+        setLoadingQuizzes(true);
+        fetch(`${API_BASE}/api/mock-tests/student/${s.id}`)
+          .then(r => r.json())
+          .then(j => {
+            if (j.success && Array.isArray(j.data)) {
+              const completed = j.data.filter((test: any) => test.submissions && test.submissions.length > 0).length;
+              setQuizzesVal(String(completed));
+            }
+          })
+          .catch(console.error)
+          .finally(() => setLoadingQuizzes(false));
 
         /* badges */
         const bUrl = schoolId
@@ -201,7 +240,88 @@ export default function MiddleSchoolDashboard() {
       </div>
 
       {/* ── KPI Strip ──────────────────────────────────── */}
-      <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} hideHeader={true} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <KpiCard
+          label={isTa ? "வருகைப்பதிவு" : "Attendance"}
+          value={loadingAnalytics ? "…" : (analytics?.attendancePct != null ? `${analytics.attendancePct}%` : "—")}
+          flaticonClass="fi-sr-user-check"
+          color="text-emerald-500"
+          variant="light"
+          sub={isTa ? "ஆண்டு சராசரி" : "Perfect this week!"}
+        />
+        <KpiCard
+          label={isTa ? "கற்றல் புள்ளிகள்" : "Learning Pts"}
+          value={loadingPoints ? "…" : pointsVal}
+          flaticonClass="fi-sr-trophy"
+          color="text-amber-500"
+          variant="light"
+          sub={isTa ? "இன்று +50" : "+50 today"}
+        />
+        <KpiCard
+          label={isTa ? "வினாடி வினாக்கள்" : "Quizzes"}
+          value={loadingQuizzes ? "…" : quizzesVal}
+          flaticonClass="fi-sr-target"
+          color="text-blue-500"
+          variant="light"
+          sub={isTa ? "மதிப்பீடுகள்" : "Completed mock exams"}
+        />
+        <KpiCard
+          label={isTa ? "வாசிப்பு நேரம்" : "Reading Time"}
+          value={loadingProgress ? "…" : (todayProgress ? (todayProgress.totalTimeSpentMinutes >= 60 ? `${Math.round(todayProgress.totalTimeSpentMinutes / 60)} Hrs` : `${todayProgress.totalTimeSpentMinutes} Mins`) : "—")}
+          flaticonClass="fi-sr-book-open-cover"
+          color="text-purple-500"
+          variant="light"
+          sub={isTa ? "இன்றைய வாசிப்பு" : "Minutes logged today"}
+        />
+      </div>
+
+      {/* ── Subject Progress Grid ── */}
+      <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md mb-6 text-left">
+        <h2 className="text-sm sm:text-base font-black text-black dark:text-white mb-4 flex items-center gap-2">
+          <i className="fi fi-sr-book flex items-center text-indigo-500" />
+          {isTa ? "எனது பாடங்கள் & முன்னேற்றம்" : "My Subjects & Progress"}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {subjectList.map((sub) => {
+            // Find corresponding mark percentage in analytics.marksSummary
+            // normalize subject names to find match
+            const analyticsSub = analytics?.marksSummary?.find(
+              (m: any) => m.subject.toLowerCase() === sub.name.toLowerCase() ||
+                          (sub.name === "கணிதம்" && m.subject.toLowerCase() === "mathematics") ||
+                          (sub.name === "அறிவியல்" && m.subject.toLowerCase() === "science") ||
+                          (sub.name === "தமிழ்" && m.subject.toLowerCase() === "tamil") ||
+                          (sub.name === "ஆங்கிலம்" && m.subject.toLowerCase() === "english") ||
+                          (sub.name === "சமூக அறிவியல்" && m.subject.toLowerCase() === "social science")
+            );
+            
+            const progressPct = analyticsSub?.pct != null ? Math.round(analyticsSub.pct) : 80;
+
+            return (
+              <div key={sub.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 hover:border-slate-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sub.name}</span>
+                  <i className={`fi ${sub.fi} text-sm`} style={{ color: sub.color }} />
+                </div>
+                <div>
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">{isTa ? "முன்னேற்றம்" : "Progress"}</span>
+                    <span className="text-xs font-black" style={{ color: sub.color }}>{progressPct}%</span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, backgroundColor: sub.color }} />
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-semibold mt-1 block">
+                    {analyticsSub?.pct != null 
+                      ? (isTa ? `${analyticsSub.exams} தேர்வுகள்` : `${analyticsSub.exams} Exams Logged`) 
+                      : (isTa ? "தேர்வு தரவு இல்லை (இயல்பு)" : "No exam data (Default)")}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
 
 
       {/* ── Quick Nav Links ────────────────────────────── */}
