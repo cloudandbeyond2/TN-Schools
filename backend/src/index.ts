@@ -219,6 +219,9 @@ const PUBLIC_PATHS = [
   '/api/users/login',
   '/api/users/student-login',
   '/api/headmaster/seed-excel',
+  // PortalLayout reads this before a session exists to know which portals,
+  // pages and features are switched off. Read-only, no user data.
+  '/api/features/effective',
 ];
 
 // ─── Global Authentication Guard (Fail-Closed) ─────────────────

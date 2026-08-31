@@ -36,6 +36,25 @@ export default function LoginPage() {
 
   const router = useRouter();
 
+  // NextAuth collapses every credentials failure into "CredentialsSignin", so
+  // ask the backend directly why it refused. A portal switched off in the
+  // superadmin Portal Control page answers with code PORTAL_DISABLED.
+  const describeFailure = async (body: Record<string, string>, fallback: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/users/auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data?.code === "PORTAL_DISABLED" && data?.error) return data.error as string;
+    } catch {
+      // Network failure — fall through to the generic message.
+    }
+    return fallback;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -56,7 +75,12 @@ export default function LoginPage() {
       });
 
       if (res?.error || !res?.ok) {
-        setError("Student not found or incorrect phone number. Please check and try again.");
+        setError(
+          await describeFailure(
+            { loginType: "student", rollNumber: rollNumber.trim(), phone: phone.trim() },
+            "Student not found or incorrect phone number. Please check and try again."
+          )
+        );
         setLoading(false);
       } else {
         router.push("/student");
@@ -77,7 +101,12 @@ export default function LoginPage() {
       });
 
       if (res?.error || !res?.ok) {
-        setError("Invalid email or password. Please check your credentials.");
+        setError(
+          await describeFailure(
+            { loginType: "staff", email: email.trim(), password },
+            "Invalid email or password. Please check your credentials."
+          )
+        );
         setLoading(false);
       } else {
         // Fetch user role from backend to redirect correctly

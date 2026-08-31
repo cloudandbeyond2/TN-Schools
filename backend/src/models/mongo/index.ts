@@ -733,6 +733,8 @@ export const IntegrationConfig = mongoose.models.IntegrationConfig || mongoose.m
 
 export interface IPlatformSetting extends Document {
   key: string;
+  institutionType: 'GOVERNMENT' | 'PRIVATE' | 'AIDED';
+  portals: Map<string, boolean>;
   maintenanceMode: boolean;
   allowDemoLogin: boolean;
   enableAiFeatures: boolean;
@@ -747,6 +749,12 @@ export interface IPlatformSetting extends Document {
 
 const PlatformSettingSchema = new Schema<IPlatformSetting>({
   key:                 { type: String, required: true, unique: true, default: 'global' },
+  // Deployment institution type. PRIVATE/AIDED switch off the government
+  // hierarchy portals via INSTITUTION_PORTAL_PRESETS (constants/portals.ts).
+  institutionType:     { type: String, enum: ['GOVERNMENT', 'PRIVATE', 'AIDED'], default: 'GOVERNMENT' },
+  // Per-portal master switches, keyed by portal key (STUDENT, BEO, ...).
+  // A missing key means enabled; only explicit false disables a portal.
+  portals:             { type: Map, of: Boolean, default: {} },
   maintenanceMode:     { type: Boolean, default: false },
   allowDemoLogin:      { type: Boolean, default: true },
   enableAiFeatures:    { type: Boolean, default: true },

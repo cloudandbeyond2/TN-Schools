@@ -32,6 +32,7 @@ const quickActionsStatic = [
   { label: "AI Integration", href: "/super-admin/ai-config", icon: <i className="fi fi-rr-robot"></i>, desc: "API keys, models & token limits", color: "from-slate-600 to-slate-800", badge: "3 APIs" },
   { label: "External Storage", href: "/super-admin/storage", icon: <i className="fi fi-rr-database"></i>, desc: "Configure local/cloud storage providers", color: "from-emerald-600 to-teal-700", badge: "S3/Disk" },
   { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: <i className="fi fi-rr-refresh"></i>, desc: "Pipeline health & sync status", color: "from-green-600 to-emerald-800", badge: "Live" },
+  { label: "Portal Control", href: "/super-admin/portals", icon: <i className="fi fi-rr-traffic-light-go"></i>, desc: "Institution type + enable/disable whole portals", color: "from-violet-600 to-purple-800", badge: "Portals" },
   { label: "Feature Toggles", href: "/super-admin/features", icon: <i className="fi fi-rr-settings"></i>, desc: "Global feature flag control", color: "from-orange-600 to-red-700", badge: "42 on / 6 off" },
   { label: "Announcements", href: "/super-admin/announcements", icon: <i className="fi fi-rr-megaphone"></i>, desc: "Broadcast to all portals", color: "from-yellow-600 to-amber-700", badge: "Push now" },
   { label: "Page Management", href: "/super-admin/pages", icon: <i className="fi fi-rr-document"></i>, desc: "Dynamic portal pages", color: "from-indigo-600 to-blue-700", badge: "12 pages" },
@@ -42,7 +43,7 @@ const quickActionsStatic = [
 
 const recentActivity = [
   { action: "School Added", target: "GHS Palayamkottai — DISE: 33014567", user: "Super Admin", time: "2 min ago", type: "success" },
-  { action: "AI Model Changed", target: "Gemini 1.5 Pro → Flash for Student Portal", user: "Super Admin", time: "18 min ago", type: "warning" },
+  { action: "AI Model Changed", target: "Smart Assistant 1.5 Pro → Flash for Student Portal", user: "Super Admin", time: "18 min ago", type: "warning" },
   { action: "Feature Enabled", target: "Virtual Labs — Student Portal", user: "Super Admin", time: "45 min ago", type: "success" },
   { action: "HM Assigned", target: "Mr. Ramesh K. → GHS Coimbatore North", user: "Super Admin", time: "1 hr ago", type: "info" },
   { action: "Syllabus Updated", target: "Class 10 Maths — Chapter 5 added", user: "Super Admin", time: "2 hrs ago", type: "info" },
@@ -54,6 +55,23 @@ const recentActivity = [
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "people" | "academics" | "system" | "governance">("all");
   const [stats, setStats] = useState<any>(null);
+  // Live portal switches from Portal Control, so this dashboard shows which
+  // portals are actually open rather than assuming all of them are.
+  const [portalState, setPortalState] = useState<{ disabled: string[]; institutionType: string } | null>(null);
+
+  useEffect(() => {
+    apiFetch("/api/features/effective")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.success && json.data) {
+          setPortalState({
+            disabled: Array.isArray(json.data.disabledPortals) ? json.data.disabledPortals : [],
+            institutionType: json.data.institutionType || "GOVERNMENT",
+          });
+        }
+      })
+      .catch(() => { });
+  }, []);
 
   useEffect(() => {
     async function fetchStats() {
@@ -125,6 +143,12 @@ export default function SuperAdminDashboard() {
       case "Feature Toggles":
         badge = `${stats.enabledModules} on / ${stats.totalModules - stats.enabledModules} off`;
         break;
+      case "Portal Control":
+        if (portalState) {
+          const off = portalState.disabled.length;
+          badge = off === 0 ? "All portals on" : `${9 - off} on / ${off} off`;
+        }
+        break;
       case "Page Management":
         badge = `${stats.pagesCount} pages`;
         break;
@@ -136,22 +160,26 @@ export default function SuperAdminDashboard() {
   });
 
   const portalHealth = [
-    { name: "Student", status: "active", users: stats?.roles?.student ? stats.roles.student.toLocaleString("en-IN") : "...", load: 82 },
-    { name: "Teacher", status: "active", users: stats?.roles?.teacher ? stats.roles.teacher.toLocaleString("en-IN") : "...", load: 65 },
-    { name: "Parent", status: "active", users: stats?.roles?.parent ? stats.roles.parent.toLocaleString("en-IN") : "...", load: 44 },
-    { name: "Headmaster", status: "active", users: stats?.roles?.headmaster ? stats.roles.headmaster.toLocaleString("en-IN") : "...", load: 38 },
-    { name: "BEO", status: "active", users: stats?.roles?.beo ? stats.roles.beo.toLocaleString("en-IN") : "...", load: 21 },
-    { name: "DEO", status: "active", users: stats?.roles?.deo ? stats.roles.deo.toLocaleString("en-IN") : "...", load: 15 },
-    { name: "Commissioner", status: "active", users: stats?.roles?.commissioner ? stats.roles.commissioner.toLocaleString("en-IN") : "...", load: 9 },
-    { name: "Minister", status: "active", users: stats?.roles?.minister ? stats.roles.minister.toLocaleString("en-IN") : "...", load: 5 },
-    { name: "Super Admin", status: "active", users: stats?.roles?.superadmin ? stats.roles.superadmin.toLocaleString("en-IN") : "...", load: 3 },
-  ];
+    { name: "Student", key: "STUDENT", users: stats?.roles?.student ? stats.roles.student.toLocaleString("en-IN") : "...", load: 82 },
+    { name: "Teacher", key: "TEACHER", users: stats?.roles?.teacher ? stats.roles.teacher.toLocaleString("en-IN") : "...", load: 65 },
+    { name: "Parent", key: "PARENT", users: stats?.roles?.parent ? stats.roles.parent.toLocaleString("en-IN") : "...", load: 44 },
+    { name: "Headmaster", key: "HEADMASTER", users: stats?.roles?.headmaster ? stats.roles.headmaster.toLocaleString("en-IN") : "...", load: 38 },
+    { name: "BEO", key: "BEO", users: stats?.roles?.beo ? stats.roles.beo.toLocaleString("en-IN") : "...", load: 21 },
+    { name: "DEO", key: "DEO", users: stats?.roles?.deo ? stats.roles.deo.toLocaleString("en-IN") : "...", load: 15 },
+    { name: "Commissioner", key: "COMMISSIONER", users: stats?.roles?.commissioner ? stats.roles.commissioner.toLocaleString("en-IN") : "...", load: 9 },
+    { name: "Minister", key: "MINISTER", users: stats?.roles?.minister ? stats.roles.minister.toLocaleString("en-IN") : "...", load: 5 },
+    // SUPERADMIN has no portal switch — it can never be disabled.
+    { name: "Super Admin", key: "SUPERADMIN", users: stats?.roles?.superadmin ? stats.roles.superadmin.toLocaleString("en-IN") : "...", load: 3 },
+  ].map((portal) => ({
+    ...portal,
+    isDisabled: portalState ? portalState.disabled.includes(portal.key) : false,
+  }));
 
   const filterMap: Record<string, string[]> = {
     all: dynamicActions.map((q) => q.href),
     people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters", "/super-admin/deos"],
     academics: ["/super-admin/academics", "/super-admin/learning-hub", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
-    system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
+    system: ["/super-admin/portals", "/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };
 
@@ -256,21 +284,39 @@ export default function SuperAdminDashboard() {
 
         {/* Portal Health */}
         <div className="glass rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-white mb-4"><i className="fi fi-rr-bank mr-2"></i>Portal Health Monitor</h2>
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <h2 className="text-base font-semibold text-white"><i className="fi fi-rr-bank mr-2"></i>Portal Health Monitor</h2>
+            <Link
+              href="/super-admin/portals"
+              className="text-[10px] font-bold text-violet-300 bg-violet-500/10 border border-violet-500/30 px-2.5 py-1 rounded-full hover:bg-violet-500/20 transition shrink-0"
+            >
+              {portalState && portalState.institutionType !== "GOVERNMENT"
+                ? `${portalState.institutionType} - Portal Control`
+                : "Portal Control"}
+            </Link>
+          </div>
           <div className="space-y-2.5">
             {portalHealth.map((portal) => (
-              <div key={portal.name} className="flex items-center gap-3">
+              <div key={portal.name} className={`flex items-center gap-3 ${portal.isDisabled ? "opacity-60" : ""}`}>
                 <div className="w-20 text-[10px] font-semibold text-slate-300 shrink-0">{portal.name}</div>
-                <div className="flex-1 bg-slate-800 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all ${portal.load > 70 ? "bg-amber-500" : portal.load > 40 ? "bg-emerald-500" : "bg-blue-500"
-                      }`}
-                    style={{ width: `${portal.load}%` }}
-                  />
-                </div>
-                <div className="text-[9px] text-slate-500 w-8 text-right">{portal.load}%</div>
+                {portal.isDisabled ? (
+                  <div className="flex-1 text-[9px] font-bold text-red-300 bg-red-500/10 border border-red-500/30 rounded-full px-2 py-0.5 text-center">
+                    DISABLED - login blocked
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex-1 bg-slate-800 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${portal.load > 70 ? "bg-amber-500" : portal.load > 40 ? "bg-emerald-500" : "bg-blue-500"
+                          }`}
+                        style={{ width: `${portal.load}%` }}
+                      />
+                    </div>
+                    <div className="text-[9px] text-slate-500 w-8 text-right">{portal.load}%</div>
+                  </>
+                )}
                 <div className="text-[9px] text-slate-600 w-10 text-right">{portal.users}</div>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${portal.isDisabled ? "bg-red-500" : "bg-emerald-500"}`} />
               </div>
             ))}
           </div>

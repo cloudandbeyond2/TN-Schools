@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { signAuthToken } from '../utils/jwt';
 import { requireMinRole } from '../middleware/auth.middleware';
+import { getPortalLoginBlock } from '../services/portalAccess.service';
 
 const router = Router();
 
@@ -254,6 +255,17 @@ router.post('/auth', async (req: Request, res: Response) => {
   try {
     const { loginType, email, password, rollNumber, phone } = req.body;
 
+    // Every successful login goes through this: a portal switched off in the
+    // superadmin Portal Control page refuses the login outright. SUPERADMIN has
+    // no portal mapping, so it can never be locked out.
+    const sendAuth = async (userData: any) => {
+      const block = await getPortalLoginBlock(userData.role);
+      if (block) {
+        return res.status(403).json({ success: false, code: 'PORTAL_DISABLED', portal: block.portal, error: block.message });
+      }
+      return res.json({ success: true, data: userData });
+    };
+
     const withSchoolInfo = async (userData: any) => {
       if (userData.schoolId) {
         const school = await prisma.school.findUnique({
@@ -316,9 +328,7 @@ router.post('/auth', async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, error: 'Incorrect phone number.' });
       }
 
-return res.json({
-  success: true,
-  data: await withSchoolInfo({
+return sendAuth(await withSchoolInfo({
     id: student.user.id,
     name: student.user.name,
     email: student.user.email || `${student.rollNumber}@tn.gov.in`,
@@ -337,8 +347,7 @@ return res.json({
       studentId: student.id,
       name: student.user.name,
     }),
-  }),
-});
+  }));
     } else {
       // Staff / Parent login by Email and Password
       if (!email || !password) {
@@ -420,9 +429,7 @@ return res.json({
         const teacherRole = isPetSubject(teacherSubject) ? "PET" : "TEACHER";
         const teacherId = teacher?.id ?? pgUser.id;
         const teacherSchoolId = teacher?.schoolId ?? pgUser.schoolId;
-        return res.json({
-            success: true,
-            data: await withSchoolInfo({
+        return sendAuth(await withSchoolInfo({
                 id: teacherId,
                 name: teacher?.name ?? pgUser.name,
                 email: pgUser.email,
@@ -439,13 +446,10 @@ return res.json({
                     schoolId: teacherSchoolId,
                     name: teacher?.name ?? pgUser.name,
                 }),
-            }),
-        });
+            }));
     }
 
-    return res.json({
-        success: true,
-        data: await withSchoolInfo({
+    return sendAuth(await withSchoolInfo({
             id: pgUser.id,
             name: pgUser.name,
             email: pgUser.email,
@@ -461,8 +465,7 @@ return res.json({
                 schoolId: pgUser.schoolId,
                 name: pgUser.name,
             }),
-        }),
-    });
+        }));
 }
       // ── Step 2: Check headmasterStaff (MongoDB via Prisma) ──
       const staffMember = await prisma.headmasterStaff.findFirst({
@@ -485,9 +488,7 @@ return res.json({
           } catch (e) {}
         }
         const staffRole = isPetSubject(staffMember.subject) ? 'PET' : 'TEACHER';
-        return res.json({
-          success: true,
-          data: await withSchoolInfo({
+        return sendAuth(await withSchoolInfo({
             id: String(staffMember.id),
             name: staffMember.name,
             email: staffMember.email || cleanEmail,
@@ -504,8 +505,7 @@ return res.json({
               schoolId: staffMember.schoolId || null,
               name: staffMember.name,
             }),
-          })
-        });
+          }));
       }
 
       // ── Step 3: Check headmasterParent (MongoDB via Prisma) ──
@@ -517,9 +517,7 @@ return res.json({
         if (!(await verifyPassword(password, parentMember.password))) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
-        return res.json({
-          success: true,
-          data: await withSchoolInfo({
+        return sendAuth(await withSchoolInfo({
             id: String(parentMember.id),
             name: parentMember.name,
             email: parentMember.email || cleanEmail,
@@ -531,8 +529,7 @@ return res.json({
               schoolId: parentMember.schoolId || null,
               name: parentMember.name,
             }),
-          })
-        });
+          }));
       }
 
       // ── Not found in any source ──

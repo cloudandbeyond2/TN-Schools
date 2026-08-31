@@ -27,6 +27,9 @@ router.get('/', async (_req: Request, res: Response) => {
 router.put('/', async (req: Request, res: Response) => {
   try {
     const allowed = [
+      // Portal switches are edited from the Portal Control page
+      // (PUT /api/features/portals), not here.
+      'institutionType',
       'maintenanceMode',
       'allowDemoLogin',
       'enableAiFeatures',

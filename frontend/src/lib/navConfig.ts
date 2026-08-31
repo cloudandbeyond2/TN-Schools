@@ -780,6 +780,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Competitive Exams", href: "/super-admin/competitive-exams", icon: "Trophy" },
 
       { label: "System & AI", href: "#", icon: "" },
+      { label: "Portal Control", href: "/super-admin/portals", icon: "🚦" },
       { label: "Feature Toggles", href: "/super-admin/features", icon: "🔧" },
       { label: "AI Integration Setup", href: "/super-admin/ai-config", icon: "Bot" },
       { label: "AI Skill Control", href: "/super-admin/ai-skills", icon: "Sparkles" },

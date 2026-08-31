@@ -527,6 +527,8 @@ export default function PortalLayout({
   const [studentGroup, setStudentGroup] = useState<StudentGroup>("Science");
   const [studentGroupCode, setStudentGroupCode] = useState<string>("");
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
+  // Route prefixes of portals switched off wholesale in Portal Control.
+  const [disabledPortalPrefixes, setDisabledPortalPrefixes] = useState<string[]>([]);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [hasScienceProxyClass, setHasScienceProxyClass] = useState(false);
   const [proxyAssignments, setProxyAssignments] = useState<any[]>([]);
@@ -853,6 +855,9 @@ export default function PortalLayout({
           if (Array.isArray(data.data.disabledRoutes)) {
             setDisabledRoutes(new Set<string>(data.data.disabledRoutes));
           }
+          if (Array.isArray(data.data.disabledPortalPrefixes)) {
+            setDisabledPortalPrefixes(data.data.disabledPortalPrefixes as string[]);
+          }
           setMaintenanceMode(data.data.maintenanceMode === true);
         }
       })
@@ -940,11 +945,20 @@ export default function PortalLayout({
     timetableClasses: teacherTimetableClasses,
   });
 
+  // A route sits inside a disabled portal when it matches that portal's prefix.
+  const disabledPortalPrefixFor = (route: string) =>
+    disabledPortalPrefixes.find((prefix) => route === prefix || route.startsWith(prefix + "/"));
+
   let filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
       ? resolvedNavItems
       : resolvedNavItems.filter((item) => {
         if (item.href !== "#" && item.label !== "---" && disabledRoutes.has(item.href)) {
+          return false;
+        }
+
+        // Whole portal switched off in Portal Control.
+        if (item.href !== "#" && item.label !== "---" && disabledPortalPrefixFor(item.href)) {
           return false;
         }
 
@@ -1177,6 +1191,29 @@ export default function PortalLayout({
           <p className="text-xs text-[var(--text-muted)] leading-relaxed">
             The portal is temporarily unavailable while we perform scheduled maintenance.
             Please check back shortly.
+          </p>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all flex items-center justify-center gap-2"
+          >
+            <i className="fi fi-rr-exit text-sm shrink-0" /> Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // A portal disabled in Portal Control blocks every route beneath it, not just
+  // the ones covered by a feature module. SUPERADMIN stays exempt.
+  if (userRole !== "SUPERADMIN" && disabledPortalPrefixFor(pathname)) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-6 text-center">
+        <div className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border)] p-8 rounded-3xl space-y-5 flex flex-col items-center shadow-lg">
+          <span className="text-4xl">🚫</span>
+          <h2 className="text-[var(--text-heading)] text-lg font-bold">Portal Disabled</h2>
+          <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+            This portal is not available for this institution. Please contact your
+            administrator if you believe this is a mistake.
           </p>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}

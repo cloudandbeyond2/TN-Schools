@@ -400,11 +400,12 @@ export default function BlockSchoolsPage() {
       )}
 
       {/* BEO Block Summaries */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 fade-in">
         {[
           { label: "Total Block Schools", value: schools.length.toString(), icon: "🏫", color: "text-violet-600 dark:text-violet-400", sub: "Registered in block" },
           { label: "Government Schools", value: schools.filter(s => s.schoolType === "Government").length.toString(), icon: "🏛️", color: "text-emerald-600 dark:text-emerald-400", sub: "Direct state run" },
           { label: "Aided Schools", value: schools.filter(s => s.schoolType === "Aided").length.toString(), icon: "🏛️", color: "text-amber-600 dark:text-amber-400", sub: "State funded" },
+          { label: "Private Schools", value: schools.filter(s => s.schoolType === "Private" || s.schoolType === "Matriculation").length.toString(), icon: "🏢", color: "text-sky-600 dark:text-sky-400", sub: "Self financed" },
           { label: "Assigned Headmasters", value: schools.filter(s => s.headmasterName && s.headmasterName !== "N/A").length.toString(), icon: "👤", color: "text-cyan-600 dark:text-cyan-400", sub: "Leader deployed" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-0.5">
@@ -749,7 +750,8 @@ export default function BlockSchoolsPage() {
                   >
                     <option value="Government">Government</option>
                     <option value="Aided">Aided</option>
-                    {/* <option value="Private">Private</option> */}
+                    <option value="Private">Private</option>
+                    <option value="Matriculation">Matriculation</option>
                   </select>
                 </div>
               </div>

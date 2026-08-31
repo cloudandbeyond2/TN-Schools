@@ -1,22 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { FeatureModule, ManagedPage, PlatformSetting } from '../models/mongo';
 import { requireRole } from '../middleware/auth.middleware';
+import {
+  PORTAL_PREFIX,
+  PORTAL_DISPLAY,
+  PORTAL_KEYS,
+  INSTITUTION_PORTAL_PRESETS,
+  isInstitutionType,
+  portalForRoute,
+} from '../constants/portals';
+import { invalidatePortalAccessCache } from '../services/portalAccess.service';
 
 const router = Router();
-
-// Route prefix per portal, used to expand a module's per-portal disable
-// into concrete frontend routes. SUPERADMIN is exempt from gating entirely.
-const PORTAL_PREFIX: Record<string, string> = {
-  STUDENT: '/student',
-  TEACHER: '/teacher',
-  PARENT: '/parent',
-  PET: '/pet',
-  HEADMASTER: '/headmaster',
-  BEO: '/block-education-officer',
-  DEO: '/district-education-officer',
-  COMMISSIONER: '/commissioner',
-  MINISTER: '/minister',
-};
 
 const superadminOnly = requireRole(['SUPERADMIN']);
 
@@ -41,6 +36,11 @@ router.get('/effective', async (_req: Request, res: Response) => {
     const disabledFeatureKeys: string[] = [];
     const aiGloballyOff = settings ? settings.enableAiFeatures === false : false;
 
+    // Portals switched off wholesale by superadmin. Only an explicit false
+    // disables one, so a portal missing from the map stays enabled.
+    const portalStates = portalsToObject(settings ? settings.portals : {});
+    const disabledPortals = PORTAL_KEYS.filter((key) => portalStates[key] === false);
+
     for (const mod of modules) {
       const disabledByAiSwitch = aiGloballyOff && mod.category === 'AI & Learning';
       if (!mod.isEnabled || disabledByAiSwitch) {
@@ -64,6 +64,9 @@ router.get('/effective', async (_req: Request, res: Response) => {
       data: {
         disabledRoutes: Array.from(disabledRoutes),
         disabledFeatureKeys,
+        disabledPortals,
+        disabledPortalPrefixes: disabledPortals.map((key) => PORTAL_PREFIX[key]).filter(Boolean),
+        institutionType: settings?.institutionType || 'GOVERNMENT',
         maintenanceMode: settings ? settings.maintenanceMode === true : false,
       },
     });
@@ -158,6 +161,119 @@ router.post('/', superadminOnly, async (req: Request, res: Response) => {
       updatedBy: req.user?.name || req.user?.id,
     });
     res.status(201).json({ success: true, data: created });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─── Portal master switches (superadmin "Portal Control" page) ───────────
+// State lives on the single PlatformSetting doc, alongside maintenanceMode.
+
+async function loadSettings() {
+  return PlatformSetting.findOneAndUpdate(
+    { key: 'global' },
+    { $setOnInsert: { key: 'global' } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+}
+
+// Portal rows joined with the modules that live under each portal prefix.
+async function buildPortalView(settings: { portals: unknown; institutionType?: string }) {
+  const modules = await FeatureModule.find().sort({ category: 1, name: 1 });
+  const portalStates = portalsToObject(settings.portals);
+
+  const portals = PORTAL_KEYS.map((key) => {
+    const owned = modules.filter((mod: { routes: string[] }) =>
+      mod.routes.some((route) => portalForRoute(route) === key)
+    );
+    // A module counts as live in this portal only when its master switch is on
+    // AND it is not disabled for this specific portal.
+    const enabledModules = owned.filter(
+      (mod: { isEnabled: boolean; portals: unknown }) =>
+        mod.isEnabled && portalsToObject(mod.portals)[key] !== false
+    );
+    return {
+      key,
+      name: PORTAL_DISPLAY[key] || key,
+      prefix: PORTAL_PREFIX[key],
+      isEnabled: portalStates[key] !== false,
+      moduleCount: owned.length,
+      enabledModuleCount: enabledModules.length,
+    };
+  });
+
+  return {
+    institutionType: settings.institutionType || 'GOVERNMENT',
+    portals,
+    modules,
+  };
+}
+
+// GET /api/features/portals — portal switches + the modules behind them
+router.get('/portals', superadminOnly, async (_req: Request, res: Response) => {
+  try {
+    const settings = await loadSettings();
+    res.json({ success: true, data: await buildPortalView(settings) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/features/portals — partial merge: { portals: { BEO: false } }
+router.put('/portals', superadminOnly, async (req: Request, res: Response) => {
+  try {
+    const { portals } = req.body;
+    if (!portals || typeof portals !== 'object') {
+      return res.status(400).json({ success: false, error: 'portals object is required' });
+    }
+
+    const $set: Record<string, unknown> = { updatedBy: req.user?.name || req.user?.id };
+    for (const [portal, enabled] of Object.entries(portals)) {
+      if (!PORTAL_KEYS.includes(portal)) {
+        return res.status(400).json({ success: false, error: `Unknown portal: ${portal}` });
+      }
+      $set[`portals.${portal}`] = enabled === true;
+    }
+
+    const settings = await PlatformSetting.findOneAndUpdate(
+      { key: 'global' },
+      { $set, $setOnInsert: { key: 'global' } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    invalidatePortalAccessCache();
+    res.json({ success: true, data: await buildPortalView(settings) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/features/portals/preset — { institutionType: 'PRIVATE' }
+// Sets the deployment type and applies its portal preset in one write.
+router.post('/portals/preset', superadminOnly, async (req: Request, res: Response) => {
+  try {
+    const { institutionType } = req.body;
+    if (!isInstitutionType(institutionType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'institutionType must be GOVERNMENT, PRIVATE or AIDED',
+      });
+    }
+
+    const preset = INSTITUTION_PORTAL_PRESETS[institutionType];
+    const settings = await PlatformSetting.findOneAndUpdate(
+      { key: 'global' },
+      {
+        $set: {
+          institutionType,
+          portals: preset,
+          updatedBy: req.user?.name || req.user?.id,
+        },
+        $setOnInsert: { key: 'global' },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    invalidatePortalAccessCache();
+    res.json({ success: true, data: await buildPortalView(settings) });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { SCHOOL_TYPES } from "@/lib/portalCatalog";
 
 interface OfficialUser { id: string; name: string; block?: string | null; district?: string | null; }
 
@@ -30,7 +31,7 @@ const DISTRICTS = [
   "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "The Nilgiris",
   "Vellore", "Viluppuram", "Virudhunagar"
 ];
-const TYPES = ["Government", "Aided","GHS", "GHSS", "Middle", "Primary"] as const;
+const TYPES = SCHOOL_TYPES;
 const MEDIUMS = ["Tamil", "English", "Both"] as const;
 
 const typeColors: Record<string, string> = {
@@ -40,6 +41,8 @@ const typeColors: Record<string, string> = {
   Primary: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
   Government: "text-violet-400 bg-violet-500/10 border-violet-500/30",
   Aided: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  Private: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+  Matriculation: "text-cyan-400 bg-cyan-500/10 border-cyan-500/30",
 };
 
 const emptyForm = { name: "", dise: "", district: "Coimbatore", block: "", type: "Government" as string, medium: "Tamil" as string, hm: "", students: 0, teachers: 0, beoId: "", deoId: "" };

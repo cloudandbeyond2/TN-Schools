@@ -33,9 +33,16 @@ export const authOptions: NextAuthOptions = {
           
           if (result.success && result.data) {
             return result.data;
-          } else {
-            console.log("Auth failed or user not returned by backend:", result?.error);
           }
+
+          // Superadmin switched this portal off (Portal Control). Throw so the
+          // reason reaches the login page instead of the generic credentials
+          // error — the password was fine, the portal is closed.
+          if (res.status === 403 && result?.code === "PORTAL_DISABLED") {
+            throw new Error(result.error || "This portal is currently disabled.");
+          }
+
+          console.log("Auth failed or user not returned by backend:", result?.error);
         } catch (err) {
           console.error("NextAuth authorize error:", err);
         }
