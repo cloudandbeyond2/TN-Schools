@@ -45,15 +45,15 @@ function formatNotification(sender: string, title: string, body: string, target?
 
   if (!sender || sender === "System Automated" || sender === "System") {
     if (text.includes("sport") || text.includes("competition") || text.includes("athletics") || text.includes("badminton") || text.includes("chess") || text.includes("football") || text.includes("stadium")) {
-      dynamicSender = "Shiva (Physical Education Teacher)";
+      dynamicSender = "Physical Education Dept";
     } else if (text.includes("social activity") || text.includes("approved") || text.includes("remarks") || text.includes("teacher")) {
-      dynamicSender = "kalai (Class Teacher)";
+      dynamicSender = "Class Teacher";
     } else if (text.includes("badge") || text.includes("unlocked") || text.includes("volunteer") || text.includes("changemaker")) {
-      dynamicSender = "kalai (Science & Awards Coordinator)";
+      dynamicSender = "Awards & Recognition Committee";
     } else if (text.includes("science") || text.includes("lab") || text.includes("exhibition") || text.includes("robotics")) {
-      dynamicSender = "kalai (Science Dept)";
+      dynamicSender = "Science Dept";
     } else {
-      dynamicSender = "HM Office";
+      dynamicSender = "Headmaster Office";
     }
   }
 
