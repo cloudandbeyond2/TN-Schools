@@ -27,101 +27,45 @@ const mapStreamToGroup = (stream: string): string => {
   return "Science"; // default fallback
 };
 
-const streamKnowledgeEn = [
-  {
-    stream: "Pure Science & Bio",
-    icon: "🧬",
-    color: "text-pink-400",
-    bgBorder: "border-pink-500/30 bg-pink-900/10",
-    subjects: "Biology, Physics, Chemistry",
-    aiFeature: "Virtual Anatomy Lab & Medical Assistant",
-    projectIdea: "Local Flora & Fauna DNA Mapping",
-  },
-  {
-    stream: "Computer Science & Math",
-    icon: "💻",
-    color: "text-indigo-400",
-    bgBorder: "border-indigo-500/30 bg-indigo-900/10",
-    subjects: "Computer Science, Math, Physics",
-    aiFeature: "AI Code Reviewer & JEE Mock Engine",
-    projectIdea: "Build a School Management API",
-  },
-  {
-    stream: "Commerce & Accountancy",
-    icon: "📈",
-    color: "text-emerald-400",
-    bgBorder: "border-emerald-500/30 bg-emerald-900/10",
-    subjects: "Accountancy, Commerce, Economics",
-    aiFeature: "AI Financial Forecaster (CA Prep)",
-    projectIdea: "Virtual Stock Portfolio Analysis",
-  },
-  {
-    stream: "Arts & Humanities",
-    icon: "🏛️",
-    color: "text-amber-400",
-    bgBorder: "border-amber-500/30 bg-amber-900/10",
-    subjects: "History, Geography, Political Science",
-    aiFeature: "Historical Source Analyzer & Civil Services Guide",
-    projectIdea: "Mock UN Assembly Debate & Policy Draft",
-  },
-  {
-    stream: "Vocational Education",
-    icon: "🔧",
-    color: "text-rose-400",
-    bgBorder: "border-rose-500/30 bg-rose-900/10",
-    subjects: "Basic Electrical, Agriculture Science, Office Management",
-    aiFeature: "Skill Simulator & Trade Skill Evaluator",
-    projectIdea: "Smart Home Automated Circuit Design",
-  },
-];
+function StreamCard({ streamCatalog, currentStream, lang }: { streamCatalog: any[], currentStream: string, lang: string }) {
+  if (streamCatalog.length === 0) return null;
+  const activeStreamMeta = streamCatalog.find(
+    (s: any) => s.stream.toLowerCase().includes(currentStream.toLowerCase()) || 
+                currentStream.toLowerCase().includes(s.stream.toLowerCase())
+  ) || streamCatalog[0];
 
-const streamKnowledgeTa = [
-  {
-    stream: "தூய அறிவியல் & உயிரியல்",
-    icon: "🧬",
-    color: "text-pink-400",
-    bgBorder: "border-pink-500/30 bg-pink-900/10",
-    subjects: "உயிரியல், இயற்பியல், வேதியியல்",
-    aiFeature: "மெய்நிகர் உடற்கூறியல் ஆய்வகம் & மருத்துவ உதவியாளர்",
-    projectIdea: "உள்ளூர் தாவரங்கள் & விலங்கினங்கள் DNA வரைபடம்",
-  },
-  {
-    stream: "கணிப்பொறி அறிவியல் & கணிதம்",
-    icon: "💻",
-    color: "text-indigo-400",
-    bgBorder: "border-indigo-500/30 bg-indigo-900/10",
-    subjects: "கணிப்பொறி அறிவியல், கணிதம், இயற்பியல்",
-    aiFeature: "AI குறியீடு மதிப்பாய்வாளர் & JEE மாதிரி எஞ்சின்",
-    projectIdea: "பள்ளி மேலாண்மை API உருவாக்குதல்",
-  },
-  {
-    stream: "வணிகவியல் & கணக்குப்பதிவியல்",
-    icon: "📈",
-    color: "text-emerald-400",
-    bgBorder: "border-emerald-500/30 bg-emerald-900/10",
-    subjects: "கணக்குப்பதிவியல், வணிகவியல், பொருளாதாரம்",
-    aiFeature: "AI நிதி முன்னறிவிப்பாளர் (CA பயிற்சி)",
-    projectIdea: "மெய்நிகர் பங்குச் சந்தை பகுப்பாய்வு",
-  },
-  {
-    stream: "கலை & மனிதநேயம்",
-    icon: "🏛️",
-    color: "text-amber-400",
-    bgBorder: "border-amber-500/30 bg-amber-900/10",
-    subjects: "வரலாறு, புவியியல், அரசியல் அறிவியல்",
-    aiFeature: "வரலாற்று மூலப் பகுப்பாய்வாளர் & சிவில் சர்வீசஸ் வழிகாட்டி",
-    projectIdea: "மாதிரி ஐ.நா சபை விவாதம் & கொள்கை வரைவு",
-  },
-  {
-    stream: "தொழிற்கல்வி",
-    icon: "🔧",
-    color: "text-rose-400",
-    bgBorder: "border-rose-500/30 bg-rose-900/10",
-    subjects: "அடிப்படை மின்சாரவியல், வேளாண் அறிவியல், அலுவலக மேலாண்மை",
-    aiFeature: "திறன் உருவகப்படுத்துதல் & தொழில் திறன் மதிப்பீட்டாளர்",
-    projectIdea: "ஸ்மார்ட் ஹோம் தானியங்கி சுற்று வடிவமைப்பு",
-  },
-];
+  if (!activeStreamMeta) return null;
+
+  return (
+    <div className={`glass rounded-2xl p-5 border ${activeStreamMeta.bgBorder} relative overflow-hidden text-left mb-4 shadow-sm`}>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-2xl">{activeStreamMeta.icon}</span>
+        <div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/20 border border-white/10 text-white">
+            {lang === "தமிழ்" ? "எனது பிரிவு" : "My Stream"}
+          </span>
+          <h2 className="text-base font-bold text-[var(--text-heading)] mt-0.5">{activeStreamMeta.stream}</h2>
+        </div>
+      </div>
+      <div className="space-y-3 text-xs">
+        <div>
+          <span className="text-[var(--text-muted)] font-bold block mb-0.5">{lang === "தமிழ்" ? "பாடங்கள்:" : "Subjects:"}</span>
+          <span className="text-[var(--text-main)] font-semibold">{activeStreamMeta.subjects}</span>
+        </div>
+        <div>
+          <span className="text-[var(--text-muted)] font-bold block mb-0.5">{lang === "தமிழ்" ? "AI சிறப்புப் பயிற்சி:" : "AI Specialization:"}</span>
+          <span className="text-[var(--text-main)] font-semibold">{activeStreamMeta.aiFeature}</span>
+        </div>
+        <div className="bg-slate-100/50 dark:bg-slate-900/60 border border-[var(--border)] p-3 rounded-xl">
+          <span className="text-[var(--text-muted)] font-bold block mb-1">{lang === "தமிழ்" ? "பரிந்துரைக்கப்பட்ட திட்டப் பணி:" : "Suggested Project Idea:"}</span>
+          <span className="text-[var(--text-main)] font-semibold flex items-center gap-1.5">
+            💡 {activeStreamMeta.projectIdea}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function HigherSecondaryDashboard() {
   const { data: session, status: sessionStatus } = useSession();
@@ -130,6 +74,19 @@ export default function HigherSecondaryDashboard() {
   const [todayProgress, setTodayProgress] = useState<any>(null);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [streamCatalog, setStreamCatalog] = useState<any[]>([]);
+
+  // Fetch bilingual stream catalog dynamically from backend
+  useEffect(() => {
+    fetch(`${API_BASE}/api/students/streams`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          setStreamCatalog(lang === "தமிழ்" ? json.ta : json.en);
+        }
+      })
+      .catch((err) => console.error("Failed to load stream catalog:", err));
+  }, [lang]);
 
   // 1. Load Student Profile — wait for session to resolve to avoid using wrong student on refresh
   useEffect(() => {
@@ -188,7 +145,7 @@ export default function HigherSecondaryDashboard() {
       : `Welcome, ${userName} · Class ${student.class}${student.section} · ${currentStream} Stream`)
     : (lang === "தமிழ்" ? "மாணவர் தரவு ஏற்றப்படுகிறது..." : "Loading student data...");
 
-  const streamKnowledge = lang === "தமிழ்" ? streamKnowledgeTa : streamKnowledgeEn;
+
 
   const [celebrations, setCelebrations] = useState<any[]>([]);
   const [pressArticles, setPressArticles] = useState<any[]>([]);
@@ -418,7 +375,10 @@ export default function HigherSecondaryDashboard() {
           </div>
         }
         extraRight={
-          <>
+          <React.Fragment>
+            {/* Stream Details Card */}
+            <StreamCard streamCatalog={streamCatalog} currentStream={currentStream} lang={lang} />
+
             {/* Today's Learning Progress Card */}
             <div className="glass rounded-2xl p-5 border border border-[var(--border)]">
               <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2 text-left">
@@ -484,7 +444,7 @@ export default function HigherSecondaryDashboard() {
                 </a>
               </div>
             </div>
-          </>
+          </React.Fragment>
         }
       />
 
