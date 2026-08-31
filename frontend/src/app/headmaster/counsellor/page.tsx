@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import Swal from "sweetalert2";
-import { Heart, Calendar, MessageSquare, ShieldAlert, CheckCircle, Clock, Search, User, Filter, AlertTriangle, Eye, ArrowRight, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface WellnessMessage {
   _id: string;
@@ -179,11 +178,11 @@ export default function HeadmasterCounsellorPage() {
       accentColor="#8b5cf6"
     >
       {/* ── KPI Header Bar ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold">
-              <MessageSquare size={20} />
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold shrink-0">
+              <i className="fi fi-rr-comment text-xl" />
             </div>
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Student Notes</p>
@@ -194,8 +193,8 @@ export default function HeadmasterCounsellorPage() {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
-              <AlertTriangle size={20} />
+            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold shrink-0">
+              <i className="fi fi-rr-triangle-warning text-xl" />
             </div>
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">High Stress Alerts</p>
@@ -206,8 +205,8 @@ export default function HeadmasterCounsellorPage() {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Calendar size={20} />
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold shrink-0">
+              <i className="fi fi-rr-calendar text-xl" />
             </div>
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">1-on-1 Sessions Booked</p>
@@ -218,8 +217,8 @@ export default function HeadmasterCounsellorPage() {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <CheckCircle size={20} />
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <i className="fi fi-rr-check-circle text-xl" />
             </div>
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Counsellor Status</p>
@@ -230,38 +229,38 @@ export default function HeadmasterCounsellorPage() {
       </div>
 
       {/* ── Main Panel ── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           {/* Tabs */}
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 w-fit">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 w-full md:w-auto">
             <button
               onClick={() => { setActiveTab("messages"); setMsgPage(1); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === "messages"
                   ? "bg-violet-600 text-white shadow-md font-black"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <MessageSquare size={16} />
+              <i className="fi fi-rr-comment text-sm" />
               Student Notes & Mood Logs ({messages.length})
             </button>
 
             <button
               onClick={() => { setActiveTab("bookings"); setBookPage(1); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === "bookings"
                   ? "bg-violet-600 text-white shadow-md font-black"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Calendar size={16} />
+              <i className="fi fi-rr-calendar text-sm" />
               Booked 1-on-1 Sessions ({bookings.length})
             </button>
           </div>
 
           {/* Search */}
           <div className="relative w-full md:w-64">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <i className="fi fi-rr-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
             <input
               type="text"
               value={search}
@@ -282,34 +281,43 @@ export default function HeadmasterCounsellorPage() {
               </div>
             ) : filteredMessages.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                <Heart size={32} className="text-slate-400 mx-auto mb-2" />
+                <i className="fi fi-rr-heart text-3xl text-slate-400 mx-auto mb-2 block" />
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No student notes found</p>
                 <p className="text-xs text-slate-500 mt-1">Student submissions from /student/counsellor will appear here.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {paginatedMessages.map((m) => (
-                  <div
-                    key={m._id}
-                    className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-violet-300 dark:hover:border-violet-800 transition-all shadow-sm group"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 flex items-center justify-center shrink-0">
-                        <User size={18} className="text-violet-600 dark:text-violet-400" />
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">
-                            {(m as any).displayName || (m.studentId.startsWith("ANONYMOUS") ? "🔒 Anonymous Student" : "👤 Rathna · Class 12-B")}
-                          </span>
+                {paginatedMessages.map((m) => {
+                  const isAnon = m.studentId.startsWith("ANONYMOUS");
+                  const rawName = (m as any).displayName || (isAnon ? "Anonymous Student" : "Rathna · Class 12-B");
+                  const cleanName = rawName.replace(/^[^\w\s\-\.·]+/, "").trim();
+
+                  return (
+                    <div
+                      key={m._id}
+                      className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-violet-300 dark:hover:border-violet-800 transition-all shadow-sm group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 flex items-center justify-center shrink-0">
+                          {isAnon ? (
+                            <i className="fi fi-rr-lock text-base text-amber-500" />
+                          ) : (
+                            <i className="fi fi-rr-user text-base text-violet-600 dark:text-violet-400" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                              {isAnon ? <span className="text-amber-600 dark:text-amber-400 font-bold">{cleanName}</span> : cleanName}
+                            </span>
                           <span
-                            className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border ${
+                            className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border flex items-center gap-1 ${
                               m.stressScore >= 7
                                 ? "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30"
                                 : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
                             }`}
                           >
-                            {m.stressScore >= 7 ? `⚠️ High Stress (Level ${m.stressScore})` : `Normal (Level ${m.stressScore})`}
+                            {m.stressScore >= 7 ? <><i className="fi fi-rr-triangle-warning text-xs text-rose-500" /> HIGH STRESS (LEVEL {m.stressScore})</> : `NORMAL (LEVEL ${m.stressScore})`}
                           </span>
                         </div>
                         <p className="text-xs text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed whitespace-pre-wrap font-medium">
@@ -342,7 +350,7 @@ export default function HeadmasterCounsellorPage() {
                         onClick={() => setSelectedMessage(m)}
                         className="px-4 py-2 bg-violet-600 text-white hover:bg-violet-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
                       >
-                        <Eye size={14} /> View Note
+                        <i className="fi fi-rr-eye text-xs" /> View Note
                       </button>
 
                       {/* 🗑️ Delete Icon Button */}
@@ -351,11 +359,12 @@ export default function HeadmasterCounsellorPage() {
                         title="Delete Note"
                         className="p-2 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
                       >
-                        <Trash2 size={16} />
+                        <i className="fi fi-rr-trash text-sm" />
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+              })}
 
                 {/* ── Pagination Controls for Tab 1 ── */}
                 {totalMsgPages > 1 && (
@@ -367,9 +376,9 @@ export default function HeadmasterCounsellorPage() {
                       <button
                         onClick={() => setMsgPage(p => Math.max(1, p - 1))}
                         disabled={msgPage === 1}
-                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       >
-                        <ChevronLeft size={16} />
+                        <i className="fi fi-rr-angle-left text-xs" />
                       </button>
                       <span className="text-xs font-bold px-3 py-1 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg">
                         {msgPage} / {totalMsgPages}
@@ -377,9 +386,9 @@ export default function HeadmasterCounsellorPage() {
                       <button
                         onClick={() => setMsgPage(p => Math.min(totalMsgPages, p + 1))}
                         disabled={msgPage === totalMsgPages}
-                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       >
-                        <ChevronRight size={16} />
+                        <i className="fi fi-rr-angle-right text-xs" />
                       </button>
                     </div>
                   </div>
@@ -399,7 +408,7 @@ export default function HeadmasterCounsellorPage() {
               </div>
             ) : filteredBookings.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                <Calendar size={36} className="text-violet-500 mx-auto mb-3" />
+                <i className="fi fi-rr-calendar text-4xl text-violet-500 mx-auto mb-3 block" />
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-200">No 1-on-1 Sessions Booked Yet</p>
                 <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
                   When a student goes to <strong className="text-slate-700 dark:text-slate-300">/student/counsellor → Book a Session</strong> and reserves a meeting slot with the school counsellor, the appointment details will show here automatically.
@@ -423,7 +432,11 @@ export default function HeadmasterCounsellorPage() {
                       {paginatedBookings.map((b) => (
                         <tr key={b._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group">
                           <td className="py-3.5 px-3 font-bold text-slate-900 dark:text-white">
-                            {(b as any).displayName || (b.isAnonymous ? "🔒 Anonymous Student" : "👤 Rathna · Class 12-B")}
+                            {b.isAnonymous ? (
+                              <span className="text-amber-600 dark:text-amber-400">Anonymous Student</span>
+                            ) : (
+                              ((b as any).displayName || "Rathna · Class 12-B").replace(/^[^\w\s\-\.·]+/, "").trim()
+                            )}
                           </td>
                           <td className="py-3.5 px-3 font-bold text-violet-600 dark:text-violet-400">{b.slot}</td>
                           <td className="py-3.5 px-3 text-slate-700 dark:text-slate-300">{b.topic || "General Session"}</td>
@@ -455,7 +468,7 @@ export default function HeadmasterCounsellorPage() {
                               title="Delete Booking"
                               className="p-1.5 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
                             >
-                              <Trash2 size={14} />
+                              <i className="fi fi-rr-trash text-xs" />
                             </button>
                           </td>
                         </tr>
@@ -474,9 +487,9 @@ export default function HeadmasterCounsellorPage() {
                       <button
                         onClick={() => setBookPage(p => Math.max(1, p - 1))}
                         disabled={bookPage === 1}
-                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       >
-                        <ChevronLeft size={16} />
+                        <i className="fi fi-rr-angle-left text-xs" />
                       </button>
                       <span className="text-xs font-bold px-3 py-1 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg">
                         {bookPage} / {totalBookPages}
@@ -484,9 +497,9 @@ export default function HeadmasterCounsellorPage() {
                       <button
                         onClick={() => setBookPage(p => Math.min(totalBookPages, p + 1))}
                         disabled={bookPage === totalBookPages}
-                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       >
-                        <ChevronRight size={16} />
+                        <i className="fi fi-rr-angle-right text-xs" />
                       </button>
                     </div>
                   </div>
@@ -503,7 +516,7 @@ export default function HeadmasterCounsellorPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Heart size={18} className="text-violet-600 dark:text-violet-400" /> Student Wellbeing Note
+                <i className="fi fi-rr-heart text-violet-600 dark:text-violet-400 text-base" /> Student Wellbeing Note
               </h3>
               <button
                 onClick={() => setSelectedMessage(null)}
@@ -516,7 +529,11 @@ export default function HeadmasterCounsellorPage() {
             <div className="space-y-4 text-xs">
               <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <span className="text-slate-700 dark:text-slate-300 font-bold">
-                  {(selectedMessage as any).displayName || (selectedMessage.studentId.startsWith("ANONYMOUS") ? "🔒 Anonymous Student" : "👤 Rathna · Class 12-B")}
+                  {selectedMessage.studentId.startsWith("ANONYMOUS") ? (
+                    <span className="text-amber-600 dark:text-amber-400">Anonymous Student</span>
+                  ) : (
+                    ((selectedMessage as any).displayName || "Rathna · Class 12-B").replace(/^[^\w\s\-\.·]+/, "").trim()
+                  )}
                 </span>
                 <span className="text-rose-600 dark:text-rose-400 font-bold">
                   Stress Level: {selectedMessage.stressScore} / 10
@@ -531,7 +548,7 @@ export default function HeadmasterCounsellorPage() {
               </div>
 
               <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3 rounded-xl text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-                <CheckCircle size={16} />
+                <i className="fi fi-rr-check-circle text-sm" />
                 <span>Action: Assigned to School Personal Counsellor for follow-up.</span>
               </div>
             </div>

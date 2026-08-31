@@ -172,7 +172,7 @@ export default function TeacherCounsellorPage() {
       title="Personal Counsellor & Wellbeing"
       subtitle="Class Teacher Dashboard · Monitor confidential student notes & 1-on-1 session appointments."
     >
-      <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto pb-12 px-2 sm:px-4">
+      <div className="space-y-5 sm:space-y-6 w-full pb-12">
         {/* Top Hero Banner with High Contrast & Fully Responsive Layout */}
         <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-amber-600/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-amber-500/30 dark:border-slate-800 p-5 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl shadow-md space-y-4 relative overflow-hidden">
           <div className="flex flex-wrap items-center gap-2">
@@ -361,6 +361,9 @@ export default function TeacherCounsellorPage() {
                 const { topic, isAnon, cleanText } = parseNoteContent(m.notes);
                 const statusBadge = getStatusBadge(m.status);
                 const moodEmoji = getMoodEmoji(m.mood);
+                const isAnonymousUser = isAnon || m.isAnonymous;
+                const rawName = m.displayName || (isAnonymousUser ? "Anonymous Student" : `${m.studentName || "Rathna"} · Class ${m.className || "12"}-${m.section || "B"}`);
+                const cleanName = rawName.replace(/^[^\w\s\-\.·]+/, "").trim();
 
                 return (
                   <div
@@ -371,22 +374,22 @@ export default function TeacherCounsellorPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-light)] pb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-lg sm:text-xl shrink-0 border border-amber-500/30 shadow-sm">
-                          {isAnon || m.isAnonymous ? "🔒" : moodEmoji}
+                          {isAnonymousUser ? <i className="fi fi-rr-lock text-xl text-amber-500" /> : <i className="fi fi-rr-user text-xl text-indigo-500" />}
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="text-xs sm:text-sm font-bold text-[var(--text-heading)]">
-                              {m.displayName || (isAnon || m.isAnonymous ? "🔒 Anonymous Student" : `👤 ${m.studentName || "Student"} · Class ${m.className || "10"}-${m.section || "A"}`)}
+                              {isAnonymousUser ? <span className="text-amber-600 dark:text-amber-400 font-bold">{cleanName}</span> : cleanName}
                             </h4>
                             <span className="text-xs sm:text-sm">{moodEmoji}</span>
                           </div>
                           
                           <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/30">
-                              🏷️ Topic: {topic}
+                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/30 flex items-center gap-1">
+                              <i className="fi fi-rr-label text-[10px]" /> Topic: {topic}
                             </span>
-                            <span className="text-[10px] text-[var(--text-muted)] font-medium">
-                              📅 Received: {new Date(m.date).toLocaleString()}
+                            <span className="text-[10px] text-[var(--text-muted)] font-medium flex items-center gap-1">
+                              <i className="fi fi-rr-clock text-[10px]" /> Received: {new Date(m.date).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -413,7 +416,7 @@ export default function TeacherCounsellorPage() {
                           onClick={() => setSelectedMessage(m)}
                           className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 flex items-center gap-1.5"
                         >
-                          👁️ View Detailed Note
+                          <i className="fi fi-rr-eye text-xs" /> View Detailed Note
                         </button>
                       </div>
                     </div>
@@ -474,14 +477,18 @@ export default function TeacherCounsellorPage() {
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg sm:text-xl shrink-0 border border-emerald-500/30">
-                        📅
+                        <i className="fi fi-rr-calendar text-xl" />
                       </div>
                       <div>
                         <h4 className="text-xs sm:text-sm font-bold text-[var(--text-heading)]">
-                          {b.displayName || (b.isAnonymous ? "🔒 Anonymous Student" : `👤 ${b.studentName || "Student"} · Class ${b.className || "10"}-${b.section || "A"}`)}
+                          {b.isAnonymous ? (
+                            <span className="text-amber-600 dark:text-amber-400">Anonymous Student</span>
+                          ) : (
+                            (b.displayName || `${b.studentName || "Rathna"} · Class ${b.className || "12"}-${b.section || "B"}`).replace(/^[^\w\s\-\.·]+/, "").trim()
+                          )}
                         </h4>
                         <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
-                          ⏰ Scheduled Slot: {b.slot}
+                          <i className="fi fi-rr-clock text-xs" /> Scheduled Slot: {b.slot}
                         </p>
                         <p className="text-xs text-[var(--text-muted)] mt-0.5">
                           Discussion Topic: <strong className="text-[var(--text-heading)]">{b.topic}</strong>
@@ -541,11 +548,11 @@ export default function TeacherCounsellorPage() {
 
                 <div className="flex items-center gap-3 sm:gap-3.5 border-b border-[var(--border)] pb-4 sm:pb-5">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl sm:text-2xl font-bold border border-amber-500/30">
-                    💬
+                    <i className="fi fi-rr-comment text-xl" />
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-[var(--text-heading)]">
-                      {selectedMessage.displayName || (isAnon || selectedMessage.isAnonymous ? "🔒 Anonymous Student" : "👤 Student Note")}
+                      { (selectedMessage.displayName || (isAnon || selectedMessage.isAnonymous ? "Anonymous Student" : "Student Note")).replace(/^[^\w\s\-\.·]+/, "").trim() }
                     </h3>
                     <p className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium mt-0.5">
                       Class Teacher Read-Only Inspection Modal

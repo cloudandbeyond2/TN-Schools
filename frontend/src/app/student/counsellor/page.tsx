@@ -62,9 +62,9 @@ const t = {
     backToPortal: "Back to Portal",
     supportCenter: "Student Support Centre",
     heroTitle: "You Are Not Alone 💙",
-    heroDesc: "This is your private safe space. Share how you feel, book a counsellor session, or access emergency helplines. Everything is 100% confidential and monitored by senior education officials for your wellbeing.",
+    heroDesc: "This is your private safe space. Share how you feel or book a 1-on-1 session. Confidential student notes and support requests are reviewed directly by the Headmaster (HM) & School Counsellor for your safety.",
     confidential: "Fully Confidential",
-    monitored: "Monitored by Officials",
+    monitored: "Reviewed by Headmaster & Counsellor",
     helplineBadge: "Helpline: 1098",
     pocsoBadge: "POCSO Protected",
     tabMood: "Mood & Feedback",
@@ -125,9 +125,9 @@ const t = {
     backToPortal: "முகப்புக்குத் திரும்பு",
     supportCenter: "மாணவர் ஆதரவு மையம்",
     heroTitle: "நீங்கள் தனியாக இல்லை 💙",
-    heroDesc: "இது உங்களின் தனிப்பட்ட பாதுகாப்பான இடம். உங்கள் உணர்வுகளைப் பகிருங்கள், ஒரு ஆலோசகர் அமர்வை முன்பதிவு செய்யுங்கள் அல்லது அவசர உதவி எண்களை அணுகுங்கள். அனைத்தும் 100% ரகசியமாக வைக்கப்பட்டு உங்கள் நல்வாழ்வுக்காக உயர் கல்வி அதிகாரிகளால் கண்காணிக்கப்படும்.",
+    heroDesc: "இது உங்களின் தனிப்பட்ட பாதுகாப்பான இடம். உங்கள் உணர்வுகளைப் பகிருங்கள் அல்லது நேரத்தை முன்பதிவு செய்யுங்கள். இங்கு சமர்ப்பிக்கப்படும் குறிப்புகள் தலைமை ஆசிரியர் (HM) மற்றும் ஆலோசகரால் நேரடியாகப் பாதுகாப்பாக மதிப்பாய்வு செய்யப்படும்.",
     confidential: "முற்றிலும் ரகசியமானது",
-    monitored: "அதிகாரிகளால் கண்காணிக்கப்படுகிறது",
+    monitored: "தலைமை ஆசிரியர் & ஆலோசகர் பார்வையிடுவர்",
     helplineBadge: "உதவி எண்: 1098",
     pocsoBadge: "போக்சோ பாதுகாக்கப்பட்டது",
     tabMood: "மனநிலை & கருத்து",
@@ -442,61 +442,58 @@ export default function CounsellorPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      {/* Header Bar: Back & Lang Toggle */}
-      <div className="mb-6 flex items-center justify-between">
-        <Link href="/student" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          {L.backToPortal}
-        </Link>
+      {/* ── Hero Banner (Clean, Simple & Compact) ── */}
+      <div
+        style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6d28d9 100%)", color: "#ffffff" }}
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-6 shadow-xl p-5 sm:p-6 text-white border border-indigo-400/30"
+      >
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <span
+            style={{ color: "#ffffff" }}
+            className="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 font-black text-[11px] uppercase tracking-widest shadow-sm backdrop-blur-md"
+          >
+            {L.supportCenter}
+          </span>
 
-        {/* Language Toggle */}
-        <button
-          onClick={() => setLang(lang === "en" ? "ta" : "en")}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-all"
-        >
-          <Globe size={14} className="text-indigo-500" />
-          {lang === "en" ? "தமிழ்" : "English"}
-        </button>
-      </div>
+          {/* Embedded Language Toggle */}
+          <button
+            onClick={() => setLang(lang === "en" ? "ta" : "en")}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-xs font-bold text-white shadow-sm backdrop-blur-md transition-all cursor-pointer"
+          >
+            <Globe size={14} className="!text-white" />
+            <span style={{ color: "#ffffff" }}>{lang === "en" ? "தமிழ்" : "English"}</span>
+          </button>
+        </div>
 
-      {/* ── Hero ── */}
-      <div className="relative rounded-2xl overflow-hidden mb-6 shadow-xl bg-indigo-600">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-800" />
-        <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-lg backdrop-blur-md">
+            <User size={28} className="!text-white" />
+          </div>
+          <div className="flex-1">
+            <h2 style={{ color: "#ffffff" }} className="text-xl sm:text-2xl font-black leading-tight mb-1">
+              {L.heroTitle}
+            </h2>
+            <p style={{ color: "#ffffff" }} className="text-xs sm:text-sm max-w-2xl leading-relaxed opacity-95 font-medium">
+              {L.heroDesc}
+            </p>
+          </div>
+        </div>
 
-        <div className="relative z-10 p-5 md:p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-xl backdrop-blur-sm">
-              <User size={32} className="!text-white" />
-            </div>
-            <div className="flex-1 text-white">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{L.supportCenter}</span>
+        <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-white/15">
+          {[
+            { icon: Lock, label: L.confidential },
+            { icon: Eye, label: L.monitored },
+            { icon: Phone, label: L.helplineBadge },
+            { icon: Shield, label: L.pocsoBadge },
+          ].map((chip, idx) => {
+            const CIcon = chip.icon;
+            return (
+              <div key={idx} className="flex items-center gap-1.5 bg-white/15 border border-white/20 rounded-full px-3 py-1 text-[11px] font-semibold backdrop-blur-sm text-white">
+                <CIcon size={12} className="!text-white" />
+                <span style={{ color: "#ffffff" }}>{chip.label}</span>
               </div>
-              <p className="text-2xl font-black mb-1 leading-tight !text-white">{L.heroTitle}</p>
-              <p className="!text-white text-sm max-w-xl leading-relaxed opacity-90">
-                {L.heroDesc}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            {[
-              { icon: Lock, label: L.confidential },
-              { icon: Eye, label: L.monitored },
-              { icon: Phone, label: L.helplineBadge },
-              { icon: Shield, label: L.pocsoBadge },
-            ].map((chip, idx) => {
-              const CIcon = chip.icon;
-              return (
-                <div key={idx} className="flex items-center gap-1.5 bg-white/15 border border-white/20 rounded-full px-3 py-1.5 backdrop-blur-sm text-white">
-                  <CIcon size={14} className="opacity-90 !text-white" />
-                  <span className="text-xs font-semibold opacity-90 !text-white">{chip.label}</span>
-                </div>
-              )
-            })}
-          </div>
+            );
+          })}
         </div>
       </div>
 
