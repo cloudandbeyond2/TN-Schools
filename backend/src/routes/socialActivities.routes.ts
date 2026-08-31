@@ -344,7 +344,7 @@ router.put("/:id/verify", async (req: Request, res: Response) => {
           if (activity.student.userId) {
             await createSafeNotification(
               activity.student.userId,
-              `🎉 Congratulations! You unlocked the "${badgeName}" achievement badge!`
+              `Congratulations! You unlocked the "${badgeName}" achievement badge!`
             );
           }
         }
