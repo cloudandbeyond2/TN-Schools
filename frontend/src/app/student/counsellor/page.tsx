@@ -445,7 +445,7 @@ export default function CounsellorPage() {
       {/* ── Hero Banner (Clean, Simple & Compact) ── */}
       <div
         style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6d28d9 100%)", color: "#ffffff" }}
-        className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-6 shadow-xl p-5 sm:p-6 text-white border border-indigo-400/30"
+        className="hero-band banner-text-white relative rounded-2xl sm:rounded-3xl overflow-hidden mb-6 shadow-xl p-5 sm:p-6 text-white border border-indigo-400/30"
       >
         <div className="flex items-center justify-between gap-4 mb-3">
           <span
@@ -470,10 +470,10 @@ export default function CounsellorPage() {
             <User size={28} className="!text-white" />
           </div>
           <div className="flex-1">
-            <h2 style={{ color: "#ffffff" }} className="text-xl sm:text-2xl font-black leading-tight mb-1">
+            <h2 style={{ color: "#ffffff" }} className="text-xl sm:text-2xl font-black leading-tight mb-1 text-white">
               {L.heroTitle}
             </h2>
-            <p style={{ color: "#ffffff" }} className="text-xs sm:text-sm max-w-2xl leading-relaxed opacity-95 font-medium">
+            <p style={{ color: "#ffffff" }} className="text-xs sm:text-sm max-w-2xl leading-relaxed opacity-95 font-medium text-white">
               {L.heroDesc}
             </p>
           </div>

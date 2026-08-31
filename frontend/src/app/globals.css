@@ -919,29 +919,29 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Light mode text readability corrections for hardcoded dark-theme selectors */
-:root:not(.dark) .theme-card .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
-:root:not(.dark) .glass .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
-:root:not(.dark) .glass-strong .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
-:root:not(.dark) .kpi-card .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
-:root:not(.dark) .theme-card h1,
-:root:not(.dark) .theme-card h2,
-:root:not(.dark) .theme-card h3,
-:root:not(.dark) .theme-card h4,
-:root:not(.dark) .glass h1,
-:root:not(.dark) .glass h2,
-:root:not(.dark) .glass h3,
-:root:not(.dark) .glass h4,
-:root:not(.dark) .glass-strong h1,
-:root:not(.dark) .glass-strong h2,
-:root:not(.dark) .glass-strong h3,
-:root:not(.dark) .glass-strong h4,
-:root:not(.dark) .main-content h1.text-white,
-:root:not(.dark) .main-content h2.text-white,
-:root:not(.dark) .main-content h3.text-white,
-:root:not(.dark) .main-content h4.text-white,
-:root:not(.dark) .main-content h5.text-white,
-:root:not(.dark) .main-content h6.text-white,
-:root:not(.dark) .main-content .text-white:not(.w-7):not(.w-8):not(.w-9):not(.w-10):not(.avatar):not(button):not(a):not(.badge):not(.btn-primary):not(.btn-glow) {
+:root:not(.dark) .theme-card .text-white:not(.hero-band):not(.hero-band *):not(.banner-text-white):not(.banner-text-white *):not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .glass .text-white:not(.hero-band):not(.hero-band *):not(.banner-text-white):not(.banner-text-white *):not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .glass-strong .text-white:not(.hero-band):not(.hero-band *):not(.banner-text-white):not(.banner-text-white *):not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .kpi-card .text-white:not(.hero-band):not(.hero-band *):not(.banner-text-white):not(.banner-text-white *):not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .theme-card h1:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .theme-card h2:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .theme-card h3:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .theme-card h4:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass h1:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass h2:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass h3:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass h4:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass-strong h1:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass-strong h2:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass-strong h3:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .glass-strong h4:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h1.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h2.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h3.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h4.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h5.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content h6.text-white:not(.hero-band *):not(.banner-text-white *),
+:root:not(.dark) .main-content .text-white:not(.hero-band):not(.hero-band *):not(.banner-text-white):not(.banner-text-white *):not(.w-7):not(.w-8):not(.w-9):not(.w-10):not(.avatar):not(button):not(a):not(.badge):not(.btn-primary):not(.btn-glow) {
   color: var(--text-heading) !important;
 }
 
@@ -1187,7 +1187,14 @@ h1, h2, h3, h4, h5, h6 {
 :root:not(.dark) .banner-text-white h3,
 :root:not(.dark) .banner-text-white p,
 :root:not(.dark) .banner-text-white span,
-:root:not(.dark) .banner-text-white div {
+:root:not(.dark) .banner-text-white div,
+:root:not(.dark) .hero-band,
+:root:not(.dark) .hero-band h1,
+:root:not(.dark) .hero-band h2,
+:root:not(.dark) .hero-band h3,
+:root:not(.dark) .hero-band p,
+:root:not(.dark) .hero-band span,
+:root:not(.dark) .hero-band div {
   color: #ffffff !important;
 }
 :root:not(.dark) .banner-text-white .text-sub {
@@ -1440,5 +1447,13 @@ button.bg-red-600 span {
 
 /* Custom helper to force white text on hover for action buttons in light/dark mode */
 .hover-text-white-force:hover:not(:disabled) {
+  color: #ffffff !important;
+}
+
+/* Ultimate high-priority override for hero bands and white banners in all themes */
+.hero-band,
+.hero-band *,
+.banner-text-white,
+.banner-text-white * {
   color: #ffffff !important;
 }
