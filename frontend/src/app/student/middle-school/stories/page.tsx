@@ -869,22 +869,22 @@ export default function RedesignedDigitalLibraryPage() {
             <div className="p-6 sm:p-8 flex-1 overflow-y-auto space-y-6 flex flex-col justify-between bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
               
               {/* Scene Visual Canvas Box */}
-              <div className="relative h-56 sm:h-72 rounded-2xl border border-white/10 overflow-hidden shadow-inner flex items-center justify-center bg-slate-950">
+              <div className="relative aspect-video w-full max-h-[50vh] min-h-[220px] sm:min-h-[320px] rounded-2xl border border-white/10 overflow-hidden shadow-2xl flex items-center justify-center bg-slate-950">
                 {activeWatchStory.scenes[currentSceneIdx].imageUrl ? (
-                  <div className="relative w-full h-full group">
+                  <div className="relative w-full h-full group flex items-center justify-center bg-slate-950">
                     <img
                       src={activeWatchStory.scenes[currentSceneIdx].imageUrl}
                       alt={activeWatchStory.scenes[currentSceneIdx].titleEnglish}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-contain bg-slate-950 transition-transform duration-500 group-hover:scale-[1.01]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/30 flex flex-col justify-end p-4 sm:p-5 text-left">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-black/60 px-2.5 py-1 rounded-md backdrop-blur-md self-start border border-amber-500/30">
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-4 sm:p-5 flex flex-col justify-end text-left pointer-events-none">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-black/70 px-2.5 py-1 rounded-md backdrop-blur-md self-start border border-amber-500/30">
                         Scene {currentSceneIdx + 1}
                       </span>
-                      <h4 className="text-base sm:text-xl font-bold text-white drop-shadow-md mt-1">
+                      <h4 className="text-base sm:text-xl font-bold text-white drop-shadow-lg mt-1">
                         {activeWatchStory.scenes[currentSceneIdx].titleEnglish}
                       </h4>
-                      <p className="text-xs sm:text-sm text-amber-300 font-medium drop-shadow-sm">
+                      <p className="text-xs sm:text-sm text-amber-300 font-medium drop-shadow-md">
                         {activeWatchStory.scenes[currentSceneIdx].titleTamil}
                       </p>
                     </div>
