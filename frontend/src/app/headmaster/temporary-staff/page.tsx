@@ -382,7 +382,7 @@ export default function TemporaryStaffPage() {
           ) : (
             <i className="fi fi-rr-check-circle text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
           )}
-          <span>{toast.msg.replace(/^[❌🎉\s]+/, "")}</span>
+          <span>{toast.msg.replace(/[\uFFFD\uD800-\uDFFF]/g, "").replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D|\s|\uFFFD)+/, "")}</span>
         </div>
       )}
 

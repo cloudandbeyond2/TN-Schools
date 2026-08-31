@@ -16,12 +16,20 @@ interface Announcement {
   createdAt: string;
 }
 
+// Clean raw emojis, replacement chars, and lone surrogates cleanly (ES5 compatible)
+function sanitizeUnicodeText(str: string): string {
+  if (!str) return "";
+  var clean = str.replace(/[\uFFFD\uD800-\uDFFF]/g, '');
+  clean = clean.replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D|\s|\uFFFD)+/, '');
+  return clean.trim();
+}
+
 // Flat Icon & Specific Title Generator
 function formatNotification(sender: string, title: string, body: string, target?: string, studentClass?: string) {
   const text = `${title} ${body}`.toLowerCase();
   
   // Clean raw emojis from beginning of body text
-  let cleanBody = body.replace(/^[🎉✍️📌📢⚡🔔🏆🏅]\s*/, '').trim();
+  let cleanBody = sanitizeUnicodeText(body);
 
   // Dynamic exact teacher name resolution
   let dynamicSender = sender;
@@ -37,20 +45,21 @@ function formatNotification(sender: string, title: string, body: string, target?
 
   if (!sender || sender === "System Automated" || sender === "System") {
     if (text.includes("sport") || text.includes("competition") || text.includes("athletics") || text.includes("badminton") || text.includes("chess") || text.includes("football") || text.includes("stadium")) {
-      dynamicSender = "Shiva (Physical Education Teacher)";
+      dynamicSender = "Physical Education Dept";
     } else if (text.includes("social activity") || text.includes("approved") || text.includes("remarks") || text.includes("teacher")) {
-      dynamicSender = "kalai (Class Teacher)";
+      dynamicSender = "Class Teacher";
     } else if (text.includes("badge") || text.includes("unlocked") || text.includes("volunteer") || text.includes("changemaker")) {
-      dynamicSender = "kalai (Science & Awards Coordinator)";
+      dynamicSender = "Awards & Recognition Committee";
     } else if (text.includes("science") || text.includes("lab") || text.includes("exhibition") || text.includes("robotics")) {
-      dynamicSender = "kalai (Science Dept)";
+      dynamicSender = "Science Dept";
     } else {
-      dynamicSender = "HM Office";
+      dynamicSender = "Headmaster Office";
     }
   }
 
   let type = "General";
-  let formattedTitle = title && title !== "Personal Alert" ? title : "School Circular";
+  let rawTitle = title && title !== "Personal Alert" ? title : "School Circular";
+  let formattedTitle = sanitizeUnicodeText(rawTitle) || "School Circular";
   let iconClass = "fi fi-rr-bullhorn";
   let color = "text-emerald-600 dark:text-emerald-400";
   let bg = "bg-emerald-50/60 dark:bg-emerald-950/20";
@@ -61,8 +70,8 @@ function formatNotification(sender: string, title: string, body: string, target?
   // 1. Badges & Achievements
   if (text.includes("badge") || text.includes("unlocked") || text.includes("achievement") || text.includes("volunteer") || text.includes("changemaker")) {
     type = "Personal Alert";
-    formattedTitle = (!title || title === "Personal Alert") ? "Achievement Badge Unlocked!" : title;
-    iconClass = "fi fi-rr-trophy-star";
+    formattedTitle = (!title || title === "Personal Alert") ? "Achievement Badge Unlocked!" : sanitizeUnicodeText(title);
+    iconClass = "fi fi-rr-trophy";
     color = "text-amber-600 dark:text-amber-400";
     bg = "bg-amber-50/60 dark:bg-amber-950/20";
     border = "border-amber-200/80 dark:border-amber-900/40";
@@ -72,7 +81,7 @@ function formatNotification(sender: string, title: string, body: string, target?
   // 2. Approvals & Dashboard Remarks
   else if (text.includes("approved") || text.includes("activity") || text.includes("remarks") || text.includes("verified")) {
     type = "Personal Alert";
-    formattedTitle = (!title || title === "Personal Alert") ? "Social Activity Approved" : title;
+    formattedTitle = (!title || title === "Personal Alert") ? "Social Activity Approved" : sanitizeUnicodeText(title);
     iconClass = "fi fi-rr-badge-check";
     color = "text-amber-600 dark:text-amber-400";
     bg = "bg-amber-50/60 dark:bg-amber-950/20";
@@ -87,7 +96,7 @@ function formatNotification(sender: string, title: string, body: string, target?
     text.includes("bus route") || text.includes("water supply") || text.includes("parent meeting")
   ) {
     type = "Urgent";
-    formattedTitle = (!title || title === "Personal Alert") ? "Urgent School Notice" : title;
+    formattedTitle = (!title || title === "Personal Alert") ? "Urgent School Notice" : sanitizeUnicodeText(title);
     iconClass = "fi fi-rr-alarm-exclamation";
     color = "text-rose-600 dark:text-rose-400";
     bg = "bg-rose-50/60 dark:bg-rose-950/20";
@@ -104,7 +113,7 @@ function formatNotification(sender: string, title: string, body: string, target?
     text.includes("workshop") || text.includes("submission") || text.includes("chapter")
   ) {
     type = "Academic";
-    formattedTitle = (!title || title === "Personal Alert") ? "Academic Notice" : title;
+    formattedTitle = (!title || title === "Personal Alert") ? "Academic Notice" : sanitizeUnicodeText(title);
     iconClass = "fi fi-rr-graduation-cap";
     color = "text-sky-600 dark:text-sky-400";
     bg = "bg-sky-50/60 dark:bg-sky-950/20";
@@ -119,8 +128,8 @@ function formatNotification(sender: string, title: string, body: string, target?
     text.includes("chess") || text.includes("match") || text.includes("tournament")
   ) {
     type = "Event";
-    formattedTitle = (!title || title === "Personal Alert") ? "Event & Sports Update" : title;
-    iconClass = "fi fi-rr-calendar-star";
+    formattedTitle = (!title || title === "Personal Alert") ? "Event & Sports Update" : sanitizeUnicodeText(title);
+    iconClass = "fi fi-rr-calendar-clock";
     color = "text-violet-600 dark:text-violet-400";
     bg = "bg-violet-50/60 dark:bg-violet-950/20";
     border = "border-violet-200/80 dark:border-violet-900/40";
@@ -339,27 +348,27 @@ export default function AnnouncementsPage() {
     >
       <div className="flex flex-col gap-6 w-full text-left">
         
-        {/* 🌟 Modern Hero Banner with Flat Icon Styling */}
-        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6 shadow-xl transition-all w-full">
+        {/* 🌟 Hero Banner */}
+        <div className="relative overflow-hidden rounded-2xl glass border border-[var(--border)] p-5 sm:p-6 shadow-sm transition-all w-full">
           <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 w-full">
             <div className="space-y-2 w-full md:max-w-2xl">
-              <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-3 py-1 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-200 dark:border-amber-900/40 shadow-sm">
+              <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1 font-semibold text-xs uppercase tracking-wider rounded-xl border border-amber-500/20 shadow-sm">
                 <i className="fi fi-rr-bell text-xs" /> Notification Center
               </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 dark:text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-heading)] tracking-tight">
                 Latest Announcements
               </h2>
-              <p className="text-slate-600 dark:text-slate-350 text-xs sm:text-sm font-semibold leading-relaxed">
+              <p className="text-[var(--text-muted)] text-xs sm:text-sm font-normal leading-relaxed">
                 Stay updated with circulars, exam schedules, personal achievement badges, and emergency notices.
               </p>
             </div>
 
             <button
               onClick={markAllRead}
-              className="w-full md:w-auto px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-2xl transition-all shadow-md shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-2 shrink-0 border-b-4 border-black/20"
+              className="w-full md:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 shrink-0 border-b-2 border-black/20"
             >
               <i className="fi fi-rr-check-circle text-sm" />
               <span>Mark All as Read</span>
@@ -367,66 +376,66 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* 📊 KPI Summary Stats Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/60">
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-[var(--border)]">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-[var(--border)] flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base shrink-0">
                 <i className="fi fi-rr-bullhorn" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Total Alerts</span>
-                <span className="text-base font-black text-slate-800 dark:text-white">{announcements.length}</span>
+                <span className="text-[10px] font-semibold uppercase text-[var(--text-muted)] block tracking-wider">Total Alerts</span>
+                <span className="text-base font-bold text-[var(--text-heading)]">{announcements.length}</span>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg shrink-0">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-[var(--border)] flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base shrink-0">
                 <i className="fi fi-rr-envelope-open" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Unread</span>
-                <span className="text-base font-black text-sky-600 dark:text-sky-400">{unreadCount}</span>
+                <span className="text-[10px] font-semibold uppercase text-[var(--text-muted)] block tracking-wider">Unread</span>
+                <span className="text-base font-bold text-sky-600 dark:text-sky-400">{unreadCount}</span>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shrink-0">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-[var(--border)] flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-base shrink-0">
                 <i className="fi fi-rr-alarm-exclamation" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Urgent</span>
-                <span className="text-base font-black text-rose-600 dark:text-rose-400">{urgentCount}</span>
+                <span className="text-[10px] font-semibold uppercase text-[var(--text-muted)] block tracking-wider">Urgent</span>
+                <span className="text-base font-bold text-rose-600 dark:text-rose-400">{urgentCount}</span>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/50 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shrink-0">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-[var(--border)] flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base shrink-0">
                 <i className="fi fi-rr-check-double" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Read</span>
-                <span className="text-base font-black text-emerald-600 dark:text-emerald-400">{announcements.length - unreadCount}</span>
+                <span className="text-[10px] font-semibold uppercase text-[var(--text-muted)] block tracking-wider">Read</span>
+                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">{announcements.length - unreadCount}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* 🔍 Interactive Search Bar & Category Filter Pills */}
-        <div className="flex flex-col gap-4 bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="flex flex-col gap-4 glass rounded-2xl p-4 sm:p-5 border border-[var(--border)] shadow-sm">
           <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
             {/* Search Bar */}
             <div className="relative w-full md:max-w-md">
-              <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+              <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
               <input
                 type="text"
                 placeholder="Search by keyword, title, sender..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2.5 pl-10 pr-10 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all placeholder-slate-400 shadow-inner"
+                className="w-full bg-slate-50 dark:bg-slate-900/80 border border-[var(--border)] text-[var(--text-main)] rounded-xl py-2.5 pl-10 pr-10 text-xs font-normal focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all placeholder-[var(--text-muted)]"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-heading)] text-xs p-1"
                 >
                   <i className="fi fi-rr-cross-small text-sm" />
                 </button>
@@ -434,12 +443,12 @@ export default function AnnouncementsPage() {
             </div>
 
             {/* Items Per Page Selector */}
-            <div className="flex items-center gap-2 self-end md:self-auto text-xs font-bold text-slate-500">
-              <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">Show:</span>
+            <div className="flex items-center gap-2 self-end md:self-auto text-xs font-medium text-[var(--text-muted)]">
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--text-muted)]">Show:</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                className="bg-slate-50 dark:bg-slate-900/80 border border-[var(--border)] text-[var(--text-main)] rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
               >
                 <option value={5}>5 per page</option>
                 <option value={10}>10 per page</option>
@@ -452,10 +461,10 @@ export default function AnnouncementsPage() {
             {[
               { id: "All", label: "All", icon: "fi fi-rr-apps" },
               { id: "Unread", label: "Unread", icon: "fi fi-rr-envelope" },
-              { id: "Personal Alert", label: "Personal", icon: "fi fi-rr-user-badge" },
+              { id: "Personal Alert", label: "Personal", icon: "fi fi-rr-portrait" },
               { id: "Urgent", label: "Urgent", icon: "fi fi-rr-alarm-exclamation" },
               { id: "Academic", label: "Academic", icon: "fi fi-rr-graduation-cap" },
-              { id: "Event", label: "Events", icon: "fi fi-rr-calendar-star" },
+              { id: "Event", label: "Events", icon: "fi fi-rr-calendar-clock" },
               { id: "General", label: "General", icon: "fi fi-rr-bullhorn" },
             ].map((cat) => {
               const isActive = activeFilter === cat.id;
@@ -463,10 +472,10 @@ export default function AnnouncementsPage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveFilter(cat.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-2 border ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 border ${
                     isActive
-                      ? "bg-amber-500 text-white border-amber-500 shadow-md"
-                      : "bg-slate-50 text-slate-700 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-amber-950/40 dark:hover:text-amber-300 border-slate-200 dark:border-slate-700"
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                      : "bg-slate-50 text-[var(--text-main)] hover:bg-amber-500/10 hover:text-amber-600 border-[var(--border)] dark:bg-slate-900/80"
                   }`}
                 >
                   <i className={`${cat.icon} text-xs`} />
@@ -478,20 +487,20 @@ export default function AnnouncementsPage() {
         </div>
 
         {/* 📋 Notification Cards Feed */}
-        <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-4 sm:p-6 lg:p-8 border border-slate-200 dark:border-slate-700/80 shadow-sm min-h-[450px] flex flex-col justify-between">
+        <div className="glass rounded-2xl p-4 sm:p-6 lg:p-8 border border-[var(--border)] shadow-sm min-h-[450px] flex flex-col justify-between">
           
           {loading ? (
-            <div className="text-center py-24 font-bold text-slate-400 dark:text-slate-500 flex flex-col items-center justify-center gap-3">
+            <div className="text-center py-24 font-medium text-[var(--text-muted)] flex flex-col items-center justify-center gap-3">
               <i className="fi fi-rr-hourglass text-4xl animate-spin text-amber-500" />
               <span className="text-xs sm:text-sm">Loading announcements & notices...</span>
             </div>
           ) : paginatedAnnouncements.length === 0 ? (
-            <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-3 my-auto">
-              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-3xl text-slate-400">
+            <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-3 my-auto">
+              <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-2xl text-[var(--text-muted)]">
                 <i className="fi fi-rr-inbox" />
               </div>
-              <h3 className="text-base font-black text-slate-800 dark:text-white">No notifications found</h3>
-              <p className="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
+              <h3 className="text-base font-bold text-[var(--text-heading)]">No notifications found</h3>
+              <p className="text-xs text-[var(--text-muted)] font-normal max-w-xs leading-relaxed">
                 {searchQuery || activeFilter !== "All"
                   ? "No notices match your selected filter or search keyword. Try clearing filters!"
                   : "You're all caught up! Check back later for new school announcements."}
@@ -499,7 +508,7 @@ export default function AnnouncementsPage() {
               {(searchQuery || activeFilter !== "All") && (
                 <button
                   onClick={() => { setActiveFilter("All"); setSearchQuery(""); }}
-                  className="mt-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-black rounded-xl transition-all"
+                  className="mt-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[var(--text-main)] text-xs font-semibold rounded-xl transition-all"
                 >
                   Clear Filters
                 </button>
@@ -515,16 +524,16 @@ export default function AnnouncementsPage() {
                   <div
                     key={ann.id}
                     onClick={() => handleCardClick(ann)}
-                    className={`relative p-5 sm:p-6 rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer ${formatted.bg} ${
+                    className={`relative p-5 sm:p-6 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${formatted.bg} ${
                       isUnread
                         ? `${formatted.border} ring-2 ring-amber-500/20`
-                        : "border-slate-200/90 dark:border-slate-700/60 hover:border-amber-300 dark:hover:border-amber-700 bg-white dark:bg-slate-900/40"
+                        : "border-[var(--border)] hover:border-amber-500/40 bg-white dark:bg-slate-900/40"
                     }`}
                   >
                     {/* Unread Glow & Pinned Badges */}
                     <div className="absolute top-4 right-4 flex items-center gap-2">
                       {ann.pinned && (
-                        <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
                           <i className="fi fi-rr-bookmark text-xs" /> Pinned
                         </span>
                       )}
@@ -538,8 +547,8 @@ export default function AnnouncementsPage() {
 
                     <div className="flex flex-col sm:flex-row items-start gap-4 pr-0 sm:pr-12 mt-6 sm:mt-0">
                       {/* Flat Icon Container */}
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-sm border ${
-                        isUnread ? `${formatted.iconBg} ${formatted.border}` : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-sm border ${
+                        isUnread ? `${formatted.iconBg} ${formatted.border}` : "bg-slate-100 dark:bg-slate-800 text-[var(--text-main)] border-[var(--border)]"
                       }`}>
                         <i className={formatted.iconClass} />
                       </div>
@@ -547,27 +556,27 @@ export default function AnnouncementsPage() {
                       {/* Notification Body Info */}
                       <div className="flex-1 w-full space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`text-[9px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-md border ${formatted.badgeBg}`}>
+                          <span className={`text-[9px] uppercase font-semibold tracking-wider px-2.5 py-0.5 rounded-md border ${formatted.badgeBg}`}>
                             {formatted.type}
                           </span>
-                          <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white leading-snug">
+                          <h3 className="text-base sm:text-lg font-bold text-[var(--text-heading)] leading-snug">
                             {formatted.formattedTitle}
                           </h3>
                         </div>
 
-                        <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-350 leading-relaxed">
+                        <p className="text-xs sm:text-sm font-normal text-[var(--text-main)] leading-relaxed">
                           {formatted.cleanBody}
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/40 text-[11px] font-bold text-slate-400">
-                          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+                          <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                             <i className="fi fi-rr-user-pen text-amber-500" />
                             <span>Posted by:</span>
-                            <span className="text-slate-800 dark:text-slate-200 font-black">{formatted.dynamicSender}</span>
+                            <span className="text-[var(--text-heading)] font-semibold">{formatted.dynamicSender}</span>
                           </div>
 
-                          <div className="flex items-center gap-1.5">
-                            <i className="fi fi-rr-calendar-clock text-slate-400" />
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <i className="fi fi-rr-calendar-clock text-[var(--text-muted)]" />
                             <span>{ann.date || new Date(ann.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
                           </div>
                         </div>
@@ -581,11 +590,11 @@ export default function AnnouncementsPage() {
 
           {/* 📄 Modern Responsive Pagination Bar */}
           {!loading && filteredAnnouncements.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-6 border-t border-slate-100 dark:border-slate-700/60">
-              <div className="text-xs font-bold text-slate-400 text-center sm:text-left">
-                Showing <span className="text-slate-700 dark:text-slate-200 font-black">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-                <span className="text-slate-700 dark:text-slate-200 font-black">{Math.min(currentPage * itemsPerPage, filteredAnnouncements.length)}</span> of{" "}
-                <span className="text-slate-700 dark:text-slate-200 font-black">{filteredAnnouncements.length}</span> notifications
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-6 border-t border-[var(--border)]">
+              <div className="text-xs font-normal text-[var(--text-muted)] text-center sm:text-left">
+                Showing <span className="text-[var(--text-heading)] font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+                <span className="text-[var(--text-heading)] font-semibold">{Math.min(currentPage * itemsPerPage, filteredAnnouncements.length)}</span> of{" "}
+                <span className="text-[var(--text-heading)] font-semibold">{filteredAnnouncements.length}</span> notifications
               </div>
 
               {/* Pagination Controls */}
@@ -595,7 +604,7 @@ export default function AnnouncementsPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="p-2.5 bg-slate-100 dark:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600"
+                    className="p-2.5 bg-slate-100 dark:bg-slate-800 disabled:opacity-40 text-[var(--text-main)] rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed border border-[var(--border)]"
                     title="Previous Page"
                   >
                     <i className="fi fi-rr-angle-left text-sm" />
@@ -606,10 +615,10 @@ export default function AnnouncementsPage() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 rounded-xl text-xs font-black transition-all flex items-center justify-center border ${
+                      className={`w-8 h-8 rounded-xl text-xs font-semibold transition-all flex items-center justify-center border ${
                         currentPage === pageNum
                           ? "bg-amber-500 text-white border-amber-500 shadow-sm"
-                          : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          : "bg-slate-50 dark:bg-slate-800 text-[var(--text-main)] border-[var(--border)] hover:bg-slate-100 dark:hover:bg-slate-700"
                       }`}
                     >
                       {pageNum}
@@ -620,7 +629,7 @@ export default function AnnouncementsPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2.5 bg-slate-100 dark:bg-slate-700 disabled:opacity-40 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600"
+                    className="p-2.5 bg-slate-100 dark:bg-slate-800 disabled:opacity-40 text-[var(--text-main)] rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed border border-[var(--border)]"
                     title="Next Page"
                   >
                     <i className="fi fi-rr-angle-right text-sm" />

@@ -1488,7 +1488,7 @@ export default function StudentsMonitoringPage() {
               <i className="fi fi-rr-check-circle text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
             )}
             <span className="font-semibold text-white" style={{ color: "#ffffff" }}>
-              {toast.msg.replace(/^[⚠️❌🔴🎉🗑️📊\s]+/, "")}
+              {toast.msg.replace(/[\uFFFD\uD800-\uDFFF]/g, "").replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D|\s|\uFFFD)+/, "")}
             </span>
           </div>
           <button
