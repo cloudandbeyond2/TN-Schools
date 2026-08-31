@@ -246,7 +246,7 @@ export default function DEOGrievancesPage() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⚖️</span>
-                <h3 className="text-base font-black text-white">Grievance Details</h3>
+                <h3 style={{ color: "#ffffff" }} className="modal-title-white !text-white text-base font-black">Grievance Details</h3>
               </div>
               <button onClick={() => setSelectedGrievance(null)} className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 bg-slate-800 rounded-lg">✕ Close</button>
             </div>
@@ -300,7 +300,7 @@ export default function DEOGrievancesPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-3xl p-6 space-y-6" style={{ background: "#090d16", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 20px 50px rgba(0,0,0,0.95)" }}>
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">⚖️ File New Grievance</h3>
+              <h3 style={{ color: "#ffffff" }} className="modal-title-white !text-white text-sm font-bold">⚖️ File New Grievance</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xs">✕ Close</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

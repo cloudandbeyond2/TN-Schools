@@ -1450,10 +1450,28 @@ button.bg-red-600 span {
   color: #ffffff !important;
 }
 
-/* Ultimate high-priority override for hero bands and white banners in all themes */
+/* Ultimate high-priority override for hero bands, white banners, and modal dialogs */
 .hero-band,
 .hero-band *,
 .banner-text-white,
-.banner-text-white * {
+.banner-text-white *,
+.modal-title-white,
+.modal-title-white *,
+.fixed h1,
+.fixed h2,
+.fixed h3,
+.fixed h4,
+.fixed h5,
+.fixed h6,
+.fixed .text-white,
+:root:not(.dark) .modal-title-white,
+:root:not(.dark) .modal-title-white *,
+:root:not(.dark) .fixed h1,
+:root:not(.dark) .fixed h2,
+:root:not(.dark) .fixed h3,
+:root:not(.dark) .fixed h4,
+:root:not(.dark) .fixed h5,
+:root:not(.dark) .fixed h6,
+:root:not(.dark) .fixed .text-white {
   color: #ffffff !important;
 }
