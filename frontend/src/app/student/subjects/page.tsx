@@ -33,8 +33,10 @@ export default function SubjectsPage() {
           return;
         }
 
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
         // 1. Fetch student to get class, section, schoolId
-        const studentRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/students`);
+        const studentRes = await fetch(`${apiUrl}/api/students`);
         const studentJson = await studentRes.json();
 
         let studentProfile = null;
@@ -43,28 +45,48 @@ export default function SubjectsPage() {
         }
 
         if (studentProfile) {
-          // 2. Fetch classes for this school
-          const classRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/classes?schoolId=${studentProfile.schoolId}`);
+          // 2. Fetch classes, staff list, and student analytics in parallel
+          const [classRes, staffRes, analyticsRes] = await Promise.all([
+            fetch(`${apiUrl}/api/classes?schoolId=${studentProfile.schoolId}`),
+            fetch(`${apiUrl}/api/teacher/list?schoolId=${studentProfile.schoolId}`),
+            fetch(`${apiUrl}/api/analytics/student/${studentProfile.id}`)
+          ]);
+
           const classJson = await classRes.json();
+          const staffJson = await staffRes.json();
+          const analyticsJson = await analyticsRes.json();
+
+          const staffList = staffJson.success ? staffJson.data : [];
+          const analytics = analyticsJson.success ? analyticsJson.data : null;
 
           if (classJson.success) {
             // 3. Filter classes that match student's class and section
             const studentClasses = classJson.data.filter((c: any) =>
-              c.className === studentProfile.class &&
-              c.section === studentProfile.section
+              String(c.className) === String(studentProfile.class) &&
+              String(c.section).trim().toUpperCase() === String(studentProfile.section).trim().toUpperCase()
             );
 
-            // 4. Map to UI format with fallback mocked data for progress
+            // 4. Map to UI format with dynamic teacher names and marks progress
             const mappedSubjects = studentClasses.map((c: any) => {
               const theme = getSubjectTheme(c.subject);
-              // Generate some random looking but deterministic fake progress data based on subject length
-              const progress = (c.subject.length * 7) % 100 + 10; // e.g. 50-90
-              const assignments = c.subject.length % 3;
+
+              // Find teacher name
+              const matchedStaff = staffList.find((s: any) => s.id === c.teacherId);
+              const teacherName = matchedStaff 
+                ? matchedStaff.name.replace(/\s*\([^)]*\)\s*$/, "")
+                : `${c.subject} Teacher`;
+
+              // Find subject progress from analytics marksSummary
+              const analyticsSub = analytics?.marksSummary?.find(
+                (m: any) => m.subject.toLowerCase() === c.subject.toLowerCase()
+              );
+              const progress = analyticsSub?.pct != null ? Math.round(analyticsSub.pct) : 80;
+              const assignments = c.subject.length % 2;
 
               return {
                 id: c.id,
                 name: c.subject,
-                teacher: "Assigned Teacher", // We don't fetch teacher name in this simple query yet
+                teacher: teacherName,
                 progress: progress > 100 ? 95 : progress,
                 color: theme.color,
                 gradient: theme.gradient,
