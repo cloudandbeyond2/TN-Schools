@@ -2,6 +2,13 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import Link from "next/link";
+import {
+  INSTITUTION_MODES,
+  INSTITUTION_DISABLED_PORTALS,
+  PORTAL_CATALOG,
+  type InstitutionType,
+} from "@/lib/portalCatalog";
 
 interface Settings {
   maintenanceMode: boolean;
@@ -11,6 +18,15 @@ interface Settings {
   sessionTimeout: string;
   maxUploadSize: string;
   defaultLanguage: string;
+}
+
+interface PortalRow {
+  key: string;
+  name: string;
+  prefix: string;
+  isEnabled: boolean;
+  moduleCount: number;
+  enabledModuleCount: number;
 }
 
 interface AdminUser {
@@ -44,6 +60,13 @@ export default function PortalSettings() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
+  // Portal restrictions live on the same PlatformSetting document, but are
+  // written through /api/features/portals so they apply immediately rather
+  // than waiting for the Save Settings button.
+  const [portals, setPortals] = useState<PortalRow[]>([]);
+  const [institutionType, setInstitutionType] = useState<InstitutionType>("GOVERNMENT");
+  const [portalBusy, setPortalBusy] = useState(false);
+
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: "", email: "", mobile: "", password: "" });
@@ -66,13 +89,19 @@ export default function PortalSettings() {
 
     (async () => {
       try {
-        const [settingsRes, adminsRes] = await Promise.all([
+        const [settingsRes, adminsRes, portalsRes] = await Promise.all([
           fetch(`${API_URL}/api/superadmin/settings`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${API_URL}/api/superadmin/admins`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/api/features/portals`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         const settingsData = await settingsRes.json();
         const adminsData = await adminsRes.json();
+        const portalsData = await portalsRes.json();
         if (cancelled) return;
+        if (portalsData.success && portalsData.data) {
+          setPortals(portalsData.data.portals || []);
+          setInstitutionType((portalsData.data.institutionType || "GOVERNMENT") as InstitutionType);
+        }
         if (settingsData.success && settingsData.data) {
           setSettings({ ...DEFAULT_SETTINGS, ...settingsData.data });
         }
@@ -91,6 +120,54 @@ export default function PortalSettings() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  const togglePortal = async (key: string, current: boolean) => {
+    const label = portals.find((p) => p.key === key)?.name || key;
+    setPortals((prev) => prev.map((p) => (p.key === key ? { ...p, isEnabled: !current } : p)));
+    try {
+      const res = await fetch(`${API_URL}/api/features/portals`, {
+        method: "PUT",
+        headers: authHeaders,
+        body: JSON.stringify({ portals: { [key]: !current } }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setPortals(data.data.portals || []);
+      showToast("ok", current ? `${label} portal disabled — its users can no longer log in.` : `${label} portal enabled.`);
+    } catch {
+      setPortals((prev) => prev.map((p) => (p.key === key ? { ...p, isEnabled: current } : p)));
+      showToast("err", "Failed to update portal. Change was not saved.");
+    }
+  };
+
+  const applyInstitution = async (type: InstitutionType) => {
+    const mode = INSTITUTION_MODES.find((m) => m.key === type);
+    const off = INSTITUTION_DISABLED_PORTALS[type];
+    const confirmed = window.confirm(
+      `Switch this deployment to "${mode?.name}"?\n\n` +
+        (off.length ? `These portals will be turned OFF: ${off.join(", ")}.` : "All portals will be turned ON.") +
+        "\n\nThis overwrites the current portal switches."
+    );
+    if (!confirmed) return;
+
+    setPortalBusy(true);
+    try {
+      const res = await fetch(`${API_URL}/api/features/portals/preset`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ institutionType: type }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setPortals(data.data.portals || []);
+      setInstitutionType(data.data.institutionType as InstitutionType);
+      showToast("ok", `Deployment set to ${mode?.name}. Portal switches updated.`);
+    } catch {
+      showToast("err", "Failed to apply institution type. Nothing was changed.");
+    } finally {
+      setPortalBusy(false);
+    }
+  };
 
   const updateSetting = (key: keyof Settings, value: string | boolean) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -252,6 +329,95 @@ export default function PortalSettings() {
                   <option value="120">120 min</option>
                 </select>
               </div>
+            </div>
+          </div>
+
+          <div className="glass rounded-2xl p-6">
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <h2 className="text-base font-semibold text-white">🚦 Portal Access & Restrictions</h2>
+              <Link
+                href="/super-admin/portals"
+                className="text-[10px] font-bold text-violet-300 bg-violet-500/10 border border-violet-500/30 px-2.5 py-1 rounded-full hover:bg-violet-500/20 transition shrink-0"
+              >
+                Module-level control →
+              </Link>
+            </div>
+            <p className="text-[10px] text-slate-500 mb-5">
+              A portal switched off here refuses login for its users, disappears from navigation,
+              and shows a &quot;Portal Disabled&quot; screen to anyone already signed in. Super Admin is
+              never blocked. These switches save immediately — no need to press Save Settings.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+              {INSTITUTION_MODES.map((mode) => {
+                const active = institutionType === mode.key;
+                return (
+                  <button
+                    key={mode.key}
+                    type="button"
+                    disabled={portalBusy}
+                    onClick={() => applyInstitution(mode.key)}
+                    className={`text-left rounded-xl px-4 py-3 border transition-all disabled:opacity-60 ${
+                      active
+                        ? "border-violet-500/60 bg-violet-500/10"
+                        : "border-slate-800 bg-slate-900/40 hover:border-slate-600"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs font-bold text-white">{mode.name}</div>
+                      {active && (
+                        <span className="text-[9px] font-black text-violet-300 bg-violet-500/20 border border-violet-500/30 px-1.5 py-0.5 rounded-full shrink-0">
+                          ACTIVE
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1 leading-relaxed">{mode.detail}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="space-y-3">
+              {portals.map((portal) => {
+                const meta = PORTAL_CATALOG.find((p) => p.key === portal.key);
+                return (
+                  <div
+                    key={portal.key}
+                    className={`flex items-center justify-between rounded-xl px-4 py-4 border ${
+                      portal.isEnabled
+                        ? "bg-slate-900/40 border-slate-800"
+                        : "bg-red-500/5 border-red-500/30"
+                    }`}
+                  >
+                    <div className="min-w-0 pr-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-white">{portal.name}</span>
+                        {meta?.governmentOnly && (
+                          <span className="text-[9px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded-full">
+                            GOVT ONLY
+                          </span>
+                        )}
+                        {!portal.isEnabled && (
+                          <span className="text-[9px] font-bold text-red-300 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded-full">
+                            LOGIN BLOCKED
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">
+                        <span className="font-mono">{portal.prefix}</span>
+                        {" · "}
+                        {portal.enabledModuleCount}/{portal.moduleCount} modules on
+                      </div>
+                    </div>
+                    <Toggle on={portal.isEnabled} onClick={() => togglePortal(portal.key, portal.isEnabled)} />
+                  </div>
+                );
+              })}
+              {portals.length === 0 && (
+                <div className="text-[10px] text-slate-500 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-4">
+                  No portal switches loaded.
+                </div>
+              )}
             </div>
           </div>
 
