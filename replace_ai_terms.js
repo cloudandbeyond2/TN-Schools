@@ -1,64 +1,86 @@
 const fs = require('fs');
 const path = require('path');
 
-const OLD_TERM = /Gemini AI/gi;
-const OLD_TERM_SHORT = /\bGemini\b/gi;
+// Renames the user-facing product name only. Case-sensitive on purpose:
+//   "Gemini" / "Gemini AI"  -> prose & UI copy, safe to rename
+//   "gemini-2.5-flash"      -> API model id, MUST NOT be renamed
+//   "GEMINI" / GEMINI_API_KEY -> provider enum / env var, MUST NOT be renamed
+const OLD_TERM = /Gemini AI/g;
+const OLD_TERM_SHORT = /\bGemini\b/g;
 const NEW_TERM = 'Smart Assistant';
 
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'coverage', '_preview']);
+const EXTENSIONS = ['.ts', '.tsx', '.md', '.js'];
+const SELF = path.resolve(__filename);
+
+// Only apply changes when explicitly asked; otherwise just report.
+const WRITE = process.argv.includes('--write');
+
 function replaceInFile(filePath) {
-  let content = fs.readFileSync(filePath, 'utf8');
-  let original = content;
-  
-  // Do not replace in node_modules, git, or build folders
-  if (filePath.includes('node_modules') || filePath.includes('.git') || filePath.includes('.next')) {
+  // Never rewrite this script: it contains the search terms itself.
+  if (path.resolve(filePath) === SELF) {
     return;
   }
 
-  // First replace "Gemini AI" to avoid double replacements
+  let content;
+  try {
+    content = fs.readFileSync(filePath, 'utf8');
+  } catch (err) {
+    console.warn(`Skipped (unreadable): ${filePath} - ${err.message}`);
+    return;
+  }
+  const original = content;
+
+  // First replace "Gemini AI" to avoid double replacements.
   content = content.replace(OLD_TERM, NEW_TERM);
-  
-  // Then replace standalone "Gemini", but be careful NOT to replace env variable names like GEMINI_API_KEY
+
+  // Then standalone "Gemini". \b already protects identifiers (callGemini,
+  // GEMINI_API_KEY); the guard below protects URL path segments such as
+  // ".../models/Gemini-2.5-flash".
   content = content.replace(OLD_TERM_SHORT, (match, offset, string) => {
-    // Check surrounding characters to avoid renaming GEMINI_API_KEY
     const precedingChar = offset > 0 ? string[offset - 1] : '';
     const succeedingChar = offset + match.length < string.length ? string[offset + match.length] : '';
-    
-    // If it's part of an underscore separated variable like GEMINI_API_KEY, ignore it
-    if (precedingChar === '_' || succeedingChar === '_') {
-      return match; 
+
+    if (precedingChar === '_' || succeedingChar === '_' ||
+        precedingChar === '/' || succeedingChar === '/') {
+      return match;
     }
     return NEW_TERM;
   });
-  
+
   if (original !== content) {
-    fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`Updated: ${filePath}`);
+    if (WRITE) {
+      fs.writeFileSync(filePath, content, 'utf8');
+      console.log(`Updated: ${filePath}`);
+    } else {
+      console.log(`Would update: ${filePath}`);
+    }
   }
 }
 
 function walk(dir) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    
-    // Skip heavy/binary directories
-    if (file === 'node_modules' || file === '.git' || file === '.next' || file === 'package-lock.json') {
-      continue;
-    }
-    
-    if (fs.statSync(fullPath).isDirectory()) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (err) {
+    console.warn(`Skipped (unreadable dir): ${dir} - ${err.message}`);
+    return;
+  }
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name)) {
+        continue;
+      }
       walk(fullPath);
-    } else if (
-      fullPath.endsWith('.ts') || 
-      fullPath.endsWith('.tsx') || 
-      fullPath.endsWith('.md') || 
-      fullPath.endsWith('.js')
-    ) {
+    } else if (entry.isFile() && EXTENSIONS.includes(path.extname(entry.name))) {
       replaceInFile(fullPath);
     }
   }
 }
 
-console.log('Starting replacement...');
+console.log(WRITE ? 'Starting replacement...' : 'Dry run (pass --write to apply)...');
 walk('.');
 console.log('Done!');
