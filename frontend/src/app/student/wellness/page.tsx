@@ -556,7 +556,7 @@ export default function WellnessPage() {
     }
   };
 
-  // ---- Real Gemini-backed chat (replaces the old setTimeout fake reply) ----
+  // ---- Real Smart Assistant-backed chat (replaces the old setTimeout fake reply) ----
   const sendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || isSending) return;

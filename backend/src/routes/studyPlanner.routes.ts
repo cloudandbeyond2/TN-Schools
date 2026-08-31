@@ -27,7 +27,7 @@ async function getStudentParents(studentId: string): Promise<any[]> {
   return links.map(l => l.parent);
 }
 
-// Helper to invoke Gemini
+// Helper to invoke Smart Assistant
 async function callGemini(prompt: string, jsonMode: boolean = false): Promise<any> {
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
@@ -71,14 +71,14 @@ async function callGemini(prompt: string, jsonMode: boolean = false): Promise<an
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body.substring(0, 500)}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body.substring(0, 500)}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
-            reject(new Error('Empty content from Gemini'));
+            reject(new Error('Empty content from Smart Assistant'));
             return;
           }
           if (jsonMode) {

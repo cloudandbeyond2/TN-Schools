@@ -337,7 +337,7 @@ export default function TeacherUnitDetailPage() {
                 style={{ borderColor: `${accent}44`, borderTopColor: accent }}
               />
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300 text-center px-4">
-                Generating bilingual insights with Gemini…
+                Generating bilingual insights with Smart Assistant…
               </p>
               <p className="text-xs text-slate-500 mt-1 text-center px-4">
                 English & Tamil in one call — this takes 10–20 seconds.
@@ -353,7 +353,7 @@ export default function TeacherUnitDetailPage() {
                 No lesson insights yet for this unit.
               </p>
               <p className="text-xs text-slate-500 mt-2 px-4">
-                Click &quot;Generate AI Insights&quot; above — Gemini will produce English &amp; Tamil in one call.
+                Click &quot;Generate AI Insights&quot; above — Smart Assistant will produce English &amp; Tamil in one call.
               </p>
             </div>
           )}

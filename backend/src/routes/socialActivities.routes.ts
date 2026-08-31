@@ -192,7 +192,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// 4. Generate AI Reflection with Gemini
+// 4. Generate AI Reflection with Smart Assistant
 router.post("/generate-reflection", async (req: Request, res: Response) => {
   try {
     const { type, activityName, description, hours, location } = req.body;
@@ -475,7 +475,7 @@ router.get("/analytics/:schoolId", async (req: Request, res: Response) => {
   }
 });
 
-// 7. AI Suggestions for Community Activities using Gemini
+// 7. AI Suggestions for Community Activities using Smart Assistant
 router.post("/suggestions", async (req: Request, res: Response) => {
   try {
     const { studentClass, interests } = req.body;

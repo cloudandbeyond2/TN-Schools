@@ -640,14 +640,14 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
-            reject(new Error('Empty content from Gemini.'));
+            reject(new Error('Empty content from Smart Assistant.'));
             return;
           }
           resolve(JSON.parse(text));
@@ -658,7 +658,7 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(60000, () => req.destroy(new Error('Gemini API timed out')));
+    req.setTimeout(60000, () => req.destroy(new Error('Smart Assistant API timed out')));
     req.write(postData);
     req.end();
   });
@@ -674,7 +674,7 @@ router.post("/parse-syllabus-ai", requireMinRole("HEADMASTER"), async (req: Requ
 
     const prompt = `Analyze this syllabus image (which lists chapters/units and their sub-chapters/topics) and extract the entire structure. Return a JSON array of Units, where each unit has 'title' (string, e.g., 'Unit 1: Prose, Poem & Supplementary'), 'term' (string, e.g., 'Term 1' or 'Full Year' if not specified), and 'subtopics' (an array of strings representing the subtopics). Do not include any formatting, markdown, backticks, or code blocks. Return a raw JSON array: [ { "title": "Unit 1: Prose & Poetry", "term": "Term 1", "subtopics": [ "Prose: His First Flight", "Poem: Life" ] } ]`;
     
-    console.log("Calling Gemini multimodal to parse syllabus screenshot for academics hub...");
+    console.log("Calling Smart Assistant multimodal to parse syllabus screenshot for academics hub...");
     const parsedData = await callGeminiMultimodal(prompt, image, mimeType || 'image/png');
     
     if (!Array.isArray(parsedData)) {

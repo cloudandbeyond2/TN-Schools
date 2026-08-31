@@ -115,7 +115,7 @@ export default function StudyPlannerPage() {
         Swal.fire({
           icon: "success",
           title: "Schedule Formulated!",
-          text: "Gemini AI has built your weekly custom study calendar successfully.",
+          text: "Smart Assistant has built your weekly custom study calendar successfully.",
           timer: 2500,
           showConfirmButton: false,
         });
@@ -282,7 +282,7 @@ export default function StudyPlannerPage() {
                 <span className="text-5xl mb-4">🗓️</span>
                 <h4 className="text-sm font-bold text-black dark:text-slate-250">No Active Study Schedule</h4>
                 <p className="text-xs text-slate-400 max-w-sm mt-2 leading-relaxed">
-                  Enter your available daily study hours and preferences on the left, and let Gemini AI build a custom, science-backed schedule for you!
+                  Enter your available daily study hours and preferences on the left, and let Smart Assistant build a custom, science-backed schedule for you!
                 </p>
               </div>
             ) : (

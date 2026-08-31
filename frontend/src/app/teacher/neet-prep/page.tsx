@@ -122,7 +122,7 @@ export default function NEETPrepPage() {
 
   const [saving, setSaving] = useState(false);
 
-  // Gemini AI states
+  // Smart Assistant states
   const [aiTopic, setAiTopic] = useState("");
   const [aiSubject, setAiSubject] = useState("Biology");
   const [aiDifficulty, setAiDifficulty] = useState("Medium");
@@ -294,7 +294,7 @@ export default function NEETPrepPage() {
         Swal.fire({
           icon: "success",
           title: "AI Generation Success!",
-          text: `Gemini generated ${data.data.length} questions on topic: "${aiTopic.trim()}"`,
+          text: `Smart Assistant generated ${data.data.length} questions on topic: "${aiTopic.trim()}"`,
           timer: 2000,
           showConfirmButton: false,
         });
@@ -302,7 +302,7 @@ export default function NEETPrepPage() {
         Swal.fire({ icon: "error", title: "AI Error", text: data.error || "Failed to generate questions." });
       }
     } catch (e) {
-      Swal.fire({ icon: "error", title: "Connection Error", text: "Failed to connect to the Gemini API." });
+      Swal.fire({ icon: "error", title: "Connection Error", text: "Failed to connect to the Smart Assistant API." });
     } finally {
       setGeneratingAi(false);
     }
@@ -365,7 +365,7 @@ export default function NEETPrepPage() {
       if (!editChapterId) {
         Swal.fire({
           title: "Generating Questions...",
-          text: `Gemini AI is crafting custom questions for ${chapterForm.chapter}...`,
+          text: `Smart Assistant is crafting custom questions for ${chapterForm.chapter}...`,
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -390,7 +390,7 @@ export default function NEETPrepPage() {
         if (aiData.success && aiData.data) {
            generatedQuestions = aiData.data;
         } else {
-           throw new Error(aiData.error || "Failed to generate questions via Gemini.");
+           throw new Error(aiData.error || "Failed to generate questions via Smart Assistant.");
         }
       }
 
@@ -656,7 +656,7 @@ export default function NEETPrepPage() {
           { key: "syllabus", label: " Syllabus Tracker" },
           { key: "tests", label: " Mock Tests" },
           { key: "reports", label: " Student Reports" },
-          { key: "gemini", label: " Gemini AI Generator" },
+          { key: "gemini", label: " Smart Assistant Generator" },
           { key: "analytics", label: " Analytics" },
         ] as const).map((tab) => (
           <button
@@ -898,15 +898,15 @@ export default function NEETPrepPage() {
         </div>
       )}
 
-      {/* ── Gemini AI Question/Answer Tab ────────────────────── */}
+      {/* ── Smart Assistant Question/Answer Tab ────────────────────── */}
       {activeTab === "gemini" && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
             <div className="flex items-center gap-3">
               <span className="text-3xl"><Sparkles className="w-4 h-4 inline mr-1 text-amber-500" /></span>
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">Gemini AI Study Sheet Generator</h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">Generate high-quality practice question sheets (MCQ, Short, Long) instantly using Gemini API.</p>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">Smart Assistant Study Sheet Generator</h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">Generate high-quality practice question sheets (MCQ, Short, Long) instantly using Smart Assistant API.</p>
               </div>
             </div>
 
@@ -965,7 +965,7 @@ export default function NEETPrepPage() {
                   {generatingAi ? (
                     <>
                       <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-                      Gemini Generating study sheet...
+                      Smart Assistant Generating study sheet...
                     </>
                   ) : (
                     <><Sparkles className="w-4 h-4 inline mr-1 text-amber-500" /> Generate Q&A Sheet</>

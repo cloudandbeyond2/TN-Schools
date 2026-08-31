@@ -758,8 +758,8 @@ export default function CareerGuidancePage() {
                     <h3 className="text-2xl font-black mb-1">{studentName}</h3>
                     <p className="text-white/75 text-xs font-medium">
                       {lang === "EN"
-                        ? `Class ${studentClass} · Personalised career analysis powered by Gemini AI`
-                        : `${studentClass}ஆம் வகுப்பு · Gemini AI மூலம் தனிப்பட்ட தொழில் பகுப்பாய்வு`}
+                        ? `Class ${studentClass} · Personalised career analysis powered by Smart Assistant`
+                        : `${studentClass}ஆம் வகுப்பு · Smart Assistant மூலம் தனிப்பட்ட தொழில் பகுப்பாய்வு`}
                     </p>
                   </div>
                 </div>
@@ -945,7 +945,7 @@ export default function CareerGuidancePage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-black text-slate-800 dark:text-white">
-                    {lang === "EN" ? "Gemini AI is analysing your profile…" : "Gemini AI உங்கள் சுயவிவரத்தை பகுப்பாய்வு செய்கிறது…"}
+                    {lang === "EN" ? "Smart Assistant is analysing your profile…" : "Smart Assistant உங்கள் சுயவிவரத்தை பகுப்பாய்வு செய்கிறது…"}
                   </p>
                   <p className="text-xs text-slate-400 mt-1 font-medium">
                     {lang === "EN" ? "This may take 15–30 seconds" : "இது 15-30 விநாடிகள் ஆகலாம்"}

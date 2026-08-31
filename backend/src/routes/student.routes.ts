@@ -1158,7 +1158,7 @@ router.post('/:id/language-coaching/chat', async (req: Request, res: Response) =
         data: geminiReply
       });
     } catch (apiError) {
-      console.warn("Gemini call failed or API key missing, falling back to mock response.");
+      console.warn("Smart Assistant call failed or API key missing, falling back to mock response.");
       // Fallback response parsing
       const lowerMsg = message.toLowerCase();
       let text = "Super! I hear you. To say that in English, we can try different words. Want to practice a simple dialogue together?";

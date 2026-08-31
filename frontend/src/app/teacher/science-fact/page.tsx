@@ -166,7 +166,7 @@ export default function TeacherScienceFactPage() {
                 Teacher AI Control Center
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                Powered by Gemini AI
+                Powered by Smart Assistant
               </span>
             </div>
 
@@ -175,7 +175,7 @@ export default function TeacherScienceFactPage() {
             </h1>
 
             <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
-              Clicking <strong className="text-slate-900 dark:text-white font-bold">&quot;Generate Today Fact&quot;</strong> uses Gemini AI to generate a complete, engaging science fact with an activity, curiosity reflection, and quiz for middle school students!
+              Clicking <strong className="text-slate-900 dark:text-white font-bold">&quot;Generate Today Fact&quot;</strong> uses Smart Assistant to generate a complete, engaging science fact with an activity, curiosity reflection, and quiz for middle school students!
             </p>
 
             {/* Target Class Dropdown, Teacher Name & AI Prompt Input Controls */}

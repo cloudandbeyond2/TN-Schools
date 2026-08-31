@@ -25,12 +25,12 @@ const OPENAI_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"];
 // Known platform AI services. Config/keys/status load from the backend and
 // merge over these; saving creates the backend doc for the service.
 const SERVICE_CATALOG: Omit<AIService, "isEnabled" | "apiKeyMasked">[] = [
-  { key: "ai-tutor", name: "AI Tutor", provider: "GEMINI", providerLabel: "Google Gemini", model: "gemini-2.0-flash", icon: "🤖", portal: "Student", purpose: "Personalized tutoring & doubt solving", tokenLimit: 10_000_000, color: "from-cyan-600 to-blue-700" },
-  { key: "lesson-planner", name: "Lesson Planner", provider: "GEMINI", providerLabel: "Google Gemini", model: "gemini-1.5-flash", icon: "📋", portal: "Teacher", purpose: "Auto-generate lesson plans from syllabus", tokenLimit: 5_000_000, color: "from-amber-600 to-orange-700" },
-  { key: "question-gen", name: "Question Generator", provider: "GEMINI", providerLabel: "Google Gemini", model: "gemini-1.5-pro", icon: "❓", portal: "Teacher", purpose: "AI-based exam question generation", tokenLimit: 5_000_000, color: "from-violet-600 to-purple-700" },
-  { key: "parent-bot", name: "Parent Assistant", provider: "GEMINI", providerLabel: "Google Gemini", model: "gemini-2.0-flash", icon: "💬", portal: "Parent", purpose: "Chatbot for parent queries and guidance", tokenLimit: 2_000_000, color: "from-emerald-600 to-teal-700" },
-  { key: "analytics-ai", name: "Analytics AI", provider: "GEMINI", providerLabel: "Google Gemini", model: "gemini-1.5-pro", icon: "📊", portal: "DEO/Commissioner", purpose: "Pattern detection in educational data", tokenLimit: 2_000_000, color: "from-pink-600 to-rose-700" },
-  { key: "openai-fallback", name: "OpenAI Fallback", provider: "OPENAI", providerLabel: "OpenAI", model: "gpt-4o-mini", icon: "🔄", portal: "All", purpose: "Fallback when Gemini is unavailable", tokenLimit: 1_000_000, color: "from-slate-600 to-slate-800" },
+  { key: "ai-tutor", name: "AI Tutor", provider: "GEMINI", providerLabel: "Google Smart Assistant", model: "gemini-2.0-flash", icon: "🤖", portal: "Student", purpose: "Personalized tutoring & doubt solving", tokenLimit: 10_000_000, color: "from-cyan-600 to-blue-700" },
+  { key: "lesson-planner", name: "Lesson Planner", provider: "GEMINI", providerLabel: "Google Smart Assistant", model: "gemini-1.5-flash", icon: "📋", portal: "Teacher", purpose: "Auto-generate lesson plans from syllabus", tokenLimit: 5_000_000, color: "from-amber-600 to-orange-700" },
+  { key: "question-gen", name: "Question Generator", provider: "GEMINI", providerLabel: "Google Smart Assistant", model: "gemini-1.5-pro", icon: "❓", portal: "Teacher", purpose: "AI-based exam question generation", tokenLimit: 5_000_000, color: "from-violet-600 to-purple-700" },
+  { key: "parent-bot", name: "Parent Assistant", provider: "GEMINI", providerLabel: "Google Smart Assistant", model: "gemini-2.0-flash", icon: "💬", portal: "Parent", purpose: "Chatbot for parent queries and guidance", tokenLimit: 2_000_000, color: "from-emerald-600 to-teal-700" },
+  { key: "analytics-ai", name: "Analytics AI", provider: "GEMINI", providerLabel: "Google Smart Assistant", model: "gemini-1.5-pro", icon: "📊", portal: "DEO/Commissioner", purpose: "Pattern detection in educational data", tokenLimit: 2_000_000, color: "from-pink-600 to-rose-700" },
+  { key: "openai-fallback", name: "OpenAI Fallback", provider: "OPENAI", providerLabel: "OpenAI", model: "gpt-4o-mini", icon: "🔄", portal: "All", purpose: "Fallback when Smart Assistant is unavailable", tokenLimit: 1_000_000, color: "from-slate-600 to-slate-800" },
 ];
 
 export default function AIConfig() {
@@ -132,7 +132,7 @@ export default function AIConfig() {
       if (data.success) {
         setGlobalKey(data.data.secrets.apiKey || "");
         setGlobalKeySaved(true);
-        showToast("ok", "Global Gemini key saved (encrypted). All Gemini services use it unless overridden.");
+        showToast("ok", "Global Smart Assistant key saved (encrypted). All Smart Assistant services use it unless overridden.");
       } else {
         showToast("err", data.error || "Failed to save key");
       }
@@ -232,8 +232,8 @@ export default function AIConfig() {
         <div className="flex items-center gap-3 mb-3">
           <span className="text-2xl">🔑</span>
           <div>
-            <h3 className="text-sm font-bold text-white">Global Gemini API Key</h3>
-            <p className="text-[10px] text-slate-400">Used by all Gemini-based services unless overridden per service. Falls back to the server&apos;s GEMINI_API_KEY env variable when unset.</p>
+            <h3 className="text-sm font-bold text-white">Global Smart Assistant API Key</h3>
+            <p className="text-[10px] text-slate-400">Used by all Smart Assistant-based services unless overridden per service. Falls back to the server&apos;s GEMINI_API_KEY env variable when unset.</p>
           </div>
           <div className="ml-auto">
             <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${globalKeySaved ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-slate-400 bg-slate-800 border-slate-700"}`}>
@@ -245,7 +245,7 @@ export default function AIConfig() {
           <input
             value={globalKey}
             onChange={(e) => setGlobalKey(e.target.value)}
-            placeholder="Enter Gemini API key (AIza...)"
+            placeholder="Enter Smart Assistant API key (AIza...)"
             className="flex-1 bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 font-mono focus:outline-none focus:border-cyan-500"
           />
           <button onClick={saveGlobalKey} className="text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition">Update Key</button>
@@ -256,7 +256,7 @@ export default function AIConfig() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Active AI Services", value: `${activeServices}/${services.length}`, icon: "🤖", color: "text-cyan-400" },
-          { label: "Provider", value: "Gemini + OpenAI", icon: "📡", color: "text-blue-400" },
+          { label: "Provider", value: "Smart Assistant + OpenAI", icon: "📡", color: "text-blue-400" },
           { label: "Key Storage", value: "AES-256 Encrypted", icon: "🔐", color: "text-amber-400" },
           { label: "Global Key", value: globalKeySaved ? "Database" : "ENV", icon: "⚡", color: "text-violet-400" },
         ].map((k) => (
@@ -325,7 +325,7 @@ export default function AIConfig() {
                 <div className="flex gap-2 mb-3">
                   <input
                     readOnly
-                    value={s.apiKeyMasked || (s.provider === "GEMINI" ? "(uses global Gemini key)" : "(no key configured)")}
+                    value={s.apiKeyMasked || (s.provider === "GEMINI" ? "(uses global Smart Assistant key)" : "(no key configured)")}
                     className="flex-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded-lg px-2 py-1.5 font-mono focus:outline-none"
                   />
                 </div>

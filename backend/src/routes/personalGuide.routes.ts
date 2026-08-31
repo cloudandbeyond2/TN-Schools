@@ -270,7 +270,7 @@ async function callGemini(prompt: string): Promise<string> {
           if (text) {
             resolve(text);
           } else {
-            reject(new Error('Invalid response format from Gemini: ' + JSON.stringify(json)));
+            reject(new Error('Invalid response format from Smart Assistant: ' + JSON.stringify(json)));
           }
         } catch (e) {
           reject(e);
@@ -388,7 +388,7 @@ Student: ${currentMessage}
 AI Mentor:
 `;
 
-    // 3. Call Gemini
+    // 3. Call Smart Assistant
     const reply = await callGemini(prompt);
 
     // 4. Save to AIChat model

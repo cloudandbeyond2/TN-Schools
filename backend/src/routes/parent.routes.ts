@@ -672,7 +672,7 @@ router.post('/notifications', async (req: Request, res: Response) => {
 // ─────────────────────────────────────────────────────────────────
 // GET /api/parent/:parentId/child/:studentId/performance-summary
 // Dynamic Performance summary combining grades, attendance, badges,
-// guidance history and homework feedback with Gemini AI or local fallback.
+// guidance history and homework feedback with Smart Assistant or local fallback.
 // ─────────────────────────────────────────────────────────────────
 router.get('/:parentId/child/:studentId/performance-summary', async (req: Request, res: Response) => {
   try {
@@ -929,10 +929,10 @@ Ensure the tone is warm, motivating, and culturally appropriate. Do not use mark
           tamilSummary = result.tamilSummary || '';
           tamilTips = result.tamilTips || [];
         } else {
-          throw new Error('Invalid schema returned from Gemini');
+          throw new Error('Invalid schema returned from Smart Assistant');
         }
       } catch (err) {
-        console.error('Gemini API call failed for child performance summary:', err);
+        console.error('Smart Assistant API call failed for child performance summary:', err);
         const fallback = generateRulesFallback(student.user.name, overallAvg, attendancePct, strengths, weaknesses);
         aiSummary = fallback.summary;
         aiTips = fallback.tips;

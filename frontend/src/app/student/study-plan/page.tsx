@@ -377,7 +377,7 @@ export default function StudyPlanPage() {
           {isGenerating ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
               <div className="w-16 h-16 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-6" />
-              <h3 className="text-black dark:text-white font-bold text-base md:text-lg">Gemini AI Formulating Study Plan</h3>
+              <h3 className="text-black dark:text-white font-bold text-base md:text-lg">Smart Assistant Formulating Study Plan</h3>
               <p className="text-sm md:text-base text-slate-550 max-w-sm mt-3 animate-pulse font-sans">
                 Structuring unit targets, cheat sheets, quiz questions, and bilingual podcast scripts...
               </p>
@@ -458,7 +458,7 @@ export default function StudyPlanPage() {
               <div className="flex-1 min-h-[300px] md:h-[40%] rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-5 flex flex-col justify-between overflow-hidden">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
                   <span className="flex items-center gap-1.5"><i className="fi fi-sr-robot flex items-center text-indigo-400" /> AI Tutor</span>
-                  <span className="text-indigo-400 lowercase truncate hidden sm:block">Connected to Gemini 2.5</span>
+                  <span className="text-indigo-400 lowercase truncate hidden sm:block">Connected to Smart Assistant 2.5</span>
                 </div>
 
                 {/* Message logs */}

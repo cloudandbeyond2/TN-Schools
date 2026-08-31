@@ -132,7 +132,7 @@ function InfographicViewContent() {
 
         {/* Footer Brand */}
         <div className="text-center text-[10px] text-slate-655 font-mono tracking-widest uppercase">
-          TN Schools AI smart learning ecosystem · powered by Gemini 2.5 flash
+          TN Schools AI smart learning ecosystem · powered by Smart Assistant 2.5 flash
         </div>
 
       </div>

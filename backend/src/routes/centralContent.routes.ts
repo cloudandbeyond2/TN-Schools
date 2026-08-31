@@ -1273,14 +1273,14 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
-            reject(new Error('Empty content from Gemini.'));
+            reject(new Error('Empty content from Smart Assistant.'));
             return;
           }
           resolve(JSON.parse(text));
@@ -1291,7 +1291,7 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(60000, () => req.destroy(new Error('Gemini API timed out')));
+    req.setTimeout(60000, () => req.destroy(new Error('Smart Assistant API timed out')));
     req.write(postData);
     req.end();
   });
@@ -1309,14 +1309,14 @@ router.post('/subjects/:subjectId/parse-syllabus-ai', async (req: Request, res: 
 
     const prompt = `Analyze this syllabus image (which lists chapters/units for a course) and extract all the units listed. Return a JSON array containing objects with keys 'name' (the title/name of the unit) and 'unitNumber' (the sequential number of the unit, e.g., 1, 2, 3). Do not include any formatting, markdown, backticks, or code blocks. Return a raw JSON array: [ {"unitNumber": 1, "name": "..."} ]`;
     
-    console.log("Calling Gemini multimodal to parse syllabus screenshot...");
+    console.log("Calling Smart Assistant multimodal to parse syllabus screenshot...");
     const parsedData = await callGeminiMultimodal(prompt, image, mimeType || 'image/png');
     
     if (!Array.isArray(parsedData)) {
       throw new Error("Invalid response format from AI. Expected JSON array.");
     }
 
-    console.log(`Gemini parsed ${parsedData.length} units. Upserting to PostgreSQL database...`);
+    console.log(`Smart Assistant parsed ${parsedData.length} units. Upserting to PostgreSQL database...`);
     const createdUnits = [];
     
     for (const u of parsedData) {
@@ -1376,14 +1376,14 @@ router.post('/subjects/:subjectId/parse-full-syllabus-ai', async (req: Request, 
 
     const prompt = `Analyze this syllabus image (which lists chapters/units and their sub-chapters/subunits/topics) and extract the entire structure. Return a JSON array of Units, where each unit has 'unitNumber' (sequential integer), 'name' (string), and 'subunits' (an array of subunits belonging to this unit, each subunit having 'subunitNumber' (sequential integer) and 'name' (string)). Do not include any formatting, markdown, backticks, or code blocks. Return a raw JSON array: [ { "unitNumber": 1, "name": "Relations and Functions", "subunits": [ { "subunitNumber": 1, "name": "Cartesian Product" } ] } ]`;
     
-    console.log("Calling Gemini multimodal to parse full syllabus screenshot...");
+    console.log("Calling Smart Assistant multimodal to parse full syllabus screenshot...");
     const parsedData = await callGeminiMultimodal(prompt, image, mimeType || 'image/png');
     
     if (!Array.isArray(parsedData)) {
       throw new Error("Invalid response format from AI. Expected JSON array of units.");
     }
 
-    console.log(`Gemini parsed ${parsedData.length} units with their subunits. Syncing to PostgreSQL...`);
+    console.log(`Smart Assistant parsed ${parsedData.length} units with their subunits. Syncing to PostgreSQL...`);
     const results: Array<{ unit: any; subunits: any[] }> = [];
 
     for (const u of parsedData) {
@@ -1516,25 +1516,25 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body.substring(0, 500)}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body.substring(0, 500)}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
-            reject(new Error(`Empty content from Gemini. Finish reason: ${parsed?.candidates?.[0]?.finishReason || 'UNKNOWN'}`));
+            reject(new Error(`Empty content from Smart Assistant. Finish reason: ${parsed?.candidates?.[0]?.finishReason || 'UNKNOWN'}`));
             return;
           }
           resolve(JSON.parse(text));
         } catch (e) {
-          reject(new Error(`Failed to parse Gemini response: ${String(e)}`));
+          reject(new Error(`Failed to parse Smart Assistant response: ${String(e)}`));
         }
       });
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(120000, () => req.destroy(new Error('Gemini API timed out')));
+    req.setTimeout(120000, () => req.destroy(new Error('Smart Assistant API timed out')));
     req.write(postData);
     req.end();
   });
@@ -1828,7 +1828,7 @@ const PDF_SYLLABUS_SCHEMA = {
   required: ['language', 'subjectName', 'units']
 };
 
-// Call Gemini with a PDF document inline (vision) + a responseSchema. Used to
+// Call Smart Assistant with a PDF document inline (vision) + a responseSchema. Used to
 // read the real script off the rendered pages, bypassing broken font encodings
 // that garble text extraction (common in TN Tamil textbooks).
 async function callGeminiWithPdf(prompt: string, base64Pdf: string, schema: any): Promise<any> {
@@ -1870,28 +1870,28 @@ async function callGeminiWithPdf(prompt: string, base64Pdf: string, schema: any)
       resp.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (resp.statusCode && (resp.statusCode < 200 || resp.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${resp.statusCode}: ${body}`));
+          reject(new Error(`Smart Assistant API error ${resp.statusCode}: ${body}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!text) { reject(new Error('Empty content from Gemini.')); return; }
+          if (!text) { reject(new Error('Empty content from Smart Assistant.')); return; }
           resolve(JSON.parse(text));
         } catch (e) {
-          reject(new Error(`Failed to parse Gemini PDF response: ${String(e)}`));
+          reject(new Error(`Failed to parse Smart Assistant PDF response: ${String(e)}`));
         }
       });
     });
     req.on('error', (err) => reject(err));
-    req.setTimeout(120000, () => req.destroy(new Error('Gemini PDF request timed out')));
+    req.setTimeout(120000, () => req.destroy(new Error('Smart Assistant PDF request timed out')));
     req.write(postData);
     req.end();
   });
 }
 
 // Slice the first `maxPages` pages of a PDF into a small sub-PDF (base64) so we
-// can send just the table-of-contents region to Gemini inline (<20MB limit).
+// can send just the table-of-contents region to Smart Assistant inline (<20MB limit).
 async function slicePdfPages(buffer: Buffer, maxPages: number): Promise<string> {
   const { PDFDocument } = require('pdf-lib');
   const src = await PDFDocument.load(buffer, { ignoreEncryption: true });
@@ -2045,10 +2045,10 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
     let parsed: any = null;
     let pdfPages = 0;
 
-    // --- Primary path: let Gemini read the PDF pages (accurate for Tamil script) ---
+    // --- Primary path: let Smart Assistant read the PDF pages (accurate for Tamil script) ---
     try {
       const base64Pdf = await slicePdfPages(file.buffer, 150);
-      console.log(`[PDF Upload] Sending first pages to Gemini (vision) for Class ${className}...`);
+      console.log(`[PDF Upload] Sending first pages to Smart Assistant (vision) for Class ${className}...`);
       parsed = await callGeminiWithPdf(promptBase, base64Pdf, PDF_SYLLABUS_SCHEMA);
     } catch (visionErr: any) {
       console.warn('[PDF Upload] PDF-vision path failed, will fall back to text:', visionErr.message);
@@ -2303,7 +2303,7 @@ const INFOGRAPHIC_SCHEMA = {
   required: ['topicTitle', 'overallSummary', 'visualFlow', 'keyFormulasOrFacts', 'mnemonics', 'flashcards']
 };
 
-// POST /api/centralized-content/topics/:id/generate-infographic — Generate a smart concept map / infographic using Gemini from uploaded PDFs/materials
+// POST /api/centralized-content/topics/:id/generate-infographic — Generate a smart concept map / infographic using Smart Assistant from uploaded PDFs/materials
 router.post('/topics/:id/generate-infographic', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -2468,7 +2468,7 @@ const PRESENTATION_SCHEMA = {
   required: ['presentationTitle', 'slides']
 };
 
-// POST /api/centralized-content/topics/:id/generate-presentation — Generate a smart presentation slides deck using Gemini from uploaded materials
+// POST /api/centralized-content/topics/:id/generate-presentation — Generate a smart presentation slides deck using Smart Assistant from uploaded materials
 router.post('/topics/:id/generate-presentation', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

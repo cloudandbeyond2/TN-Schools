@@ -6,7 +6,7 @@ import { getGeminiApiKey } from '../services/aiConfig.service';
 import { prisma } from '../config/prisma';
 const router = Router();
 
-// Every AI endpoint proxies to the paid Gemini API — logged-in users only.
+// Every AI endpoint proxies to the paid Smart Assistant API — logged-in users only.
 router.use(authenticate);
 
 // ===========================================================================
@@ -92,7 +92,7 @@ No extra text.
   }
 });
 // ---------------------------------------------------------------------------
-// Robust multi-stage JSON repair (handles Gemini quirks)
+// Robust multi-stage JSON repair (handles Smart Assistant quirks)
 // ---------------------------------------------------------------------------
 function fixUnescapedControlChars(s: string): string {
   let result = '';
@@ -161,7 +161,7 @@ function robustParseJSON(text: string): any {
 }
 
 // ---------------------------------------------------------------------------
-// Gemini API helper
+// Smart Assistant API helper
 // ---------------------------------------------------------------------------
 
 // Model used when a caller does not name one. AI Content Studio skills pass a
@@ -171,7 +171,7 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
   // Superadmin-configured key (AI Integration Setup) wins; env var is the fallback.
   const GEMINI_API_KEY = await getGeminiApiKey();
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
-    throw new Error('Gemini API key is missing. Configure it in AI Integration Setup or backend/.env');
+    throw new Error('Smart Assistant API key is missing. Configure it in AI Integration Setup or backend/.env');
   }
 
   // API key goes in a header, not the query string, so it never lands in URL logs
@@ -228,7 +228,7 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
         const body = Buffer.concat(chunks).toString('utf8');
 
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body.substring(0, 500)}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body.substring(0, 500)}`));
           return;
         }
         let parsed: any = null;
@@ -238,7 +238,7 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
           text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
             const finishReason = parsed?.candidates?.[0]?.finishReason;
-            reject(new Error(`Empty content from Gemini. Finish reason: ${finishReason || 'UNKNOWN'}`));
+            reject(new Error(`Empty content from Smart Assistant. Finish reason: ${finishReason || 'UNKNOWN'}`));
             return;
           }
           resolve(jsonMode ? robustParseJSON(text) : text);
@@ -250,7 +250,7 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(timeoutMs, () => req.destroy(new Error(`Gemini API timed out after ${Math.round(timeoutMs / 1000)} seconds`)));
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`Smart Assistant API timed out after ${Math.round(timeoutMs / 1000)} seconds`)));
     req.write(postData);
     req.end();
   });
@@ -1120,7 +1120,7 @@ router.post('/companion', async (req: Request, res: Response) => {
       return res.json({ success: true, data: cached });
     }
 
-    // 2. Generate new content using Gemini
+    // 2. Generate new content using Smart Assistant
     const prompt = `
 You are an expert curriculum developer and teacher for Tamil Nadu (TN) Schools under the State Board (Samacheer Kalvi) syllabus.
 Generate a comprehensive AI Study Companion package for:
@@ -1462,7 +1462,7 @@ Rules:
   }
 });
 // ===========================================================================
-// POST /api/ai/generate-3d — Generate 3D schematic models using Gemini
+// POST /api/ai/generate-3d — Generate 3D schematic models using Smart Assistant
 // ===========================================================================
 const GENERATE_3D_SCHEMA = {
   type: 'OBJECT',

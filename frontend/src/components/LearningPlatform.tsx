@@ -271,7 +271,7 @@ export default function LearningPlatform({ level }: { level?: string }) {
               {language === 'en' ? 'Generating Daily Facts...' : 'புதிய தகவல்களைத் தயாரிக்கிறது...'}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              {language === 'en' ? 'Gemini AI is finding mind-blowing concepts' : 'Gemini AI அற்புதமான கருத்துகளைத் தேடுகிறது'}
+              {language === 'en' ? 'Smart Assistant is finding mind-blowing concepts' : 'Smart Assistant அற்புதமான கருத்துகளைத் தேடுகிறது'}
             </p>
           </div>
         )}

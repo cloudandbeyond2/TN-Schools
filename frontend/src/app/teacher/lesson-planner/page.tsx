@@ -20,7 +20,7 @@ const sections = ["All", "A", "B", "C", "D", "E"];
 // Generation pipeline steps — each paired with a Flaticon icon shown in the loader
 const steps = [
   { icon: "fi-sr-book-alt", text: "Reading uploaded Textbook chapter..." },
-  { icon: "fi-sr-brain", text: "Querying Gemini 2.5 Flash AI Engine..." },
+  { icon: "fi-sr-brain", text: "Querying Smart Assistant 2.5 Flash AI Engine..." },
   { icon: "fi-sr-diagram-project", text: "Structuring pedagogical activities (Hook, Core, Evaluation)..." },
   { icon: "fi-sr-globe", text: "Translating technical terminology to Tamil..." },
   { icon: "fi-sr-chart-histogram", text: "Generating concept slides & visual infographics..." },

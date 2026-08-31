@@ -2353,7 +2353,7 @@ router.post('/science-fact/generate', async (req: Request, res: Response) => {
 
     const searchTerm = (promptTopic || topicId || '').toLowerCase().trim();
 
-    // 1. Try Gemini AI generation first
+    // 1. Try Smart Assistant generation first
     const aiResult = await generateScienceFactWithAI(searchTerm || undefined);
     if (aiResult && aiResult.title && aiResult.scienceFact) {
       factPayload = aiResult;

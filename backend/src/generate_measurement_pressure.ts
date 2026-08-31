@@ -104,14 +104,14 @@ async function callGemini(prompt: string): Promise<any> {
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-          reject(new Error(`Gemini API error ${res.statusCode}: ${body}`));
+          reject(new Error(`Smart Assistant API error ${res.statusCode}: ${body}`));
           return;
         }
         try {
           const parsed = JSON.parse(body);
           const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) {
-            reject(new Error('Empty content from Gemini.'));
+            reject(new Error('Empty content from Smart Assistant.'));
             return;
           }
           resolve(robustParseJSON(text));
@@ -270,7 +270,7 @@ Remember:
 
   try {
     const result = await callGemini(prompt);
-    console.log("Successfully generated lesson plan from Gemini!");
+    console.log("Successfully generated lesson plan from Smart Assistant!");
 
     // Save into Postgres
     console.log("Saving lesson plan into Postgres database...");

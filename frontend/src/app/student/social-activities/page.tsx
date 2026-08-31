@@ -169,7 +169,7 @@ export default function StudentSocialActivitiesPage() {
       const json = await res.json();
       if (json.success && json.reflection) {
         setPreviewReflection(json.reflection);
-        Swal.fire("AI Reflection Generated", "Gemini has successfully structured your self-reflection metrics. Review them below before submitting!", "success");
+        Swal.fire("AI Reflection Generated", "Smart Assistant has successfully structured your self-reflection metrics. Review them below before submitting!", "success");
       }
     } catch (err) {
       console.error(err);
@@ -564,7 +564,7 @@ export default function StudentSocialActivitiesPage() {
                       <i className="fi fi-sr-sparkles flex items-center text-emerald-500 text-lg" />
                       <div className="text-left">
                         <span className="block font-bold text-black dark:text-white text-xs">AI Reflection Generator</span>
-                        <span className="text-[10px] text-slate-500 font-semibold">Gemini will analyze your description to map critical social values.</span>
+                        <span className="text-[10px] text-slate-500 font-semibold">Smart Assistant will analyze your description to map critical social values.</span>
                       </div>
                     </div>
                     <button

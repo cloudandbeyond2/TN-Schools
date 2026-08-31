@@ -67,7 +67,7 @@ async function resolveStudent(id: string) {
   return { student, tier };
 }
 
-// ─── Gemini Coach Caller ──────────────────────────────────────────────────────
+// ─── Smart Assistant Coach Caller ──────────────────────────────────────────────────────
 async function callGeminiCoach(systemPrompt: string): Promise<any> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === '') throw new Error('GEMINI_API_KEY missing');

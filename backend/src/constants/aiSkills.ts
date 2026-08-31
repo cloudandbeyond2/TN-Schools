@@ -358,7 +358,7 @@ export function subjectToPack(subject?: string | null): SubjectPack {
 }
 
 // ---------------------------------------------------------------------------
-// Gemini response schemas — one per output kind.
+// Smart Assistant response schemas — one per output kind.
 // Uppercase type names match the existing schemas in routes/ai.routes.ts.
 // ---------------------------------------------------------------------------
 

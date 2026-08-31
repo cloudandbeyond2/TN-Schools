@@ -3,7 +3,7 @@
 export async function generateConceptMap(topic: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("Gemini API key is not configured.");
+    throw new Error("Smart Assistant API key is not configured.");
   }
 
   const prompt = `You are an educational assistant for school teachers. Create a concept map layout about the topic "${topic}".
@@ -62,7 +62,7 @@ Output ONLY a valid JSON object matching this structure exactly (no markdown for
 
     const data = await res.json();
     if (!res.ok) {
-      console.error("Gemini Error:", data);
+      console.error("Smart Assistant Error:", data);
       throw new Error(data.error?.message || "Failed to generate concept map");
     }
 

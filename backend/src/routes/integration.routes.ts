@@ -257,7 +257,7 @@ router.post('/ai/:key/test', async (req: Request, res: Response) => {
     }
     const provider = req.body?.provider || existing?.provider || 'GEMINI';
 
-    // Gemini services without their own key fall back to the global key
+    // Smart Assistant services without their own key fall back to the global key
     // (DB 'ai:global-gemini', then GEMINI_API_KEY env) — same as runtime.
     if (!apiKey && provider === 'GEMINI') {
       apiKey = await getGeminiApiKey();
