@@ -1529,4 +1529,114 @@ router.put('/:studentId/stream', async (req: Request, res: Response) => {
   }
 });
 
+/* ------------------- GET STREAM METADATA ------------------- */
+router.get('/streams', async (req: Request, res: Response) => {
+  try {
+    const streamKnowledgeEn = [
+      {
+        stream: "Pure Science & Bio",
+        icon: "🧬",
+        color: "text-pink-400",
+        bgBorder: "border-pink-500/30 bg-pink-900/10",
+        subjects: "Biology, Physics, Chemistry",
+        aiFeature: "Virtual Anatomy Lab & Medical Assistant",
+        projectIdea: "Local Flora & Fauna DNA Mapping",
+      },
+      {
+        stream: "Computer Science & Math",
+        icon: "💻",
+        color: "text-indigo-400",
+        bgBorder: "border-indigo-500/30 bg-indigo-900/10",
+        subjects: "Computer Science, Math, Physics",
+        aiFeature: "AI Code Reviewer & JEE Mock Engine",
+        projectIdea: "Build a School Management API",
+      },
+      {
+        stream: "Commerce & Accountancy",
+        icon: "📈",
+        color: "text-emerald-400",
+        bgBorder: "border-emerald-500/30 bg-emerald-900/10",
+        subjects: "Accountancy, Commerce, Economics",
+        aiFeature: "AI Financial Forecaster (CA Prep)",
+        projectIdea: "Virtual Stock Portfolio Analysis",
+      },
+      {
+        stream: "Arts & Humanities",
+        icon: "🏛️",
+        color: "text-amber-400",
+        bgBorder: "border-amber-500/30 bg-amber-900/10",
+        subjects: "History, Geography, Political Science",
+        aiFeature: "Historical Source Analyzer & Civil Services Guide",
+        projectIdea: "Mock UN Assembly Debate & Policy Draft",
+      },
+      {
+        stream: "Vocational Education",
+        icon: "🔧",
+        color: "text-rose-400",
+        bgBorder: "border-rose-500/30 bg-rose-900/10",
+        subjects: "Basic Electrical, Agriculture Science, Office Management",
+        aiFeature: "Skill Simulator & Trade Skill Evaluator",
+        projectIdea: "Smart Home Automated Circuit Design",
+      },
+    ];
+
+    const streamKnowledgeTa = [
+      {
+        stream: "தூய அறிவியல் & உயிரியல்",
+        icon: "🧬",
+        color: "text-pink-400",
+        bgBorder: "border-pink-500/30 bg-pink-900/10",
+        subjects: "உயிரியல், இயற்பியல், வேதியியல்",
+        aiFeature: "மெய்நிகர் உடற்கூறியல் ஆய்வகம் & மருத்துவ உதவியாளர்",
+        projectIdea: "உள்ளூர் தாவரங்கள் & விலங்கினங்கள் DNA வரைபடம்",
+      },
+      {
+        stream: "கணிப்பொறி அறிவியல் & கணிதம்",
+        icon: "💻",
+        color: "text-indigo-400",
+        bgBorder: "border-indigo-500/30 bg-indigo-900/10",
+        subjects: "கணிப்பொறி அறிவியல், கணிதம், இயற்பியல்",
+        aiFeature: "AI குறியீடு மதிப்பாய்வாளர் & JEE மாதிரி எஞ்சின்",
+        projectIdea: "பள்ளி மேலாண்மை API உருவாக்குதல்",
+      },
+      {
+        stream: "வணிகவியல் & கணக்குப்பதிவியல்",
+        icon: "📈",
+        color: "text-emerald-400",
+        bgBorder: "border-emerald-500/30 bg-emerald-900/10",
+        subjects: "கணக்குப்பதிவியல், வணிகவியல், பொருளாதாரம்",
+        aiFeature: "AI நிதி முன்னறிவிப்பாளர் (CA பயிற்சி)",
+        projectIdea: "மெய்நிகர் பங்குச் சந்தை பகுப்பாய்வு",
+      },
+      {
+        stream: "கலை & மனிதநேயம்",
+        icon: "🏛️",
+        color: "text-amber-400",
+        bgBorder: "border-amber-500/30 bg-amber-900/10",
+        subjects: "வரலாறு, புவியியல், அரசியல் அறிவியல்",
+        aiFeature: "வரலாற்று மூலப் பகுப்பாய்வாளர் & சிவில் சர்வீசஸ் வழிகாட்டி",
+        projectIdea: "மாதிரி ஐ.நா சபை விவாதம் & கொள்கை வரைவு",
+      },
+      {
+        stream: "தொழிற்கல்வி",
+        icon: "🔧",
+        color: "text-rose-400",
+        bgBorder: "border-rose-500/30 bg-rose-900/10",
+        subjects: "அடிப்படை மின்சாரவியல், வேளாண் அறிவியல், அலுவலக மேலாண்மை",
+        aiFeature: "திறன் உருவகப்படுத்துதல் & தொழில் திறன் மதிப்பீட்டாளர்",
+        projectIdea: "ஸ்மார்ட் ஹோம் தானியங்கி சுற்று வடிவமைப்பு",
+      },
+    ];
+
+    res.json({
+      success: true,
+      en: streamKnowledgeEn,
+      ta: streamKnowledgeTa
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
+
