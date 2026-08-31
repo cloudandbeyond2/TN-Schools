@@ -343,7 +343,8 @@ export default function HigherSecondaryDashboard() {
               </div>
             </div>
  
-            {/* 2. School Press Card */}
+            {/* 2. School Press Card (Hidden) */}
+            {/*
             <div className="glass rounded-2xl p-6 fade-in-2 border border-emerald-500/20 shadow-sm relative overflow-hidden text-left">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
               

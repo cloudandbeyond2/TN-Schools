@@ -191,7 +191,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
       { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
-      { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
+      // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
@@ -279,7 +279,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Career Aptitude", href: "/student/high-school/career", icon: "Compass" },
       { label: "Scholarships", href: "/student/high-school/scholarships", icon: "GraduationCap" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
-      { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
+      // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
@@ -457,7 +457,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Career Guidance", href: "/student/career", icon: "Compass" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "Award" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
-      { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
+      // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       // { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
@@ -578,7 +578,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/teacher/celebrations", icon: "fi fi-rr-party-horn" },
       { label: "Cultural Events", href: "/teacher/cultural-events", icon: "fi fi-rr-music" },
       // { label: "Computer Education", href: "/teacher/computer-education", icon: "fi fi-rr-computer" },
-      { label: "School Press", href: "/teacher/school-press", icon: "fi fi-rr-newspaper" },
+      // { label: "School Press", href: "/teacher/school-press", icon: "fi fi-rr-newspaper" },
     ],
   },
   PARENT: {
