@@ -65,7 +65,7 @@ export default function UserManagement() {
 
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
-  const [form, setForm] = useState({ name:"", email:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
+  const [form, setForm] = useState({ name:"", email:"", mobile:"", emisId:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"", assignedRegion:"" });
 
   const fetchUsers = async () => {
     try {
@@ -162,7 +162,7 @@ export default function UserManagement() {
 
   const openAdd = () => { 
     setEditUser(null); 
-    setForm({ name:"", email:"", password:"123456", role:"TEACHER", district:"", block:"", school:"" }); 
+    setForm({ name:"", email:"", mobile:"", emisId:"", password:"123456", role:"TEACHER", district:"", block:"", school:"", assignedRegion:"" }); 
     setShowModal(true); 
   };
 
@@ -171,11 +171,14 @@ export default function UserManagement() {
     setForm({ 
       name: u.name, 
       email: u.email, 
+      mobile: "",
+      emisId: "",
       password: "", 
       role: u.role, 
       district: u.district === "—" ? "" : u.district, 
       block: u.block === "—" ? "" : u.block, 
-      school: u.school === "—" ? "" : u.school 
+      school: u.school === "—" ? "" : u.school,
+      assignedRegion: "",
     }); 
     setShowModal(true); 
   };
@@ -183,15 +186,24 @@ export default function UserManagement() {
   const handleRoleChange = (newRole: Role) => {
     setForm(f => {
       const updated = { ...f, role: newRole };
-      if (["SUPERADMIN", "COMMISSIONER", "MINISTER"].includes(newRole)) {
+      if (["SUPERADMIN"].includes(newRole)) {
+        updated.school = "";
+        updated.district = "";
+        updated.block = "";
+        updated.assignedRegion = "";
+      } else if (["COMMISSIONER", "MINISTER"].includes(newRole)) {
         updated.school = "";
         updated.district = "";
         updated.block = "";
       } else if (newRole === "DEO") {
         updated.school = "";
         updated.block = "";
+        updated.assignedRegion = "";
       } else if (newRole === "BEO") {
         updated.school = "";
+        updated.assignedRegion = "";
+      } else {
+        updated.assignedRegion = "";
       }
       return updated;
     });
@@ -238,9 +250,9 @@ export default function UserManagement() {
       alert("Password is required for new users.");
       return false;
     }
-    if (["TEACHER", "STUDENT", "HEADMASTER"].includes(form.role)) {
+    if (["TEACHER", "STUDENT", "HEADMASTER", "PARENT"].includes(form.role)) {
       if (!form.school) {
-        alert("Please select a school for this role.");
+        alert(`Please select a school for ${form.role}.`);
         return false;
       }
     } else if (form.role === "BEO") {
@@ -249,7 +261,7 @@ export default function UserManagement() {
         return false;
       }
       if (!form.block) {
-        alert("Please select a block for BEO.");
+        alert("Please enter a block for BEO.");
         return false;
       }
     } else if (form.role === "DEO") {
@@ -271,10 +283,12 @@ export default function UserManagement() {
           body: JSON.stringify({
             name: form.name,
             email: form.email,
+            mobile: form.mobile || undefined,
             role: form.role,
             district: form.district || null,
             block: form.block || null,
             schoolId: form.school || null,
+            assignedRegion: form.assignedRegion || null,
             password: form.password || undefined,
           }),
         });
@@ -301,10 +315,13 @@ export default function UserManagement() {
           body: JSON.stringify({
             name: form.name,
             email: form.email,
+            mobile: form.mobile || undefined,
+            emisId: form.emisId || undefined,
             role: form.role,
             district: form.district || null,
             block: form.block || null,
             schoolId: form.school || null,
+            assignedRegion: form.assignedRegion || null,
             password: form.password || "123456",
           }),
         });
@@ -514,8 +531,10 @@ export default function UserManagement() {
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
             <h3 className="text-base font-bold text-white mb-5">{editUser ? "✏️ Edit User" : "➕ Add New User"}</h3>
             <div className="space-y-3">
+
+              {/* Full Name */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Full Name</label>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Full Name *</label>
                 <input
                   type="text"
                   value={form.name}
@@ -524,8 +543,10 @@ export default function UserManagement() {
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
                 />
               </div>
+
+              {/* Email */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Email</label>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Email *</label>
                 <input
                   type="email"
                   value={form.email}
@@ -534,8 +555,37 @@ export default function UserManagement() {
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
                 />
               </div>
+
+              {/* Mobile */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Password</label>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Mobile <span className="normal-case text-slate-600">(optional)</span></label>
+                <input
+                  type="tel"
+                  value={form.mobile}
+                  onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))}
+                  placeholder="10-digit mobile number"
+                  maxLength={10}
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                />
+              </div>
+
+              {/* EMIS ID — shown only for STUDENT */}
+              {form.role === "STUDENT" && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">EMIS ID <span className="normal-case text-slate-600">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={form.emisId}
+                    onChange={(e) => setForm((f) => ({ ...f, emisId: e.target.value }))}
+                    placeholder="Student EMIS ID"
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                  />
+                </div>
+              )}
+
+              {/* Password */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Password {!editUser && "*"}</label>
                 <input
                   type="text"
                   value={form.password}
@@ -544,6 +594,8 @@ export default function UserManagement() {
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
                 />
               </div>
+
+              {/* Role */}
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Role</label>
                 <select value={form.role} onChange={(e) => handleRoleChange(e.target.value as Role)}
@@ -552,11 +604,11 @@ export default function UserManagement() {
                 </select>
               </div>
 
-              {/* Dynamic Location selectors based on role */}
-              {["TEACHER", "STUDENT", "HEADMASTER"].includes(form.role) && (
+              {/* School selector — TEACHER, STUDENT, HEADMASTER, PARENT */}
+              {["TEACHER", "STUDENT", "HEADMASTER", "PARENT"].includes(form.role) && (
                 <>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">School</label>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">School *</label>
                     <select
                       value={form.school}
                       onChange={(e) => handleSchoolChange(e.target.value)}
@@ -567,9 +619,12 @@ export default function UserManagement() {
                         <option key={s.id} value={s.id}>{s.name} ({s.block})</option>
                       ))}
                     </select>
+                    {schoolsList.length === 0 && (
+                      <p className="text-[10px] text-amber-500 mt-1">⚠ No schools found. Add schools first via the Schools page.</p>
+                    )}
                   </div>
                   {form.school && (
-                    <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-850 rounded-lg border border-slate-800 text-[10px] text-slate-400">
+                    <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg border border-slate-800 text-[10px] text-slate-400">
                       <div>
                         <span className="font-bold block uppercase text-[8px] text-slate-500">District</span>
                         {form.district || "—"}
@@ -583,10 +638,11 @@ export default function UserManagement() {
                 </>
               )}
 
+              {/* BEO — district + block */}
               {form.role === "BEO" && (
                 <>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District</label>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District *</label>
                     <select
                       value={form.district}
                       onChange={(e) => handleDistrictChange(e.target.value)}
@@ -599,25 +655,40 @@ export default function UserManagement() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Block</label>
-                    <select
-                      value={form.block}
-                      onChange={(e) => handleBlockChange(e.target.value)}
-                      disabled={!form.district}
-                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 disabled:opacity-50"
-                    >
-                      <option value="">— Select Block —</option>
-                      {availableBlocks.map((b) => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                    </select>
+                    <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Block *</label>
+                    {availableBlocks.length > 0 ? (
+                      <select
+                        value={form.block}
+                        onChange={(e) => handleBlockChange(e.target.value)}
+                        disabled={!form.district}
+                        className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 disabled:opacity-50"
+                      >
+                        <option value="">— Select Block —</option>
+                        {availableBlocks.map((b) => (
+                          <option key={b} value={b}>{b}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={form.block}
+                        onChange={(e) => setForm((f) => ({ ...f, block: e.target.value }))}
+                        placeholder={form.district ? `Type block name in ${form.district}` : "Select district first"}
+                        disabled={!form.district}
+                        className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 disabled:opacity-50 font-mono"
+                      />
+                    )}
+                    {form.district && availableBlocks.length === 0 && (
+                      <p className="text-[10px] text-sky-500 mt-1">ℹ No blocks from DB — type block name manually.</p>
+                    )}
                   </div>
                 </>
               )}
 
+              {/* DEO — district only */}
               {form.role === "DEO" && (
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District</label>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">District *</label>
                   <select
                     value={form.district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
@@ -630,6 +701,21 @@ export default function UserManagement() {
                   </select>
                 </div>
               )}
+
+              {/* COMMISSIONER / MINISTER — assigned region */}
+              {["COMMISSIONER", "MINISTER"].includes(form.role) && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Assigned Region <span className="normal-case text-slate-600">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={form.assignedRegion}
+                    onChange={(e) => setForm((f) => ({ ...f, assignedRegion: e.target.value }))}
+                    placeholder={form.role === "MINISTER" ? "e.g. Tamil Nadu" : "e.g. South Zone / Tamil Nadu"}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
+                  />
+                </div>
+              )}
+
             </div>
             <div className="flex gap-3 mt-6 font-mono">
               <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700">Cancel</button>
