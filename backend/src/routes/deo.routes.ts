@@ -120,6 +120,22 @@ router.post('/grievances', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/deo/grievances - Delete a grievance record
+router.delete('/grievances', async (req: Request, res: Response) => {
+  try {
+    const id = (req.query.id || req.body?.id) as string;
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'Grievance ID is required for deletion.' });
+    }
+    await prisma.ministerGrievance.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Grievance deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ─── 3. CIRCULARS ENDPOINTS ───────────────────────────────────────────
 
 // GET /api/deo/circulars - Fetch circular announcements

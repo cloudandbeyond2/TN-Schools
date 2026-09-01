@@ -212,6 +212,64 @@ const monitoringChain = [
   { level: "5", title: { en: "Commissioner", ta: "ஆணையர்" }, icon: Shield, desc: { en: "Top officials receive weekly summaries and unresolved escalations", ta: "உயர் அதிகாரிகள் வாராந்திர சுருக்கங்களைப் பெறுகின்றனர்" } },
 ];
 
+const renderStudentParsedDetails = (str: string) => {
+  if (!str) return <p className="text-slate-500 text-xs italic">No description provided.</p>;
+
+  if (str.includes("|")) {
+    const parts = str.split("|").map(p => p.trim());
+    const fields: { key: string; val: string }[] = [];
+    let detailedDesc = "";
+
+    parts.forEach(part => {
+      const colonIdx = part.indexOf(":");
+      if (colonIdx !== -1) {
+        const k = part.substring(0, colonIdx).trim();
+        const v = part.substring(colonIdx + 1).trim();
+        if (k.toLowerCase() === "details") {
+          detailedDesc = v;
+        } else {
+          fields.push({ key: k, val: v });
+        }
+      } else {
+        detailedDesc += (detailedDesc ? " " : "") + part;
+      }
+    });
+
+    return (
+      <div className="space-y-3">
+        {fields.length > 0 && (
+          <div className="grid grid-cols-2 gap-2.5 bg-slate-100 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            {fields.map((f, i) => (
+              <div key={i} className="text-xs">
+                <span className="text-[10px] text-red-500 dark:text-red-400 font-bold block uppercase tracking-wider mb-0.5">
+                  {f.key}
+                </span>
+                <span className="text-slate-800 dark:text-slate-200 font-semibold">{f.val}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {detailedDesc && (
+          <div className="bg-slate-100 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
+            <span className="text-[10px] text-red-500 dark:text-red-400 font-bold block uppercase tracking-wider">
+              Detailed Description
+            </span>
+            <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans font-medium">
+              {detailedDesc}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-slate-800 dark:text-slate-200 text-xs leading-relaxed font-sans bg-slate-100 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+      {str}
+    </p>
+  );
+};
+
 // ─────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────
@@ -240,10 +298,69 @@ export default function ReportPage() {
       const dist = (session?.user as any)?.district || "Trichy";
       const res = await fetch(`${API_URL}/api/deo/grievances?district=${encodeURIComponent(dist)}`);
       const json = await res.json();
-      if (json.success && json.data) {
-        const updated = baseReports.map(report => {
-          const dbMatch = json.data.find((g: any) => g.petitioner.includes(report.refNum) || g.id === report.refNum);
-          if (dbMatch) {
+      if (json.success && Array.isArray(json.data)) {
+        // If local reports list is empty, automatically populate from database for current student
+        if (baseReports.length === 0) {
+          const studentNameLower = (session?.user?.name || "rathna").toLowerCase();
+          const dbFetched = json.data
+            .filter((g: any) =>
+              g.petitioner.toLowerCase().includes(studentNameLower) ||
+              g.petitioner.includes("TN-RPT") ||
+              g.petitioner.includes("Anonymous Student")
+            )
+            .map((g: any) => {
+              const refMatch = g.petitioner.match(/TN-RPT-\d+/);
+              const refNum = refMatch ? refMatch[0] : `TN-RPT-${String(g.id).slice(-6).toUpperCase()}`;
+              return {
+                refNum,
+                category: g.category || "General Concern",
+                priority: g.escalation === "Critical" ? "CRITICAL" : (g.escalation === "High" ? "HIGH" : "MEDIUM"),
+                date: g.filed || new Date().toISOString().split("T")[0],
+                status: g.status,
+                description: g.ministerAction || "Submitted concern report to school and DEO.",
+                staffName: "School Staff",
+                location: "Holy Cross Hr Sec School",
+                dateOfIncident: g.filed || new Date().toISOString().split("T")[0],
+                witnessDetails: "Classmates",
+                urgency: "Normal (1-3 days)",
+                isAnonymous: g.petitioner.includes("Anonymous") ? "Anonymous Report" : "Identified Report",
+                officialNote: g.status === "Resolved"
+                  ? "✅ Issue verified and marked as RESOLVED by District Education Officer."
+                  : (g.status === "Under Review" ? "🔍 Currently under active investigation by DEO Team." : "⏳ Under active review by District Officers.")
+              };
+            });
+
+          if (dbFetched.length > 0) {
+            setMyReports(dbFetched);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("tn_student_reports", JSON.stringify(dbFetched));
+            }
+            return;
+          }
+        }
+
+        const updated = baseReports
+          .filter(report => {
+            // Keep report only if it still exists in the DEO database
+            const dbMatch = json.data.find((g: any) =>
+              g.petitioner.includes(report.refNum) ||
+              g.id === report.refNum ||
+              (g.category === report.category && (
+                g.petitioner.toLowerCase().includes((report.name || report.studentName || session?.user?.name || "rathna").toLowerCase()) ||
+                g.petitioner.includes(report.refNum)
+              ))
+            );
+            return !!dbMatch;
+          })
+          .map(report => {
+            const dbMatch = json.data.find((g: any) =>
+              g.petitioner.includes(report.refNum) ||
+              g.id === report.refNum ||
+              (g.category === report.category && (
+                g.petitioner.toLowerCase().includes((report.name || report.studentName || session?.user?.name || "rathna").toLowerCase()) ||
+                g.petitioner.includes(report.refNum)
+              ))
+            );
             return {
               ...report,
               status: dbMatch.status,
@@ -251,9 +368,7 @@ export default function ReportPage() {
                 ? "✅ Issue verified and marked as RESOLVED by District Education Officer."
                 : (dbMatch.status === "Under Review" ? "🔍 Currently under active investigation by DEO Team." : report.officialNote)
             };
-          }
-          return report;
-        });
+          });
         setMyReports(updated);
         if (typeof window !== "undefined") {
           localStorage.setItem("tn_student_reports", JSON.stringify(updated));
@@ -280,6 +395,13 @@ export default function ReportPage() {
 
     setMyReports(initialReports);
     fetchDatabaseStatuses(initialReports);
+
+    // 3-second live auto-sync polling
+    const interval = setInterval(() => {
+      fetchDatabaseStatuses(initialReports);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [session]);
 
   const L = t[lang];
@@ -329,7 +451,7 @@ export default function ReportPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          petitioner: isAnonymous ? `Anonymous Student (${ref})` : (session?.user?.name || "Student"),
+          petitioner: isAnonymous ? `Anonymous Student (${ref}) (${userSchool}, Trichy)` : `${session?.user?.name || "Rathna"} (${ref}) (${userSchool}, Trichy)`,
           district: userDistrict,
           category: selectedCategory?.title.en || "General",
           filed: dateOfIncident || new Date().toISOString().split("T")[0],
@@ -516,9 +638,11 @@ export default function ReportPage() {
                             ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-300"
                             : r.status === "Under Review"
                             ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-300"
+                            : r.status === "Closed" || r.status === "Deleted"
+                            ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-400"
                             : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-300"
                         }`}>
-                          {r.status === "Resolved" ? "✅ Resolved" : r.status === "Under Review" ? "🔍 Under Review" : "⏳ Action Pending"}
+                          {r.status === "Resolved" ? "✅ Resolved" : r.status === "Under Review" ? "🔍 Under Review" : r.status === "Closed" || r.status === "Deleted" ? "🗑️ Closed / Archived" : "⏳ Action Pending"}
                         </span>
                       </div>
                     </div>
@@ -936,7 +1060,7 @@ export default function ReportPage() {
       {/* ── Student View Details Modal ── */}
       {selectedStudentReport && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-3xl p-6 md:p-8 space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 md:p-8 space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
@@ -990,12 +1114,10 @@ export default function ReportPage() {
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">
                   {lang === "en" ? "Full Incident Details & Description" : "சம்பவத்தின் முழு விவரங்கள்"}
                 </span>
-                <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed font-mono bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap">
-                  {selectedStudentReport.description || "No description provided."}
-                </p>
+                {renderStudentParsedDetails(selectedStudentReport.description || "")}
               </div>
 
               <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-1.5">
