@@ -400,7 +400,7 @@ export default function HomePage() {
                     </a>
                   ))}
                 </div>
-                
+
                 <hr className="border-emerald-800/10" />
 
                 <div className="flex flex-col gap-5">
@@ -848,7 +848,7 @@ export default function HomePage() {
                 <div style={{ fontSize: "12px", color: "#34D399", fontWeight: 700, textTransform: "uppercase" }}>Digital Campus</div>
               </div>
             </Link>
-            <p style={{ fontSize: "14px", lineHeight: 1.8, color: "#6EE7B7", maxWidth: "260px" }}>An official AI-powered platform for the Tamil Nadu School Education Department.</p>
+            <p style={{ fontSize: "14px", lineHeight: 1.8, color: "#6EE7B7", maxWidth: "260px" }}>ARn official AI-powered platform for the Tamil Nadu School Education Department.</p>
           </div>
 
           <div>
@@ -894,10 +894,10 @@ export default function HomePage() {
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(167,243,208,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
                 <svg viewBox="0 0 24 24" style={{ width: "26px", height: "26px", flexShrink: 0 }} fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3.18 1.32C2.77 1.73 2.5 2.38 2.5 3.22v17.56c0 .84.27 1.49.68 1.9l.1.09 9.84-9.84v-.23L3.28 1.23l-.1.09z" fill="#EA4335"/>
-                  <path d="M16.39 15.6l-3.28-3.28V12l3.28-3.28.07.04 3.89 2.21c1.11.63 1.11 1.66 0 2.29l-3.89 2.21-.07.04" fill="#FBBC04"/>
-                  <path d="M16.46 15.56L13.11 12 3.18 21.93c.37.39.97.44 1.64.07l11.64-6.44"/>
-                  <path d="M16.46 8.44L4.82 2c-.67-.37-1.27-.32-1.64.07L13.11 12l3.35-3.56" fill="#34A853"/>
+                  <path d="M3.18 1.32C2.77 1.73 2.5 2.38 2.5 3.22v17.56c0 .84.27 1.49.68 1.9l.1.09 9.84-9.84v-.23L3.28 1.23l-.1.09z" fill="#EA4335" />
+                  <path d="M16.39 15.6l-3.28-3.28V12l3.28-3.28.07.04 3.89 2.21c1.11.63 1.11 1.66 0 2.29l-3.89 2.21-.07.04" fill="#FBBC04" />
+                  <path d="M16.46 15.56L13.11 12 3.18 21.93c.37.39.97.44 1.64.07l11.64-6.44" />
+                  <path d="M16.46 8.44L4.82 2c-.67-.37-1.27-.32-1.64.07L13.11 12l3.35-3.56" fill="#34A853" />
                 </svg>
                 <div>
                   <div style={{ fontSize: "10px", color: "#A7F3D0", fontWeight: 500, lineHeight: 1, marginBottom: "3px" }}>{text.ftGetItGoogle}</div>
@@ -925,7 +925,7 @@ export default function HomePage() {
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(167,243,208,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
                 <svg viewBox="0 0 24 24" style={{ width: "26px", height: "26px", flexShrink: 0 }} fill="white" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                 </svg>
                 <div>
                   <div style={{ fontSize: "10px", color: "#A7F3D0", fontWeight: 500, lineHeight: 1, marginBottom: "3px" }}>{text.ftGetItApple}</div>
