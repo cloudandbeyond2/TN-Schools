@@ -12,7 +12,8 @@
     "start": "node dist/index.js",
     "postinstall": "prisma generate",
     "test": "jest",
-    "migrate:passwords": "ts-node scripts/migrate-hash-passwords.ts"
+    "migrate:passwords": "ts-node scripts/migrate-hash-passwords.ts",
+    "update:records": "ts-node scripts/update-records.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1089.0",
