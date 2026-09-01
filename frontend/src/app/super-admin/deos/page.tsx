@@ -230,16 +230,22 @@ export default function ManageDeosPage() {
       themeClass="theme-superadmin"
       accentColor="#7c3aed"
     >
-      {/* Toast Alert */}
+      {/* Toast Alert floating on top of all layers */}
       {toast && (
         <div
-          className={`mb-6 p-4 rounded-xl text-xs font-semibold border shadow-lg ${
+          className={`fixed top-5 right-5 z-[100] max-w-md p-4 rounded-2xl text-xs font-bold border shadow-2xl backdrop-blur-md transition-all flex items-center justify-between gap-3 ${
             toast.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-300"
-              : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-300"
+              ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/25"
+              : "bg-red-600 text-white border-red-500 shadow-red-500/25"
           }`}
         >
-          {toast.message}
+          <span>{toast.message}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="text-white/80 hover:text-white text-sm font-bold ml-2 shrink-0"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -451,6 +457,17 @@ export default function ManageDeosPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {toast && (
+                <div
+                  className={`p-3 rounded-xl text-xs font-semibold border shadow-sm ${
+                    toast.type === "success"
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-300"
+                      : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-300"
+                  }`}
+                >
+                  {toast.message}
+                </div>
+              )}
               <div>
                 <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Full Name</label>
                 <input
