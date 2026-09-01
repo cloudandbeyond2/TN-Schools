@@ -35,7 +35,7 @@ export default function ParentLeavePage() {
 
   // Filters & Pagination states
   const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>(" ");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 5;
 
