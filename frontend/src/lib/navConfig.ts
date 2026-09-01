@@ -760,11 +760,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "System Dashboard", href: "/super-admin", icon: "Activity" },
       { label: "People & Access", href: "#", icon: "" },
 
+      { label: "Commissioner Management", href: "/super-admin/commissioners", icon: "Scale" },
       { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
+      { label: "BEO Management", href: "/super-admin/beos", icon: "Building2" },
       { label: "User Management", href: "/super-admin/users", icon: "Users" },
-
-
-
       { label: "Role & Permissions", href: "/super-admin/roles", icon: "Lock" },
       { label: "School Management", href: "/super-admin/schools", icon: "Building" },
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },

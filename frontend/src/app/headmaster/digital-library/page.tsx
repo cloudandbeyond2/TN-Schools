@@ -112,10 +112,10 @@ export default function HeadmasterDigitalLibraryPage() {
       submitData.append("schoolId", (session?.user as any)?.schoolId || "");
       
       if (selectedFile) {
-        if (selectedFile.size > 4.5 * 1024 * 1024) {
+        if (selectedFile.size > 500 * 1024 * 1024) {
           setUploadMessage({
             type: "error",
-            text: "File size exceeds the 4.5MB serverless upload limit. Please optimize the file size or provide a direct File URL instead.",
+            text: "File size exceeds the 500MB upload limit. Please optimize the file size or provide a direct File URL instead.",
           });
           setUploadLoading(false);
           return;
@@ -130,7 +130,7 @@ export default function HeadmasterDigitalLibraryPage() {
       
       if (!res.ok) {
         if (res.status === 413) {
-          throw new Error("File is too large for the upload gateway (limit 4.5MB). Please use a smaller file size.");
+          throw new Error("File is too large for upload (maximum limit is 500MB).");
         }
         if (res.status === 404) {
           throw new Error("Upload service is currently unavailable. Please contact the administrator.");

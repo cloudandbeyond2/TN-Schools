@@ -2760,6 +2760,17 @@ export default function SuperadminAcademicsPage() {
                           const file = e.target.files?.[0];
                           if (!file) return;
 
+                          const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
+                          if (file.size > MAX_FILE_SIZE) {
+                            Swal.fire({
+                              icon: "error",
+                              title: "File Too Large",
+                              text: `The selected file is ${(file.size / (1024 * 1024)).toFixed(1)} MB. Maximum allowed size is 500 MB.`
+                            });
+                            e.target.value = "";
+                            return;
+                          }
+
                           setResourceForm(prev => ({ ...prev, url: "Uploading..." }));
 
                           const formData = new FormData();
@@ -2780,7 +2791,8 @@ export default function SuperadminAcademicsPage() {
                             });
 
                             if (!res.ok) {
-                              throw new Error("Upload failed");
+                              const errData = await res.json().catch(() => ({}));
+                              throw new Error(errData.error || errData.message || errData.details || `Upload failed with status ${res.status}`);
                             }
 
                             const data = await res.json();
@@ -2795,11 +2807,11 @@ export default function SuperadminAcademicsPage() {
                           } catch (err: any) {
                             console.error(err);
                             Swal.fire({ icon: "error", title: "Upload Failed", text: err.message || "File upload failed." });
-                            setResourceForm(prev => ({ ...prev, url: `/uploads/${file.name}`, type: detectedType }));
+                            setResourceForm(prev => ({ ...prev, url: "" }));
                           }
                         }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         <span className="text-xs text-slate-500 font-medium">
-                          {resourceForm.url === "Uploading..." ? "Uploading..." : (resourceForm.url && resourceForm.url.startsWith('/uploads') ? '✓ ' + resourceForm.url.split('/').pop() : 'Click to Browse / Drag File')}
+                          {resourceForm.url === "Uploading..." ? "Uploading (large files may take a moment)..." : (resourceForm.url && resourceForm.url.startsWith('/uploads') ? '✓ ' + resourceForm.url.split('/').pop() : 'Click to Browse / Drag File (up to 500 MB)')}
                         </span>
                       </div>
                     </>

@@ -20,7 +20,9 @@ const quickActionsStatic = [
   { label: "Role & Permissions", href: "/super-admin/roles", icon: <i className="fi fi-rr-lock"></i>, desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
   { label: "School Management", href: "/super-admin/schools", icon: <i className="fi fi-rr-building"></i>, desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
   { label: "Headmaster Mgmt", href: "/super-admin/headmasters", icon: <i className="fi fi-rr-user"></i>, desc: "Assign & transfer headmasters", color: "from-cyan-600 to-sky-700", badge: "37K+ HMs" },
+  { label: "Commissioner Mgmt", href: "/super-admin/commissioners", icon: <i className="fi fi-rr-scale"></i>, desc: "State school education commissioners", color: "from-blue-600 to-indigo-700", badge: "Commissioners" },
   { label: "DEO Management", href: "/super-admin/deos", icon: <i className="fi fi-rr-map"></i>, desc: "Manage District Education Officers", color: "from-pink-650 to-rose-700", badge: "38 DEOs" },
+  { label: "BEO Management", href: "/super-admin/beos", icon: <i className="fi fi-rr-building"></i>, desc: "Manage Block Education Officers", color: "from-purple-600 to-violet-700", badge: "413 Blocks" },
   { label: "Academics Hub", href: "/super-admin/academics", icon: <i className="fi fi-rr-graduation-cap"></i>, desc: "Configure class subjects, syllabus & resources", color: "from-indigo-600 to-purple-650", badge: "Curriculum" },
   { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: <i className="fi fi-rr-book-alt"></i>, desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
   { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: <i className="fi fi-rr-upload"></i>, desc: "Extract syllabus structure from textbook PDFs", color: "from-violet-650 to-indigo-800", badge: "AI Extract" },
@@ -149,7 +151,7 @@ export default function SuperAdminDashboard() {
 
   const filterMap: Record<string, string[]> = {
     all: dynamicActions.map((q) => q.href),
-    people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters", "/super-admin/deos"],
+    people: ["/super-admin/commissioners", "/super-admin/deos", "/super-admin/beos", "/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters"],
     academics: ["/super-admin/academics", "/super-admin/learning-hub", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
     system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],

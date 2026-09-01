@@ -154,11 +154,11 @@ export default function TeacherDigitalLibraryPage() {
       submitData.append("schoolId", (session?.user as any)?.schoolId || "");
       
       if (selectedFile) {
-        if (selectedFile.size > 4.5 * 1024 * 1024) {
+        if (selectedFile.size > 500 * 1024 * 1024) {
           Swal.fire({
             icon: "warning",
             title: "File too large",
-            text: "File size exceeds the 4.5MB serverless upload limit. Please optimize the file size or provide a direct File URL instead.",
+            text: "File size exceeds the 500MB upload limit. Please optimize the file size or provide a direct File URL instead.",
             confirmButtonColor: "#3b82f6",
             background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
             color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"

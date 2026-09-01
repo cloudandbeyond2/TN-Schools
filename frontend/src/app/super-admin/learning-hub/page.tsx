@@ -504,8 +504,8 @@ export default function CentralLearningHubAdmin() {
 
   const addFilesToQueue = (files: FileList | null) => {
     if (!files) return;
-    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md'];
-    const maxSizeBytes = 25 * 1024 * 1024; // 25MB
+    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md', '.epub', '.mobi', '.zip'];
+    const maxSizeBytes = 500 * 1024 * 1024; // 500MB
 
     const newFiles: UploadingFile[] = [];
     Array.from(files).forEach(file => {
@@ -515,7 +515,7 @@ export default function CentralLearningHubAdmin() {
       if (!allowedExtensions.includes(ext)) {
         errorMsg = "Unsupported file type";
       } else if (file.size > maxSizeBytes) {
-        errorMsg = "File exceeds 25MB size limit";
+        errorMsg = "File exceeds 500MB size limit";
       }
 
       newFiles.push({
@@ -635,8 +635,8 @@ export default function CentralLearningHubAdmin() {
   const handleReplaceMaterialFile = async (contentId: string, file: File) => {
     if (!file) return;
     
-    if (file.size > 25 * 1024 * 1024) {
-      setToast({ message: `File size exceeds 25MB: ${file.name}`, type: "error" });
+    if (file.size > 500 * 1024 * 1024) {
+      setToast({ message: `File size exceeds 500MB: ${file.name}`, type: "error" });
       return;
     }
     

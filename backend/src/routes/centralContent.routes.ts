@@ -8,7 +8,7 @@ import { getGroup } from '../constants/hscGroups';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'));
@@ -17,7 +17,7 @@ const pdfUpload = multer({
 
 const generalUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { fileSize: 500 * 1024 * 1024 }
 });
 
 import os from 'os';
@@ -47,7 +47,7 @@ const materialsStorage = multer.diskStorage({
 
 const materialsUpload = multer({
   storage: materialsStorage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per file limit
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB per file limit
   fileFilter: (req, file, cb) => {
     const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md'];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -1046,7 +1046,7 @@ router.post('/upload-materials', (req, res, next) => {
   materialsUpload.array('files', 10)(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 25MB.' });
+        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 500MB.' });
       }
       return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
     } else if (err) {
@@ -1119,7 +1119,7 @@ router.put('/contents/:id/replace', (req, res, next) => {
   materialsUpload.single('file')(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 25MB.' });
+        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 500MB.' });
       }
       return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
     } else if (err) {
