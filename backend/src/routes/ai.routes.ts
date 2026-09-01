@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion, Saved3DModel } from '../models/mongo';
+import { AIChat, LearningPath, Wellness, LibraryCompanion, Saved3DModel } from '../models/mongo'; // Portfolio removed — not used here; active portfolio uses PostgreSQL via portfolio.routes.ts
 import https from 'https';
 import { authenticate } from '../middleware/auth.middleware';
 import { getGeminiApiKey } from '../services/aiConfig.service';
