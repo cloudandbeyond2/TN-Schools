@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 interface DeoUser {
   id: string;
@@ -13,6 +14,9 @@ interface DeoUser {
   district: string | null;
   passwordHash?: string;
 }
+
+type SortField = "name" | "email" | "mobile" | "district" | "createdAt";
+type SortOrder = "asc" | "desc";
 
 const TN_DISTRICTS = [
   "Chennai",
@@ -53,6 +57,8 @@ export default function ManageDeosPage() {
   const [deos, setDeos] = useState<DeoUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -173,12 +179,45 @@ export default function ManageDeosPage() {
     }
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortOrder === "asc") {
+        setSortOrder("desc");
+      } else {
+        setSortField(null);
+        setSortOrder("asc");
+      }
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
   const filteredDeos = deos.filter(
     (d) =>
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       (d.email && d.email.toLowerCase().includes(search.toLowerCase())) ||
       (d.district && d.district.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const sortedDeos = [...filteredDeos].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let valA: string | number = "";
+    let valB: string | number = "";
+
+    if (sortField === "createdAt") {
+      valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    } else {
+      valA = (a[sortField] || "").toString().toLowerCase();
+      valB = (b[sortField] || "").toString().toLowerCase();
+    }
+
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const activeDistrictsCount = new Set(deos.map((d) => d.district).filter(Boolean)).size;
 
@@ -262,16 +301,96 @@ export default function ManageDeosPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  <th className="px-4 py-3">DEO Name</th>
-                  <th className="px-4 py-3">Email Address</th>
-                  <th className="px-4 py-3">Mobile</th>
-                  <th className="px-4 py-3">Assigned District</th>
-                  <th className="px-4 py-3">Created Date</th>
+                  <th
+                    onClick={() => handleSort("name")}
+                    className="px-4 py-3 cursor-pointer select-none hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>DEO Name</span>
+                      {sortField === "name" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => handleSort("email")}
+                    className="px-4 py-3 cursor-pointer select-none hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Email Address</span>
+                      {sortField === "email" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => handleSort("mobile")}
+                    className="px-4 py-3 cursor-pointer select-none hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Mobile</span>
+                      {sortField === "mobile" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => handleSort("district")}
+                    className="px-4 py-3 cursor-pointer select-none hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Assigned District</span>
+                      {sortField === "district" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => handleSort("createdAt")}
+                    className="px-4 py-3 cursor-pointer select-none hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Created Date</span>
+                      {sortField === "createdAt" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredDeos.map((d) => (
+                {sortedDeos.map((d) => (
                   <tr key={d.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-white text-xs">{d.name}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{d.email || "N/A"}</td>
@@ -311,11 +430,21 @@ export default function ManageDeosPage() {
       {/* Add / Edit Modal Card */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <style>{`
+            :root:not(.dark) .deo-modal-title,
+            html:not(.dark) .deo-modal-title {
+              color: #0f172a !important;
+            }
+            .dark .deo-modal-title,
+            html.dark .deo-modal-title {
+              color: #ffffff !important;
+            }
+          `}</style>
           <div className="w-full max-w-md rounded-3xl p-6 space-y-5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl relative">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+              <div className="deo-modal-title text-sm font-bold">
                 🗺️ {editingId ? "Edit DEO Officer" : "Add DEO Officer"}
-              </h3>
+              </div>
               <button onClick={handleModalClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">
                 ✕ Close
               </button>
