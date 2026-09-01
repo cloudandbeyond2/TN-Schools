@@ -517,11 +517,11 @@ export default function SyllabusUploadPage() {
               Upload Another PDF
             </button>
             <a
-              href="/super-admin/learning-hub"
+              href="/super-admin/academics"
               className="px-6 py-3 rounded-2xl font-extrabold text-sm text-white transition-all"
               style={{ background: "linear-gradient(135deg, #7c3aed, #6366f1)" }}
             >
-              Go to Learning Hub
+              Go to Academics Hub
             </a>
           </div>
         </div>
