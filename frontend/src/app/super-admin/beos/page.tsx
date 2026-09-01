@@ -361,7 +361,7 @@ export default function ManageBeosPage() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 relative">
             <h3 className="text-base font-bold text-slate-800 dark:text-white mb-1">
               {editingId ? "✏️ Edit BEO Officer" : "🏢 Add New BEO Officer"}
