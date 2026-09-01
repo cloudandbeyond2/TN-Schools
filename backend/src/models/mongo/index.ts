@@ -850,3 +850,36 @@ const AnnouncementSchema = new Schema<IAnnouncement>({
 
 export const Announcement = mongoose.models.Announcement || mongoose.model<IAnnouncement>('Announcement', AnnouncementSchema);
 
+// ─── Learning Materials Model ───────────────
+export interface ILearningMaterial extends Document {
+  title: string;
+  type: 'PDF' | 'Video' | 'Slides' | 'Audio' | 'Image';
+  subject: string;
+  class: string;
+  chapter: string;
+  portal: 'Student' | 'Teacher' | 'Parent' | 'Headmaster' | 'All';
+  size: string;
+  uploadedBy: string;
+  status: 'active' | 'draft' | 'archived';
+  aiTagged: boolean;
+  fileUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LearningMaterialSchema = new Schema<ILearningMaterial>({
+  title: { type: String, required: true },
+  type: { type: String, enum: ['PDF', 'Video', 'Slides', 'Audio', 'Image'], default: 'PDF' },
+  subject: { type: String, required: true },
+  class: { type: String, required: true },
+  chapter: { type: String, default: '—' },
+  portal: { type: String, default: 'Student' },
+  size: { type: String, default: '1.5 MB' },
+  uploadedBy: { type: String, default: 'Super Admin' },
+  status: { type: String, enum: ['active', 'draft', 'archived'], default: 'active' },
+  aiTagged: { type: Boolean, default: false },
+  fileUrl: { type: String },
+}, { timestamps: true });
+
+export const LearningMaterial = mongoose.models.LearningMaterial || mongoose.model<ILearningMaterial>('LearningMaterial', LearningMaterialSchema);
+
