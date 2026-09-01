@@ -24,7 +24,6 @@ const quickActionsStatic = [
   { label: "DEO Management", href: "/super-admin/deos", icon: <i className="fi fi-rr-briefcase"></i>, desc: "Manage District Education Officers", color: "from-pink-650 to-rose-700", badge: "38 DEOs" },
   { label: "BEO Management", href: "/super-admin/beos", icon: <i className="fi fi-rr-sitemap"></i>, desc: "Manage Block Education Officers", color: "from-purple-600 to-violet-700", badge: "413 Blocks" },
   { label: "Academics Hub", href: "/super-admin/academics", icon: <i className="fi fi-rr-graduation-cap"></i>, desc: "Configure class subjects, syllabus & resources", color: "from-indigo-600 to-purple-650", badge: "Curriculum" },
-  { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: <i className="fi fi-rr-book-alt"></i>, desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
   { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: <i className="fi fi-rr-file-upload"></i>, desc: "Extract syllabus structure from textbook PDFs", color: "from-violet-650 to-indigo-800", badge: "AI Extract" },
   { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: <i className="fi fi-rr-book-open-cover"></i>, desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
   { label: "Material Library", href: "/super-admin/materials", icon: <i className="fi fi-rr-box-alt"></i>, desc: "Upload & manage learning content", color: "from-pink-600 to-rose-700", badge: "2.8K items" },
@@ -167,7 +166,7 @@ export default function SuperAdminDashboard() {
   const filterMap: Record<string, string[]> = {
     all: dynamicActions.map((q) => q.href),
     people: ["/super-admin/commissioners", "/super-admin/deos", "/super-admin/beos", "/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters"],
-    academics: ["/super-admin/academics", "/super-admin/learning-hub", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
+    academics: ["/super-admin/academics", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
     system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };
