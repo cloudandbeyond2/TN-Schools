@@ -62,6 +62,12 @@ export default function UserManagement() {
   const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
   const [filterDistrict, setFilterDistrict] = useState<string>("ALL");
   const [filterSchool, setFilterSchool] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterRole, filterStatus, filterDistrict, filterSchool]);
 
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
@@ -142,6 +148,11 @@ export default function UserManagement() {
     const matchSchool = filterSchool === "ALL" || u.school === filterSchool;
     return matchSearch && matchRole && matchStatus && matchDistrict && matchSchool;
   });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
+  const paginatedUsers = filtered.slice(startIndex, endIndex);
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     try {
@@ -460,6 +471,13 @@ export default function UserManagement() {
         </div>
       ) : (
         <div className="glass rounded-2xl overflow-hidden">
+          <style>{`
+            :root:not(.dark) div.glass td div.user-avatar-initial,
+            html:not(.dark) div.glass td div.user-avatar-initial,
+            .user-avatar-initial {
+              color: #ffffff !important;
+            }
+          `}</style>
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
@@ -474,11 +492,11 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u) => (
+                {paginatedUsers.map((u) => (
                   <tr key={u.id}>
                     <td>
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                        <div className="user-avatar-initial w-7 h-7 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
                           {u.name ? u.name[0].toUpperCase() : "?"}
                         </div>
                         <span className="text-xs font-semibold text-white">{u.name}</span>
@@ -522,6 +540,77 @@ export default function UserManagement() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Footer */}
+          {filtered.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-800/80 bg-slate-900/40 text-xs">
+              <div className="flex items-center gap-3 text-slate-400">
+                <span>
+                  Showing <strong className="text-white">{filtered.length === 0 ? 0 : startIndex + 1}</strong> to{" "}
+                  <strong className="text-white">{endIndex}</strong> of <strong className="text-white">{filtered.length}</strong> users
+                </span>
+                <span className="hidden sm:inline text-slate-700">|</span>
+                <div className="flex items-center gap-1.5">
+                  <span>Per page:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 focus:outline-none text-xs font-medium"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition"
+                >
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                    .map((page, idx, arr) => {
+                      const prev = arr[idx - 1];
+                      const showEllipsis = prev && page - prev > 1;
+                      return (
+                        <div key={page} className="flex items-center gap-1">
+                          {showEllipsis && <span className="px-1 text-slate-500">...</span>}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center ${
+                              currentPage === page
+                                ? "bg-violet-600 text-white shadow-md"
+                                : "bg-slate-800/80 border border-slate-700/80 text-slate-400 hover:bg-slate-700 hover:text-white"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
