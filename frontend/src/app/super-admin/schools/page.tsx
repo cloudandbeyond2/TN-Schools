@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { apiFetch } from "@/lib/api";
 
 interface OfficialUser { id: string; name: string; block?: string | null; district?: string | null; }
 
@@ -62,7 +63,7 @@ export default function SchoolManagement() {
   const fetchSchools = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/schools`);
+      const res = await apiFetch(`/api/schools`);
       const data = await res.json();
       if (data.success) {
         const mapped = data.data.map((s: any) => ({
@@ -92,8 +93,8 @@ export default function SchoolManagement() {
   const fetchOfficials = async () => {
     try {
       const [beoRes, deoRes] = await Promise.all([
-        fetch(`${API_URL}/api/hierarchy/users?role=BEO`),
-        fetch(`${API_URL}/api/hierarchy/users?role=DEO`),
+        apiFetch(`/api/hierarchy/users?role=BEO`),
+        apiFetch(`/api/hierarchy/users?role=DEO`),
       ]);
       const [beoData, deoData] = await Promise.all([beoRes.json(), deoRes.json()]);
       if (beoData.success) setBeoUsers(beoData.data);
@@ -137,9 +138,9 @@ export default function SchoolManagement() {
         beoId: form.beoId || null,
         deoId: form.deoId || null,
       };
-      const endpoint = editSchool ? `${API_URL}/api/schools/${editSchool.id}` : `${API_URL}/api/schools`;
+      const endpoint = editSchool ? `/api/schools/${editSchool.id}` : `/api/schools`;
       const method = editSchool ? "PUT" : "POST";
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -160,7 +161,7 @@ export default function SchoolManagement() {
   const deleteSchool = async (id: string | number) => {
     if (!confirm("Are you sure you want to delete this school?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/schools/${id}`, {
+      const res = await apiFetch(`/api/schools/${id}`, {
         method: "DELETE",
       });
       const data = await res.json();
