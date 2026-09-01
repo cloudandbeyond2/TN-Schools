@@ -31,9 +31,20 @@ const roleColors: Record<Role, string> = {
   SUPERADMIN: "text-slate-300 bg-slate-500/10 border-slate-500/30",
 };
 
-const roleIcons: Record<Role, string> = {
-  STUDENT:"🎓", TEACHER:"📚", PARENT:"👨‍👩‍👧", HEADMASTER:"🏫", BEO:"🏢",
-  DEO:"🗺️", COMMISSIONER:"⚖️", MINISTER:"🏛️", SUPERADMIN:"🛠️",
+const roleFlaticons: Record<Role, string> = {
+  STUDENT: "fi-rr-graduation-cap",
+  TEACHER: "fi-rr-book-alt",
+  PARENT: "fi-rr-users",
+  HEADMASTER: "fi-rr-building",
+  BEO: "fi-rr-marker",
+  DEO: "fi-rr-map",
+  COMMISSIONER: "fi-rr-scale",
+  MINISTER: "fi-rr-bank",
+  SUPERADMIN: "fi-rr-settings",
+};
+
+const renderRoleFlaticon = (r: Role, className = "text-base") => {
+  return <i className={`fi ${roleFlaticons[r] || "fi-rr-user"} ${className}`}></i>;
 };
 
 const DISTRICTS = [
@@ -397,15 +408,17 @@ export default function UserManagement() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-white">👥 User Management</h1>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <i className="fi fi-rr-users text-violet-400"></i> User Management
+          </h1>
           <p className="text-xs text-slate-400 mt-1">Create, edit, activate or deactivate users across all portal roles</p>
         </div>
         <div className="flex gap-2">
-          <button className="text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition border border-slate-600">
-            ⬆️ Import CSV
+          <button className="text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition border border-slate-600 flex items-center gap-1.5">
+            <i className="fi fi-rr-file-import"></i> Import CSV
           </button>
-          <button onClick={openAdd} className="text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg transition">
-            + Add User
+          <button onClick={openAdd} className="text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+            <i className="fi fi-rr-user-add"></i> + Add User
           </button>
         </div>
       </div>
@@ -417,7 +430,7 @@ export default function UserManagement() {
             className={`rounded-xl p-2 text-center border transition-all ${
               filterRole === r ? roleColors[r] + " ring-1 ring-offset-0" : "bg-slate-900/60 border-slate-800 hover:border-slate-600"
             }`}>
-            <div className="text-lg">{roleIcons[r]}</div>
+            <div className="text-base mb-0.5">{renderRoleFlaticon(r)}</div>
             <div className="text-[8px] font-bold text-white leading-tight mt-0.5">{r.replace("SUPERADMIN","S.ADMIN")}</div>
             <div className="text-[8px] text-slate-500">{loading ? "..." : (roleCounts[r] || "0")}</div>
           </button>
@@ -426,12 +439,15 @@ export default function UserManagement() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search by name or email..."
-          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 w-56 focus:outline-none focus:border-violet-500"
-        />
+        <div className="relative w-56">
+          <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email..."
+            className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-violet-500"
+          />
+        </div>
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value as any)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
           <option value="ALL">All Roles</option>
@@ -531,8 +547,12 @@ export default function UserManagement() {
                     </td>
                     <td className="text-right">
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => openEdit(u)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold">Edit</button>
-                        <button onClick={() => deleteUser(u.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold">Delete</button>
+                        <button onClick={() => openEdit(u)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                          <i className="fi fi-rr-edit text-xs"></i> Edit
+                        </button>
+                        <button onClick={() => deleteUser(u.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                          <i className="fi fi-rr-trash text-xs"></i> Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -572,9 +592,9 @@ export default function UserManagement() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition"
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition flex items-center gap-1"
                 >
-                  Previous
+                  <i className="fi fi-rr-angle-left text-xs"></i> Previous
                 </button>
 
                 <div className="flex items-center gap-1 px-1">
@@ -604,9 +624,9 @@ export default function UserManagement() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition"
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition flex items-center gap-1"
                 >
-                  Next
+                  Next <i className="fi fi-rr-angle-right text-xs"></i>
                 </button>
               </div>
             </div>
@@ -618,7 +638,10 @@ export default function UserManagement() {
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h3 className="text-base font-bold text-white mb-5">{editUser ? "✏️ Edit User" : "➕ Add New User"}</h3>
+            <h3 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className={`fi ${editUser ? "fi-rr-edit" : "fi-rr-user-add"} text-violet-400`}></i>
+              {editUser ? "Edit User" : "Add New User"}
+            </h3>
             <div className="space-y-3">
 
               {/* Full Name */}
@@ -689,7 +712,7 @@ export default function UserManagement() {
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Role</label>
                 <select value={form.role} onChange={(e) => handleRoleChange(e.target.value as Role)}
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
-                  {ROLES.map((r) => <option key={r} value={r}>{roleIcons[r]} {r}</option>)}
+                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
 
@@ -709,7 +732,9 @@ export default function UserManagement() {
                       ))}
                     </select>
                     {schoolsList.length === 0 && (
-                      <p className="text-[10px] text-amber-500 mt-1">⚠ No schools found. Add schools first via the Schools page.</p>
+                      <p className="text-[10px] text-amber-500 mt-1 flex items-center gap-1">
+                        <i className="fi fi-rr-exclamation"></i> No schools found. Add schools first via the Schools page.
+                      </p>
                     )}
                   </div>
                   {form.school && (
@@ -768,7 +793,9 @@ export default function UserManagement() {
                       />
                     )}
                     {form.district && availableBlocks.length === 0 && (
-                      <p className="text-[10px] text-sky-500 mt-1">ℹ No blocks from DB — type block name manually.</p>
+                      <p className="text-[10px] text-sky-500 mt-1 flex items-center gap-1">
+                        <i className="fi fi-rr-info"></i> No blocks from DB — type block name manually.
+                      </p>
                     )}
                   </div>
                 </>
@@ -807,9 +834,11 @@ export default function UserManagement() {
 
             </div>
             <div className="flex gap-3 mt-6 font-mono">
-              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700">Cancel</button>
-              <button onClick={saveUser} className="flex-1 text-xs font-bold text-white bg-violet-600 hover:bg-violet-500 py-2 rounded-lg transition">
-                {editUser ? "Save Changes" : "Create User"}
+              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700 flex items-center justify-center gap-1">
+                <i className="fi fi-rr-cross-small"></i> Cancel
+              </button>
+              <button onClick={saveUser} className="flex-1 text-xs font-bold text-white bg-violet-600 hover:bg-violet-500 py-2 rounded-lg transition flex items-center justify-center gap-1.5">
+                <i className="fi fi-rr-check"></i> {editUser ? "Save Changes" : "Create User"}
               </button>
             </div>
           </div>
