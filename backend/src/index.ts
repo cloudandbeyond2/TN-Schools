@@ -67,6 +67,7 @@ import deoRoutes from './routes/deo.routes';
 import counsellorRoutes from './routes/counsellor.routes';
 import mockTestsRoutes from './routes/mock-tests.routes';
 import announcementRoutes from './routes/announcement.routes';
+import materialsRoutes from './routes/materials.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -265,6 +266,7 @@ app.use('/api/teacher', teacherRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/materials', materialsRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/centralized-content', centralContentRoutes);
 app.use('/api/celebrations', celebrationRoutes);

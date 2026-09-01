@@ -184,12 +184,15 @@ export default function PortalSettings() {
 
   const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
     <button
+      type="button"
       onClick={onClick}
-      className={`relative w-12 h-6 rounded-full transition-colors ${on ? "bg-green-500" : "bg-slate-700"}`}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+        on ? "bg-emerald-500" : "bg-slate-700"
+      }`}
     >
       <span
-        className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-          on ? "translate-x-6" : "translate-x-0.5"
+        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition duration-200 ease-in-out ${
+          on ? "translate-x-5" : "translate-x-0"
         }`}
       />
     </button>
@@ -197,32 +200,46 @@ export default function PortalSettings() {
 
   return (
     <PortalLayout>
-      <div className="mb-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-        <p className="text-xs text-cyan-300">
-          ⚙️ <strong>Portal Settings</strong> — Configure global platform behavior, security, and feature defaults.
-        </p>
+      {/* Header Banner */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-2xl flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+            <i className="fi fi-rr-settings-sliders text-amber-400"></i> Portal Settings
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Configure global platform behavior, security parameters, and feature defaults</p>
+        </div>
+        <button
+          onClick={saveSettings}
+          disabled={saving}
+          className="text-xs font-bold bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md"
+        >
+          <i className="fi fi-rr-disk"></i> {saving ? "Saving..." : "Save Settings"}
+        </button>
       </div>
 
       {toast && (
         <div
-          className={`mb-4 p-3 rounded-xl text-xs border ${
+          className={`mb-6 p-3 rounded-xl text-xs border flex items-center gap-2 ${
             toast.kind === "ok"
               ? "bg-green-500/10 border-green-500/20 text-green-400"
               : "bg-red-500/10 border-red-500/20 text-red-400"
           }`}
         >
-          {toast.kind === "ok" ? "✅" : "⚠️"} {toast.text}
+          <i className={toast.kind === "ok" ? "fi fi-rr-check-circle" : "fi fi-rr-triangle-warning"}></i>
+          <span>{toast.text}</span>
         </div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 rounded-full border-2 border-slate-600 border-t-cyan-500 animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-slate-600 border-t-amber-400 animate-spin" />
         </div>
       ) : (
         <div className="space-y-6">
           <div className="glass rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-white mb-5">🔒 Security & Access</h2>
+            <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className="fi fi-rr-shield-check text-cyan-400"></i> Security & Access
+            </h2>
             <div className="space-y-4">
               {[
                 { key: "maintenanceMode" as const, label: "Maintenance Mode", desc: "Temporarily disable all portals for maintenance (superadmin stays accessible)" },
@@ -244,7 +261,7 @@ export default function PortalSettings() {
                 <select
                   value={settings.sessionTimeout}
                   onChange={(e) => updateSetting("sessionTimeout", e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
                 >
                   <option value="15">15 min</option>
                   <option value="30">30 min</option>
@@ -256,7 +273,9 @@ export default function PortalSettings() {
           </div>
 
           <div className="glass rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-white mb-5">🤖 AI & Features</h2>
+            <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className="fi fi-rr-robot text-purple-400"></i> AI & Features
+            </h2>
             <div className="space-y-4">
               {[
                 { key: "enableAiFeatures" as const, label: "AI Features", desc: "Enable AI tutor, lesson planner, and predictions globally (disables all AI & Learning modules when off)" },
@@ -274,7 +293,9 @@ export default function PortalSettings() {
           </div>
 
           <div className="glass rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-white mb-5">🌐 Localization</h2>
+            <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className="fi fi-rr-globe text-emerald-400"></i> Localization
+            </h2>
             <div className="flex items-center justify-between bg-slate-900/40 rounded-xl px-4 py-4 border border-slate-800">
               <div>
                 <div className="text-xs font-bold text-white">Default Language</div>
@@ -283,7 +304,7 @@ export default function PortalSettings() {
               <select
                 value={settings.defaultLanguage}
                 onChange={(e) => updateSetting("defaultLanguage", e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
               >
                 <option value="English">English</option>
                 <option value="தமிழ்">தமிழ் (Tamil)</option>
@@ -291,23 +312,17 @@ export default function PortalSettings() {
             </div>
           </div>
 
-          <button
-            onClick={saveSettings}
-            disabled={saving}
-            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-slate-950 font-black text-xs transition-colors"
-          >
-            {saving ? "Saving..." : "💾 Save Settings"}
-          </button>
-
           {/* Superadmin accounts */}
           <div className="glass rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-semibold text-white">👑 Superadmin Accounts</h2>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <i className="fi fi-rr-user-gear text-amber-400"></i> Superadmin Accounts
+              </h2>
               <button
                 onClick={() => setShowCreate(true)}
-                className="text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition"
+                className="text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-1.5"
               >
-                + Add Superadmin
+                <i className="fi fi-rr-user-add"></i> Add Superadmin
               </button>
             </div>
             <div className="space-y-3">
@@ -328,9 +343,9 @@ export default function PortalSettings() {
                   <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => { setPwModal(admin); setPwForm({ currentPassword: "", newPassword: "" }); }}
-                      className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:text-white transition"
+                      className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:text-white transition flex items-center gap-1"
                     >
-                      Change Password
+                      <i className="fi fi-rr-key"></i> Change Password
                     </button>
                     {admin.id !== myId && (
                       <button
@@ -359,7 +374,9 @@ export default function PortalSettings() {
       {showCreate && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-5">➕ New Superadmin</h3>
+            <h3 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className="fi fi-rr-user-add text-cyan-400"></i> New Superadmin
+            </h3>
             <div className="space-y-3">
               {[
                 { label: "Name", key: "name", type: "text", placeholder: "Full name" },
@@ -391,7 +408,9 @@ export default function PortalSettings() {
       {pwModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-1">🔑 Change Password</h3>
+            <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <i className="fi fi-rr-key text-amber-400"></i> Change Password
+            </h3>
             <p className="text-[10px] text-slate-500 mb-5">{pwModal.name} · {pwModal.email}</p>
             <div className="space-y-3">
               {pwModal.id === myId && (

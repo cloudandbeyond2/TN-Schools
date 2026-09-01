@@ -1230,7 +1230,8 @@ model HealthReport {
   student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
-model Beo {
+// ⚠️ NOT USED — BEO managed via User.role=BEO + hierarchy.routes
+model Beo_notused {
   id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId    String   @unique
   blockName String
@@ -1240,9 +1241,11 @@ model Beo {
   updatedAt DateTime @default(now())
 
   @@index([deoId])
+  @@map("Beo")
 }
 
-model Commissioner {
+// ⚠️ NOT USED — Commissioner managed via User.role=COMMISSIONER + hierarchy.routes
+model Commissioner_notused {
   id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId     String   @unique
   region     String?
@@ -1251,6 +1254,7 @@ model Commissioner {
   updatedAt  DateTime @default(now())
 
   @@index([ministerId])
+  @@map("Commissioner")
 }
 
 model ComputerEducation {
@@ -1316,7 +1320,8 @@ model CulturalRegistration {
   @@index([schoolId])
 }
 
-model Deo {
+// ⚠️ NOT USED — DEO managed via User.role=DEO + hierarchy.routes
+model Deo_notused {
   id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId         String   @unique
   districtName   String   @unique
@@ -1325,14 +1330,17 @@ model Deo {
   updatedAt      DateTime @default(now())
 
   @@index([commissionerId])
+  @@map("Deo")
 }
 
-model Minister {
+// ⚠️ NOT USED — Minister managed via User.role=MINISTER + minister.routes (MinisterBudget, MinisterKPI etc.)
+model Minister_notused {
   id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId    String   @unique
   portfolio String   @default("School Education")
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  @@map("Minister")
 }
 
 model MinisterBudget {
@@ -1530,11 +1538,13 @@ model SchoolPressActivity {
   @@index([teacherId])
 }
 
-model SuperAdmin {
+// ⚠️ NOT USED — SuperAdmin managed via User.role=SUPERADMIN + superadmin.admins.routes
+model SuperAdmin_notused {
   id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  @@map("SuperAdmin")
 }
 
 enum Role {
@@ -2134,8 +2144,10 @@ model AcademicResource {
   @@index([schoolId])
 }
 
-model TestSync2 {
+// ⚠️ NOT USED — Migration test artifact, safe to remove
+model TestSync2_notused {
   id String @id @default(uuid())
+  @@map("TestSync2")
 }
 
 model SchoolResource {
