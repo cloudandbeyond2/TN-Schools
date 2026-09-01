@@ -21,6 +21,9 @@ interface School {
   deoId?: string | null;
 }
 
+type SortField = "name" | "dise" | "type" | "district" | "medium" | "hm" | "students" | "status";
+type SortOrder = "asc" | "desc";
+
 const DISTRICTS = [
   "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
   "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
@@ -51,14 +54,21 @@ export default function SchoolManagement() {
   const [search, setSearch] = useState("");
   const [filterDist, setFilterDist] = useState("All");
   const [filterType, setFilterType] = useState("All");
+
+  // Sorting State
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const [showModal, setShowModal] = useState(false);
   const [editSchool, setEditSchool] = useState<School | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [viewSchool, setViewSchool] = useState<School | null>(null);
   const [beoUsers, setBeoUsers] = useState<OfficialUser[]>([]);
   const [deoUsers, setDeoUsers] = useState<OfficialUser[]>([]);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchSchools = async () => {
     try {
@@ -109,6 +119,20 @@ export default function SchoolManagement() {
     fetchOfficials();
   }, []);
 
+  // Reset pagination on filter or item count change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterDist, filterType, itemsPerPage]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
   const filtered = schools.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.dise.includes(search) || s.hm.toLowerCase().includes(search.toLowerCase());
@@ -116,6 +140,28 @@ export default function SchoolManagement() {
     const matchType = filterType === "All" || s.type === filterType;
     return matchSearch && matchDist && matchType;
   });
+
+  const sorted = [...filtered].sort((a, b) => {
+    let valA: any = a[sortField] || "";
+    let valB: any = b[sortField] || "";
+
+    if (typeof valA === "number") {
+      valA = valA;
+      valB = valB;
+    } else if (typeof valA === "string") {
+      valA = valA.toLowerCase();
+      valB = (valB as string).toLowerCase();
+    }
+
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, sorted.length);
+  const paginatedSchools = sorted.slice(startIndex, endIndex);
 
   const openAdd = () => { setEditSchool(null); setForm(emptyForm); setShowModal(true); };
   const openEdit = (s: School) => {
@@ -183,31 +229,60 @@ export default function SchoolManagement() {
   const totalTeachers = schools.reduce((a, s) => a + s.teachers, 0);
   const active = schools.filter((s) => s.status === "active").length;
 
+  const renderSortHeader = (field: SortField, label: string) => {
+    const isSorted = sortField === field;
+    return (
+      <th
+        onClick={() => handleSort(field)}
+        className="py-3 px-4 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors select-none"
+      >
+        <div className="flex items-center gap-1.5">
+          <span>{label}</span>
+          <i
+            className={`fi text-xs text-slate-400 ${
+              isSorted
+                ? sortOrder === "asc"
+                  ? "fi-rr-arrow-small-up text-emerald-400 font-bold"
+                  : "fi-rr-arrow-small-down text-emerald-400 font-bold"
+                : "fi-rr-sort-alt opacity-40 hover:opacity-100"
+            }`}
+          ></i>
+        </div>
+      </th>
+    );
+  };
+
   return (
     <PortalLayout>
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-white">🏫 School Management</h1>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <i className="fi fi-rr-building text-emerald-400"></i> School Management
+          </h1>
           <p className="text-xs text-slate-400 mt-1">Add, edit, and manage all government schools. Assign headmasters and track school status.</p>
         </div>
         <div className="flex gap-2">
-          <button className="text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition border border-slate-600">⬆️ Bulk Import</button>
-          <button onClick={openAdd} className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition">+ Add School</button>
+          <button className="text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition border border-slate-600 flex items-center gap-1.5">
+            <i className="fi fi-rr-file-import"></i> Bulk Import
+          </button>
+          <button onClick={openAdd} className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+            <i className="fi fi-rr-add"></i> + Add School
+          </button>
         </div>
       </div>
 
       {/* Summary KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Total Schools", value: schools.length.toLocaleString(), icon: "🏫", color: "text-blue-400" },
-          { label: "Active Schools", value: active.toLocaleString(), icon: "✅", color: "text-emerald-400" },
-          { label: "Total Students", value: totalStudents.toLocaleString(), icon: "🎓", color: "text-violet-400" },
-          { label: "Total Teachers", value: totalTeachers.toLocaleString(), icon: "📚", color: "text-amber-400" },
+          { label: "Total Schools", value: schools.length.toLocaleString(), iconClass: "fi-rr-building", color: "text-blue-400" },
+          { label: "Active Schools", value: active.toLocaleString(), iconClass: "fi-rr-check-circle", color: "text-emerald-400" },
+          { label: "Total Students", value: totalStudents.toLocaleString(), iconClass: "fi-rr-graduation-cap", color: "text-violet-400" },
+          { label: "Total Teachers", value: totalTeachers.toLocaleString(), iconClass: "fi-rr-book-alt", color: "text-amber-400" },
         ].map((k) => (
           <div key={k.label} className="glass rounded-xl p-4 border border-slate-800">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{k.icon}</span>
+              <i className={`fi ${k.iconClass} text-xl ${k.color}`}></i>
               <span className="text-xs text-slate-500">{k.label}</span>
             </div>
             <div className={`text-2xl font-extrabold ${k.color}`}>{k.value}</div>
@@ -217,9 +292,16 @@ export default function SchoolManagement() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <input value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search school, DISE code, HM..."
-          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 w-64 focus:outline-none focus:border-emerald-500" />
+        <div className="relative w-64">
+          <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search school, DISE code, HM..."
+            className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
         <select value={filterDist} onChange={(e) => setFilterDist(e.target.value)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500">
           <option value="All">All Districts</option>
@@ -241,28 +323,28 @@ export default function SchoolManagement() {
               <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin mb-3" />
               <span className="text-xs text-slate-400">Loading schools from database...</span>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : paginatedSchools.length === 0 ? (
             <div className="text-center py-16">
-              <span className="text-3xl block mb-2">🏫</span>
+              <i className="fi fi-rr-folder-open text-4xl text-slate-400 mb-2 block"></i>
               <span className="text-xs text-slate-500">No schools found in selection.</span>
             </div>
           ) : (
             <table className="data-table min-w-[800px]">
               <thead>
                 <tr>
-                  <th>School</th>
-                  <th>DISE Code</th>
-                  <th>Type</th>
-                  <th>District / Block</th>
-                  <th>Medium</th>
-                  <th>Headmaster</th>
-                  <th>Students</th>
-                  <th>Status</th>
+                  {renderSortHeader("name", "School")}
+                  {renderSortHeader("dise", "DISE Code")}
+                  {renderSortHeader("type", "Type")}
+                  {renderSortHeader("district", "District / Block")}
+                  {renderSortHeader("medium", "Medium")}
+                  {renderSortHeader("hm", "Headmaster")}
+                  {renderSortHeader("students", "Students")}
+                  {renderSortHeader("status", "Status")}
                   <th className="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((s) => (
+                {paginatedSchools.map((s) => (
                   <tr key={s.id} className="cursor-pointer" onClick={() => setViewSchool(s)}>
                     <td>
                       <div className="text-xs font-semibold text-white">{s.name}</div>
@@ -298,8 +380,12 @@ export default function SchoolManagement() {
                     </td>
                     <td className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => openEdit(s)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold">Edit</button>
-                        <button onClick={() => deleteSchool(s.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold">Delete</button>
+                        <button onClick={() => openEdit(s)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                          <i className="fi fi-rr-edit text-xs"></i> Edit
+                        </button>
+                        <button onClick={() => deleteSchool(s.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                          <i className="fi fi-rr-trash text-xs"></i> Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -308,12 +394,85 @@ export default function SchoolManagement() {
             </table>
           )}
         </div>
+
+        {/* Pagination Footer */}
+        {!loading && sorted.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-800/80 bg-slate-900/40 text-xs text-slate-400">
+            <div className="flex items-center gap-3">
+              <span>
+                Showing <strong className="text-white">{sorted.length === 0 ? 0 : startIndex + 1}</strong> to{" "}
+                <strong className="text-white">{endIndex}</strong> of <strong className="text-white">{sorted.length}</strong> schools
+              </span>
+              <span className="hidden sm:inline text-slate-700">|</span>
+              <div className="flex items-center gap-1.5">
+                <span>Per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 focus:outline-none text-xs font-medium"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition flex items-center gap-1"
+              >
+                <i className="fi fi-rr-angle-left text-xs"></i> Previous
+              </button>
+
+              <div className="flex items-center gap-1 px-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                  .map((page, idx, arr) => {
+                    const prev = arr[idx - 1];
+                    const showEllipsis = prev && page - prev > 1;
+                    return (
+                      <div key={page} className="flex items-center gap-1">
+                        {showEllipsis && <span className="px-1 text-slate-500">...</span>}
+                        <button
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center ${
+                            currentPage === page
+                              ? "bg-emerald-600 text-white shadow-md"
+                              : "bg-slate-800/80 border border-slate-700/80 text-slate-400 hover:bg-slate-700 hover:text-white"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-medium transition flex items-center gap-1"
+              >
+                Next <i className="fi fi-rr-angle-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* School Detail Drawer */}
       {viewSchool && (
         <div className="fixed inset-y-0 right-0 w-80 bg-slate-900 border-l border-slate-700 p-6 z-40 overflow-y-auto shadow-2xl">
-          <button onClick={() => setViewSchool(null)} className="text-xs text-slate-500 hover:text-white mb-4">✕ Close</button>
+          <button onClick={() => setViewSchool(null)} className="text-xs text-slate-400 hover:text-white mb-4 flex items-center gap-1 font-semibold">
+            <i className="fi fi-rr-cross-small"></i> Close
+          </button>
           <h3 className="text-base font-bold text-white mb-1">{viewSchool.name}</h3>
           <p className="text-[10px] text-slate-500 font-mono mb-4">DISE: {viewSchool.dise}</p>
           <div className="space-y-3 text-xs">
@@ -333,9 +492,13 @@ export default function SchoolManagement() {
           </div>
           <div className="mt-6 flex gap-2">
             <button onClick={() => { openEdit(viewSchool); setViewSchool(null); }}
-              className="flex-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 py-2 rounded-lg transition">Edit</button>
+              className="flex-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 py-2 rounded-lg transition flex items-center justify-center gap-1">
+              <i className="fi fi-rr-edit"></i> Edit
+            </button>
             <button onClick={() => deleteSchool(viewSchool.id)}
-              className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-3 py-2 rounded-lg transition">Delete</button>
+              className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-3 py-2 rounded-lg transition flex items-center justify-center gap-1">
+              <i className="fi fi-rr-trash"></i> Delete
+            </button>
           </div>
         </div>
       )}
@@ -344,7 +507,10 @@ export default function SchoolManagement() {
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h3 className="text-base font-bold text-white mb-5">{editSchool ? "✏️ Edit School" : "➕ Add New School"}</h3>
+            <h3 className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              <i className={`fi ${editSchool ? "fi-rr-edit" : "fi-rr-add"} text-emerald-400`}></i>
+              {editSchool ? "Edit School" : "Add New School"}
+            </h3>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label:"School Name", key:"name", placeholder:"Full school name", span:true },
@@ -388,7 +554,9 @@ export default function SchoolManagement() {
 
               {/* ── BEO Assignment ── */}
               <div className="col-span-2 border-t border-slate-700 pt-3">
-                <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-2">🔵 Official Assignments</div>
+                <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <i className="fi fi-rr-user-gear"></i> Official Assignments
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign BEO</label>
@@ -412,9 +580,11 @@ export default function SchoolManagement() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700">Cancel</button>
-              <button onClick={saveSchool} className="flex-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg transition">
-                {editSchool ? "Save Changes" : "Add School"}
+              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700 flex items-center justify-center gap-1">
+                <i className="fi fi-rr-cross-small"></i> Cancel
+              </button>
+              <button onClick={saveSchool} className="flex-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg transition flex items-center justify-center gap-1.5">
+                <i className="fi fi-rr-check"></i> {editSchool ? "Save Changes" : "Add School"}
               </button>
             </div>
           </div>
