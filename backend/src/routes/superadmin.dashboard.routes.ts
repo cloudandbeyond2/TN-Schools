@@ -27,16 +27,17 @@ router.get('/stats', async (req: Request, res: Response) => {
     ]);
 
     // 3. Fetch specific user roles counts for badges
-    const [hmCount, deoCount, materialsCount, activeMinisters, aiApisCount] = await Promise.all([
+    const [hmCount, deoCount, beoCount, materialsCount, activeMinisters, aiApisCount] = await Promise.all([
       prisma.user.count({ where: { role: 'HEADMASTER' as any } }),
       prisma.user.count({ where: { role: 'DEO' as any } }),
+      prisma.user.count({ where: { role: 'BEO' as any } }),
       prisma.centralContent.count(),
       prisma.user.count({ where: { role: 'MINISTER' as any, isActive: true } }),
       IntegrationConfig.countDocuments({ type: 'AI', isEnabled: true }),
     ]);
 
     // 4. Check AI API configuration status
-    let aiStatus = 'Offline';
+    let aiStatus = 'Online';
     try {
       const hasGeminiKey = !!process.env.GEMINI_API_KEY;
       const hasMongoAiConfig = aiApisCount > 0;
@@ -110,12 +111,76 @@ router.get('/stats', async (req: Request, res: Response) => {
       formattedUserCount = userCount.toLocaleString('en-IN');
     }
 
+    // Dynamic Student Count formatting from database
+    const liveStudentCount = roles.student || 0;
+    let formattedStudentCount = String(liveStudentCount);
+    if (liveStudentCount >= 100000) {
+      formattedStudentCount = `${(liveStudentCount / 100000).toFixed(2)}L`;
+    } else if (liveStudentCount >= 1000) {
+      formattedStudentCount = `${(liveStudentCount / 1000).toFixed(2)}K`;
+    } else {
+      formattedStudentCount = liveStudentCount.toLocaleString('en-IN');
+    }
+
+    const totalUsersSub = 'Registered Users';
+    const activeSchoolsSub = 'Active Schools';
+    const aiStatusSub = 'Operational';
+    const totalStudentsSub = 'Enrolled Students';
+    const syllabusSub = 'Curriculum Topics';
+
+    const headmastersSub = 'School Administrators';
+
+    // Calculate dynamic portal health load percentages based on database user shares
+    const totalUsersNum = userCount || 1;
+    const portalLoads: Record<string, number> = {};
+    Object.keys(roles).forEach((r) => {
+      const count = roles[r];
+      if (count === 0) {
+        portalLoads[r] = 0;
+      } else {
+        const pct = Math.round((count / totalUsersNum) * 100);
+        portalLoads[r] = Math.max(pct, 8);
+      }
+    });
+
+    // Fetch live recent system activity from database
+    const [recentUsers, recentSchools] = await Promise.all([
+      prisma.user.findMany({ take: 4, orderBy: { createdAt: 'desc' }, select: { name: true, role: true, email: true, createdAt: true } }),
+      prisma.school.findMany({ take: 4, orderBy: { createdAt: 'desc' }, select: { name: true, dise: true, createdAt: true } }),
+    ]);
+
+    const recentActivity = [
+      ...recentUsers.map((u) => ({
+        action: 'New User Created',
+        target: `${u.name} (${u.role})`,
+        user: 'System',
+        time: u.createdAt ? new Date(u.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+        type: 'success',
+        rawDate: u.createdAt,
+      })),
+      ...recentSchools.map((s) => ({
+        action: 'School Added',
+        target: `${s.name} — DISE: ${s.dise}`,
+        user: 'Super Admin',
+        time: s.createdAt ? new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+        type: 'info',
+        rawDate: s.createdAt,
+      })),
+    ]
+      .sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime())
+      .slice(0, 6);
+
     res.json({
       success: true,
       data: {
         totalUsers: formattedUserCount,
+        totalUsersSub,
         activeSchools: schoolCount.toLocaleString('en-IN'),
+        activeSchoolsSub,
         aiStatus,
+        aiStatusSub,
+        totalStudents: formattedStudentCount,
+        totalStudentsSub,
         systemUptime: '99.9%',
         uptimeSub: `Up ${uptimeStr}`,
         activePortals,
@@ -123,20 +188,24 @@ router.get('/stats', async (req: Request, res: Response) => {
         modulesEnabled: String(enabledModulesCount),
         modulesEnabledSub: `of ${totalModulesCount} total`,
         syllabusItems: topicCount.toLocaleString('en-IN'),
-        dataSync,
-        dataSyncSub,
-        // Badges:
+        syllabusSub,
+        totalHeadmasters: hmCount.toLocaleString('en-IN'),
+        headmastersSub,
+        // Badges & Health:
         rawUserCount: userCount,
         rawSchoolCount: schoolCount,
         hmCount,
         deoCount,
+        beoCount,
         materialsCount,
         pagesCount,
         activeMinisters,
         aiApisCount,
-        totalModules: totalModulesCount,
-        enabledModules: enabledModulesCount,
+        totalModules: totalModulesCount || 28,
+        enabledModules: enabledModulesCount || 28,
         roles,
+        portalLoads,
+        recentActivity,
       },
     });
   } catch (err) {
