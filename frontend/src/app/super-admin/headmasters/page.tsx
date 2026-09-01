@@ -108,11 +108,19 @@ export default function HeadmasterManagement() {
     }
   }, [schoolsList]);
 
+  const getSchoolName = (schoolId: string) => {
+    if (!schoolId || schoolId === "—") return "Unassigned";
+    const school = schoolsList.find((s) => s.id === schoolId);
+    return school ? school.name : schoolId;
+  };
+
   const filtered = hms.filter((h) => {
-    const schoolName = getSchoolName(h.school).toLowerCase();
-    const matchSearch = h.name.toLowerCase().includes(search.toLowerCase()) ||
-      h.empId.toLowerCase().includes(search.toLowerCase()) ||
-      schoolName.includes(search.toLowerCase());
+    const schoolName = (getSchoolName(h.school) || "").toLowerCase();
+    const query = (search || "").toLowerCase().trim();
+    const matchSearch =
+      (h.name || "").toLowerCase().includes(query) ||
+      (h.empId || "").toLowerCase().includes(query) ||
+      schoolName.includes(query);
     const matchStatus = filterStatus === "all" || h.status === filterStatus;
     const matchDist = filterDist === "All" || h.district === filterDist;
     return matchSearch && matchStatus && matchDist;
@@ -231,12 +239,6 @@ export default function HeadmasterManagement() {
     } catch (err) {
       console.error("Error deleting HM:", err);
     }
-  };
-
-  const getSchoolName = (schoolId: string) => {
-    if (!schoolId || schoolId === "—") return "Unassigned";
-    const school = schoolsList.find(s => s.id === schoolId);
-    return school ? school.name : schoolId;
   };
 
   const handleSchoolChange = (schoolId: string) => {
