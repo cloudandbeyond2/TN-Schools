@@ -103,7 +103,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       {/* Left Column - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-emerald-900 overflow-hidden flex-col justify-between border-r border-emerald-950/50 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-10">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-emerald-900 overflow-hidden flex-col justify-between border-r border-emerald-950/50 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-10 hero-band">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-overlay"
@@ -118,7 +118,7 @@ export default function LoginPage() {
             <span className="text-5xl drop-shadow-lg text-white"><i className="fi fi-rr-bank"></i></span>
             <div>
               <h2 className="text-2xl font-black text-white leading-tight tracking-tight drop-shadow-md">Tamil Nadu Schools</h2>
-              <p className="text-sm text-amber-400 font-bold tracking-widest uppercase mt-1 drop-shadow-md">Government of Tamil Nadu</p>
+              <p className="!text-amber-400 text-sm font-bold tracking-widest uppercase mt-1 drop-shadow-md">Government of Tamil Nadu</p>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
           <h1 className="text-4xl font-black text-white leading-tight mb-4 drop-shadow-lg">
             AI Smart Learning <br /> Ecosystem
           </h1>
-          <p className="text-white/90 text-base max-w-md font-medium leading-relaxed drop-shadow-md">
+          <p className="!text-emerald-100 text-base max-w-md font-medium leading-relaxed drop-shadow-md">
             A unified portal connecting students, parents, teachers, and administrators for a transparent and efficient educational experience across the state.
           </p>
         </div>
