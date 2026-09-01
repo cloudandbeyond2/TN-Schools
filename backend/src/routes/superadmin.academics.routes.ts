@@ -17,7 +17,17 @@ const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, 
 // Reads require any logged-in user; content management requires headmaster and above.
 router.use(authenticate);
 
-router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), async (req: Request, res: Response) => {
+router.post("/upload", requireMinRole("HEADMASTER"), (req: Request, res: Response, next: any) => {
+  upload.single("file")(req, res, (err: any) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ error: "File size exceeds the 500 MB limit." });
+      }
+      return res.status(400).json({ error: err.message || "Failed to upload file." });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });

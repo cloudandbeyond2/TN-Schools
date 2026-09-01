@@ -135,8 +135,8 @@ app.use('/api', globalLimiter);
 // ─── Other Middleware ──────────────────────────────────────────────
 // Large binary uploads go through multer (with per-route size caps), so JSON
 // bodies only need headroom for base64 image payloads used by a few AI flows.
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ limit: '25mb', extended: true }));
+app.use(express.json({ limit: '250mb' }));
+app.use(express.urlencoded({ limit: '250mb', extended: true }));
 
 import os from 'os';
 
@@ -302,9 +302,15 @@ app.use((req: Request, res: Response) => {
 });
 
 // ─── Global Error Handler ─────────────────────────────────────
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('[Error]', err.message);
-  res.status(500).json({ success: false, error: 'Internal Server Error' });
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err && (err.name === 'MulterError' || err.code === 'LIMIT_FILE_SIZE')) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ success: false, error: 'File size exceeds the 500 MB limit.' });
+    }
+    return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
+  }
+  console.error('[Error]', err?.message || err);
+  res.status(err?.status || 500).json({ success: false, error: err?.message || 'Internal Server Error' });
 });
 
 // ─── Start Server ─────────────────────────────────────────────
