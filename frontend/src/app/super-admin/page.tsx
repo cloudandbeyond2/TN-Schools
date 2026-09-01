@@ -185,9 +185,6 @@ export default function SuperAdminDashboard() {
           <Link href="/super-admin/announcements" className="text-xs font-bold bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg hover:bg-amber-400 transition">
             <i className="fi fi-rr-megaphone mr-1"></i> Broadcast
           </Link>
-          <Link href="/super-admin/schools" className="text-xs font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-500 transition">
-            + Add School
-          </Link>
         </div>
       </div>
 
