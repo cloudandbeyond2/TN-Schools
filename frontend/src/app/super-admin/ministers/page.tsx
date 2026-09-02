@@ -193,7 +193,7 @@ export default function ManageMinistersPage() {
             />
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
             >
               + Add Minister
             </button>
@@ -333,7 +333,7 @@ export default function ManageMinistersPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2 cursor-pointer"
               >
                 {submitting ? "Processing..." : editingId ? "Save Changes" : "Add Minister"}
               </button>
