@@ -1214,6 +1214,15 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(79, 70, 229, 0.4) !important;
 }
 
+/* Hide scrollbar cleanly while maintaining scroll capability */
+.scrollbar-none {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+}
+
 /* Force all primary/colored buttons and their nested spans to show white text color in both light and dark themes */
 .bg-\[var\(--primary\)\],
 .bg-primary,

@@ -1221,39 +1221,8 @@ export default function HeadmasterAcademicsPage() {
           </div>
         </div>
 
-        {/* ── Subject Filter Rail ─────────────────────────── */}
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none scroll-smooth">
-          <button
-            onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
-              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
-              }`}
-          >
-            <Fi name="apps" className="text-sm" /> All Subjects
-          </button>
-          {railSubjects.map((s) => {
-            const active = selectedSubject === s.name;
-            return (
-              <button
-                key={s.name}
-                onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
-                  }`}
-                style={
-                  active
-                    ? { backgroundColor: s.color, borderColor: s.color }
-                    : { borderColor: `${s.color}55` }
-                }
-              >
-                <Fi name={getFlaticonForSubject(s.icon, s.name)} className="text-sm" /> {s.name}
-              </button>
-            );
-          })}
-        </div>
-
         {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
+        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((c) => {
             const active = activeTab === c.key;
             const count = (c.key === "overview") ? null : countByCategory(c.key);
@@ -1327,6 +1296,18 @@ export default function HeadmasterAcademicsPage() {
 
             {/* Filters & Add Action */}
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              {/* Subject Filter */}
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="All">All Subjects</option>
+                {railSubjects.map(s => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+
               {/* Status Filter */}
               <select
                 value={statusFilter}
