@@ -270,7 +270,7 @@ export default function SuperAdminMockTestsPage() {
       subtitle={lang === "தமிழ்" ? "மாநில அளவிலான தேர்வுகளை நிர்வகிக்கவும்" : "Manage and deploy standard mock exams across the state"}
       accentColor="#8b5cf6"
     >
-      <div className="w-full max-w-7xl mx-auto mb-10">
+      <div className="w-full mb-10">
 
         {/* Glassmorphism Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-900 p-8 md:p-12 mb-8 shadow-2xl shadow-violet-500/20 text-white">
