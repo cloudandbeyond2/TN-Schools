@@ -221,11 +221,32 @@ router.post('/booking', async (req: Request, res: Response) => {
 });
 
 // GET /api/counsellor/messages — Retrieve dynamic student wellness & mood entries for Headmasters
-router.get('/messages', async (_req: Request, res: Response) => {
+router.get('/messages', async (req: Request, res: Response) => {
   try {
+    const schoolId = (req.query.schoolId as string) || (req as any).user?.schoolId;
+
+    let schoolStudentIds = new Set<string>();
+    let studentLookup: Record<string, { studentName: string; className: string; section: string }> = {};
+
+    if (schoolId) {
+      const students = await prisma.student.findMany({
+        where: { schoolId },
+        include: { user: true }
+      });
+      for (const s of students) {
+        schoolStudentIds.add(s.id);
+        schoolStudentIds.add(s.userId);
+        if (s.user?.email) schoolStudentIds.add(s.user.email);
+        const info = { studentName: s.user?.name || 'Student', className: s.class || '10', section: s.section || 'A' };
+        studentLookup[s.id] = info;
+        studentLookup[s.userId] = info;
+      }
+    }
+
     let rawMessages: any[] = [];
     try {
-      rawMessages = await Wellness.find().lean().sort({ date: -1 }).limit(50);
+      const queryFilter = schoolId ? { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] } : {};
+      rawMessages = await Wellness.find(queryFilter).lean().sort({ date: -1 }).limit(50);
     } catch (e) {}
 
     const combinedMessages = [...MEMORY_MESSAGES];
@@ -237,9 +258,16 @@ router.get('/messages', async (_req: Request, res: Response) => {
 
     const messages = combinedMessages
       .filter((m: any) => !DELETED_MESSAGE_IDS.has(String(m._id)) && !DELETED_MESSAGE_IDS.has(String(m.id)))
+      .filter((m: any) => {
+        if (!schoolId) return true;
+        const cleanId = String(m.studentId || "").replace("ANONYMOUS_", "");
+        return m.schoolId === schoolId || schoolStudentIds.has(cleanId) || schoolStudentIds.has(m.studentId);
+      })
       .map((m: any) => {
         const isAnon = m.notes?.includes("[Anonymous: true]") || m.studentId?.startsWith("ANONYMOUS");
-        const info = resolveStudentDetailsSync(m.studentId, m.studentName, m.className, m.section);
+        const cleanId = String(m.studentId || "").replace("ANONYMOUS_", "");
+        const studentInfo = studentLookup[cleanId] || studentLookup[m.studentId];
+        const info = studentInfo || resolveStudentDetailsSync(m.studentId, m.studentName, m.className, m.section);
 
         return {
           ...m,
@@ -253,17 +281,37 @@ router.get('/messages', async (_req: Request, res: Response) => {
 
     res.json({ success: true, data: messages });
   } catch (err) {
-    const fallbackMsgs = MEMORY_MESSAGES.filter((m: any) => !DELETED_MESSAGE_IDS.has(String(m._id)) && !DELETED_MESSAGE_IDS.has(String(m.id)));
-    res.json({ success: true, data: fallbackMsgs });
+    res.json({ success: true, data: [] });
   }
 });
 
 // GET /api/counsellor/bookings — Retrieve dynamic counsellor session bookings for Headmasters
-router.get('/bookings', async (_req: Request, res: Response) => {
+router.get('/bookings', async (req: Request, res: Response) => {
   try {
+    const schoolId = (req.query.schoolId as string) || (req as any).user?.schoolId;
+
+    let schoolStudentIds = new Set<string>();
+    let studentLookup: Record<string, { studentName: string; className: string; section: string }> = {};
+
+    if (schoolId) {
+      const students = await prisma.student.findMany({
+        where: { schoolId },
+        include: { user: true }
+      });
+      for (const s of students) {
+        schoolStudentIds.add(s.id);
+        schoolStudentIds.add(s.userId);
+        if (s.user?.email) schoolStudentIds.add(s.user.email);
+        const info = { studentName: s.user?.name || 'Student', className: s.class || '10', section: s.section || 'A' };
+        studentLookup[s.id] = info;
+        studentLookup[s.userId] = info;
+      }
+    }
+
     let rawBookings: any[] = [];
     try {
-      rawBookings = await CounsellorBooking.find().lean().sort({ createdAt: -1 }).limit(50);
+      const queryFilter = schoolId ? { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] } : {};
+      rawBookings = await CounsellorBooking.find(queryFilter).lean().sort({ createdAt: -1 }).limit(50);
     } catch (e) {}
 
     const combinedBookings = [...MEMORY_BOOKINGS];
@@ -275,8 +323,15 @@ router.get('/bookings', async (_req: Request, res: Response) => {
 
     const bookings = combinedBookings
       .filter((b: any) => !DELETED_BOOKING_IDS.has(String(b._id)) && !DELETED_BOOKING_IDS.has(String(b.id)))
+      .filter((b: any) => {
+        if (!schoolId) return true;
+        const cleanId = String(b.studentId || "").replace("ANONYMOUS_", "");
+        return b.schoolId === schoolId || schoolStudentIds.has(cleanId) || schoolStudentIds.has(b.studentId);
+      })
       .map((b: any) => {
-        const info = resolveStudentDetailsSync(b.studentId, b.studentName, b.className, b.section);
+        const cleanId = String(b.studentId || "").replace("ANONYMOUS_", "");
+        const studentInfo = studentLookup[cleanId] || studentLookup[b.studentId];
+        const info = studentInfo || resolveStudentDetailsSync(b.studentId, b.studentName, b.className, b.section);
         return {
           ...b,
           displayName: b.isAnonymous ? "🔒 Anonymous Student" : b.displayName || `👤 ${info.studentName} · Class ${info.className}-${info.section}`,
@@ -288,8 +343,7 @@ router.get('/bookings', async (_req: Request, res: Response) => {
 
     res.json({ success: true, data: bookings });
   } catch (err) {
-    const fallbackBookings = MEMORY_BOOKINGS.filter((b: any) => !DELETED_BOOKING_IDS.has(String(b._id)) && !DELETED_BOOKING_IDS.has(String(b.id)));
-    res.json({ success: true, data: fallbackBookings });
+    res.json({ success: true, data: [] });
   }
 });
 
