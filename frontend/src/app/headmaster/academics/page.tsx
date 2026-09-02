@@ -125,16 +125,16 @@ interface SectionItem {
 }
 
 const CATEGORIES = [
-  { key: "overview", label: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
-  // { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
-  { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
-  { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
-  { key: "textbooks", label: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
-  { key: "materials", label: "Study Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
-  { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
-  { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
-  { key: "digital", label: "Digital Content", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
-  { key: "reference", label: "Reference Materials", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
+  { key: "overview", label: "Overview", shortLabel: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
+  // { key: "structure", label: "Class & Structure Setup", shortLabel: "Structure", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
+  { key: "subjects", label: "Class Subjects", shortLabel: "Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
+  { key: "syllabus", label: "Syllabus", shortLabel: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
+  { key: "textbooks", label: "Textbooks", shortLabel: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
+  { key: "materials", label: "Study Materials", shortLabel: "Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
+  { key: "notes", label: "Teacher Notes", shortLabel: "Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
+  { key: "videos", label: "Video Lessons", shortLabel: "Videos", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
+  { key: "digital", label: "Digital Content", shortLabel: "Digital", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
+  { key: "reference", label: "Reference Materials", shortLabel: "Reference", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
 ];
 
 const RESOURCE_TYPES = ["PDF", "DOC", "Video", "Audio", "Interactive", "eBook", "Link"];
@@ -1222,43 +1222,47 @@ export default function HeadmasterAcademicsPage() {
         </div>
 
         {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm">
           {CATEGORIES.map((c) => {
             const active = activeTab === c.key;
             const count = (c.key === "overview") ? null : countByCategory(c.key);
 
             // Inline localization mapping
             const getCategoryLabel = (key: string, l: string) => {
-              const map: Record<string, string> = {
-                overview: l === "தமிழ்" ? "மேலோட்டம்" : "Overview",
-                structure: l === "தமிழ்" ? "வகுப்பு அமைப்பு" : "Class & Structure Setup",
-                subjects: l === "தமிழ்" ? "வகுப்புப் பாடங்கள்" : "Class Subjects",
-                syllabus: l === "தமிழ்" ? "பாடத்திட்டம்" : "Syllabus",
-                textbooks: l === "தமிழ்" ? "பாடப்புத்தகங்கள்" : "Textbooks",
-                materials: l === "தமிழ்" ? "ஆய்வுப் பொருட்கள்" : "Study Materials",
-                notes: l === "தமிழ்" ? "ஆசிரியர் குறிப்புகள்" : "Teacher Notes",
-                videos: l === "தமிழ்" ? "வீடியோ பாடங்கள்" : "Video Lessons",
-                digital: l === "தமிழ்" ? "டிஜிட்டல் உள்ளடக்கம்" : "Digital Content",
-                reference: l === "தமிழ்" ? "குறிப்புப் பொருட்கள்" : "Reference Materials"
-              };
-              return map[key] || key;
+              if (l === "தமிழ்") {
+                const mapTa: Record<string, string> = {
+                  overview: "மேலோட்டம்",
+                  structure: "அமைப்பு",
+                  subjects: "பாடங்கள்",
+                  syllabus: "பாடத்திட்டம்",
+                  textbooks: "புத்தகங்கள்",
+                  materials: "பொருட்கள்",
+                  notes: "குறிப்புகள்",
+                  videos: "வீடியோக்கள்",
+                  digital: "டிஜிட்டல்",
+                  reference: "குறிப்பு"
+                };
+                return mapTa[key] || key;
+              }
+              return c.label;
             };
 
             return (
               <button
                 key={c.key}
                 onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
-                  ? `text-white shadow-md`
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
+                  ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                   }`}
                 style={active ? { background: c.gradient } : undefined}
+                title={c.label}
               >
-                <Fi name={c.icon} className="text-sm" />
-                {getCategoryLabel(c.key, lang)}
+                <Fi name={c.icon} className="text-xs shrink-0" />
+                <span className="whitespace-nowrap">{getCategoryLabel(c.key, lang)}</span>
                 {count !== null && (
                   <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                       }`}
                   >
                     {count}
@@ -1271,36 +1275,52 @@ export default function HeadmasterAcademicsPage() {
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
         {activeTab !== "syllabus" && (
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
-            {/* Left search */}
-            <div className="relative w-full md:flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <FiSearchIcon className="text-sm" />
-              </span>
-              <input
-                type="text"
-                placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
-              />
-              {searchQuery && (
+          <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm space-y-3">
+            {/* Top Row: Search Input & Primary Add Action */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                  <FiSearchIcon className="text-sm" />
+                </span>
+                <input
+                  type="text"
+                  placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-700 dark:text-slate-200 transition-all placeholder:text-slate-400"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <FiXIcon className="text-xs" />
+                  </button>
+                )}
+              </div>
+
+              {activeTab !== "overview" && activeTab !== "structure" && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
+                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:shadow-lg active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
-                  <FiXIcon className="text-sm" />
+                  <FiPlusIcon className="text-sm" />
+                  <span>Add {CATEGORIES.find(c => c.key === activeTab)?.label}</span>
                 </button>
               )}
             </div>
 
-            {/* Filters & Add Action */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Bottom Row: Filter Dropdowns & Clear Button */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+                <FiFilterIcon className="text-xs" /> Filter:
+              </span>
+
               {/* Subject Filter */}
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="All">All Subjects</option>
                 {railSubjects.map(s => (
@@ -1312,7 +1332,7 @@ export default function HeadmasterAcademicsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Approved</option>
@@ -1324,7 +1344,7 @@ export default function HeadmasterAcademicsPage() {
               <select
                 value={filterClass}
                 onChange={(e) => setFilterClass(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="">All Classes</option>
                 {classes.length > 0 ? (
@@ -1343,7 +1363,7 @@ export default function HeadmasterAcademicsPage() {
               <select
                 value={filterSection}
                 onChange={(e) => setFilterSection(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="">All Sections</option>
                 {sections.length > 0 ? (
@@ -1368,21 +1388,10 @@ export default function HeadmasterAcademicsPage() {
                     setSelectedSubject("All");
                     setSearchQuery("");
                   }}
-                  className="p-2 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                  className="px-2.5 py-1.5 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex items-center gap-1"
                   title="Clear Filters"
                 >
-                  Clear
-                </button>
-              )}
-
-              {/* Add Subject/Resource Button */}
-              {activeTab !== "overview" && activeTab !== "structure" && (
-                <button
-                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0"
-                >
-                  <FiPlusIcon className="text-sm" />
-                  Add {CATEGORIES.find(c => c.key === activeTab)?.label}
+                  <FiXIcon className="text-xs" /> Clear
                 </button>
               )}
             </div>
