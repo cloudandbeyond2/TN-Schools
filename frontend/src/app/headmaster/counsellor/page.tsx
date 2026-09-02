@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { apiFetch } from "@/lib/api";
+import { useSession } from "next-auth/react";
 
 interface WellnessMessage {
   _id: string;
@@ -26,6 +28,9 @@ interface CounsellorBooking {
 }
 
 export default function HeadmasterCounsellorPage() {
+  const { data: session } = useSession();
+  const sessionSchoolId = (session?.user as any)?.schoolId;
+
   const [messages, setMessages] = useState<WellnessMessage[]>([]);
   const [bookings, setBookings] = useState<CounsellorBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,35 +46,39 @@ export default function HeadmasterCounsellorPage() {
   const [deletedMsgIds, setDeletedMsgIds] = useState<string[]>([]);
   const [deletedBookIds, setDeletedBookIds] = useState<string[]>([]);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      const q = sessionSchoolId ? `?schoolId=${encodeURIComponent(sessionSchoolId)}` : "";
       const [msgRes, bookRes] = await Promise.all([
-        fetch(`${API_URL}/api/counsellor/messages`),
-        fetch(`${API_URL}/api/counsellor/bookings`)
+        apiFetch(`/api/counsellor/messages${q}`),
+        apiFetch(`/api/counsellor/bookings${q}`)
       ]);
       const msgJson = await msgRes.json();
       const bookJson = await bookRes.json();
 
       if (msgJson.success && Array.isArray(msgJson.data)) {
         setMessages(msgJson.data.filter((m: any) => !deletedMsgIds.includes(String(m._id))));
+      } else {
+        setMessages([]);
       }
+
       if (bookJson.success && Array.isArray(bookJson.data)) {
         setBookings(bookJson.data.filter((b: any) => !deletedBookIds.includes(String(b._id))));
+      } else {
+        setBookings([]);
       }
     } catch (err) {
       console.error("Error fetching counsellor data:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionSchoolId, deletedMsgIds, deletedBookIds]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 3000);
+    const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
-  }, [API_URL, deletedMsgIds, deletedBookIds]);
+  }, [fetchData]);
 
   // Delete message handler
   const handleDeleteMessage = async (id: string) => {
@@ -87,7 +96,7 @@ export default function HeadmasterCounsellorPage() {
       setDeletedMsgIds(prev => [...prev, String(id)]);
       setMessages(prev => prev.filter(m => String(m._id) !== String(id)));
       try {
-        await fetch(`${API_URL}/api/counsellor/messages/${id}`, { method: "DELETE" });
+        await apiFetch(`/api/counsellor/messages/${id}`, { method: "DELETE" });
       } catch (err) {}
       Swal.fire({ title: "Deleted!", text: "Student note removed successfully.", icon: "success", timer: 1500, showConfirmButton: false });
     }
@@ -109,7 +118,7 @@ export default function HeadmasterCounsellorPage() {
       setDeletedBookIds(prev => [...prev, String(id)]);
       setBookings(prev => prev.filter(b => String(b._id) !== String(id)));
       try {
-        await fetch(`${API_URL}/api/counsellor/bookings/${id}`, { method: "DELETE" });
+        await apiFetch(`/api/counsellor/bookings/${id}`, { method: "DELETE" });
       } catch (err) {}
       Swal.fire({ title: "Deleted!", text: "Session booking removed successfully.", icon: "success", timer: 1500, showConfirmButton: false });
     }
@@ -119,7 +128,7 @@ export default function HeadmasterCounsellorPage() {
   const handleUpdateBookingStatus = async (id: string, newStatus: string) => {
     try {
       setBookings(prev => prev.map(b => b._id === id ? { ...b, status: newStatus } : b));
-      await fetch(`${API_URL}/api/counsellor/bookings/${id}/status`, {
+      await apiFetch(`/api/counsellor/bookings/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
@@ -134,7 +143,7 @@ export default function HeadmasterCounsellorPage() {
   const handleUpdateMessageStatus = async (id: string, newStatus: string) => {
     try {
       setMessages(prev => prev.map(m => m._id === id ? { ...m, status: newStatus } : m));
-      await fetch(`${API_URL}/api/counsellor/messages/${id}/status`, {
+      await apiFetch(`/api/counsellor/messages/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
