@@ -167,7 +167,28 @@ function robustParseJSON(text: string): any {
 // Model used when a caller does not name one. AI Content Studio skills pass a
 // per-skill model resolved from the superadmin AI Skill Control panel.
 export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000, base64Image?: string, mimeType?: string, model: string = DEFAULT_GEMINI_MODEL): Promise<any> {
+
+export interface GeminiUsage {
+  promptTokens: number;
+  candidatesTokens: number;
+  totalTokens: number;
+}
+
+export interface GeminiResponse<T = any> {
+  data: T;
+  usage: GeminiUsage;
+}
+
+export async function callGeminiWithUsage<T = any>(
+  prompt: string,
+  jsonMode: boolean = false,
+  schema?: any,
+  maxTokens: number = 8192,
+  timeoutMs: number = 90000,
+  base64Image?: string,
+  mimeType?: string,
+  model: string = DEFAULT_GEMINI_MODEL
+): Promise<GeminiResponse<T>> {
   // Superadmin-configured key (AI Integration Setup) wins; env var is the fallback.
   const GEMINI_API_KEY = await getGeminiApiKey();
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
@@ -241,7 +262,21 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
             reject(new Error(`Empty content from Gemini. Finish reason: ${finishReason || 'UNKNOWN'}`));
             return;
           }
-          resolve(jsonMode ? robustParseJSON(text) : text);
+
+          const parsedUsage = parsed?.usageMetadata;
+          const promptTokens = Number(parsedUsage?.promptTokenCount) || Math.ceil(prompt.length / 4);
+          const candidatesTokens = Number(parsedUsage?.candidatesTokenCount) || Math.ceil(text.length / 4);
+          const totalTokens = Number(parsedUsage?.totalTokenCount) || (promptTokens + candidatesTokens);
+
+          const data = jsonMode ? robustParseJSON(text) : text;
+          resolve({
+            data,
+            usage: {
+              promptTokens,
+              candidatesTokens,
+              totalTokens,
+            },
+          });
         } catch (e) {
           const finishReason = parsed?.candidates?.[0]?.finishReason;
           reject(new Error(`Failed to parse response. Finish: ${finishReason || 'UNKNOWN'}. Error: ${String(e)}. Snippet: ${text ? text.substring(0, 300) : body.substring(0, 300)}`));
@@ -254,6 +289,20 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
     req.write(postData);
     req.end();
   });
+}
+
+export async function callGemini(
+  prompt: string,
+  jsonMode: boolean = false,
+  schema?: any,
+  maxTokens: number = 8192,
+  timeoutMs: number = 90000,
+  base64Image?: string,
+  mimeType?: string,
+  model: string = DEFAULT_GEMINI_MODEL
+): Promise<any> {
+  const res = await callGeminiWithUsage(prompt, jsonMode, schema, maxTokens, timeoutMs, base64Image, mimeType, model);
+  return res.data;
 }
 
 // ---------------------------------------------------------------------------

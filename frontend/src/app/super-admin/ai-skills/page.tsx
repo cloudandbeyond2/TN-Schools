@@ -23,6 +23,22 @@ interface PackDirective {
   isModified: boolean;
 }
 
+interface TopicUsageRecord {
+  _id: string;
+  skillKey: string;
+  topic: string;
+  subject?: string;
+  className?: string;
+  section?: string;
+  unit?: string;
+  promptTokens: number;
+  completionTokens: number;
+  tokensUsed: number;
+  modelId: string;
+  userName?: string;
+  createdAt: string;
+}
+
 interface AdminSkill {
   key: string;
   command: string;
@@ -38,6 +54,8 @@ interface AdminSkill {
   classMax: number;
   model: string;
   maxTokens: number;
+  tokensUsed?: number;
+  totalGenerations?: number;
   basePrompt: string;
   defaultBasePrompt: string;
   isPromptModified: boolean;
@@ -69,6 +87,8 @@ export default function AISkillControlPage() {
   const [activePack, setActivePack] = useState<string>("MATHS");
   const [preview, setPreview] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [topicUsages, setTopicUsages] = useState<TopicUsageRecord[]>([]);
+  const [loadingUsages, setLoadingUsages] = useState(false);
 
   const editing = useMemo(() => skills.find((s) => s.key === editKey) || null, [skills, editKey]);
 
@@ -147,6 +167,17 @@ export default function AISkillControlPage() {
     );
     setActivePack(Object.keys(skill.packDirectives)[0] || "MATHS");
     setPreview(null);
+    setTopicUsages([]);
+    setLoadingUsages(true);
+    apiFetch(`/api/superadmin/ai-skills/${skill.key}/topics`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setTopicUsages(json.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingUsages(false));
   };
 
   const closeDrawer = async () => {
@@ -313,13 +344,14 @@ export default function AISkillControlPage() {
                 <table className="w-full min-w-[900px] text-left border-collapse">
                   <thead>
                     <tr className="text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
-                      <th className="px-4 py-2 font-bold">Skill</th>
-                      <th className="px-3 py-2 font-bold">On</th>
-                      <th className="px-3 py-2 font-bold">Classes</th>
-                      <th className="px-3 py-2 font-bold">Model</th>
-                      <th className="px-3 py-2 font-bold">Max tokens</th>
-                      <th className="px-3 py-2 font-bold">Prompt</th>
-                      <th className="px-4 py-2 font-bold" />
+                      <th className="px-4 py-2 font-bold text-center">Skill</th>
+                      <th className="px-3 py-2 font-bold text-center">On</th>
+                      <th className="px-3 py-2 font-bold text-center">Classes</th>
+                      <th className="px-3 py-2 font-bold text-center">Model</th>
+                      <th className="px-3 py-2 font-bold text-center">Max tokens</th>
+                      <th className="px-3 py-2 font-bold text-center">Tokens used</th>
+                      <th className="px-3 py-2 font-bold text-center">Prompt</th>
+                      <th className="px-4 py-2 font-bold text-center" />
                     </tr>
                   </thead>
                   <tbody>
@@ -339,26 +371,28 @@ export default function AISkillControlPage() {
                             </div>
                           </td>
 
-                          <td className="px-3 py-2.5">
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() => patch(s.key, { isEnabled: !s.isEnabled })}
-                              aria-pressed={s.isEnabled}
-                              className={`w-9 h-5 rounded-full transition relative disabled:opacity-50 ${
-                                s.isEnabled ? "bg-emerald-500" : "bg-[var(--border)]"
-                              }`}
-                            >
-                              <span
-                                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
-                                  s.isEnabled ? "left-[1.15rem]" : "left-0.5"
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex justify-center">
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => patch(s.key, { isEnabled: !s.isEnabled })}
+                                aria-pressed={s.isEnabled}
+                                className={`w-9 h-5 rounded-full transition relative disabled:opacity-50 ${
+                                  s.isEnabled ? "bg-emerald-500" : "bg-[var(--border)]"
                                 }`}
-                              />
-                            </button>
+                              >
+                                <span
+                                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
+                                    s.isEnabled ? "left-[1.15rem]" : "left-0.5"
+                                  }`}
+                                />
+                              </button>
+                            </div>
                           </td>
 
-                          <td className="px-3 py-2.5">
-                            <div className="flex items-center gap-1">
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex items-center justify-center gap-1">
                               <select
                                 value={s.classMin}
                                 disabled={busy}
@@ -387,36 +421,53 @@ export default function AISkillControlPage() {
                             </div>
                           </td>
 
-                          <td className="px-3 py-2.5">
-                            <select
-                              value={s.model}
-                              disabled={busy}
-                              onChange={(e) => patch(s.key, { model: e.target.value })}
-                              className="rounded-lg bg-[var(--bg-main)] border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
-                            >
-                              {Array.from(new Set([...GEMINI_MODELS, s.model])).map((m) => (
-                                <option key={m} value={m}>{m}</option>
-                              ))}
-                            </select>
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex justify-center">
+                              <select
+                                value={s.model}
+                                disabled={busy}
+                                onChange={(e) => patch(s.key, { model: e.target.value })}
+                                className="rounded-lg bg-[var(--bg-main)] border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
+                              >
+                                {Array.from(new Set([...GEMINI_MODELS, s.model])).map((m) => (
+                                  <option key={m} value={m}>{m}</option>
+                                ))}
+                              </select>
+                            </div>
                           </td>
 
-                          <td className="px-3 py-2.5">
-                            <input
-                              type="number"
-                              defaultValue={s.maxTokens}
-                              min={512}
-                              max={65536}
-                              step={512}
-                              disabled={busy}
-                              onBlur={(e) => {
-                                const n = Number(e.target.value);
-                                if (n !== s.maxTokens) patch(s.key, { maxTokens: n });
-                              }}
-                              className="w-20 rounded-lg bg-[var(--bg-main)] border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-heading)] outline-none focus:border-[var(--primary)]"
-                            />
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex justify-center">
+                              <input
+                                type="number"
+                                defaultValue={s.maxTokens}
+                                min={512}
+                                max={65536}
+                                step={512}
+                                disabled={busy}
+                                onBlur={(e) => {
+                                  const n = Number(e.target.value);
+                                  if (n !== s.maxTokens) patch(s.key, { maxTokens: n });
+                                }}
+                                className="w-20 rounded-lg bg-[var(--bg-main)] border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-heading)] outline-none focus:border-[var(--primary)] text-center"
+                              />
+                            </div>
                           </td>
 
-                          <td className="px-3 py-2.5">
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex flex-col items-center justify-center">
+                              <span className="text-[11px] font-mono font-bold text-[var(--text-heading)]">
+                                {s.tokensUsed ? s.tokensUsed.toLocaleString() : "0"}
+                              </span>
+                              {Boolean(s.totalGenerations) && (
+                                <span className="text-[9px] text-[var(--text-muted)]">
+                                  {s.totalGenerations} topic{s.totalGenerations! > 1 ? "s" : ""}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2.5 text-center">
                             {s.isPromptModified ||
                             Object.values(s.packDirectives).some((p) => p.isModified) ? (
                               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
@@ -427,8 +478,8 @@ export default function AISkillControlPage() {
                             )}
                           </td>
 
-                          <td className="px-4 py-2.5">
-                            <div className="flex gap-1 justify-end">
+                          <td className="px-4 py-2.5 text-center">
+                            <div className="flex gap-1 justify-center">
                               <button
                                 type="button"
                                 onClick={() => openDrawer(s)}
@@ -591,6 +642,67 @@ export default function AISkillControlPage() {
                 ) : (
                   <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-[10px] text-[var(--text-muted)] text-center">
                     Renders the exact prompt sent to the model for a Class 10 sample, using your unsaved edits.
+                  </div>
+                )}
+              </div>
+
+              {/* topic token usage & history */}
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-main)] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-[var(--text-heading)] flex items-center gap-2">
+                      <span>⚡ Topic Token Usage</span>
+                      <span className="text-[9px] font-mono font-normal px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                        {(editing.tokensUsed || 0).toLocaleString()} tokens consumed
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                      Breakdown of tokens used for each topic generated with this skill
+                    </div>
+                  </div>
+                  {Boolean(editing.totalGenerations) && (
+                    <div className="text-right text-[10px] text-[var(--text-muted)]">
+                      <span className="font-bold text-[var(--text-heading)]">{editing.totalGenerations}</span> generation{(editing.totalGenerations || 0) > 1 ? "s" : ""}
+                    </div>
+                  )}
+                </div>
+
+                {loadingUsages ? (
+                  <div className="py-4 text-center text-[10px] text-[var(--text-muted)] animate-pulse">
+                    Loading topic token usage...
+                  </div>
+                ) : topicUsages.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-[var(--border)] p-4 text-center text-[11px] text-[var(--text-muted)]">
+                    No topics generated under this skill yet. When teachers create content, the tokens used per topic will appear here.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {topicUsages.map((u) => (
+                      <div
+                        key={u._id}
+                        className="rounded-lg border border-[var(--border)] bg-[var(--bg-card)] p-2.5 flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-[11px] font-bold text-[var(--text-heading)] truncate">
+                            {u.topic}
+                          </div>
+                          <div className="text-[9px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
+                            {u.subject && <span>{u.subject}</span>}
+                            {u.className && <span>· {u.className}</span>}
+                            {u.userName && <span>· by {u.userName}</span>}
+                            <span>· {new Date(u.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[11px] font-mono font-bold text-[var(--primary)]">
+                            {u.tokensUsed.toLocaleString()} tokens
+                          </div>
+                          <div className="text-[9px] font-mono text-[var(--text-muted)]">
+                            in: {u.promptTokens.toLocaleString()} · out: {u.completionTokens.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { AiSkillConfig } from '../models/mongo';
+import { AiSkillConfig, AiTopicUsage } from '../models/mongo';
 import { requireRole } from '../middleware/auth.middleware';
 import { loadEffectiveSkills, loadEffectiveSkill } from './aiStudio.routes';
 import {
@@ -37,6 +37,8 @@ function toAdminSkill(s: Awaited<ReturnType<typeof loadEffectiveSkill>>) {
     classMax: s.classMax,
     model: s.model,
     maxTokens: s.maxTokens,
+    tokensUsed: s.tokensUsed || 0,
+    totalGenerations: s.totalGenerations || 0,
 
     // Effective text plus the shipped default, so the UI can show "modified"
     // and offer a meaningful reset.
@@ -232,6 +234,26 @@ router.post('/:key/preview', async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: { prompt, model: stored?.model || def.defaultModel, maxTokens: stored?.maxTokens || def.defaultMaxTokens },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/superadmin/ai-skills/:key/topics — recent topic generations and token usage
+router.get('/:key/topics', async (req: Request, res: Response) => {
+  try {
+    const def = SKILL_BY_KEY[req.params.key];
+    if (!def) return res.status(404).json({ success: false, error: 'Unknown skill' });
+
+    const usages = await AiTopicUsage.find({ skillKey: def.key })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    res.json({
+      success: true,
+      data: usages,
     });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });

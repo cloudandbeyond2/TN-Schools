@@ -47,6 +47,11 @@ interface GenerationResult {
   section: string | null;
   topic: string;
   language: string;
+  tokensUsed?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
   payload: any;
 }
 
@@ -367,6 +372,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
           title: result.payload?.title || result.topic,
           language: result.language,
           payload: result.payload,
+          tokensUsed: result.tokensUsed,
           schoolId,
           teacherId,
         }),
@@ -959,6 +965,23 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 ⇧ Publish
               </button>
             </div>
+
+            {result.tokensUsed && (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border)] text-[11px]">
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+                  <span className="text-amber-500 font-bold">⚡</span>
+                  <span>Tokens used for topic <strong className="text-[var(--text-heading)] font-semibold">"{result.topic}"</strong>:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-[var(--primary)] text-xs">
+                    {result.tokensUsed.totalTokens.toLocaleString()} tokens
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                    ({result.tokensUsed.promptTokens.toLocaleString()} in / {result.tokensUsed.completionTokens.toLocaleString()} out)
+                  </span>
+                </div>
+              </div>
+            )}
 
             {editMode && (
               <div className="mb-3 rounded-lg bg-[var(--primary)]/5 border border-[var(--primary)]/20 px-2.5 py-1.5 text-[10px] text-[var(--primary)]">
