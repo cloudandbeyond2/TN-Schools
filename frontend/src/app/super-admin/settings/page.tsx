@@ -186,14 +186,12 @@ export default function PortalSettings() {
     <button
       type="button"
       onClick={onClick}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-        on ? "bg-emerald-500" : "bg-slate-700"
-      }`}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${on ? "bg-emerald-500" : "bg-slate-700"
+        }`}
     >
       <span
-        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition duration-200 ease-in-out ${
-          on ? "translate-x-5" : "translate-x-0"
-        }`}
+        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition duration-200 ease-in-out ${on ? "translate-x-5" : "translate-x-0"
+          }`}
       />
     </button>
   );
@@ -219,11 +217,10 @@ export default function PortalSettings() {
 
       {toast && (
         <div
-          className={`mb-6 p-3 rounded-xl text-xs border flex items-center gap-2 ${
-            toast.kind === "ok"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}
+          className={`mb-6 p-3 rounded-xl text-xs border flex items-center gap-2 ${toast.kind === "ok"
+            ? "bg-green-500/10 border-green-500/20 text-green-400"
+            : "bg-red-500/10 border-red-500/20 text-red-400"
+            }`}
         >
           <i className={toast.kind === "ok" ? "fi fi-rr-check-circle" : "fi fi-rr-triangle-warning"}></i>
           <span>{toast.text}</span>
@@ -292,25 +289,7 @@ export default function PortalSettings() {
             </div>
           </div>
 
-          <div className="glass rounded-2xl p-6">
-            <h2 className="text-base font-bold text-white mb-5 flex items-center gap-2">
-              <i className="fi fi-rr-globe text-emerald-400"></i> Localization
-            </h2>
-            <div className="flex items-center justify-between bg-slate-900/40 rounded-xl px-4 py-4 border border-slate-800">
-              <div>
-                <div className="text-xs font-bold text-white">Default Language</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Platform default for new users</div>
-              </div>
-              <select
-                value={settings.defaultLanguage}
-                onChange={(e) => updateSetting("defaultLanguage", e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
-              >
-                <option value="English">English</option>
-                <option value="தமிழ்">தமிழ் (Tamil)</option>
-              </select>
-            </div>
-          </div>
+
 
           {/* Superadmin accounts */}
           <div className="glass rounded-2xl p-6">
@@ -350,11 +329,10 @@ export default function PortalSettings() {
                     {admin.id !== myId && (
                       <button
                         onClick={() => toggleActive(admin)}
-                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition ${
-                          admin.isActive
-                            ? "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
-                            : "bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
-                        }`}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition ${admin.isActive
+                          ? "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                          : "bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
+                          }`}
                       >
                         {admin.isActive ? "Deactivate" : "Activate"}
                       </button>
