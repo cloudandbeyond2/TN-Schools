@@ -7,8 +7,8 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import "./counsellor.css";
 const Icon = (name: string) => {
-  const Comp = ({ size = 24, className = "" }: { size?: number; className?: string }) => (
-    <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />
+  const Comp = ({ size = 24, className = "", style }: { size?: number; className?: string; style?: React.CSSProperties }) => (
+    <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }} />
   );
   Comp.displayName = "Icon";
   return Comp;
