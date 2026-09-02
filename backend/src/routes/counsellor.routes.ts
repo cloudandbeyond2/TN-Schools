@@ -220,10 +220,11 @@ router.post('/booking', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/counsellor/messages — Retrieve dynamic student wellness & mood entries for Headmasters
+// GET /api/counsellor/messages — Retrieve dynamic student wellness & mood entries for Headmasters or individual Students
 router.get('/messages', async (req: Request, res: Response) => {
   try {
     const schoolId = (req.query.schoolId as string) || (req as any).user?.schoolId;
+    const targetStudentId = (req.query.studentId as string) || (req.query.student_id as string);
 
     let schoolStudentIds = new Set<string>();
     let studentLookup: Record<string, { studentName: string; className: string; section: string }> = {};
@@ -245,7 +246,12 @@ router.get('/messages', async (req: Request, res: Response) => {
 
     let rawMessages: any[] = [];
     try {
-      const queryFilter = schoolId ? { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] } : {};
+      let queryFilter: any = {};
+      if (targetStudentId) {
+        queryFilter = { $or: [{ studentId: targetStudentId }, { studentId: `ANONYMOUS_${targetStudentId}` }] };
+      } else if (schoolId) {
+        queryFilter = { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] };
+      }
       rawMessages = await Wellness.find(queryFilter).lean().sort({ date: -1 }).limit(50);
     } catch (e) {}
 
@@ -259,8 +265,11 @@ router.get('/messages', async (req: Request, res: Response) => {
     const messages = combinedMessages
       .filter((m: any) => !DELETED_MESSAGE_IDS.has(String(m._id)) && !DELETED_MESSAGE_IDS.has(String(m.id)))
       .filter((m: any) => {
-        if (!schoolId) return true;
         const cleanId = String(m.studentId || "").replace("ANONYMOUS_", "");
+        if (targetStudentId) {
+          return m.studentId === targetStudentId || m.studentId === `ANONYMOUS_${targetStudentId}` || cleanId === targetStudentId;
+        }
+        if (!schoolId) return true;
         return m.schoolId === schoolId || schoolStudentIds.has(cleanId) || schoolStudentIds.has(m.studentId);
       })
       .map((m: any) => {
@@ -285,10 +294,11 @@ router.get('/messages', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/counsellor/bookings — Retrieve dynamic counsellor session bookings for Headmasters
+// GET /api/counsellor/bookings — Retrieve dynamic counsellor session bookings for Headmasters or individual Students
 router.get('/bookings', async (req: Request, res: Response) => {
   try {
     const schoolId = (req.query.schoolId as string) || (req as any).user?.schoolId;
+    const targetStudentId = (req.query.studentId as string) || (req.query.student_id as string);
 
     let schoolStudentIds = new Set<string>();
     let studentLookup: Record<string, { studentName: string; className: string; section: string }> = {};
@@ -310,7 +320,12 @@ router.get('/bookings', async (req: Request, res: Response) => {
 
     let rawBookings: any[] = [];
     try {
-      const queryFilter = schoolId ? { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] } : {};
+      let queryFilter: any = {};
+      if (targetStudentId) {
+        queryFilter = { $or: [{ studentId: targetStudentId }, { studentId: `ANONYMOUS_${targetStudentId}` }] };
+      } else if (schoolId) {
+        queryFilter = { $or: [{ schoolId }, { studentId: { $in: Array.from(schoolStudentIds) } }] };
+      }
       rawBookings = await CounsellorBooking.find(queryFilter).lean().sort({ createdAt: -1 }).limit(50);
     } catch (e) {}
 
@@ -324,8 +339,11 @@ router.get('/bookings', async (req: Request, res: Response) => {
     const bookings = combinedBookings
       .filter((b: any) => !DELETED_BOOKING_IDS.has(String(b._id)) && !DELETED_BOOKING_IDS.has(String(b.id)))
       .filter((b: any) => {
-        if (!schoolId) return true;
         const cleanId = String(b.studentId || "").replace("ANONYMOUS_", "");
+        if (targetStudentId) {
+          return b.studentId === targetStudentId || b.studentId === `ANONYMOUS_${targetStudentId}` || cleanId === targetStudentId;
+        }
+        if (!schoolId) return true;
         return b.schoolId === schoolId || schoolStudentIds.has(cleanId) || schoolStudentIds.has(b.studentId);
       })
       .map((b: any) => {
