@@ -35,7 +35,7 @@ const DISTRICTS = [
   "Vellore", "Viluppuram", "Virudhunagar"
 ];
 
-const emptyForm = { name:"", empId:"", phone:"", email:"", district:"Coimbatore", block:"", school:"", dise:"", experience:5 };
+const emptyForm = { name:"", empId:"", phone:"", email:"", password:"", district:"Coimbatore", block:"", school:"", dise:"", experience:5 };
 
 export default function HeadmasterManagement() {
   const [hms, setHMs] = useState<HM[]>([]);
@@ -47,6 +47,7 @@ export default function HeadmasterManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editHM, setEditHM] = useState<HM | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showTransfer, setShowTransfer] = useState<HM | null>(null);
   const [transferTarget, setTransferTarget] = useState("");
 
@@ -129,6 +130,7 @@ export default function HeadmasterManagement() {
   const openAdd = () => { 
     setEditHM(null); 
     setForm(emptyForm); 
+    setErrors({});
     setShowModal(true); 
   };
 
@@ -139,31 +141,71 @@ export default function HeadmasterManagement() {
       empId: h.empId === "—" ? "" : h.empId, 
       phone: h.phone === "—" ? "" : h.phone, 
       email: h.email === "—" ? "" : h.email, 
+      password: "",
       district: h.district === "—" ? "" : h.district, 
       block: h.block === "—" ? "" : h.block, 
       school: h.school === "—" ? "" : h.school, 
       dise: h.dise === "—" ? "" : h.dise, 
       experience: h.experience 
     }); 
+    setErrors({});
     setShowModal(true); 
   };
 
-  const saveHM = async () => {
-    if (!form.name || !form.empId || !form.email) {
-      alert("Name, Email, and Employee ID are required.");
-      return;
+  const validateForm = () => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) {
+      errs.name = "Full Name is required";
+    } else if (form.name.trim().length < 2) {
+      errs.name = "Full Name must be at least 2 characters";
     }
+
+    if (!form.empId.trim()) {
+      errs.empId = "Employee ID is required";
+    }
+
+    if (!form.phone.trim()) {
+      errs.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(form.phone.trim())) {
+      errs.phone = "Phone must be a valid 10-digit mobile number";
+    }
+
+    if (!form.email.trim()) {
+      errs.email = "Email address is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errs.email = "Enter a valid email address (e.g. hm@tn.gov.in)";
+    }
+
+    if (!editHM) {
+      if (!form.password) {
+        errs.password = "Password is required for new Headmaster";
+      } else if (form.password.length < 6) {
+        errs.password = "Password must be at least 6 characters";
+      }
+    } else {
+      if (form.password && form.password.length < 6) {
+        errs.password = "Password must be at least 6 characters if updating";
+      }
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const saveHM = async () => {
+    if (!validateForm()) return;
+
     try {
       const payload = {
-        name: form.name,
-        email: form.email,
-        mobile: form.phone || null,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        mobile: form.phone.trim() || null,
         role: "HEADMASTER",
-        emisId: form.empId,
+        emisId: form.empId.trim(),
         schoolId: form.school || null,
         district: form.district || null,
         block: form.block || null,
-        password: editHM ? undefined : "123456" 
+        password: form.password ? form.password : (editHM ? undefined : "123456")
       };
 
       if (editHM) {
@@ -387,29 +429,92 @@ export default function HeadmasterManagement() {
             <h3 className="text-base font-bold text-white mb-5">{editHM ? "✏️ Edit HM" : "➕ Add Headmaster"}</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Full Name</label>
-                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Full Name *</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, name: e.target.value }));
+                    if (errors.name) setErrors((err) => ({ ...err, name: "" }));
+                  }}
                   placeholder="HM full name"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none transition-colors ${
+                    errors.name ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.name && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.name}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Employee ID</label>
-                <input value={form.empId} onChange={(e) => setForm((f) => ({ ...f, empId: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Employee ID *</label>
+                <input
+                  value={form.empId}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, empId: e.target.value }));
+                    if (errors.empId) setErrors((err) => ({ ...err, empId: "" }));
+                  }}
                   placeholder="e.g. TN-HM-1234"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.empId ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.empId && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.empId}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Phone</label>
-                <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Phone *</label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={form.phone}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setForm((f) => ({ ...f, phone: cleaned }));
+                    if (errors.phone) setErrors((err) => ({ ...err, phone: "" }));
+                  }}
                   placeholder="10-digit number"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.phone ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.phone && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.phone}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Email</label>
-                <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Email *</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, email: e.target.value }));
+                    if (errors.email) setErrors((err) => ({ ...err, email: "" }));
+                  }}
                   placeholder="hm@tn.gov.in"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.email ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.email && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.email}</span>}
               </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+                  {editHM ? "Password (Optional)" : "Password *"}
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, password: e.target.value }));
+                    if (errors.password) setErrors((err) => ({ ...err, password: "" }));
+                  }}
+                  placeholder={editHM ? "Leave blank to keep current password" : "Min 6 characters (e.g. 123456)"}
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.password ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.password && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.password}</span>}
+              </div>
+
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assigned School</label>
                 <select value={form.school} onChange={(e) => handleSchoolChange(e.target.value)}
