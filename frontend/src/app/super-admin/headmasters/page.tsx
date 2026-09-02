@@ -35,7 +35,7 @@ const DISTRICTS = [
   "Vellore", "Viluppuram", "Virudhunagar"
 ];
 
-const emptyForm = { name:"", empId:"", phone:"", email:"", district:"Coimbatore", block:"", school:"", dise:"", experience:5 };
+const emptyForm = { name:"", empId:"", phone:"", email:"", password:"", district:"Coimbatore", block:"", school:"", dise:"", experience:5 };
 
 export default function HeadmasterManagement() {
   const [hms, setHMs] = useState<HM[]>([]);
@@ -47,6 +47,7 @@ export default function HeadmasterManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editHM, setEditHM] = useState<HM | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showTransfer, setShowTransfer] = useState<HM | null>(null);
   const [transferTarget, setTransferTarget] = useState("");
 
@@ -129,6 +130,7 @@ export default function HeadmasterManagement() {
   const openAdd = () => { 
     setEditHM(null); 
     setForm(emptyForm); 
+    setErrors({});
     setShowModal(true); 
   };
 
@@ -139,31 +141,71 @@ export default function HeadmasterManagement() {
       empId: h.empId === "—" ? "" : h.empId, 
       phone: h.phone === "—" ? "" : h.phone, 
       email: h.email === "—" ? "" : h.email, 
+      password: "",
       district: h.district === "—" ? "" : h.district, 
       block: h.block === "—" ? "" : h.block, 
       school: h.school === "—" ? "" : h.school, 
       dise: h.dise === "—" ? "" : h.dise, 
       experience: h.experience 
     }); 
+    setErrors({});
     setShowModal(true); 
   };
 
-  const saveHM = async () => {
-    if (!form.name || !form.empId || !form.email) {
-      alert("Name, Email, and Employee ID are required.");
-      return;
+  const validateForm = () => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) {
+      errs.name = "Full Name is required";
+    } else if (form.name.trim().length < 2) {
+      errs.name = "Full Name must be at least 2 characters";
     }
+
+    if (!form.empId.trim()) {
+      errs.empId = "Employee ID is required";
+    }
+
+    if (!form.phone.trim()) {
+      errs.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(form.phone.trim())) {
+      errs.phone = "Phone must be a valid 10-digit mobile number";
+    }
+
+    if (!form.email.trim()) {
+      errs.email = "Email address is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errs.email = "Enter a valid email address (e.g. hm@tn.gov.in)";
+    }
+
+    if (!editHM) {
+      if (!form.password) {
+        errs.password = "Password is required for new Headmaster";
+      } else if (form.password.length < 6) {
+        errs.password = "Password must be at least 6 characters";
+      }
+    } else {
+      if (form.password && form.password.length < 6) {
+        errs.password = "Password must be at least 6 characters if updating";
+      }
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const saveHM = async () => {
+    if (!validateForm()) return;
+
     try {
       const payload = {
-        name: form.name,
-        email: form.email,
-        mobile: form.phone || null,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        mobile: form.phone.trim() || null,
         role: "HEADMASTER",
-        emisId: form.empId,
+        emisId: form.empId.trim(),
         schoolId: form.school || null,
         district: form.district || null,
         block: form.block || null,
-        password: editHM ? undefined : "123456" 
+        password: form.password ? form.password : (editHM ? undefined : "123456")
       };
 
       if (editHM) {
@@ -284,22 +326,26 @@ export default function HeadmasterManagement() {
     <PortalLayout>
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-white">👤 Headmaster Management</h1>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <i className="fi fi-rr-user-gear text-blue-400"></i> Headmaster Management
+          </h1>
           <p className="text-xs text-slate-400 mt-1">Manage headmaster assignments, transfers, and school allocations across Tamil Nadu</p>
         </div>
-        <button onClick={openAdd} className="text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition">+ Add HM</button>
+        <button onClick={openAdd} className="text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-1.5 cursor-pointer">
+          <i className="fi fi-rr-user-add"></i> Add HM
+        </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label:"Total HMs", value:hms.length, icon:"👤", color:"text-blue-400" },
-          { label:"Assigned", value:hms.filter((h) => h.status==="assigned").length, icon:"✅", color:"text-emerald-400" },
-          { label:"Unassigned", value:hms.filter((h) => h.status==="unassigned").length, icon:"⚠️", color:"text-amber-400" },
+          { label:"Total HMs", value:hms.length, icon:<i className="fi fi-rr-users text-blue-400 text-xl"></i>, color:"text-blue-400" },
+          { label:"Assigned", value:hms.filter((h) => h.status==="assigned").length, icon:<i className="fi fi-rr-check-circle text-emerald-400 text-xl"></i>, color:"text-emerald-400" },
+          { label:"Unassigned", value:hms.filter((h) => h.status==="unassigned").length, icon:<i className="fi fi-rr-triangle-warning text-amber-400 text-xl"></i>, color:"text-amber-400" },
         ].map((k) => (
           <div key={k.label} className="glass rounded-xl p-4 border border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{k.icon}</span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center shrink-0">{k.icon}</span>
               <div>
                 <div className={`text-xl font-extrabold ${k.color}`}>{loading ? "..." : k.value}</div>
                 <div className="text-[10px] text-slate-500">{k.label}</div>
@@ -311,9 +357,15 @@ export default function HeadmasterManagement() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <input value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search by name, ID, school..."
-          className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 w-56 focus:outline-none focus:border-blue-500" />
+        <div className="relative">
+          <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, ID, school..."
+            className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg pl-8 pr-3 py-2 w-56 focus:outline-none focus:border-blue-500"
+          />
+        </div>
         <div className="flex gap-2">
           {(["all","assigned","unassigned","transferred"] as const).map((s) => (
             <button key={s} onClick={() => setFilterStatus(s)}
@@ -337,7 +389,7 @@ export default function HeadmasterManagement() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 glass rounded-2xl">
-          <span className="text-3xl block mb-2">👤</span>
+          <i className="fi fi-rr-user-x text-3xl text-slate-500 block mb-2"></i>
           <span className="text-xs text-slate-500">No headmasters found matching selection.</span>
         </div>
       ) : (
@@ -371,9 +423,15 @@ export default function HeadmasterManagement() {
               </div>
 
               <div className="flex gap-2 flex-wrap border-t border-slate-800 pt-3 mt-1">
-                <button onClick={() => openEdit(h)} className="text-[10px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-lg transition">Edit</button>
-                <button onClick={() => setShowTransfer(h)} className="text-[10px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg transition">Transfer</button>
-                <button onClick={() => removeHM(h.id)} className="text-[10px] font-bold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-lg transition">Remove</button>
+                <button onClick={() => openEdit(h)} className="text-[10px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer">
+                  <i className="fi fi-rr-edit text-xs"></i> Edit
+                </button>
+                <button onClick={() => setShowTransfer(h)} className="text-[10px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer">
+                  <i className="fi fi-rr-arrows-repeat text-xs"></i> Transfer
+                </button>
+                <button onClick={() => removeHM(h.id)} className="text-[10px] font-bold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer">
+                  <i className="fi fi-rr-trash text-xs"></i> Remove
+                </button>
               </div>
             </div>
           ))}
@@ -384,32 +442,105 @@ export default function HeadmasterManagement() {
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h3 className="text-base font-bold text-white mb-5">{editHM ? "✏️ Edit HM" : "➕ Add Headmaster"}</h3>
+            <div className="text-base font-bold text-white mb-5 flex items-center gap-2">
+              {editHM ? (
+                <>
+                  <i className="fi fi-rr-edit text-blue-400"></i> Edit Headmaster
+                </>
+              ) : (
+                <>
+                  <i className="fi fi-rr-user-add text-blue-400"></i> Add Headmaster
+                </>
+              )}
+            </div>
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Full Name</label>
-                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Full Name *</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, name: e.target.value }));
+                    if (errors.name) setErrors((err) => ({ ...err, name: "" }));
+                  }}
                   placeholder="HM full name"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none transition-colors ${
+                    errors.name ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.name && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.name}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Employee ID</label>
-                <input value={form.empId} onChange={(e) => setForm((f) => ({ ...f, empId: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Employee ID *</label>
+                <input
+                  value={form.empId}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, empId: e.target.value }));
+                    if (errors.empId) setErrors((err) => ({ ...err, empId: "" }));
+                  }}
                   placeholder="e.g. TN-HM-1234"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.empId ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.empId && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.empId}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Phone</label>
-                <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Phone *</label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={form.phone}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setForm((f) => ({ ...f, phone: cleaned }));
+                    if (errors.phone) setErrors((err) => ({ ...err, phone: "" }));
+                  }}
                   placeholder="10-digit number"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.phone ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.phone && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.phone}</span>}
               </div>
+
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Email</label>
-                <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Email *</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, email: e.target.value }));
+                    if (errors.email) setErrors((err) => ({ ...err, email: "" }));
+                  }}
                   placeholder="hm@tn.gov.in"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-mono" />
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.email ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.email && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.email}</span>}
               </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">
+                  {editHM ? "Password (Optional)" : "Password *"}
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, password: e.target.value }));
+                    if (errors.password) setErrors((err) => ({ ...err, password: "" }));
+                  }}
+                  placeholder={editHM ? "Leave blank to keep current password" : "Min 6 characters (e.g. 123456)"}
+                  className={`w-full bg-slate-800 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none font-mono transition-colors ${
+                    errors.password ? "border-red-500 focus:border-red-500" : "border-slate-700 focus:border-blue-500"
+                  }`}
+                />
+                {errors.password && <span className="text-[10px] text-red-400 font-semibold mt-0.5 block">{errors.password}</span>}
+              </div>
+
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assigned School</label>
                 <select value={form.school} onChange={(e) => handleSchoolChange(e.target.value)}
@@ -462,8 +593,12 @@ export default function HeadmasterManagement() {
               )}
             </div>
             <div className="flex gap-3 mt-6 font-mono">
-              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700">Cancel</button>
-              <button onClick={saveHM} className="flex-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 py-2 rounded-lg transition">{editHM ? "Save" : "Add HM"}</button>
+              <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700 flex items-center justify-center gap-1 cursor-pointer">
+                <i className="fi fi-rr-cross-small"></i> Cancel
+              </button>
+              <button onClick={saveHM} className="flex-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer">
+                <i className="fi fi-rr-check"></i> {editHM ? "Save Changes" : "Add HM"}
+              </button>
             </div>
           </div>
         </div>
@@ -473,7 +608,9 @@ export default function HeadmasterManagement() {
       {showTransfer && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-2">🔄 Transfer HM</h3>
+            <div className="text-base font-bold text-white mb-2 flex items-center gap-2">
+              <i className="fi fi-rr-arrows-repeat text-amber-400"></i> Transfer Headmaster
+            </div>
             <p className="text-xs text-slate-400 mb-4">Transferring: <strong className="text-white">{showTransfer.name}</strong></p>
             <div className="mb-4">
               <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Select New School</label>
@@ -486,8 +623,12 @@ export default function HeadmasterManagement() {
               </select>
             </div>
             <div className="flex gap-3 font-mono">
-              <button onClick={() => setShowTransfer(null)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700">Cancel</button>
-              <button onClick={doTransfer} className="flex-1 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 py-2 rounded-lg transition" disabled={!transferTarget}>Transfer</button>
+              <button onClick={() => setShowTransfer(null)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700 flex items-center justify-center gap-1 cursor-pointer">
+                <i className="fi fi-rr-cross-small"></i> Cancel
+              </button>
+              <button onClick={doTransfer} className="flex-1 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer" disabled={!transferTarget}>
+                <i className="fi fi-rr-check"></i> Transfer
+              </button>
             </div>
           </div>
         </div>
