@@ -264,9 +264,10 @@ export default function ManageMinistersPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-3xl p-6 space-y-5 relative bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                🏛️ {editingId ? "Edit Minister" : "Add Cabinet Minister"}
-              </h3>
+              <div className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                <span>🏛️</span>
+                <span className="text-slate-800 dark:text-white">{editingId ? "Edit Minister" : "Add Cabinet Minister"}</span>
+              </div>
               <button onClick={handleModalClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">
                 ✕ Close
               </button>
