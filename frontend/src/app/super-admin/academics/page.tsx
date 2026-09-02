@@ -2499,12 +2499,17 @@ export default function SuperadminAcademicsPage() {
                       value={resourceForm.class}
                       onChange={e => {
                         const newClass = e.target.value;
-                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass) || String(s.class) === `Class ${newClass}`) : subjects;
+                        const cleanNew = String(newClass).replace(/^Class\s+/i, '').trim();
+                        const filtered = newClass ? subjects.filter(s => {
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanNew || String(s.class) === newClass || String(s.class) === `Class ${cleanNew}`;
+                        }) : subjects;
                         const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
                         setResourceForm({
                           ...resourceForm,
                           class: newClass,
-                          subjectId: isStillValid ? resourceForm.subjectId : ""
+                          subjectId: isStillValid ? resourceForm.subjectId : (filtered.length > 0 ? filtered[0].id : "")
                         });
                       }}
                       className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
@@ -2524,13 +2529,20 @@ export default function SuperadminAcademicsPage() {
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
                     <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="" disabled>Select subject</option>
-                      {Array.from(
-                        new Map(
-                          subjects
-                            .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class) || String(s.class) === `Class ${resourceForm.class}`)
-                            .map(s => [s.name, s])
-                        ).values()
-                      ).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {(() => {
+                        const cleanClass = String(resourceForm.class || "").replace(/^Class\s+/i, '').trim();
+                        let filtered = subjects.filter(s => {
+                          if (!cleanClass) return true;
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanClass || String(s.class) === cleanClass || String(s.class) === `Class ${cleanClass}`;
+                        });
+                        if (filtered.length === 0 && subjects.length > 0) {
+                          filtered = subjects;
+                        }
+                        const unique = Array.from(new Map(filtered.map(s => [s.name.toLowerCase().trim(), s])).values());
+                        return unique.map(s => <option key={s.id} value={s.id}>{s.name}</option>);
+                      })()}
                     </select>
                   </div>
                 </div>

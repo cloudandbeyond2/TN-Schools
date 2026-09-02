@@ -45,7 +45,7 @@ router.post("/upload", requireMinRole("HEADMASTER"), (req: Request, res: Respons
   }
 });
 
-// Ensure AcademicClass and AcademicSection tables exist in PostgreSQL
+// Ensure AcademicClass and AcademicSection tables exist in PostgreSQL and seed defaults if empty
 async function ensureAcademicTablesExist() {
   try {
     await prisma.$executeRawUnsafe(`
@@ -68,6 +68,65 @@ async function ensureAcademicTablesExist() {
     `);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
+
+    // Ensure default classes exist
+    const classCount = await prisma.academicClass.count();
+    if (classCount === 0) {
+      const defaultClasses = Array.from({ length: 12 }, (_, i) => ({
+        id: randomUUID(),
+        name: `Class ${i + 1}`,
+        status: "Active",
+      }));
+      await prisma.academicClass.createMany({ data: defaultClasses });
+    }
+
+    // Ensure default subjects exist
+    const subjectCount = await prisma.academicSubject.count();
+    if (subjectCount === 0) {
+      const classes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      const data: any[] = [];
+      const masters = [
+        { name: 'Tamil', color: '#ef4444', icon: 'scroll' },
+        { name: 'English', color: '#3b82f6', icon: 'comment-alt' },
+        { name: 'Mathematics', color: '#8b5cf6', icon: 'calculator' },
+        { name: 'Science', color: '#10b981', icon: 'flask' },
+        { name: 'Social Science', color: '#f59e0b', icon: 'globe' },
+        { name: 'Physics', color: '#06b6d4', icon: 'atom' },
+        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube' },
+        { name: 'Biology', color: '#84cc16', icon: 'dna' },
+        { name: 'Computer Science', color: '#6366f1', icon: 'laptop-code' },
+        { name: 'Commerce', color: '#14b8a6', icon: 'briefcase' },
+        { name: 'Accountancy', color: '#f97316', icon: 'file-invoice' },
+        { name: 'Economics', color: '#a855f7', icon: 'chart-line' },
+      ];
+      for (const m of masters) {
+        data.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active' });
+      }
+      for (const c of classes) {
+        const list = c >= 11 ? [
+          { name: 'Tamil', color: '#ef4444' },
+          { name: 'English', color: '#3b82f6' },
+          { name: 'Mathematics', color: '#8b5cf6' },
+          { name: 'Physics', color: '#06b6d4' },
+          { name: 'Chemistry', color: '#ec4899' },
+          { name: 'Biology', color: '#84cc16' },
+          { name: 'Computer Science', color: '#6366f1' },
+          { name: 'Commerce', color: '#14b8a6' },
+          { name: 'Accountancy', color: '#f97316' },
+          { name: 'Economics', color: '#a855f7' },
+        ] : [
+          { name: 'Tamil', color: '#ef4444' },
+          { name: 'English', color: '#3b82f6' },
+          { name: 'Mathematics', color: '#8b5cf6' },
+          { name: 'Science', color: '#10b981' },
+          { name: 'Social Science', color: '#f59e0b' },
+        ];
+        for (const s of list) {
+          data.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active' });
+        }
+      }
+      await prisma.academicSubject.createMany({ data });
+    }
   } catch (e) {
     console.error("Error creating academic tables/columns:", e);
   }
@@ -316,10 +375,14 @@ router.get("/subjects", async (req: Request, res: Response) => {
         numMatch ? `CLASS ${numMatch}` : "",
       ])).filter(Boolean);
 
-      // Only return subjects that exactly match the requested class.
-      // Do NOT include null/empty class rows — those are unassigned subjects
-      // that should only appear in the headmaster's "all subjects" view.
-      where.OR = classVariants.map(c => ({ class: c }));
+      // Return subjects matching the requested class as well as general/master subjects
+      where.OR = [
+        ...classVariants.map(c => ({ class: c })),
+        { class: null },
+        { class: "" },
+        { class: "All" },
+        { class: "General" }
+      ];
     }
 
     if (status) {
@@ -535,9 +598,31 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
 
     const targetSchoolId = schoolId || req.user?.schoolId || null;
 
+    let finalSubjectId = subjectId;
+    const existingSubject = await prisma.academicSubject.findUnique({ where: { id: subjectId } });
+    if (!existingSubject) {
+      const byName = await prisma.academicSubject.findFirst({
+        where: {
+          name: { equals: String(subjectId).trim(), mode: "insensitive" },
+        },
+      });
+      if (byName) {
+        finalSubjectId = byName.id;
+      } else {
+        const createdSub = await prisma.academicSubject.create({
+          data: {
+            name: String(subjectId).trim(),
+            class: className ? String(className).trim() : null,
+            status: "Active",
+          },
+        });
+        finalSubjectId = createdSub.id;
+      }
+    }
+
     const resource = await prisma.academicResource.create({
       data: {
-        title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
+        title, subjectId: finalSubjectId, category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
@@ -566,10 +651,34 @@ router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res
 
     const targetSchoolId = schoolId || req.user?.schoolId || undefined;
 
+    let finalSubjectId = subjectId;
+    if (subjectId) {
+      const existingSubject = await prisma.academicSubject.findUnique({ where: { id: subjectId } });
+      if (!existingSubject) {
+        const byName = await prisma.academicSubject.findFirst({
+          where: {
+            name: { equals: String(subjectId).trim(), mode: "insensitive" },
+          },
+        });
+        if (byName) {
+          finalSubjectId = byName.id;
+        } else {
+          const createdSub = await prisma.academicSubject.create({
+            data: {
+              name: String(subjectId).trim(),
+              class: className ? String(className).trim() : null,
+              status: "Active",
+            },
+          });
+          finalSubjectId = createdSub.id;
+        }
+      }
+    }
+
     const resource = await prisma.academicResource.update({
       where: { id },
       data: {
-        title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
+        title, ...(finalSubjectId ? { subjectId: finalSubjectId } : {}), category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
