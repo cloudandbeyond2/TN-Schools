@@ -800,6 +800,8 @@ export interface IAiSkillConfig extends Document {
   /** Named modelId, not model: Mongoose Document already owns `model`. */
   modelId?: string;
   maxTokens?: number;
+  tokensUsed?: number;
+  totalGenerations?: number;
   /** Replaces AiSkillDef.basePrompt when set. */
   promptOverride?: string;
   /** Per-subject-pack structural directive override, keyed by SubjectPack. */
@@ -810,18 +812,59 @@ export interface IAiSkillConfig extends Document {
 }
 
 const AiSkillConfigSchema = new Schema<IAiSkillConfig>({
-  key:            { type: String, required: true, unique: true },
-  isEnabled:      { type: Boolean, default: true },
-  classMin:       { type: Number },
-  classMax:       { type: Number },
-  modelId:        { type: String },
-  maxTokens:      { type: Number },
-  promptOverride: { type: String },
-  packOverrides:  { type: Map, of: String, default: {} },
-  updatedBy:      { type: String },
+  key:              { type: String, required: true, unique: true },
+  isEnabled:        { type: Boolean, default: true },
+  classMin:         { type: Number },
+  classMax:         { type: Number },
+  modelId:          { type: String },
+  maxTokens:        { type: Number },
+  tokensUsed:       { type: Number, default: 0 },
+  totalGenerations: { type: Number, default: 0 },
+  promptOverride:   { type: String },
+  packOverrides:    { type: Map, of: String, default: {} },
+  updatedBy:        { type: String },
 }, { timestamps: true });
 
 export const AiSkillConfig = mongoose.models.AiSkillConfig || mongoose.model<IAiSkillConfig>('AiSkillConfig', AiSkillConfigSchema);
+
+// ─── AI Content Studio: Per-topic token usage audit ───────────
+export interface IAiTopicUsage extends Document {
+  skillKey: string;
+  topic: string;
+  subject?: string;
+  className?: string;
+  section?: string;
+  unit?: string;
+  promptTokens: number;
+  completionTokens: number;
+  tokensUsed: number;
+  modelId: string;
+  userId?: string;
+  userName?: string;
+  schoolId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AiTopicUsageSchema = new Schema<IAiTopicUsage>({
+  skillKey:         { type: String, required: true, index: true },
+  topic:            { type: String, required: true, index: true },
+  subject:          { type: String },
+  className:        { type: String },
+  section:          { type: String },
+  unit:             { type: String },
+  promptTokens:     { type: Number, default: 0 },
+  completionTokens: { type: Number, default: 0 },
+  tokensUsed:       { type: Number, default: 0 },
+  modelId:          { type: String },
+  userId:           { type: String, index: true },
+  userName:         { type: String },
+  schoolId:         { type: String },
+}, { timestamps: true });
+
+AiTopicUsageSchema.index({ skillKey: 1, createdAt: -1 });
+
+export const AiTopicUsage = mongoose.models.AiTopicUsage || mongoose.model<IAiTopicUsage>('AiTopicUsage', AiTopicUsageSchema);
 
 // ─── System Announcements Model ───────────────
 export interface IAnnouncement extends Document {
