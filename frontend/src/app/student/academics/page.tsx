@@ -653,39 +653,7 @@ export default function AcademicsHubPage() {
         </div>
       </div>
 
-      {/* ── Subject filter rail ─────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1 scrollbar-thin">
-        <button
-          onClick={() => setSelectedSubject("All")}
-          className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-            selectedSubject === "All"
-              ? "bg-indigo-600 border-indigo-600 shadow-md"
-              : "glass border-[var(--border)] text-[var(--text-main)] hover:border-indigo-400"
-          }`}
-          style={selectedSubject === "All" ? { color: "#fff" } : undefined}
-        >
-          <Fi name="apps" className="text-sm" /> {lang === "தமிழ்" ? "அனைத்து பாடங்களும்" : "All Subjects"}
-        </button>
-        {subjects.map((s) => {
-          const active = selectedSubject === s.name;
-          return (
-            <button
-              key={s.name}
-              onClick={() => setSelectedSubject(active ? "All" : s.name)}
-              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                active ? "shadow-md" : "glass text-[var(--text-main)] hover:shadow"
-              }`}
-              style={
-                active
-                  ? { backgroundColor: s.color, borderColor: s.color, color: "#fff" }
-                  : { borderColor: `${s.color}55` }
-              }
-            >
-              <span>{s.icon}</span> {s.name}
-            </button>
-          );
-        })}
-      </div>
+
 
       {/* ── Category tabs ───────────────────────────────── */}
       <div className="glass rounded-2xl border border-[var(--border)] p-1.5 mb-5 flex gap-1 overflow-x-auto scrollbar-thin">
@@ -707,7 +675,7 @@ export default function AcademicsHubPage() {
               style={active ? { color: "#fff" } : undefined}
             >
               <Fi name={c.icon} className="text-sm" />
-              {c.label}
+              <span>{c.label}</span>
               {count !== null && (
                 <span
                   className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
