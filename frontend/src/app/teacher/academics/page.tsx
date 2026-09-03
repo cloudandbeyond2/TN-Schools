@@ -2,9 +2,10 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIcon } from "react-icons/fi";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph
@@ -169,6 +170,47 @@ export default function AcademicsHubPage() {
   const [dbSubjects, setDbSubjects] = useState<any[]>([]);
   const [dbResources, setDbResources] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [dbResources, dbSubjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Dedicated Syllabus Management UI States
   const [syllabusClass, setSyllabusClass] = useState<string>("11");
@@ -906,35 +948,72 @@ export default function AcademicsHubPage() {
         </div>
       </div>
 
-      {/* ── Category Tabs ── */}
-      <div className="glass rounded-2xl border border-[var(--border)] p-1.5 mb-5 flex gap-1 overflow-x-auto scrollbar-thin">
-        {CATEGORIES.map((c) => {
-          const active = activeTab === c.key;
-          const count = c.key === "overview" || c.key === "subjects" ? null : countByCategory(c.key);
-
-          return (
+      {/* ── Category Tabs with Arrow Navigation ── */}
+      <div className="relative flex items-center group mb-5">
+        {/* Left Arrow Mark */}
+        {canScrollLeft && (
+          <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-l-2xl pointer-events-none">
             <button
-              key={c.key}
-              onClick={() => setActiveTab(c.key)}
-              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
-                ? "shadow-md text-white font-extrabold"
-                : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                }`}
-              style={active ? { background: getCategoryGradient(c.key) } : undefined}
+              onClick={() => scrollTabs("left")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll left"
+              title="Previous tabs"
             >
-              <Fi name={c.icon} className="text-sm" />
-              {c.label}
-              {count !== null && (
-                <span
-                  className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
-                    }`}
-                >
-                  {count}
-                </span>
-              )}
+              <FiChevronLeftIcon className="text-sm" />
             </button>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Scrollable Tabs */}
+        <div
+          ref={tabsContainerRef}
+          onScroll={checkScroll}
+          className="w-full glass rounded-2xl border border-[var(--border)] p-1.5 flex gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
+        >
+          {CATEGORIES.map((c) => {
+            const active = activeTab === c.key;
+            const count = c.key === "overview" || c.key === "subjects" ? null : countByCategory(c.key);
+
+            return (
+              <button
+                key={c.key}
+                onClick={() => setActiveTab(c.key)}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 select-none whitespace-nowrap cursor-pointer ${active
+                  ? "shadow-md text-white font-extrabold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                  }`}
+                style={active ? { background: getCategoryGradient(c.key) } : undefined}
+              >
+                <Fi name={c.icon} className="text-sm" />
+                <span>{c.label}</span>
+                {count !== null && (
+                  <span
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
+                      }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Arrow Mark */}
+        {canScrollRight && (
+          <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-r-2xl pointer-events-none">
+            <button
+              onClick={() => scrollTabs("right")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll right"
+              title="Next tabs"
+            >
+              <FiChevronRightIcon className="text-sm" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Search Bar ── */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import {
   FiEdit2 as FiEditIcon,
@@ -10,7 +10,9 @@ import {
   FiSearch as FiSearchIcon,
   FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
-  FiExternalLink as FiExternalLinkIcon
+  FiExternalLink as FiExternalLinkIcon,
+  FiChevronLeft as FiChevronLeftIcon,
+  FiChevronRight as FiChevronRightIcon
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
@@ -67,20 +69,22 @@ const SYLLABUS_CLASSES = [
 ];
 
 const getSubjectIcon = (name: string) => {
-  if (!name) return "📚";
+  if (!name) return "📙";
   const n = name.toLowerCase();
   if (n.includes("tamil")) return "📜";
   if (n.includes("english")) return "🗣️";
   if (n.includes("math")) return "📐";
-  if (n.includes("science") && !n.includes("social")) return "🔬";
-  if (n.includes("social")) return "🌍";
-  if (n.includes("physics")) return "⚡";
+  if (n.includes("physic")) return "⚡";
   if (n.includes("chem")) return "🧪";
-  if (n.includes("bio")) return "🧬";
-  if (n.includes("computer")) return "💻";
-  if (n.includes("commerce") || n.includes("account")) return "💼";
+  if (n.includes("botany")) return "🌿";
+  if (n.includes("zoology") || n.includes("bio")) return "🧬";
+  if (n.includes("science") && !n.includes("social")) return "🔬";
+  if (n.includes("social") || n.includes("geograph") || n.includes("history")) return "🌍";
+  if (n.includes("computer") || n.includes("tech")) return "💻";
+  if (n.includes("commerce") || n.includes("account") || n.includes("business")) return "💼";
   if (n.includes("economic")) return "📈";
-  return "📚";
+  if (n.includes("art") || n.includes("craft")) return "🎨";
+  return "📙";
 };
 
 interface Subject {
@@ -205,6 +209,47 @@ export default function SuperadminAcademicsPage() {
   const [sections, setSections] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, subjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Structure Popup Modal States
   const [structureModal, setStructureModal] = useState<{
@@ -577,14 +622,23 @@ export default function SuperadminAcademicsPage() {
     }));
   }, [subjects, syllabusClass]);
 
+  const filteredSyllabusSubjects = useMemo(() => {
+    if (!searchQuery.trim()) return syllabusSubjectsForClass;
+    const q = searchQuery.toLowerCase().trim();
+    return syllabusSubjectsForClass.filter(sub =>
+      sub.name.toLowerCase().includes(q)
+    );
+  }, [syllabusSubjectsForClass, searchQuery]);
+
   useEffect(() => {
-    if (syllabusSubjectsForClass.length > 0) {
-      const exists = syllabusSubjectsForClass.some(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
+    const activeList = filteredSyllabusSubjects;
+    if (activeList.length > 0) {
+      const exists = activeList.some(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
       if (!exists) {
-        setSelectedSyllabusSubject(syllabusSubjectsForClass[0].name);
+        setSelectedSyllabusSubject(activeList[0].name);
       }
     }
-  }, [syllabusClass, syllabusSubjectsForClass]);
+  }, [syllabusClass, filteredSyllabusSubjects]);
 
   const syllabusChapters = useMemo(() => {
     const list = resources.filter(res => {
@@ -598,10 +652,12 @@ export default function SuperadminAcademicsPage() {
       const subName = resSub?.name || res.title || "";
       const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
 
-      const matchSearch = syllabusSearchQuery.trim()
-        ? (res.title.toLowerCase().includes(syllabusSearchQuery.toLowerCase()) ||
-          (res.chapter && res.chapter.toLowerCase().includes(syllabusSearchQuery.toLowerCase())) ||
-          (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
+      const q = searchQuery.trim() || syllabusSearchQuery.trim();
+      const matchSearch = q
+        ? (res.title.toLowerCase().includes(q.toLowerCase()) ||
+          (res.chapter && res.chapter.toLowerCase().includes(q.toLowerCase())) ||
+          (res.topicName && res.topicName.toLowerCase().includes(q.toLowerCase())) ||
+          (res.description && res.description.toLowerCase().includes(q.toLowerCase())))
         : true;
 
       return matchClass && matchSubject && matchSearch;
@@ -615,7 +671,7 @@ export default function SuperadminAcademicsPage() {
       };
       return extractNum(a) - extractNum(b);
     });
-  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, searchQuery, syllabusSearchQuery]);
 
   const getSubjectStats = (subName: string) => {
     const items = resources.filter(res => {
@@ -640,12 +696,13 @@ export default function SuperadminAcademicsPage() {
 
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
-    subjectCode: "", medium: "", description: "", status: "Active"
+    subjectCode: "", medium: "", description: "", status: "Active",
+    topicName: "", subtopic: ""
   });
 
   const [resourceForm, setResourceForm] = useState({
     title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "",
-    class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
+    class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "", subtopic: "",
     learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
     coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
     youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "", status: "Active", attachmentType: "Link"
@@ -734,7 +791,7 @@ export default function SuperadminAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Updated!" : "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "saved"} directly to PostgreSQL database!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -896,14 +953,16 @@ export default function SuperadminAcademicsPage() {
         subjectCode: sub.subjectCode || "",
         medium: sub.medium || "",
         description: sub.description || "",
-        status: sub.status || "Active"
+        status: sub.status || "Active",
+        topicName: (sub as any).topicName || "",
+        subtopic: sub.description || ""
       });
     } else {
       setEditSubjectId(null);
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
       setSubjectSearchQuery("");
-      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
+      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active", topicName: "", subtopic: "" });
     }
     setError("");
     setShowSubjectModal(true);
@@ -920,7 +979,13 @@ export default function SuperadminAcademicsPage() {
       const payload = {
         ...resourceForm,
         category: activeTab !== "overview" && activeTab !== "structure" && activeTab !== "subjects" ? activeTab : (resourceForm.contentType || "materials"),
-        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
+        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
+        topicName: resourceForm.topicName,
+        description: resourceForm.subtopic
+          ? (resourceForm.description && resourceForm.description !== resourceForm.subtopic
+              ? `${resourceForm.subtopic} • ${resourceForm.description}`
+              : resourceForm.subtopic)
+          : resourceForm.description
       };
       const res = await authFetch(url, {
         method,
@@ -966,6 +1031,7 @@ export default function SuperadminAcademicsPage() {
         meta: res.meta || "", description: res.description || "", addedBy: res.addedBy || "",
         class: res.class || "", section: res.section || "", group: res.group || "",
         term: res.term || "", chapterNumber: res.chapterNumber || "", topicName: res.topicName || "",
+        subtopic: res.description || "",
         learningOutcomes: res.learningOutcomes || "", medium: res.medium || "",
         bookVersion: res.bookVersion || "", publisher: res.publisher || "", language: res.language || "",
         coverImage: res.coverImage || "", materialType: res.materialType || "",
@@ -980,10 +1046,12 @@ export default function SuperadminAcademicsPage() {
       setEditResourceId(null);
       setResourceForm({
         title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Super Admin",
-        class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
+        class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "", subtopic: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "", status: "Active", attachmentType: "Link"
+        youtubeUrl: "", videoDuration: "", thumbnail: "",
+        contentType: ["textbooks", "materials", "notes", "videos", "digital", "reference"].includes(activeTab) ? activeTab : "materials",
+        author: "", isbn: "", status: "Active", attachmentType: "Link"
       });
     }
     setError("");
@@ -1159,161 +1227,204 @@ export default function SuperadminAcademicsPage() {
           </div>
         </div>
 
-        {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm">
-          {CATEGORIES.map((c) => {
-            const active = activeTab === c.key;
-            const count = (c.key === "overview") ? null : countByCategory(c.key);
-
-            return (
+        {/* ── Category Tabs with Arrow Navigation ────────── */}
+        <div className="relative flex items-center group">
+          {/* Left Arrow Mark */}
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-l-2xl pointer-events-none">
               <button
-                key={c.key}
-                onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
-                  ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
-                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
-                  }`}
-                style={active ? { background: c.gradient } : undefined}
-                title={c.label}
+                onClick={() => scrollTabs("left")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll left"
+                title="Previous tabs"
               >
-                <Fi name={c.icon} className="text-xs shrink-0" />
-                <span className="whitespace-nowrap">{c.label}</span>
-                {count !== null && (
-                  <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
-                      }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <FiChevronLeftIcon className="text-sm" />
               </button>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Scrollable Tabs */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkScroll}
+            className="w-full bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
+          >
+            {CATEGORIES.map((c) => {
+              const active = activeTab === c.key;
+              const count = (c.key === "overview") ? null : countByCategory(c.key);
+
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setActiveTab(c.key)}
+                  className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
+                    ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                    }`}
+                  style={active ? { background: c.gradient } : undefined}
+                  title={c.label}
+                >
+                  <Fi name={c.icon} className="text-xs shrink-0" />
+                  <span className="whitespace-nowrap">{c.label}</span>
+                  {count !== null && (
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Arrow Mark */}
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-r-2xl pointer-events-none">
+              <button
+                onClick={() => scrollTabs("right")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll right"
+                title="Next tabs"
+              >
+                <FiChevronRightIcon className="text-sm" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
-        {activeTab !== "syllabus" && (
-          <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm space-y-3">
-            {/* Top Row: Search Input & Primary Add Action */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-md">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                  <FiSearchIcon className="text-sm" />
-                </span>
-                <input
-                  type="text"
-                  placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-700 dark:text-slate-200 transition-all placeholder:text-slate-400"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  >
-                    <FiXIcon className="text-xs" />
-                  </button>
-                )}
-              </div>
-
-              {activeTab !== "overview" && activeTab !== "structure" && (
-                <button
-                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
-                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:shadow-lg active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-                >
-                  <FiPlusIcon className="text-sm" />
-                  <span>Add {CATEGORIES.find(c => c.key === activeTab)?.label}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Bottom Row: Filter Dropdowns & Clear Button */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
-                <FiFilterIcon className="text-xs" /> Filter:
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm space-y-3">
+          {/* Top Row: Search Input & Primary Add Action */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <FiSearchIcon className="text-sm" />
               </span>
-
-              {/* Subject Filter */}
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
-              >
-                <option value="All">All Subjects</option>
-                {railSubjects.map(s => (
-                  <option key={s.name} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-
-              {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Active">Approved</option>
-                <option value="Inactive">Rejected</option>
-              </select>
-
-              {/* Class Filter */}
-              <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
-              >
-                <option value="">All Classes</option>
-                {classes.length > 0 ? (
-                  classes.map(c => {
-                    const val = c.name.replace(/^Class\s+/i, '');
-                    return <option key={c.id} value={val}>{c.name}</option>;
-                  })
-                ) : (
-                  [...Array(12)].map((_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
-                  ))
-                )}
-              </select>
-
-              {/* Section Filter */}
-              <select
-                value={filterSection}
-                onChange={(e) => setFilterSection(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
-              >
-                <option value="">All Sections</option>
-                {sections.length > 0 ? (
-                  sections.map(s => {
-                    const val = s.name.replace(/^Section\s+/i, '');
-                    return <option key={s.id} value={val}>{s.name}</option>;
-                  })
-                ) : (
-                  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
-                    <option key={s} value={s}>Section {s}</option>
-                  ))
-                )}
-              </select>
-
-              {/* Clear Button */}
-              {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
+              <input
+                type="text"
+                placeholder={`Search ${activeTab === "syllabus" ? "chapters & sub-chapters" : CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-700 dark:text-slate-200 transition-all placeholder:text-slate-400"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => {
-                    setFilterClass("");
-                    setFilterSection("");
-                    setStatusFilter("All");
-                    setSelectedSubject("All");
-                    setSearchQuery("");
-                  }}
-                  className="px-2.5 py-1.5 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex items-center gap-1"
-                  title="Clear Filters"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
-                  <FiXIcon className="text-xs" /> Clear
+                  <FiXIcon className="text-xs" />
                 </button>
               )}
             </div>
+
+            {activeTab !== "structure" && (
+              <button
+                onClick={() => (activeTab === "subjects" ? openSubjectModal() : activeTab === "syllabus" ? setChapterModal({ isOpen: true, editId: null }) : openResourceModal())}
+                className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:shadow-lg active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              >
+                <FiPlusIcon className="text-sm" />
+                <span>Add {activeTab === "overview" ? "Resource" : activeTab === "syllabus" ? "Chapter" : CATEGORIES.find(c => c.key === activeTab)?.label}</span>
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Bottom Row: Filter Dropdowns & Clear Button */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+              <FiFilterIcon className="text-xs" /> Filter:
+            </span>
+
+            {/* Subject Filter */}
+            <select
+              value={activeTab === "syllabus" ? (selectedSyllabusSubject || "All") : selectedSubject}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedSubject(val);
+                if (activeTab === "syllabus") setSelectedSyllabusSubject(val === "All" ? (syllabusSubjectsForClass[0]?.name || "Tamil") : val);
+              }}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="All">All Subjects</option>
+              {railSubjects.map(s => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Approved</option>
+              <option value="Inactive">Rejected</option>
+            </select>
+
+            {/* Class Filter */}
+            <select
+              value={activeTab === "syllabus" ? (syllabusClass || filterClass) : filterClass}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterClass(val);
+                if (activeTab === "syllabus" && val) setSyllabusClass(val);
+              }}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="">All Classes</option>
+              {classes.length > 0 ? (
+                classes.map(c => {
+                  const val = c.name.replace(/^Class\s+/i, '');
+                  return <option key={c.id} value={val}>{c.name}</option>;
+                })
+              ) : (
+                [...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
+                ))
+              )}
+            </select>
+
+            {/* Section Filter */}
+            <select
+              value={filterSection}
+              onChange={(e) => setFilterSection(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="">All Sections</option>
+              {sections.length > 0 ? (
+                sections.map(s => {
+                  const val = s.name.replace(/^Section\s+/i, '');
+                  return <option key={s.id} value={val}>{s.name}</option>;
+                })
+              ) : (
+                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
+                  <option key={s} value={s}>Section {s}</option>
+                ))
+              )}
+            </select>
+
+            {/* Clear Button */}
+            {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
+              <button
+                onClick={() => {
+                  setFilterClass("");
+                  setFilterSection("");
+                  setStatusFilter("All");
+                  setSelectedSubject("All");
+                  setSearchQuery("");
+                }}
+                className="px-2.5 py-1.5 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex items-center gap-1"
+                title="Clear Filters"
+              >
+                <FiXIcon className="text-xs" /> Clear
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* ══ CONTENT PANELS ════════════════════════════════ */}
         {loading ? (
@@ -1326,37 +1437,6 @@ export default function SuperadminAcademicsPage() {
             {/* ══ STRUCTURE SETUP TAB (CLASS, SECTION, SUBJECT SETUP) ═════════ */}
             {activeTab === "structure" && (
               <div className="space-y-6 text-left">
-                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div>
-                    {/* <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
-                      <Fi name="settings-sliders" className="text-sm" /> PostgreSQL Master Data
-                    </div> */}
-                    <h2 className="text-xl font-black">Class, Section & Subject Structure Setup</h2>
-                    <p className="text-xs text-emerald-100 mt-1 max-w-xl">
-                      Easily add and manage school classes, section groups, and subject masters. All additions are saved directly to PostgreSQL.
-                    </p>
-                  </div>
-                  {/* <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "class" }); }}
-                      className="px-4 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Class
-                    </button>
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section" }); }}
-                      className="px-4 py-2.5 bg-emerald-950/40 text-white hover:bg-emerald-950/60 border border-white/20 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Section
-                    </button>
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject" }); }}
-                      className="px-4 py-2.5 bg-white/20 text-white hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Subject
-                    </button>
-                  </div> */}
-                </div>
 
                 {/* 3 Master Cards Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1808,53 +1888,6 @@ export default function SuperadminAcademicsPage() {
             {/* ══ DEDICATED SYLLABUS MANAGEMENT TAB ════════════════════ */}
             {activeTab === "syllabus" && (
               <div className="space-y-6 text-left font-sans">
-                {/* Header Banner */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black">
-                        <Fi name="book-alt" className="text-xl" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">
-                          Syllabus Management
-                        </h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          Manage state curriculum by class, subject, and chapter. Control AI mapping and chapter visibility.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Horizontal Class Pills Selection Bar */}
-                <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-                  {dynamicSyllabusClasses.map((cls) => {
-                    const isSelected = syllabusClass === cls.id;
-                    return (
-                      <button
-                        key={cls.id}
-                        onClick={() => setSyllabusClass(cls.id)}
-                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isSelected
-                          ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
-                          : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-400 dark:hover:border-amber-700/60"
-                          }`}
-                      >
-                        <span>{cls.name}</span>
-                        <span
-                          className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${isSelected
-                            ? "bg-white/20 text-white"
-                            : cls.badge === "HSC"
-                              ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
-                              : "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50"
-                            }`}
-                        >
-                          {cls.badge}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
 
                 {/* 2-Column Main Layout: Left Subjects Panel & Right Chapters Panel */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1864,32 +1897,41 @@ export default function SuperadminAcademicsPage() {
                       SUBJECTS
                     </div>
                     <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
-                      {syllabusSubjectsForClass.map((sub) => {
-                        const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
-                        const stats = getSubjectStats(sub.name);
-                        return (
-                          <div
-                            key={sub.name}
-                            onClick={() => setSelectedSyllabusSubject(sub.name)}
-                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                              ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
-                              }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl shrink-0">{sub.icon}</span>
-                              <div>
-                                <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
-                                  {sub.name}
-                                </h4>
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
-                                  {stats.total}/0 chapters · {stats.aiCount} AI
-                                </p>
+                      {filteredSyllabusSubjects.length > 0 ? (
+                        filteredSyllabusSubjects.map((sub) => {
+                          const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
+                          const stats = getSubjectStats(sub.name);
+                          const iconSymbol = getSubjectIcon(sub.name);
+                          return (
+                            <div
+                              key={sub.name}
+                              onClick={() => setSelectedSyllabusSubject(sub.name)}
+                              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
+                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-md scale-[1.01]"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xl shrink-0 shadow-sm">
+                                  {iconSymbol}
+                                </div>
+                                <div>
+                                  <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                                    {sub.name}
+                                  </h4>
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                                    {stats.total} chapters · {stats.aiCount} AI-mapped
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      ) : (
+                        <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                          No subjects match "{searchQuery}"
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1899,37 +1941,22 @@ export default function SuperadminAcademicsPage() {
                       {/* Header Bar */}
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">{getSubjectIcon(selectedSyllabusSubject)}</span>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">
-                              {selectedSyllabusSubject} — Class {syllabusClass}
-                            </h3>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center text-2xl shrink-0 shadow-sm">
+                              {getSubjectIcon(selectedSyllabusSubject)}
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+                                {selectedSyllabusSubject} — Class {syllabusClass}
+                              </h3>
+                              <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                                {syllabusChapters.length} chapters · {syllabusChapters.filter(c => c.status === "Active").length} enabled · {syllabusChapters.filter(c => c.meta?.toLowerCase().includes("ai")).length} AI-mapped
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-xs text-slate-400 font-semibold mt-0.5">
-                            {syllabusChapters.length} chapters · {syllabusChapters.filter(c => c.status === "Active").length} enabled · {syllabusChapters.filter(c => c.meta?.toLowerCase().includes("ai")).length} AI-mapped
-                          </p>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <FiSearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" size={13} />
-                            <input
-                              type="text"
-                              placeholder="Search chapters..."
-                              value={syllabusSearchQuery}
-                              onChange={(e) => setSyllabusSearchQuery(e.target.value)}
-                              className="pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500/20 w-48 md:w-60"
-                            />
-                            {syllabusSearchQuery && (
-                              <button
-                                onClick={() => setSyllabusSearchQuery("")}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                              >
-                                <FiXIcon size={12} />
-                              </button>
-                            )}
-                          </div>
-
                           <label
                             className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
                             style={{ color: "#ffffff" }}
@@ -1944,13 +1971,6 @@ export default function SuperadminAcademicsPage() {
                               className="hidden"
                             />
                           </label>
-
-                          <button
-                            onClick={openAddChapterModal}
-                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-                          >
-                            <FiPlusIcon size={14} /> Chapter
-                          </button>
                         </div>
                       </div>
 
@@ -2041,14 +2061,8 @@ export default function SuperadminAcademicsPage() {
                                       0 chapters added for {selectedSyllabusSubject} - Class {syllabusClass}
                                     </p>
                                     <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                                      Click the "+ Chapter" button above to add state board chapters and unit maps.
+                                      Click the "+ Add Chapter" button in the top bar to add state board chapters and unit maps.
                                     </p>
-                                    <button
-                                      onClick={openAddChapterModal}
-                                      className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
-                                    >
-                                      + Add Chapter
-                                    </button>
                                   </div>
                                 </td>
                               </tr>
@@ -2152,22 +2166,31 @@ export default function SuperadminAcademicsPage() {
                             {res.title}
                           </h3>
 
-                          {/* Syllabus Custom Information */}
-                          {res.category === "syllabus" && (
-                            <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-1">
-                              {res.chapterNumber && <span>Ch {res.chapterNumber}: </span>}
-                              {res.topicName && <span>{res.topicName}</span>}
+                          {/* Topic, Subtopic & Custom Information for ALL tabs */}
+                          {(res.topicName || res.description || res.chapterNumber || res.learningOutcomes) && (
+                            <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-2 flex flex-wrap items-center gap-1.5">
+                              {res.chapterNumber && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                  Ch {res.chapterNumber}
+                                </span>
+                              )}
+                              {res.topicName && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/50">
+                                  📌 <span className="font-extrabold text-teal-800 dark:text-teal-200">Topic:</span> {res.topicName}
+                                </span>
+                              )}
+                              {res.description && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50">
+                                  🏷️ <span className="font-extrabold text-indigo-800 dark:text-indigo-200">Subtopic:</span> {res.description}
+                                </span>
+                              )}
                               {res.learningOutcomes && (
-                                <p className="text-[10px] text-slate-400 font-normal leading-relaxed mt-1">
+                                <p className="text-[10px] text-slate-400 font-normal leading-relaxed mt-1 w-full">
                                   Outcomes: {res.learningOutcomes}
                                 </p>
                               )}
                             </div>
                           )}
-
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">
-                            {res.description || "No description provided for this resource."}
-                          </p>
                         </div>
 
                         {/* Bottom line: details & admin operations */}
@@ -2230,7 +2253,7 @@ export default function SuperadminAcademicsPage() {
       {/* --- Subject Modal --- */}
       <AnimatePresence>
         {showSubjectModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2242,18 +2265,26 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-[#121824] w-full max-w-md rounded-[2rem] shadow-2xl overflow-visible relative z-10 border border-slate-100 dark:border-slate-800/80"
+              className="bg-white dark:bg-[#121824] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col relative z-10 border border-slate-100 dark:border-slate-800/80 text-left font-sans"
               key={editSubjectId ?? 'add-subject'}
             >
-              <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800/60">
-                <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
-                  {editSubjectId ? "Edit Subject" : "Add Subject"}
-                </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+                      {editSubjectId ? "Edit Class Subject" : "Add New Class Subject"}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400">Configure subject, topic & subtopic structure</p>
+                  </div>
+                </div>
                 <button onClick={() => setShowSubjectModal(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
-                  <FiXIcon className="text-xl" />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
-              <form onSubmit={handleSaveSubject} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
+              <form onSubmit={handleSaveSubject} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
@@ -2405,6 +2436,34 @@ export default function SuperadminAcademicsPage() {
                   </div>
                 )}
 
+                {/* Topic Name & Subtopic Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1">
+                      Topic Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Algebra / Number Systems"
+                      value={subjectForm.topicName || ""}
+                      onChange={e => setSubjectForm({ ...subjectForm, topicName: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1">
+                      Subtopic
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Quadratic Equations"
+                      value={subjectForm.subtopic || ""}
+                      onChange={e => setSubjectForm({ ...subjectForm, subtopic: e.target.value, description: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
@@ -2452,7 +2511,7 @@ export default function SuperadminAcademicsPage() {
       {/* --- Resource Modal --- */}
       <AnimatePresence>
         {showResourceModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2464,18 +2523,32 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-[#121824] w-full max-w-xl rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto relative z-10 border border-slate-100 dark:border-slate-800/80"
+              className="bg-white dark:bg-[#121824] w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col relative z-10 border border-slate-100 dark:border-slate-800/80 text-left font-sans"
             >
-              <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800/60 sticky top-0 bg-white/80 dark:bg-[#121824]/80 backdrop-blur-md z-20">
-                <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
-                  {editResourceId ? `Edit ${CATEGORIES.find(t => t.key === activeTab)?.label}` : `Add ${CATEGORIES.find(t => t.key === activeTab)?.label}`}
-                </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100 leading-tight">
+                      {editResourceId
+                        ? `Edit ${CATEGORIES.find(t => t.key === activeTab)?.label || "Resource"}`
+                        : activeTab === "overview"
+                          ? "Add Academic Resource Item"
+                          : `Add New ${CATEGORIES.find(t => t.key === activeTab)?.label || "Resource"}`}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                      {CATEGORIES.find(t => t.key === activeTab)?.blurb || "Configure topics, subtopics & learning resources"}
+                    </p>
+                  </div>
+                </div>
                 <button onClick={() => setShowResourceModal(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
-                  <FiXIcon className="text-xl" />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
+              <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
@@ -2496,7 +2569,7 @@ export default function SuperadminAcademicsPage() {
                         setResourceForm({
                           ...resourceForm,
                           class: newClass,
-                          subjectId: isStillValid ? resourceForm.subjectId : (filtered.length > 0 ? filtered[0].id : "")
+                          subjectId: isStillValid ? resourceForm.subjectId : ""
                         });
                       }}
                       className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
@@ -2546,6 +2619,45 @@ export default function SuperadminAcademicsPage() {
                   </div>
                 )}
 
+                {/* Resource Title Field */}
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                    {activeTab === "textbooks" ? "Book Title *" : activeTab === "notes" ? "Lesson Title *" : activeTab === "videos" ? "Video Title *" : activeTab === "digital" ? "Content Title *" : activeTab === "reference" ? "Reference Title *" : "Resource / Item Title *"}
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. 10th Standard Mathematics Guide"
+                    value={resourceForm.title}
+                    onChange={e => setResourceForm({ ...resourceForm, title: e.target.value, lessonTitle: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm"
+                  />
+                </div>
+
+                {/* Common Fields: Topic Name & Subtopic RIGHT BELOW TITLE for ALL tabs */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Topic Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Algebra / Number Systems"
+                      value={resourceForm.topicName}
+                      onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subtopic</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Quadratic Equations"
+                      value={resourceForm.subtopic}
+                      onChange={e => setResourceForm({ ...resourceForm, subtopic: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
                 {/* Dynamic Fields Based on activeTab */}
                 {activeTab === "syllabus" && (
                   <>
@@ -2564,15 +2676,9 @@ export default function SuperadminAcademicsPage() {
                         <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter Number</label>
-                        <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Topic Name</label>
-                        <input type="text" value={resourceForm.topicName} onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter Number</label>
+                      <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Learning Outcomes</label>
@@ -2585,10 +2691,6 @@ export default function SuperadminAcademicsPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Book Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
                         <select value={resourceForm.medium} onChange={e => setResourceForm({ ...resourceForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Medium</option>
@@ -2596,41 +2698,35 @@ export default function SuperadminAcademicsPage() {
                           <option value="English">English</option>
                         </select>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Version / Edition</label>
                         <input type="text" value={resourceForm.bookVersion} onChange={e => setResourceForm({ ...resourceForm, bookVersion: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
                         <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="SCERT / NCERT" />
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
-                      <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
+                        <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
+                      </div>
                     </div>
                   </>
                 )}
 
                 {activeTab === "materials" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Type</label>
-                        <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
-                          <option value="">Select Type</option>
-                          <option value="PDF">PDF</option>
-                          <option value="PPT">PPT</option>
-                          <option value="DOC">DOC</option>
-                          <option value="Worksheet">Worksheet</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Type</label>
+                      <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                        <option value="">Select Type</option>
+                        <option value="PDF">PDF</option>
+                        <option value="PPT">PPT</option>
+                        <option value="DOC">DOC</option>
+                        <option value="Worksheet">Worksheet</option>
+                      </select>
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
@@ -2643,30 +2739,18 @@ export default function SuperadminAcademicsPage() {
 
                 {activeTab === "notes" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Lesson Title *</label>
-                        <input required type="text" value={resourceForm.lessonTitle} onChange={e => setResourceForm({ ...resourceForm, lessonTitle: e.target.value, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
+                      <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                   </>
                 )}
 
                 {activeTab === "videos" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Video Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
+                      <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -2683,22 +2767,16 @@ export default function SuperadminAcademicsPage() {
 
                 {activeTab === "digital" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Type</label>
-                        <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
-                          <option value="">Select Type</option>
-                          <option value="PDF">PDF</option>
-                          <option value="Video">Video</option>
-                          <option value="Audio">Audio</option>
-                          <option value="Interactive">Interactive</option>
-                          <option value="Presentation">Presentation</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Type</label>
+                      <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                        <option value="">Select Type</option>
+                        <option value="PDF">PDF</option>
+                        <option value="Video">Video</option>
+                        <option value="Audio">Audio</option>
+                        <option value="Interactive">Interactive</option>
+                        <option value="Presentation">Presentation</option>
+                      </select>
                     </div>
                   </>
                 )}
@@ -2707,23 +2785,17 @@ export default function SuperadminAcademicsPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Reference Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Author</label>
                         <input type="text" value={resourceForm.author} onChange={e => setResourceForm({ ...resourceForm, author: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
                         <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ISBN (Optional)</label>
-                        <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ISBN (Optional)</label>
+                      <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                   </>
                 )}
@@ -2842,7 +2914,7 @@ export default function SuperadminAcademicsPage() {
       {/* ══ STRUCTURE SETUP SINGLE-FIELD POPUP MODAL ══════════════ */}
       <AnimatePresence>
         {structureModal.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2854,12 +2926,12 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative z-10 overflow-hidden text-left flex flex-col max-h-[85vh] font-sans"
             >
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-black">
-                    <FiPlusIcon size={18} />
+                  <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
@@ -2871,18 +2943,18 @@ export default function SuperadminAcademicsPage() {
                             ? "Add New Section"
                             : "Add New Subject"}
                     </h3>
-                    <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
+                    <p className="text-[11px] font-semibold text-slate-400">Save single field directly to PostgreSQL database</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
                   className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <FiXIcon size={18} />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveStructure} className="space-y-5">
+              <form onSubmit={handleSaveStructure} className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                     {structureModal.type === "class" ? "Class Name" : structureModal.type === "section" ? "Section Name" : "Subject Name"}
@@ -2941,13 +3013,29 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative z-10 overflow-hidden text-left flex flex-col max-h-[85vh] font-sans"
             >
-              <h3 className="font-extrabold text-xl text-slate-800 dark:text-slate-100 text-center mb-6">
-                {chapterModal.editId ? "Edit Chapter" : "Add Chapter"}
-              </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100 leading-tight">
+                      {chapterModal.editId ? "Edit Chapter" : "Add New Chapter"}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Term-wise unit maps with lesson tracking</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setChapterModal({ isOpen: false, editId: null })}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <FiXIcon className="text-lg" />
+                </button>
+              </div>
 
-              <form onSubmit={handleSaveChapter} className="space-y-4">
+              <form onSubmit={handleSaveChapter} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                 {/* Combined Row for Unit No. & Chapter Title */}
                 <div className="grid grid-cols-12 gap-3">
                   <div className="col-span-4">
@@ -3074,9 +3162,24 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans max-h-[85vh] flex flex-col justify-between"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl relative z-10 overflow-hidden text-left font-sans max-h-[85vh] flex flex-col justify-between"
             >
-              <div>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0">🤖</span>
+                  <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+                    AI OCR Parsed Syllabus Units
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setOcrPreviewModal({ isOpen: false, units: [] })}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <FiXIcon className="text-lg" />
+                </button>
+              </div>
+
+              <div className="p-6 flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-between">
                 {/* Top Banner (Matching user screenshot) */}
                 <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
                   <span className="text-2xl shrink-0">🤖</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -12,7 +12,9 @@ import {
   FiSearch as FiSearchIcon,
   FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
-  FiExternalLink as FiExternalLinkIcon
+  FiExternalLink as FiExternalLinkIcon,
+  FiChevronLeft as FiChevronLeftIcon,
+  FiChevronRight as FiChevronRightIcon
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
@@ -176,6 +178,47 @@ export default function HeadmasterAcademicsPage() {
   const [sections, setSections] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, subjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Structure Popup Modal States
   const [structureModal, setStructureModal] = useState<{
@@ -1221,11 +1264,32 @@ export default function HeadmasterAcademicsPage() {
           </div>
         </div>
 
-        {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm">
-          {CATEGORIES.map((c) => {
-            const active = activeTab === c.key;
-            const count = (c.key === "overview") ? null : countByCategory(c.key);
+        {/* ── Category Tabs with Arrow Navigation ────────── */}
+        <div className="relative flex items-center group">
+          {/* Left Arrow Mark */}
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-l-2xl pointer-events-none">
+              <button
+                onClick={() => scrollTabs("left")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll left"
+                title="Previous tabs"
+              >
+                <FiChevronLeftIcon className="text-sm" />
+              </button>
+            </div>
+          )}
+
+          {/* Scrollable Tabs */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkScroll}
+            className="w-full bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
+          >
+            {CATEGORIES.map((c) => {
+              const active = activeTab === c.key;
+              const count = (c.key === "overview") ? null : countByCategory(c.key);
 
             // Inline localization mapping
             const getCategoryLabel = (key: string, l: string) => {
@@ -1247,30 +1311,46 @@ export default function HeadmasterAcademicsPage() {
               return c.label;
             };
 
-            return (
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setActiveTab(c.key)}
+                  className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
+                    ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                    }`}
+                  style={active ? { background: c.gradient } : undefined}
+                  title={c.label}
+                >
+                  <Fi name={c.icon} className="text-xs shrink-0" />
+                  <span className="whitespace-nowrap">{getCategoryLabel(c.key, lang)}</span>
+                  {count !== null && (
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Arrow Mark */}
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-r-2xl pointer-events-none">
               <button
-                key={c.key}
-                onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
-                  ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
-                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
-                  }`}
-                style={active ? { background: c.gradient } : undefined}
-                title={c.label}
+                onClick={() => scrollTabs("right")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll right"
+                title="Next tabs"
               >
-                <Fi name={c.icon} className="text-xs shrink-0" />
-                <span className="whitespace-nowrap">{getCategoryLabel(c.key, lang)}</span>
-                {count !== null && (
-                  <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
-                      }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <FiChevronRightIcon className="text-sm" />
               </button>
-            );
-          })}
+            </div>
+          )}
         </div>
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
