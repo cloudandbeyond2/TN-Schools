@@ -148,21 +148,21 @@ export default function SchoolPortalPage() {
   const gallery = (portal?.gallery || []).slice(0, 4);
   const showStudent = portal?.showStudentLogin !== false;
   const showParent = portal?.showParentLogin !== false;
-  const location = school.address || `${school.block}, ${school.district}`;
+  const location = school.address || [school.block, school.district].filter(Boolean).join(", ") || "Tamil Nadu";
 
   return (
     <div style={cssVars} className="min-h-screen bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 antialiased">
 
       {/* ─── Top contact bar ─── */}
-      <div className="hidden md:block text-white text-[11px]" style={{ background: accent }}>
-        <div className="max-w-6xl mx-auto px-4 h-9 flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {location}</span>
-            <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> DISE {school.dise}</span>
+      <div className="hidden md:block text-white !text-white text-[11px] font-medium" style={{ background: accent, color: "#ffffff" }}>
+        <div className="max-w-6xl mx-auto px-4 h-9 flex items-center justify-between text-white">
+          <div className="flex items-center gap-5 text-white">
+            <span className="flex items-center gap-1.5 text-white"><MapPin className="w-3.5 h-3.5 text-white shrink-0" /> {location}</span>
+            <span className="flex items-center gap-1.5 text-white"><Mail className="w-3.5 h-3.5 text-white shrink-0" /> DISE {school.dise}</span>
           </div>
-          <div className="flex items-center gap-5">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> {school.schoolType} School</span>
-            <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> {school.mediumOfInstruction} Medium</span>
+          <div className="flex items-center gap-5 text-white">
+            <span className="flex items-center gap-1.5 text-white"><ShieldCheck className="w-3.5 h-3.5 text-white shrink-0" /> {school.schoolType} School</span>
+            <span className="flex items-center gap-1.5 text-white"><BookOpen className="w-3.5 h-3.5 text-white shrink-0" /> {school.mediumOfInstruction} Medium</span>
           </div>
         </div>
       </div>
