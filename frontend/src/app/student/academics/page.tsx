@@ -2,11 +2,12 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
+import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIcon } from "react-icons/fi";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
@@ -143,6 +144,47 @@ export default function AcademicsHubPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [syllabusData, setSyllabusData] = useState<Record<string, SyllabusUnit[]>>({});
   const [loading, setLoading] = useState(true);
+
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, dbSubjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   const studentId = String((session?.user as any)?.id || "");
 
@@ -655,39 +697,77 @@ export default function AcademicsHubPage() {
 
 
 
-      {/* ── Category tabs ───────────────────────────────── */}
-      <div className="glass rounded-2xl border border-[var(--border)] p-1.5 mb-5 flex gap-1 overflow-x-auto scrollbar-thin">
-        {CATEGORIES.map((c) => {
-          const active = activeTab === c.key;
-          const count =
-            c.key === "overview" || c.key === "subjects" || c.key === "syllabus"
-              ? null
-              : countByCategory(c.key);
-          return (
+      {/* ── Category tabs with Arrow Navigation ─────────── */}
+      <div className="relative flex items-center group mb-5">
+        {/* Left Arrow Mark */}
+        {canScrollLeft && (
+          <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-l-2xl pointer-events-none">
             <button
-              key={c.key}
-              onClick={() => setActiveTab(c.key)}
-              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                active
-                  ? `bg-gradient-to-br ${c.gradient} shadow-md text-white`
-                  : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-              }`}
-              style={active ? { color: "#fff" } : undefined}
+              onClick={() => scrollTabs("left")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll left"
+              title="Previous tabs"
             >
-              <Fi name={c.icon} className="text-sm" />
-              <span>{c.label}</span>
-              {count !== null && (
-                <span
-                  className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                    active ? "bg-white/25" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
+              <FiChevronLeftIcon className="text-sm" />
             </button>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Scrollable Tabs */}
+        <div
+          ref={tabsContainerRef}
+          onScroll={checkScroll}
+          className="w-full glass rounded-2xl border border-[var(--border)] p-1.5 flex gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
+        >
+          {CATEGORIES.map((c) => {
+            const active = activeTab === c.key;
+            const count =
+              c.key === "overview" || c.key === "subjects" || c.key === "syllabus"
+                ? null
+                : countByCategory(c.key);
+            return (
+              <button
+                key={c.key}
+                onClick={() => setActiveTab(c.key)}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none whitespace-nowrap ${
+                  active
+                    ? `bg-gradient-to-br ${c.gradient} shadow-md text-white scale-[1.02]`
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                }`}
+                style={active ? { color: "#fff" } : undefined}
+                title={c.label}
+              >
+                <Fi name={c.icon} className="text-sm shrink-0" />
+                <span>{c.label}</span>
+                {count !== null && (
+                  <span
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${
+                      active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Arrow Mark */}
+        {canScrollRight && (
+          <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-r-2xl pointer-events-none">
+            <button
+              onClick={() => scrollTabs("right")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll right"
+              title="Next tabs"
+            >
+              <FiChevronRightIcon className="text-sm" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Toolbar (search + saved filter) ─────────────── */}
