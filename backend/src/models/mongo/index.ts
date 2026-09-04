@@ -56,6 +56,7 @@ export interface IWellness extends Document {
   mood: 'great' | 'good' | 'okay' | 'stressed' | 'tired';
   stressScore: number;
   notes?: string;
+  status?: string;
   counselingReferred: boolean;
   date: Date;
 }
@@ -77,6 +78,11 @@ const WellnessSchema = new Schema<IWellness>({
 
   notes: {
     type: String
+  },
+
+  status: {
+    type: String,
+    default: 'PENDING'
   },
 
   counselingReferred: {

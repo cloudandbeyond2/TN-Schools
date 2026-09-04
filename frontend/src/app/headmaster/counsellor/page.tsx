@@ -28,7 +28,7 @@ interface CounsellorBooking {
 }
 
 export default function HeadmasterCounsellorPage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const sessionSchoolId = (session?.user as any)?.schoolId;
 
   const [messages, setMessages] = useState<WellnessMessage[]>([]);
@@ -127,7 +127,7 @@ export default function HeadmasterCounsellorPage() {
   // Update booking status handler
   const handleUpdateBookingStatus = async (id: string, newStatus: string) => {
     try {
-      setBookings(prev => prev.map(b => b._id === id ? { ...b, status: newStatus } : b));
+      setBookings(prev => prev.map(b => String(b._id) === String(id) ? { ...b, status: newStatus } : b));
       await apiFetch(`/api/counsellor/bookings/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -142,7 +142,7 @@ export default function HeadmasterCounsellorPage() {
   // Update message status handler
   const handleUpdateMessageStatus = async (id: string, newStatus: string) => {
     try {
-      setMessages(prev => prev.map(m => m._id === id ? { ...m, status: newStatus } : m));
+      setMessages(prev => prev.map(m => String(m._id) === String(id) ? { ...m, status: newStatus } : m));
       await apiFetch(`/api/counsellor/messages/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -226,8 +226,25 @@ export default function HeadmasterCounsellorPage() {
       themeClass="theme-headmaster"
       accentColor="#8b5cf6"
     >
-      {/* ── KPI Header Bar ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      {loading || sessionStatus === "loading" ? (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 sm:p-20 text-center shadow-xl my-4 flex flex-col items-center justify-center min-h-[420px]">
+          <div className="relative mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-2xl shadow-inner">
+              <i className="fi fi-rr-heart text-2xl animate-pulse" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 border-t-violet-600 border-violet-200 animate-spin" />
+          </div>
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">
+            Loading Wellbeing Hub Data...
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+            Fetching verified student mood notes, stress alerts, and 1-on-1 session appointments
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* ── KPI Header Bar ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold shrink-0">
@@ -372,12 +389,7 @@ export default function HeadmasterCounsellorPage() {
         {/* ── Tab 1: Student Notes & Mood Logs ── */}
         {activeTab === "messages" && (
           <div>
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="w-8 h-8 rounded-full border-2 border-violet-500/20 border-t-violet-500 animate-spin mx-auto mb-3" />
-                <p className="text-xs text-slate-500">Loading student mood notes...</p>
-              </div>
-            ) : filteredMessages.length === 0 ? (
+            {filteredMessages.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                 <i className="fi fi-rr-heart text-3xl text-slate-400 mx-auto mb-2 block" />
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No student notes match filter</p>
@@ -442,7 +454,7 @@ export default function HeadmasterCounsellorPage() {
 
                           {/* Status Dropdown */}
                           <select
-                            value={(m as any).status || "REVIEWED"}
+                            value={(m as any).status || "PENDING"}
                             onChange={(e) => handleUpdateMessageStatus(m._id, e.target.value)}
                             className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase border outline-none cursor-pointer transition-all ${
                               (m as any).status === "RESOLVED"
@@ -628,6 +640,8 @@ export default function HeadmasterCounsellorPage() {
           </div>
         )}
       </div>
+        </>
+      )}
 
       {/* ── Inspection Modal ── */}
       {selectedMessage && (() => {
