@@ -575,7 +575,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "fi fi-rr-palette" },
       // { label: "Science Fact", href: "/teacher/science-fact", icon: "fi fi-rr-bulb" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "fi fi-rr-calculator" },
-      { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
+      // { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "fi fi-rr-flask" },
       { label: "Chemistry Lab", href: "/teacher/chemistry-lab", icon: "fi fi-rr-flask" },
       { label: "Zoology Centre", href: "/teacher/zoology-centre", icon: "fi fi-rr-bug" },
