@@ -52,6 +52,8 @@ export default function TeacherMockTestsPage() {
   const [loadingResults, setLoadingResults] = useState(false);
   const [currentTestName, setCurrentTestName] = useState("");
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
+  const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
+  const [aiQuestionType, setAiQuestionType] = useState<"mcq" | "short">("mcq");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -148,8 +150,8 @@ export default function TeacherMockTestsPage() {
           subject,
           topic: title,
           difficulty,
-          mcqCount: 5,
-          shortCount: 0,
+          mcqCount: aiQuestionType === "mcq" ? aiQuestionCount : 0,
+          shortCount: aiQuestionType === "short" ? aiQuestionCount : 0,
           longCount: 0
         })
       });
@@ -539,15 +541,39 @@ export default function TeacherMockTestsPage() {
                   </h2>
                   <p className="text-sm text-gray-500 mt-2 font-medium">Design your assessment schema and rubrics.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAIGenerateMock}
-                  disabled={isGenerating}
-                  className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-black rounded-2xl px-6 py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 w-full sm:w-auto mt-4 md:mt-0"
-                >
-                  {isGenerating ? <i className="fi fi-rr-refresh text-sm animate-spin" /> : <i className="fi fi-rr-sparkles text-sm" />}
-                  Generate with AI <i className="fi fi-rr-angle-small-down text-xs ml-1" />
-                </button>
+
+                <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto justify-end pr-8 md:pr-10">
+                  {/* 5 / 10 Question Count Select */}
+                  <select
+                    value={aiQuestionCount}
+                    onChange={(e) => setAiQuestionCount(Number(e.target.value))}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value={5}>5 Questions</option>
+                    <option value={10}>10 Questions</option>
+                  </select>
+
+                  {/* MCQ / Short Answer Select */}
+                  <select
+                    value={aiQuestionType}
+                    onChange={(e) => setAiQuestionType(e.target.value as "mcq" | "short")}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value="mcq">MCQ</option>
+                    <option value="short">Short Answer</option>
+                  </select>
+
+                  {/* Generate with AI Button */}
+                  <button
+                    type="button"
+                    onClick={handleAIGenerateMock}
+                    disabled={isGenerating}
+                    className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl px-4 py-2 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                  >
+                    {isGenerating ? <i className="fi fi-rr-refresh text-xs animate-spin" /> : <i className="fi fi-rr-sparkles text-xs" />}
+                    <span>{isGenerating ? "Generating..." : "Generate with AI"}</span>
+                  </button>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">

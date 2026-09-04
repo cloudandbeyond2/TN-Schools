@@ -47,6 +47,8 @@ export default function SuperAdminMockTestsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"repository" | "create">("repository");
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
+  const [aiQuestionType, setAiQuestionType] = useState<"mcq" | "short">("mcq");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -115,8 +117,8 @@ export default function SuperAdminMockTestsPage() {
           subject,
           topic: title,
           difficulty,
-          mcqCount: 5,
-          shortCount: 0,
+          mcqCount: aiQuestionType === "mcq" ? aiQuestionCount : 0,
+          shortCount: aiQuestionType === "short" ? aiQuestionCount : 0,
           longCount: 0
         })
       });
@@ -273,33 +275,27 @@ export default function SuperAdminMockTestsPage() {
       <div className="w-full mb-10">
 
         {/* Glassmorphism Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-900 p-8 md:p-12 mb-8 shadow-2xl shadow-violet-500/20 text-white">
-          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
-            <Globe className="w-64 h-64 text-white" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-900 p-5 md:p-6 mb-6 shadow-xl text-white">
+          <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-15 pointer-events-none">
+            <Globe className="w-40 h-40 text-white" />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மாநில மதிப்பீட்டு வாரியம்" : "State Assessment Board"}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-2 border border-white/30 !text-white shadow-sm">
+              <Sparkles className="w-3 h-3 text-amber-300" /> <span className="!text-white">{lang === "தமிழ்" ? "மாநில மதிப்பீட்டு வாரியம்" : "State Assessment Board"}</span>
             </span>
-            <p className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+            <p className="text-xl md:text-2xl font-black mb-1.5 leading-tight !text-white">
               {lang === "தமிழ்" ? "மாநில அளவிலான சிறப்பு" : "Statewide Excellence"}
             </p>
-            <p className="text-violet-200 !text-white text-lg mb-8 leading-relaxed">
+            <p className="text-violet-100 !text-white text-xs md:text-sm mb-3.5 leading-relaxed max-w-xl">
               {lang === "தமிழ்" ? "தரப்படுத்தப்பட்ட கொள்குறி தேர்வுகளை உருவாக்கவும், AI ஐ பயன்படுத்தி வினா வங்கிகளை விரிவுபடுத்தவும்." : "Create standardized objective tests, use AI to scale question banks, and instantly deploy assessments to all schools across the state."}
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={() => setActiveTab("create")}
-                className="px-6 py-3 bg-white text-violet-800 hover:bg-violet-50 transition-all rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
+                className="px-4 py-2 bg-white text-violet-800 hover:bg-violet-50 transition-all rounded-xl font-bold text-xs shadow-md flex items-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-5 h-5" /> {lang === "தமிழ்" ? "புதிய மாநில மதிப்பீடு" : "New State Assessment"}
+                <Plus className="w-4 h-4" /> {lang === "தமிழ்" ? "புதிய மாநில மதிப்பீடு" : "New State Assessment"}
               </button>
-              {/* <button 
-                onClick={() => setActiveTab("repository")}
-                className="px-6 py-3 bg-violet-500/30 hover:bg-violet-500/40 backdrop-blur-md transition-all rounded-2xl font-bold text-sm border border-white/20 flex items-center gap-2"
-              >
-                <LayoutList className="w-5 h-5" /> View Repository
-              </button> */}
             </div>
           </div>
         </div>
@@ -397,41 +393,62 @@ export default function SuperAdminMockTestsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
 
-              {/* Gradient Banner Header */}
-              <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                  <Globe className="w-48 h-48 text-white" />
-                </div>
-                <div className="flex items-center gap-3.5 relative z-10">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 shadow-inner">
-                    <FileText className="w-6 h-6" />
+              {/* Clean White Modal Header */}
+              <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 rounded-t-3xl relative">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 shrink-0">
+                    <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                    <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                       State Assessment Builder
-                      <span className="text-[10px] bg-white/20 border border-white/30 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                         v2.0 AI Powered
                       </span>
                     </h2>
-                    <p className="text-xs text-violet-100 font-medium mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                       Design standardized state-wide examination schema, auto-generate AI items, and deploy rubrics.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 relative z-10 w-full md:w-auto justify-between md:justify-end">
+                <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto justify-end">
+                  {/* 5 / 10 Question Count Select */}
+                  <select
+                    value={aiQuestionCount}
+                    onChange={(e) => setAiQuestionCount(Number(e.target.value))}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value={5}>5 Questions</option>
+                    <option value={10}>10 Questions</option>
+                  </select>
+
+                  {/* MCQ / Short Answer Select */}
+                  <select
+                    value={aiQuestionType}
+                    onChange={(e) => setAiQuestionType(e.target.value as "mcq" | "short")}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value="mcq">MCQ</option>
+                    <option value="short">Short Answer</option>
+                  </select>
+
+                  {/* Auto-Generate Button */}
                   <button
                     type="button"
                     onClick={handleAIGenerateMock}
                     disabled={isGenerating}
-                    className="px-5 py-2.5 bg-white text-violet-700 hover:bg-violet-50 font-bold rounded-xl text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-violet-600 dark:text-violet-400 font-bold rounded-xl text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin text-violet-600" /> : <Sparkles className="w-4 h-4 text-violet-600" />}
+                    {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-violet-600 dark:text-violet-400" /> : <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />}
                     <span>{isGenerating ? "Generating..." : "Auto-Generate with AI"}</span>
                   </button>
+
+                  {/* Close Button */}
                   <button
+                    type="button"
                     onClick={() => setActiveTab("repository")}
-                    className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-sm font-bold transition-all shrink-0 cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm font-bold transition-all shrink-0 cursor-pointer ml-1"
                     title="Close"
                   >
                     ✕
