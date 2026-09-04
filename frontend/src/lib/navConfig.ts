@@ -547,6 +547,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Daily Attendance", href: "/teacher/attendance", icon: "fi fi-rr-calendar" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "fi fi-rr-graduation-cap" },
+      { label: "Leave Requests", href: "/teacher/leave", icon: "fi fi-rr-document" },
       { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "fi fi-rr-shield" },
 
       // Student Management
@@ -567,7 +568,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "AI Material Hub", href: "/teacher/material-hub", icon: "✨" },
       { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
       { label: "Announcements", href: "/teacher/announcements", icon: "fi fi-rr-megaphone" },
-      { label: "Leave Requests", href: "/teacher/leave", icon: "fi fi-rr-document" },
       { label: "Club Events", href: "/teacher/events", icon: "fi fi-rr-calendar" },
 
       // Interactive Modules & Centers

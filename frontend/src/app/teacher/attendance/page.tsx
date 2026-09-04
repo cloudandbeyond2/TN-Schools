@@ -61,18 +61,80 @@ export default function AttendancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch teacher classes on mount
+  // Fetch teacher assigned Class Teacher class & classes on mount
   useEffect(() => {
     const fetchTeacherClasses = async () => {
       if (!schoolId || !session?.user) return;
       const teacherId = (session.user as any).id;
+      const token = (session.user as any).backendToken;
+      const reqHeaders: Record<string, string> = {};
+      if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+
       try {
+        // 1. Fetch teacher live profile to find Class Teacher assigned class
+        let ctClass = "";
+        try {
+          const profileRes = await fetch(`${API_URL}/api/teacher/profile/${teacherId}`, { headers: reqHeaders });
+          const profileJson = await profileRes.json();
+          if (profileJson.success && profileJson.data) {
+            let aCls = profileJson.data.assignedClass || "";
+            let aSec = profileJson.data.assignedSection || "";
+            if (profileJson.data.address && (!aCls || !aSec)) {
+              try {
+                const meta = JSON.parse(profileJson.data.address);
+                if (!aCls) aCls = meta.assignedClass || "";
+                if (!aSec) aSec = meta.assignedSection || "";
+              } catch (e) {}
+            }
+            const parsedClsNum = (String(aCls).match(/\d+/) || [])[0] || "";
+            const parsedSecStr = String(aSec).toUpperCase().trim();
+            if (parsedClsNum && parsedSecStr) {
+              ctClass = `${parsedClsNum}${parsedSecStr}`;
+            }
+          }
+        } catch (e) {
+          console.error("Error fetching teacher profile for CT class:", e);
+        }
+
+        // Fallback to session user assigned class if profile didn't return
+        if (!ctClass) {
+          const userCls = (session.user as any).assignedClass || (session.user as any).class;
+          const userSec = (session.user as any).assignedSection || (session.user as any).section;
+          const parsedClsNum = (String(userCls || "").match(/\d+/) || [])[0] || "";
+          const parsedSecStr = String(userSec || "").toUpperCase().trim();
+          if (parsedClsNum && parsedSecStr) {
+            ctClass = `${parsedClsNum}${parsedSecStr}`;
+          }
+        }
+
+        // 2. Fetch classes taught by teacher
         const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
         const data = await res.json();
+        let classList: any[] = [];
         if (data.success && Array.isArray(data.data)) {
-          setTeacherClasses(data.data);
-          if (data.data.length > 0) {
-            setSelectedClass(`${data.data[0].className}${data.data[0].section}`);
+          classList = data.data;
+        }
+
+        // If teacher is a Class Teacher, filter to ONLY their assigned Class Teacher class
+        if (ctClass) {
+          const clsNum = ctClass.replace(/\D/g, "");
+          const secLetter = ctClass.replace(/\d/g, "").toUpperCase();
+          
+          const existing = classList.find(c => `${c.className}${c.section}`.toUpperCase() === ctClass);
+          const ctClassObject = existing || {
+            id: `ct-${ctClass}`,
+            className: clsNum,
+            section: secLetter,
+            subject: "Class Teacher Section",
+            isClassTeacherClass: true
+          };
+
+          setTeacherClasses([ctClassObject]);
+          setSelectedClass(ctClass);
+        } else {
+          setTeacherClasses(classList);
+          if (classList.length > 0) {
+            setSelectedClass(`${classList[0].className}${classList[0].section}`);
           }
         }
       } catch (err) {
@@ -421,12 +483,12 @@ export default function AttendancePage() {
             >
               {teacherClasses.length > 0 ? (
                 teacherClasses.map((cls) => (
-                  <option key={cls.id} value={`${cls.className}${cls.section}`}>
-                    Class {cls.className}{cls.section} - {cls.subject}
+                  <option key={cls.id || `${cls.className}${cls.section}`} value={`${cls.className}${cls.section}`}>
+                    Class {cls.className}{cls.section} (Class Teacher Section)
                   </option>
                 ))
               ) : (
-                <option value="">No Classes Assigned</option>
+                <option value="">No Class Teacher Section Assigned</option>
               )}
             </select>
           </div>
