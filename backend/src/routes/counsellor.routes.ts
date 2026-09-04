@@ -257,8 +257,15 @@ router.get('/messages', async (req: Request, res: Response) => {
 
     const combinedMessages = [...MEMORY_MESSAGES];
     for (const raw of rawMessages) {
-      if (!combinedMessages.some((m: any) => String(m._id) === String(raw._id))) {
+      const existingIdx = combinedMessages.findIndex((m: any) => String(m._id) === String(raw._id) || String(m.id) === String(raw._id));
+      if (existingIdx === -1) {
         combinedMessages.push(raw);
+      } else {
+        combinedMessages[existingIdx] = {
+          ...raw,
+          ...combinedMessages[existingIdx],
+          status: combinedMessages[existingIdx].status || raw.status || 'PENDING'
+        };
       }
     }
 
@@ -280,6 +287,7 @@ router.get('/messages', async (req: Request, res: Response) => {
 
         return {
           ...m,
+          status: m.status || 'PENDING',
           isAnonymous: isAnon,
           displayName: isAnon ? "🔒 Anonymous Student" : m.displayName || `👤 ${info.studentName} · Class ${info.className}-${info.section}`,
           studentName: info.studentName,
@@ -461,6 +469,8 @@ router.patch('/messages/:id/status', async (req: Request, res: Response) => {
     const memItem = MEMORY_MESSAGES.find((m) => String(m._id) === String(id) || String(m.id) === String(id));
     if (memItem) {
       memItem.status = validStatus;
+    } else {
+      MEMORY_MESSAGES.push({ _id: id, status: validStatus });
     }
 
     res.json({ success: true, message: 'Note status updated successfully', status: validStatus });
