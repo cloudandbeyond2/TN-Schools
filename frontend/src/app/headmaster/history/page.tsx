@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { School, Clock, FlaskConical, Laptop, Bot, FileText } from "lucide-react";
 
 interface Milestone {
   id: number | string;
@@ -38,6 +39,7 @@ export default function HistoryPage() {
   const [newYear, setNewYear] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newDetails, setNewDetails] = useState("");
+  const [newIcon, setNewIcon] = useState("🏫");
   const [editingMilestoneId, setEditingMilestoneId] = useState<string | number | null>(null);
   const [historyToast, setHistoryToast] = useState<string | null>(null);
 
@@ -75,6 +77,7 @@ export default function HistoryPage() {
     setNewYear(ms.year);
     setNewTitle(ms.title);
     setNewDetails(ms.details);
+    setNewIcon(ms.icon || "🏫");
   };
 
   const handleCancelEdit = () => {
@@ -82,6 +85,7 @@ export default function HistoryPage() {
     setNewYear("");
     setNewTitle("");
     setNewDetails("");
+    setNewIcon("🏫");
   };
 
   const handleAddMilestone = async (e: React.FormEvent) => {
@@ -103,9 +107,7 @@ export default function HistoryPage() {
           year: newYear,
           title: newTitle,
           details: newDetails,
-          icon: isEditing
-            ? milestones.find(m => String(m.id) === String(editingMilestoneId))?.icon || "📜"
-            : "📜"
+          icon: newIcon || "📜"
         })
       });
       const json = await res.json();
@@ -118,6 +120,7 @@ export default function HistoryPage() {
         setNewYear("");
         setNewTitle("");
         setNewDetails("");
+        setNewIcon("🏫");
         setEditingMilestoneId(null);
         fetchMilestones();
       } else {
@@ -166,14 +169,26 @@ export default function HistoryPage() {
     });
   };
 
-  const getMilestoneIcon = (iconStr: string) => {
+  const getMilestoneIcon = (iconStr: string, title?: string) => {
     const s = iconStr || "";
-    if (s === "🏫") return <i className="fi fi-rr-school text-xs text-blue-400" />;
-    if (s === "📐") return <i className="fi fi-rr-ruler-combined text-xs text-blue-400" />;
-    if (s === "🔬") return <i className="fi fi-rr-flask text-xs text-blue-400" />;
-    if (s === "💻") return <i className="fi fi-rr-laptop text-xs text-blue-400" />;
-    if (s === "🤖") return <i className="fi fi-rr-bot text-xs text-blue-400" />;
-    return <i className="fi fi-rr-document text-xs text-blue-400" />;
+    const t = (title || "").toLowerCase();
+
+    if (s === "🤖" || t.includes("ai") || t.includes("smart") || t.includes("robot") || t.includes("bot")) {
+      return <Bot className="w-3.5 h-3.5 text-blue-400" />;
+    }
+    if (s === "💻" || t.includes("computer") || t.includes("desktop") || t.includes("tech")) {
+      return <Laptop className="w-3.5 h-3.5 text-blue-400" />;
+    }
+    if (s === "🔬" || t.includes("science") || t.includes("lab") || t.includes("flask")) {
+      return <FlaskConical className="w-3.5 h-3.5 text-blue-400" />;
+    }
+    if (s === "📐" || s === "⏱️" || t.includes("roster") || t.includes("status") || t.includes("recognition")) {
+      return <Clock className="w-3.5 h-3.5 text-blue-400" />;
+    }
+    if (s === "🏫" || t.includes("founding") || t.includes("established") || t.includes("school")) {
+      return <School className="w-3.5 h-3.5 text-blue-400" />;
+    }
+    return <FileText className="w-3.5 h-3.5 text-blue-400" />;
   };
 
   return (
@@ -231,7 +246,7 @@ export default function HistoryPage() {
               <div key={ms.id} className="relative group">
                 {/* Timeline Dot */}
                 <span className="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-slate-900 border-2 border-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  {getMilestoneIcon(ms.icon)}
+                  {getMilestoneIcon(ms.icon, ms.title)}
                 </span>
 
                 <div className="glass rounded-2xl p-5 border border-slate-800 hover:border-slate-750 transition-colors relative">
@@ -294,6 +309,22 @@ export default function HistoryPage() {
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-slate-400 mb-1.5 font-semibold">Milestone Category / Icon</label>
+              <select
+                value={newIcon}
+                onChange={(e) => setNewIcon(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              >
+                <option value="🏫">🏫 School Founding & Establishment</option>
+                <option value="📐">📐 Government Status & Roster</option>
+                <option value="🔬">🔬 Science & Laboratory Wing</option>
+                <option value="💻">💻 Computer Lab & IT Infrastructure</option>
+                <option value="🤖">🤖 AI & Smart Classrooms</option>
+                <option value="📜">📜 General Archival Milestone</option>
+              </select>
             </div>
 
             <div>
