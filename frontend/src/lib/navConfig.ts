@@ -458,7 +458,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "Award" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
-      // { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+      { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ===================== SUPPORT =====================
