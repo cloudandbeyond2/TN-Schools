@@ -168,31 +168,31 @@ export default function StudentMockTestsPage() {
         <div className="w-full mb-10">
           
           {/* Exam Header */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-amber-100 dark:border-amber-900/50 mb-6 flex justify-between items-center sticky top-24 z-10">
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-sm border border-amber-200/50 dark:border-amber-900/40 mb-6 flex justify-between items-center sticky top-24 z-10">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{activeTest.title}</h2>
-              <p className="text-sm text-gray-500">Question {currentQuestionIdx + 1} of {activeTest.questions.length}</p>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">{activeTest.title}</h2>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Question {currentQuestionIdx + 1} of {activeTest.questions.length}</p>
             </div>
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-lg ${timeLeft < 300 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-              <i className="fi fi-sr-clock flex items-center text-lg" />
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-extrabold text-xs sm:text-sm ${timeLeft < 300 ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 border border-red-200/30' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/30'}`}>
+              <i className="fi fi-sr-clock flex items-center text-sm" />
               {formatTime(timeLeft)}
             </div>
           </div>
 
           {/* Question Area */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800 mb-6 min-h-[400px]">
-            <div className="flex justify-between items-start mb-8">
-              <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 leading-relaxed">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 dark:border-slate-800 mb-6 min-h-[350px]">
+            <div className="flex justify-between items-start gap-4 mb-6">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-relaxed">
                 <span className="text-amber-500 font-black mr-2">{currentQuestionIdx + 1}.</span> 
                 {q.text}
               </h3>
-              <span className="bg-gray-100 dark:bg-gray-800 text-gray-500 px-3 py-1 rounded-lg text-xs font-bold shrink-0">
+              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 border border-slate-200 dark:border-slate-700">
                 {q.marks} Marks
               </span>
             </div>
 
             {q.type === 'mcq' ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {q.options.map((opt: string, optIdx: number) => {
                   const letter = String.fromCharCode(65 + optIdx);
                   const isSelected = answers[q.id] === letter;
@@ -200,18 +200,18 @@ export default function StudentMockTestsPage() {
                     <button
                       key={optIdx}
                       onClick={() => handleOptionSelect(q.id, letter)}
-                      className={`w-full text-left p-5 rounded-2xl border-2 transition-all flex items-center gap-4 ${
+                      className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-center gap-3.5 ${
                         isSelected 
-                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-amber-300'
+                          ? 'border-amber-500 bg-amber-50/60 dark:bg-amber-500/10 shadow-sm' 
+                          : 'border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 bg-slate-50/40 dark:bg-slate-800/30'
                       }`}
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                        isSelected ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
+                        isSelected ? 'bg-amber-500 text-white' : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                       }`}>
                         {letter}
                       </div>
-                      <span className={`text-lg ${isSelected ? 'text-amber-900 dark:text-amber-100 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
+                      <span className={`text-xs sm:text-sm ${isSelected ? 'text-amber-950 dark:text-amber-100 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-medium'}`}>
                         {opt}
                       </span>
                     </button>
@@ -223,17 +223,17 @@ export default function StudentMockTestsPage() {
                 value={answers[q.id] || ''}
                 onChange={(e) => handleShortAnswerChange(q.id, e.target.value)}
                 placeholder="Type your answer here..."
-                className="w-full h-48 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-lg focus:ring-2 focus:ring-amber-500 outline-none resize-none"
+                className="w-full h-40 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
               />
             )}
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between items-center bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
             <button
               onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
               disabled={currentQuestionIdx === 0}
-              className="px-6 py-3 rounded-xl font-bold text-gray-600 dark:text-gray-300 disabled:opacity-30 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               Previous
             </button>
@@ -242,7 +242,7 @@ export default function StudentMockTestsPage() {
               <button
                 onClick={handleSubmitTest}
                 disabled={isSubmitting}
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center gap-2 shadow-sm"
               >
                 {isSubmitting ? "Submitting..." : "Submit Test"}
                 {!isSubmitting && <i className="fi fi-sr-check flex items-center text-sm" />}
@@ -250,9 +250,9 @@ export default function StudentMockTestsPage() {
             ) : (
               <button
                 onClick={() => setCurrentQuestionIdx((p) => Math.min(activeTest.questions.length - 1, p + 1))}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
+                className="bg-amber-500 hover:bg-amber-600 text-white px-6 sm:px-8 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center gap-2 shadow-sm"
               >
-                Next <i className="fi fi-sr-angle-small-right flex items-center text-lg" />
+                Next <i className="fi fi-sr-angle-small-right flex items-center text-base" />
               </button>
             )}
           </div>
@@ -346,7 +346,7 @@ export default function StudentMockTestsPage() {
         {/* Main header banner card */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
           <div>
-            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
               <i className="fi fi-sr-target text-amber-500 dark:text-amber-400 flex items-center" />
               {lang === "தமிழ்" ? "எனது மாதிரி தேர்வுகள்" : "My Mock Exams"}
             </h2>
@@ -354,7 +354,7 @@ export default function StudentMockTestsPage() {
               {lang === "தமிழ்" ? "பயிற்சி செய்து சிறந்த மதிப்பெண் பெறுங்கள்" : "Practice and prepare for your finals"}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/20 shadow-sm whitespace-nowrap">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm rounded-xl border border-amber-200/20 shadow-sm whitespace-nowrap">
             <i className="fi fi-sr-document-text flex items-center text-sm" />
             {lang === "தமிழ்" ? " மாதிரி தேர்வு போர்டல்" : "Mock Exam Portal"}
           </span>
@@ -462,10 +462,10 @@ export default function StudentMockTestsPage() {
         {loading ? (
           <div className="text-center py-20 text-gray-500 font-semibold">Loading assignments...</div>
         ) : assignments.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <i className="fi fi-sr-badge text-gray-300 mx-auto mb-4 text-5xl flex items-center justify-center" />
-            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">You're all caught up!</h3>
-            <p className="text-gray-500 text-sm">No mock tests assigned to your class right now.</p>
+          <div className="text-center py-16 bg-white/70 dark:bg-slate-900/50 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <i className="fi fi-sr-badge text-slate-300 dark:text-slate-600 mx-auto mb-3 text-4xl flex items-center justify-center" />
+            <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-200 mb-1">You're all caught up!</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-xs">No mock tests assigned to your class right now.</p>
           </div>
         ) : sortedAssignments.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -486,75 +486,75 @@ export default function StudentMockTestsPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {(Object.entries(subjectGroups) as [string, any[]][]).map(([subject, tests]) => {
               const isOpen = isFilteringOrSearching ? true : (openSubjects[subject] === undefined ? true : openSubjects[subject]);
               
               return (
-                <div key={subject} className="bg-white/50 dark:bg-gray-800/50 rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-all duration-300">
+                <div key={subject} className="bg-white/70 dark:bg-slate-900/50 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-300">
                   <div 
-                    className={`flex items-center gap-3 cursor-pointer select-none group transition-all duration-300 ${isOpen ? 'mb-5 border-b border-gray-100 dark:border-gray-700 pb-4' : ''}`}
+                    className={`flex items-center gap-3 cursor-pointer select-none group transition-all duration-300 ${isOpen ? 'mb-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-3' : ''}`}
                     onClick={() => toggleSubject(subject)}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 shrink-0 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
-                      <i className="fi fi-sr-folder text-lg" />
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-500 shrink-0 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
+                      <i className="fi fi-sr-folder text-base" />
                     </div>
-                    <h3 className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{subject}</h3>
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-wide group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{subject}</h3>
                     
-                    <div className="ml-auto flex items-center gap-3">
-                      <span className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-700">
+                    <div className="ml-auto flex items-center gap-2.5">
+                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-slate-200 dark:border-slate-700">
                         {tests.length} {lang === "தமிழ்" ? "தேர்வுகள்" : "Tests"}
                       </span>
-                      <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`}>
-                        <i className="fi fi-sr-angle-down text-sm flex items-center" />
+                      <div className={`w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                        <i className="fi fi-sr-angle-down text-xs flex items-center" />
                       </div>
                     </div>
                   </div>
 
                   {isOpen && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 animate-in fade-in zoom-in-95 duration-200">
                       {tests.map((assignment) => {
                         const test = assignment.mockTest;
                         const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
                         const score = hasSubmitted ? assignment.submissions[0].score : null;
 
                         return (
-                          <div key={assignment.id} className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[200px] sm:min-h-[220px]">
+                          <div key={assignment.id} className="group bg-white dark:bg-slate-900/90 rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-800 relative overflow-hidden flex flex-col h-full min-h-[190px]">
                             
                             {test.schoolId === null && (
-                              <div className="mb-2">
-                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                              <div className="mb-1.5">
+                                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/40 dark:border-blue-800/40">
                                   State Board
                                 </span>
                               </div>
                             )}
 
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 leading-snug">{test.title}</h3>
+                            <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mb-1 line-clamp-1 leading-snug">{test.title}</h3>
 
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[32px]">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 line-clamp-2 min-h-[30px] font-normal leading-relaxed">
                               {test.description || "Simulate board conditions and practice to verify your subject mastery."}
                             </p>
 
-                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 mt-auto">
-                              <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-                                <i className="fi fi-rr-clock text-[9px] sm:text-[10px] text-gray-400" />
+                            <div className="flex flex-wrap items-center gap-1.5 mb-3 mt-auto">
+                              <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                <i className="fi fi-rr-clock text-[10px] text-slate-400" />
                                 {test.duration} mins
                               </span>
-                              <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-                                <i className="fi fi-rr-trophy text-[9px] sm:text-[10px] text-gray-400" />
+                              <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                <i className="fi fi-rr-trophy text-[10px] text-slate-400" />
                                 {test.totalMarks} Marks
                               </span>
                             </div>
 
                             {hasSubmitted ? (
-                              <div className="flex flex-col gap-2">
-                                <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
-                                  <div className="font-bold">Completed</div>
-                                  <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
+                              <div className="flex flex-col gap-1.5">
+                                <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 p-2 rounded-xl flex justify-between items-center text-xs font-bold border border-emerald-200/40 dark:border-emerald-800/40">
+                                  <span>Completed</span>
+                                  <span className="font-extrabold">{score} / {test.totalMarks} Marks</span>
                                 </div>
                                 {(Number(score) / Number(test.totalMarks)) >= 0.8 && (
-                                  <div className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1.5 px-1">
-                                    <i className="fi fi-sr-star flex items-center text-amber-500" /> 
+                                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1 px-1">
+                                    <i className="fi fi-sr-star flex items-center text-amber-500 text-[10px]" /> 
                                     {lang === "தமிழ்" ? "நன்று, தொடர்ந்து முயற்சி செய்!" : "Good, keep it up!"}
                                   </div>
                                 )}
@@ -562,9 +562,9 @@ export default function StudentMockTestsPage() {
                             ) : (
                               <button 
                                 onClick={() => startTest(assignment)}
-                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 cursor-pointer"
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                               >
-                                <i className="fi fi-sr-play flex items-center text-[9px] sm:text-[10px]" /> Start Test
+                                <i className="fi fi-sr-play flex items-center text-[10px]" /> Start Test
                               </button>
                             )}
 
@@ -639,3 +639,4 @@ export default function StudentMockTestsPage() {
     </PortalLayout>
   );
 }
+

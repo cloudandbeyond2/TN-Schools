@@ -248,7 +248,7 @@ export default function StudentExamsPage() {
   const { data: session } = useSession();
   const [exams, setExams] = useState<ExamCalendar[]>([]);
   const [isMounted, setIsMounted] = useState(false);
-  const [studentClass, setStudentClass] = useState("Class 10");
+  const [studentClass, setStudentClass] = useState("6");
   const [studentName, setStudentName] = useState("Arjun Kumar");
   const [emisNumber, setEmisNumber] = useState("3301234567");
 
@@ -360,7 +360,7 @@ export default function StudentExamsPage() {
       const rawClass = user.class || user.className || user.classId || "";
       // Normalize: "11-B" or "11B" → "11"
       const classNum = rawClass ? String(rawClass).match(/\d+/)?.[0] || "" : "";
-      if (classNum) setStudentClass(`Class ${classNum}`);
+      if (classNum) setStudentClass(classNum);
       if (user.emisId || user.emisNumber) setEmisNumber(user.emisId || user.emisNumber);
     }
 
@@ -391,7 +391,7 @@ export default function StudentExamsPage() {
             setEmisNumber(profile.emisNumber || "—");
 
             const profileClassNum = String(profile.class || "").match(/\d+/)?.[0] || "";
-            if (profileClassNum) setStudentClass(`Class ${profileClassNum}`);
+            if (profileClassNum) setStudentClass(profileClassNum);
 
             // Re-fetch exams with profile schoolId + class if session was missing them
             if (!schoolId && profile.schoolId) {
@@ -535,10 +535,15 @@ export default function StudentExamsPage() {
     return `70 (T) + 30 (P) = 100 ${t.marks}`;
   };
 
+  const cleanClassStr = String(studentClass || "6").replace(/^Class\s*/i, "").replace(/Standard/i, "").trim();
+  const formattedClassStr = cleanClassStr.match(/^\d+$/)
+    ? (cleanClassStr === "1" ? "1st" : cleanClassStr === "2" ? "2nd" : cleanClassStr === "3" ? "3rd" : `${cleanClassStr}th`)
+    : cleanClassStr;
+
   return (
     <PortalLayout
       title={t.title}
-      subtitle={t.subtitle(studentName, studentClass, emisNumber)}
+      subtitle={t.subtitle(studentName, `Class ${cleanClassStr}`, emisNumber)}
       avatarLetter={(studentName || "Student").charAt(0)}
       avatarColor="#6366f1"
       themeClass="theme-student"
@@ -562,7 +567,7 @@ export default function StudentExamsPage() {
           <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "ta" ? "வகுப்பு:" : "Your Grade:"}</span>
           <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
             <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
-            {lang === "ta" ? `வகுப்பு ${studentClass}` : `Class ${studentClass || "10"}th Standard`}
+            {lang === "ta" ? `வகுப்பு ${cleanClassStr}` : `Class ${formattedClassStr} Standard`}
           </span>
         </div>
       </div>

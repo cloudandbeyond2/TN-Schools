@@ -18,6 +18,26 @@ const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
 );
 
 /* ────────────────────────────────────────────────────────────
+   RenderIcon helper — supports both Flaticon glyph keys ("comment-alt", "flask") and Emojis ("📖", "🧪")
+──────────────────────────────────────────────────────────── */
+const RenderIcon = ({ icon, className = "text-xl" }: { icon?: string; className?: string }) => {
+  if (!icon) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} />;
+
+  const str = String(icon).trim();
+
+  // If string consists of icon name keys like "comment-alt", "calculator", "flask", "book-alt"
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} />;
+  }
+
+  // Otherwise it's an emoji character string like "📖", "🧪", "📐", "🪔"
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`}>{str}</span>;
+};
+
+/* ────────────────────────────────────────────────────────────
    Types
 ──────────────────────────────────────────────────────────── */
 type CategoryKey =
@@ -469,7 +489,7 @@ export default function AcademicsHubPage() {
         className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
         style={{ backgroundColor: `${t.color}1a`, color: t.color }}
       >
-        {t.icon} {name}
+        <RenderIcon icon={t.icon} className="text-xs mr-0.5" /> {name}
       </span>
     );
   };
@@ -564,7 +584,9 @@ export default function AcademicsHubPage() {
           ) : (
             <>
               <span className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-              <span className="text-4xl opacity-40 absolute left-4 bottom-3">{t.icon}</span>
+              <span className="text-4xl opacity-40 absolute left-4 bottom-3 flex items-center justify-center">
+                <RenderIcon icon={t.icon} className="text-4xl" />
+              </span>
             </>
           )}
           <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg z-10">
@@ -931,9 +953,9 @@ export default function AcademicsHubPage() {
                 />
                 <div className="flex justify-between items-start mb-4 relative z-10">
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform`}
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform text-white`}
                   >
-                    {s.icon}
+                    <RenderIcon icon={s.icon} className="text-2xl" />
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-black text-[var(--text-heading)]">{s.progress}%</span>
@@ -1022,7 +1044,9 @@ export default function AcademicsHubPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl shrink-0">{sub.icon}</span>
+                        <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                          <RenderIcon icon={sub.icon} className="text-lg" />
+                        </div>
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
                             {sub.name}
@@ -1044,7 +1068,9 @@ export default function AcademicsHubPage() {
                 {/* Header Bar */}
                 <div className="pb-5 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-2xl">{currentSubjectInfo?.icon || "📚"}</span>
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                      <RenderIcon icon={currentSubjectInfo?.icon || "📚"} className="text-xl" />
+                    </div>
                     <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">
                       {activeSubName} — Class {studentClass}
                     </h3>
@@ -1197,8 +1223,8 @@ export default function AcademicsHubPage() {
                   background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color || '#64748b'}, #475569)`
                 }}
               >
-                <span className="text-6xl opacity-30 absolute left-6 bottom-3">
-                  {subjectTheme(previewResource.subject).icon}
+                <span className="text-6xl opacity-30 absolute left-6 bottom-3 flex items-center justify-center">
+                  <RenderIcon icon={subjectTheme(previewResource.subject).icon} className="text-6xl text-white" />
                 </span>
                 <span
                   className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"

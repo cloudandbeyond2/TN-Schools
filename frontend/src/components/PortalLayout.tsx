@@ -201,7 +201,7 @@ const translations = {
       "Clubs & Activities": "கிளப்புகள் & செயல்பாடுகள்",
       "Promotion Approvals": "பதவி உயர்வு ஒப்புதல்கள்",
       "Manage Headmasters": "தலைமையாசிரியர்களை நிர்வகி",
-      "Manage School": "பள்ளி ஒப்பீடுகள்",
+      "Manage School": "பள்ளிகளை நிர்வகி",
       "Attendance Analytics": "வருகை பகுப்பாய்வு",
       "Exam Analytics": "தேர்வு பகுப்பாய்வு",
       "Infrastructure": "உள்கட்டமைப்பு",
@@ -274,7 +274,35 @@ const translations = {
       "Trades & Tech Hub": "கைவினை & தொழில்நுட்ப மையம்",
       "Basic Electrical Lab": "அடிப்படை மின்சார ஆய்வகம்",
       "Agriculture Lab": "விவசாய ஆய்வகம்",
-      "Office & Web Design": "அலுவலகம் & வலை வடிவமைப்பு"
+      "Office & Web Design": "அலுவலகம் & வலை வடிவமைப்பு",
+      "Class Teachers": "வகுப்பு ஆசிரியர்கள்",
+      "Social Responsibility": "சமூகப் பொறுப்பு",
+      "Teacher Messages": "ஆசிரியர் செய்திகள்",
+      "Classroom & Teaching": "வகுப்பறை & கற்பித்தல்",
+      "Student Progress": "மாணவர் முன்னேற்றம்",
+      "Manage Blocks": "வட்டாரங்களை நிர்வகி",
+      "AI Skill Control": "AI திறன் கட்டுப்பாடு",
+      "External Storage": "வெளிப்புற சேமிப்பகம்",
+      "Book Library": "புத்தக நூலகம்",
+      "Commerce & Business Lab": "வணிகவியல் ஆய்வகம்",
+      "Accountancy Practice": "கணக்குப்பதிவியல் பயிற்சி",
+      "Economics Data Center": "பொருளாதார தரவு மையம்",
+      "Business Statistics": "வணிக புள்ளியியல்",
+      "Programming Lab": "நிரலாக்க ஆய்வகம்",
+      "Computer Science Lab": "கணினி அறிவியல் ஆய்வகம்",
+      "Web Technology Lab": "வலை தொழில்நுட்ப ஆய்வகம்",
+      "Database & SQL Lab": "தரவுத்தள ஆய்வகம்",
+      "AI & Machine Learning": "செயற்கை நுண்ணறிவு & இயந்திர கற்றல்",
+      "Robotics & AI Lab": "ரோபோட்டிக்ஸ் & AI ஆய்வகம்",
+      "CS Campus": "கணினி அறிவியல் வளாகம்",
+      "Commerce Campus": "வணிகவியல் வளாகம்",
+      "Prep Plans": "தயாரிப்பு திட்டங்கள்",
+      "AI Revision Plan": "AI திருத்தல் திட்டம்",
+      "Performance Predictions": "செயல்திறன் கணிப்புகள்",
+      "Question Papers (PYQ)": "முந்தைய வினாத்தாள்கள் (PYQ)",
+      "Exam Results": "தேர்வு முடிவுகள்",
+      "Social Activities": "சமூக செயல்பாடுகள்",
+      "School Exams": "பள்ளித் தேர்வுகள்"
     },
     liveConnection: "நேரடி இணைப்பு",
     notificationsTitle: "அறிவிப்புகள்",
@@ -1348,7 +1376,7 @@ export default function PortalLayout({
           ) : (
             <>
               <div className="px-5 mb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                MAIN
+                {currentLanguage === "தமிழ்" ? "முதன்மை" : "MAIN"}
               </div>
               {filteredNavItems.map((item, index) => {
                 if (item.label === "---") {

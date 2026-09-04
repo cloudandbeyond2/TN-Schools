@@ -12,7 +12,7 @@ const CATEGORIES = [
   { id: "video", label: "Educational videos", icon: "fi-sr-video-camera", gradient: "from-rose-500 to-pink-500" },
   { id: "government", label: "Government learning materials", icon: "fi-sr-bank", gradient: "from-amber-500 to-orange-500" },
   { id: "research", label: "Research content", icon: "fi-sr-search-alt", gradient: "from-fuchsia-500 to-purple-500" },
-  { id: "competitive", label: "Competitive examination resources", icon: "fi-sr-trophy", gradient: "from-yellow-400 to-amber-500" },
+  { id: "competitive", label: "Competitive exams", icon: "fi-sr-trophy", gradient: "from-yellow-400 to-amber-500" },
 ];
 
 // We will load resources dynamically
@@ -120,7 +120,7 @@ export default function DigitalLibraryPage() {
             </h3>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-4 px-2 snap-x snap-mandatory scrollbar-none">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 p-1">
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
 
@@ -128,9 +128,9 @@ export default function DigitalLibraryPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`snap-start shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-300 border font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full transition-all duration-300 border font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md cursor-pointer
                     ${isActive
-                      ? `bg-gradient-to-r ${cat.gradient} text-white border-transparent scale-105`
+                      ? `bg-gradient-to-r ${cat.gradient} text-white border-transparent shadow-md font-extrabold`
                       : `bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-400`
                     }`}
                 >

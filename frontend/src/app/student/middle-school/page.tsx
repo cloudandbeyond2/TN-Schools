@@ -283,37 +283,69 @@ export default function MiddleSchoolDashboard() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {subjectList.map((sub) => {
-            // Find corresponding mark percentage in analytics.marksSummary
-            // normalize subject names to find match
-            const analyticsSub = analytics?.marksSummary?.find(
-              (m: any) => m.subject.toLowerCase() === sub.name.toLowerCase() ||
-                          (sub.name === "கணிதம்" && m.subject.toLowerCase() === "mathematics") ||
-                          (sub.name === "அறிவியல்" && m.subject.toLowerCase() === "science") ||
-                          (sub.name === "தமிழ்" && m.subject.toLowerCase() === "tamil") ||
-                          (sub.name === "ஆங்கிலம்" && m.subject.toLowerCase() === "english") ||
-                          (sub.name === "சமூக அறிவியல்" && m.subject.toLowerCase() === "social science")
-            );
-            
-            const progressPct = analyticsSub?.pct != null ? Math.round(analyticsSub.pct) : 80;
+            const isMatch = (markSubName: string) => {
+              const m = (markSubName || "").toLowerCase().trim();
+              const s = sub.name.toLowerCase().trim();
+              if (m === s) return true;
+              if ((s === "கணிதம்" || s === "mathematics") && (m === "mathematics" || m === "maths" || m === "கணிதம்")) return true;
+              if ((s === "அறிவியல்" || s === "science") && (m === "science" || m === "அறிவியல்")) return true;
+              if ((s === "தமிழ்" || s === "tamil") && (m === "tamil" || m === "தமிழ்")) return true;
+              if ((s === "ஆங்கிலம்" || s === "english") && (m === "english" || m === "ஆங்கிலம்")) return true;
+              if ((s === "சமூக அறிவியல்" || s === "social science") && (m === "social science" || m === "social" || m === "சமூக அறிவியல்")) return true;
+              return false;
+            };
+
+            const analyticsSub = analytics?.marksSummary?.find((m: any) => isMatch(m.subject));
+            const matchingRecentMarks = recentMarks?.filter((m: any) => isMatch(m.subject));
+
+            let hasData = false;
+            let progressPct: number | null = null;
+            let examsCount = 0;
+
+            if (analyticsSub && analyticsSub.pct != null) {
+              hasData = true;
+              progressPct = Math.round(analyticsSub.pct);
+              examsCount = analyticsSub.exams || 1;
+            } else if (matchingRecentMarks && matchingRecentMarks.length > 0) {
+              hasData = true;
+              const totalScored = matchingRecentMarks.reduce((acc: number, r: any) => acc + (Number(r.scored) || 0), 0);
+              const totalMax = matchingRecentMarks.reduce((acc: number, r: any) => acc + (Number(r.maxMarks) || 100), 0);
+              progressPct = totalMax > 0 ? Math.round((totalScored / totalMax) * 100) : null;
+              examsCount = matchingRecentMarks.length;
+            }
+
+            if (hasData && progressPct != null) {
+              return (
+                <div key={sub.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 hover:border-slate-300 transition-all flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sub.name}</span>
+                    <i className={`fi ${sub.fi} text-sm`} style={{ color: sub.color }} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">{isTa ? "முன்னேற்றம்" : "Progress"}</span>
+                      <span className="text-xs font-black" style={{ color: sub.color }}>{progressPct}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, backgroundColor: sub.color }} />
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-semibold mt-1 block">
+                      {isTa ? `${examsCount} தேர்வுகள்` : `${examsCount} Exams Logged`}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
 
             return (
-              <div key={sub.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 hover:border-slate-300 transition-all flex flex-col justify-between">
+              <div key={sub.name} className="p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sub.name}</span>
-                  <i className={`fi ${sub.fi} text-sm`} style={{ color: sub.color }} />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{sub.name}</span>
+                  <i className={`fi ${sub.fi} text-sm text-slate-400`} />
                 </div>
-                <div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">{isTa ? "முன்னேற்றம்" : "Progress"}</span>
-                    <span className="text-xs font-black" style={{ color: sub.color }}>{progressPct}%</span>
-                  </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, backgroundColor: sub.color }} />
-                  </div>
-                  <span className="text-[9px] text-slate-400 font-semibold mt-1 block">
-                    {analyticsSub?.pct != null 
-                      ? (isTa ? `${analyticsSub.exams} தேர்வுகள்` : `${analyticsSub.exams} Exams Logged`) 
-                      : (isTa ? "தேர்வு தரவு இல்லை (இயல்பு)" : "No exam data (Default)")}
+                <div className="py-2.5 px-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/40 text-center">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">
+                    {isTa ? "தேர்வு மதிப்பெண்கள் இல்லை" : "No exam marks available"}
                   </span>
                 </div>
               </div>
