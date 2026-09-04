@@ -50,6 +50,8 @@ export default function HeadmasterMockTestsPage() {
   const [activeTab, setActiveTab] = useState<"repository" | "create">("repository");
   const [searchQuery, setSearchQuery] = useState("");
   const [schools, setSchools] = useState<any[]>([]);
+  const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
+  const [aiQuestionType, setAiQuestionType] = useState<"mcq" | "short">("mcq");
 
   // Results tracking states
   const [selectedTestResults, setSelectedTestResults] = useState<any[]>([]);
@@ -162,8 +164,8 @@ export default function HeadmasterMockTestsPage() {
           subject,
           topic: title,
           difficulty,
-          mcqCount: 5,
-          shortCount: 0,
+          mcqCount: aiQuestionType === "mcq" ? aiQuestionCount : 0,
+          shortCount: aiQuestionType === "short" ? aiQuestionCount : 0,
           longCount: 0
         })
       });
@@ -475,15 +477,39 @@ export default function HeadmasterMockTestsPage() {
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Design your assessment schema and rubrics.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAIGenerateMock}
-                  disabled={isGenerating}
-                  className="bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-black rounded-2xl px-6 py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30 w-full sm:w-auto mt-4 md:mt-0"
-                >
-                  {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                  Generate with AI <ChevronDown className="w-4 h-4 ml-1" />
-                </button>
+
+                <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto justify-end pr-8 md:pr-10">
+                  {/* 5 / 10 Question Count Select */}
+                  <select
+                    value={aiQuestionCount}
+                    onChange={(e) => setAiQuestionCount(Number(e.target.value))}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value={5}>5 Questions</option>
+                    <option value={10}>10 Questions</option>
+                  </select>
+
+                  {/* MCQ / Short Answer Select */}
+                  <select
+                    value={aiQuestionType}
+                    onChange={(e) => setAiQuestionType(e.target.value as "mcq" | "short")}
+                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none shadow-sm cursor-pointer"
+                  >
+                    <option value="mcq">MCQ</option>
+                    <option value="short">Short Answer</option>
+                  </select>
+
+                  {/* Generate with AI Button */}
+                  <button
+                    type="button"
+                    onClick={handleAIGenerateMock}
+                    disabled={isGenerating}
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl px-4 py-2 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                  >
+                    {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
+                    <span>{isGenerating ? "Generating..." : "Generate with AI"}</span>
+                  </button>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
