@@ -61,6 +61,7 @@ const translations = {
       "Student Portal": "மாணவர் வலைவாசல்",
       "Parent Portal": "பெற்றோர் வலைவாசல்",
       "Teacher Portal": "ஆசிரியர் வலைவாசல்",
+      "Class Teacher": "வகுப்பு ஆசிரியர்",
       "Headmaster Portal": "தலைமையாசிரியர் வலைவாசல்",
       "Block Education Officer": "வட்டாரக் கல்வி அலுவலர்",
       "District Education Officer": "மாவட்டக் கல்வி அலுவலர்",

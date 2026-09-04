@@ -276,6 +276,9 @@ export function canAccessTeacherNavItem(item: { href: string; label: string }, p
   if (item.href === "/teacher/scholarships" || item.label === "Scholarship Details") {
     return permissions.canViewScholarships;
   }
+  if (item.href === "/teacher/risk-alerts" || item.label === "Risk Alerts") {
+    return permissions.canViewStudentProfiles;
+  }
   if (item.href === "/teacher/sports" || item.label === "Sports & Athletics") {
     return permissions.canViewSports;
   }

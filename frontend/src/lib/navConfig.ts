@@ -541,19 +541,24 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
 
+      // Class Teacher Responsibilities
+      { label: "---", href: "#", icon: "" },
+      { label: "Class Teacher", href: "#", icon: "" },
+      { label: "Daily Attendance", href: "/teacher/attendance", icon: "fi fi-rr-calendar" },
+      { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
+      { label: "Scholarship Details", href: "/teacher/scholarships", icon: "fi fi-rr-graduation-cap" },
+      { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "fi fi-rr-shield" },
+
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
-      { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
       { label: "Personal Counsellor", href: "/teacher/counsellor", icon: "fi fi-rr-heart" },
       { label: "Parent Communication", href: "/teacher/communication", icon: "fi fi-rr-comment" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "fi fi-rr-folder" },
       { label: "Student Status", href: "/teacher/student-status", icon: "fi fi-rr-stats" },
       { label: "Student Progress", href: "/teacher/progress", icon: "fi fi-rr-chart-histogram" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "fi fi-rr-pencil" },
-      { label: "Scholarship Details", href: "/teacher/scholarships", icon: "fi fi-rr-graduation-cap" },
       { label: "Social Activities Review", href: "/teacher/social-activities", icon: "fi fi-rr-heart" },
       { label: "Student Analytics", href: "/teacher/analytics", icon: "fi fi-rr-stats" },
-      { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "fi fi-rr-shield" },
       // { label: "Parent Management", href: "/teacher/parents", icon: "Users" },
       { label: "Sports & Athletics", href: "/teacher/sports", icon: "fi fi-rr-running" },
 
@@ -561,7 +566,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Resources & Admin", href: "#", icon: "" },
       // { label: "AI Material Hub", href: "/teacher/material-hub", icon: "✨" },
       { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
-      { label: "Daily Attendance", href: "/teacher/attendance", icon: "fi fi-rr-calendar" },
       { label: "Announcements", href: "/teacher/announcements", icon: "fi fi-rr-megaphone" },
       { label: "Leave Requests", href: "/teacher/leave", icon: "fi fi-rr-document" },
       { label: "Club Events", href: "/teacher/events", icon: "fi fi-rr-calendar" },
