@@ -60,3 +60,7 @@ backend/public/audio_cache/*.mp3
 backend/scripts/test-tts.js
 backend/scripts/test-api-tts.js
 backend/scripts/generate-voice-samples.js
+
+# Runtime Data Persistence Files
+*scheme_allocations.json
+
