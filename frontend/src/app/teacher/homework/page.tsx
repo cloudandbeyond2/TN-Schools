@@ -23,7 +23,7 @@ interface Submission {
   id: string;
   rollNo: string;
   name: string;
-  status: "submitted" | "pending";
+  status: "submitted" | "pending" | "graded" | string;
   score: string;
   date: string;
   answerText?: string;
@@ -103,7 +103,7 @@ export default function HomeworkPage() {
         ).map((hw: any) => ({
           ...hw,
           totalStudents: hw.submissions ? hw.submissions.length : 0,
-          submittedCount: hw.submissions ? hw.submissions.filter((s: any) => s.status === "submitted").length : 0,
+          submittedCount: hw.submissions ? hw.submissions.filter((s: any) => s.status === "submitted" || s.status === "graded").length : 0,
         }));
         setAssignments(filtered);
         if (filtered.length > 0) {
@@ -681,15 +681,19 @@ export default function HomeworkPage() {
                                   <td className="font-mono text-xs">{sub.rollNo}</td>
                                   <td className="font-medium text-[var(--text-heading)]">{sub.name}</td>
                                   <td>
-                                    <span className={`badge ${sub.status === "submitted" ? "badge-green" : "badge-yellow"}`}>
-                                      {sub.status === "submitted" ? (lang === "தமிழ்" ? "சமர்ப்பிக்கப்பட்டது" : "submitted") : (lang === "தமிழ்" ? "நிலுவை" : "pending")}
+                                    <span className={`badge ${sub.status === "graded" ? "badge-green" : sub.status === "submitted" ? "badge-blue" : "badge-yellow"}`}>
+                                      {sub.status === "graded" 
+                                        ? (lang === "தமிழ்" ? "மதிப்பிடப்பட்டது" : "graded")
+                                        : sub.status === "submitted"
+                                        ? (lang === "தமிழ்" ? "சமர்ப்பிக்கப்பட்டது" : "submitted") 
+                                        : (lang === "தமிழ்" ? "நிலுவை" : "pending")}
                                     </span>
                                   </td>
                                   <td>{sub.date}</td>
                                   <td className="font-bold font-mono text-[var(--text-heading)]">{sub.score}</td>
                                   <td>
                                     <div className="flex gap-2">
-                                      {sub.status === "submitted" && (
+                                      {(sub.status === "submitted" || sub.status === "graded") && (
                                         <button
                                           onClick={() => handleViewAnswer(sub)}
                                           className="text-xs text-teal-500 hover:underline font-semibold"

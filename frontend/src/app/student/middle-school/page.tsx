@@ -179,6 +179,15 @@ export default function MiddleSchoolDashboard() {
   const userName   = session?.user?.name || student?.user?.name || (isTa ? "மாணவர்" : "Student");
   const subjectList = isTa ? subjectsTa : subjectsEn;
 
+  const currentAcademicYear = student?.academicYear || analytics?.academicYear || (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const startYear = month >= 5 ? year : year - 1;
+    const endYear = (startYear + 1) % 100;
+    return `${startYear}-${endYear.toString().padStart(2, "0")}`;
+  })();
+
   /* KPI live values */
   const kpiValues: Record<string, string> = {
     attendance: "98%",
@@ -219,7 +228,7 @@ export default function MiddleSchoolDashboard() {
               {isTa ? "நடுநிலை பள்ளி" : "Middle School"}
             </span>
             <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">
-              {isTa ? "கல்வி ஆண்டு 2024-25" : "Academic Year 2024-25"}
+              {isTa ? `கல்வி ஆண்டு ${currentAcademicYear}` : `Academic Year ${currentAcademicYear}`}
             </span>
           </div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
