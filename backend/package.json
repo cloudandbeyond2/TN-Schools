@@ -17,8 +17,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1089.0",
     "@prisma/client": "^5.10.0",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -31,10 +29,11 @@
     "node-edge-tts": "^1.2.10",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
-    "pg": "^8.22.0",
-    "prisma": "^5.10.0"
+    "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
@@ -42,6 +41,7 @@
     "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
+    "prisma": "^5.10.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
