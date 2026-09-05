@@ -23,7 +23,7 @@ interface Submission {
   id: string;
   rollNo: string;
   name: string;
-  status: "submitted" | "pending";
+  status: "submitted" | "pending" | "graded" | string;
   score: string;
   date: string;
   answerText?: string;
