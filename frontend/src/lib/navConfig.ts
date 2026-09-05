@@ -566,7 +566,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Resources & Admin
       { label: "Resources & Admin", href: "#", icon: "" },
       // { label: "AI Material Hub", href: "/teacher/material-hub", icon: "✨" },
-      { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
+      // { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
       { label: "Announcements", href: "/teacher/announcements", icon: "fi fi-rr-megaphone" },
       { label: "Club Events", href: "/teacher/events", icon: "fi fi-rr-calendar" },
 
