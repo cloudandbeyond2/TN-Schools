@@ -48,22 +48,7 @@ const SCHOOL_BOARDS = [
   { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
 ];
 
-const STATE_BOARD_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
 
-const CBSE_SUBJECTS = [
-  "English Language & Literature", "English Core", "Hindi Course A", "Hindi Course B", "Hindi Core",
-  "Mathematics (Standard)", "Mathematics (Basic)", "Applied Mathematics", "Science", "Social Science",
-  "Physics", "Chemistry", "Biology", "Computer Science (083)", "Informatics Practices (065)",
-  "Information Technology (402)", "Artificial Intelligence (417)", "Accountancy (055)",
-  "Business Studies (054)", "Economics (030)", "History", "Political Science", "Geography",
-  "Psychology", "Sociology", "Physical Education", "Sanskrit", "General Knowledge"
-];
-
-const ALL_SUBJECTS = Array.from(new Set([...STATE_BOARD_SUBJECTS, ...CBSE_SUBJECTS]));
 
 const getSubjectIcon = (name: string) => {
   if (!name) return "book-alt";
@@ -599,45 +584,7 @@ export default function HeadmasterAcademicsPage() {
       });
     }
 
-    if (selectedBoard === "CBSE") {
-      const defaultCbseCore = parseInt(cleanSyllabusClass, 10) >= 11
-        ? [
-          "English Core",
-          "Physics", "Chemistry", "Biology", "Mathematics",
-          "Computer Science (083)", "Informatics Practices (065)",
-          "Accountancy (055)", "Business Studies (054)", "Economics (030)",
-          "History", "Political Science", "Geography", "Physical Education"
-        ]
-        : [
-          "English Language & Literature", "Hindi Course A",
-          "Mathematics", "Science", "Social Science", "Information Technology"
-        ];
-      return defaultCbseCore.map(name => ({
-        id: name,
-        name: name,
-        icon: getSubjectIcon(name),
-        color: "#6366f1"
-      }));
-    }
-
-    const defaultCore = parseInt(cleanSyllabusClass, 10) >= 11
-      ? [
-        "Tamil", "English",
-        "Physics", "Chemistry", "Biology", "Mathematics",
-        "Computer Science",
-        "Commerce", "Accountancy", "Economics", "Computer Applications",
-        "Business Mathematics",
-        "History", "Geography", "Political Science",
-        "Basic Electrical", "Agriculture Science", "Office Management"
-      ]
-      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
-
-    return defaultCore.map(name => ({
-      id: name,
-      name: name,
-      icon: getSubjectIcon(name),
-      color: "#6366f1"
-    }));
+    return [];
   }, [subjects, syllabusClass, selectedBoard]);
 
   useEffect(() => {
@@ -701,9 +648,8 @@ export default function HeadmasterAcademicsPage() {
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
-    const defaults = selectedBoard === "CBSE" ? CBSE_SUBJECTS : selectedBoard === "State Board" ? STATE_BOARD_SUBJECTS : ALL_SUBJECTS;
-    return Array.from(new Set([...dbNames, ...defaults, ...selectedSubjectNames])).filter(Boolean).sort();
-  }, [subjects, selectedSubjectNames, selectedBoard]);
+    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames]);
 
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
