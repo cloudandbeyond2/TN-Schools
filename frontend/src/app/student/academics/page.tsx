@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
+import { HS_GROUP_LABELS } from "@/data/hsGroups";
 import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIcon } from "react-icons/fi";
 
 /* ────────────────────────────────────────────────────────────
@@ -262,49 +262,25 @@ export default function AcademicsHubPage() {
           });
         }
         
-        const userStream = (session?.user as any)?.stream || (session?.user as any)?.group || studentGroup;
-        const expectedGroupSubs = getGroupSubjectsForClass(classNum, userStream);
-        const allowedSubNames = new Set(expectedGroupSubs.map((s) => s.name.toLowerCase()));
-
         if (Array.isArray(subjectsJson)) {
           const fetchedSubjects: SubjectInfo[] = [];
 
           subjectsJson.forEach((sub: any) => {
             const subName = sub.name;
-            if (allowedSubNames.has(subName.toLowerCase())) {
-              // Ensure uniqueness: Only add if not already in fetchedSubjects
-              if (!fetchedSubjects.some((s) => s.name.toLowerCase() === subName.toLowerCase())) {
-                const expMatch = expectedGroupSubs.find((e) => e.name.toLowerCase() === subName.toLowerCase());
-                const color = sub.color || expMatch?.color || "#64748b";
-                const gradient = `from-[${color}] to-slate-600`;
-                const icon = sub.icon || expMatch?.icon || "📚";
-                const unitsCount = fetchedSyllabus[subName]?.length || 0;
+            if (subName && !fetchedSubjects.some((s) => s.name.toLowerCase() === subName.toLowerCase())) {
+              const color = sub.color || "#6366f1";
+              const gradient = `from-[${color}] to-slate-600`;
+              const icon = sub.icon || "📚";
+              const unitsCount = fetchedSyllabus[subName]?.length || 0;
 
-                fetchedSubjects.push({
-                  name: subName,
-                  color,
-                  gradient,
-                  icon,
-                  teacher: sub.teacher?.name || sub.teacherName || "Class Teacher",
-                  progress: 0,
-                  units: unitsCount,
-                  unitsDone: 0,
-                });
-              }
-            }
-          });
-
-          // Ensure all expected group subjects exist for this student's group without duplication
-          expectedGroupSubs.forEach((exp) => {
-            if (!fetchedSubjects.some((s) => s.name.toLowerCase() === exp.name.toLowerCase())) {
               fetchedSubjects.push({
-                name: exp.name,
-                color: exp.color,
-                gradient: `from-[${exp.color}] to-slate-600`,
-                icon: exp.icon,
-                teacher: "Class Teacher",
+                name: subName,
+                color,
+                gradient,
+                icon,
+                teacher: sub.teacher?.name || sub.teacherName || "Class Teacher",
                 progress: 0,
-                units: fetchedSyllabus[exp.name]?.length || 0,
+                units: unitsCount,
                 unitsDone: 0,
               });
             }

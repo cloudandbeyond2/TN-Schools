@@ -52,6 +52,7 @@ async function ensureAcademicTablesExist() {
       CREATE TABLE IF NOT EXISTS "AcademicClass" (
         "id" TEXT PRIMARY KEY,
         "name" TEXT UNIQUE NOT NULL,
+        "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -61,11 +62,14 @@ async function ensureAcademicTablesExist() {
       CREATE TABLE IF NOT EXISTS "AcademicSection" (
         "id" TEXT PRIMARY KEY,
         "name" TEXT UNIQUE NOT NULL,
+        "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicClass" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSection" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
@@ -77,110 +81,12 @@ async function ensureAcademicTablesExist() {
       const defaultClasses = Array.from({ length: 12 }, (_, i) => ({
         id: randomUUID(),
         name: `Class ${i + 1}`,
+        board: "State Board",
         status: "Active",
       }));
       await prisma.academicClass.createMany({ data: defaultClasses });
     }
 
-    // Ensure default State Board and CBSE subjects exist
-    const subjectCount = await prisma.academicSubject.count();
-    if (subjectCount === 0) {
-      const classes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-      const data: any[] = [];
-      const masters = [
-        { name: 'Tamil', color: '#ef4444', icon: 'scroll', board: 'State Board' },
-        { name: 'English', color: '#3b82f6', icon: 'comment-alt', board: 'State Board' },
-        { name: 'Mathematics', color: '#8b5cf6', icon: 'calculator', board: 'State Board' },
-        { name: 'Science', color: '#10b981', icon: 'flask', board: 'State Board' },
-        { name: 'Social Science', color: '#f59e0b', icon: 'globe', board: 'State Board' },
-        { name: 'Physics', color: '#06b6d4', icon: 'atom', board: 'State Board' },
-        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube', board: 'State Board' },
-        { name: 'Biology', color: '#84cc16', icon: 'dna', board: 'State Board' },
-        { name: 'Computer Science', color: '#6366f1', icon: 'laptop-code', board: 'State Board' },
-        { name: 'Commerce', color: '#14b8a6', icon: 'briefcase', board: 'State Board' },
-        { name: 'Accountancy', color: '#f97316', icon: 'file-invoice', board: 'State Board' },
-        { name: 'Economics', color: '#a855f7', icon: 'chart-line', board: 'State Board' },
-      ];
-      for (const m of masters) {
-        data.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active', board: m.board });
-      }
-      for (const c of classes) {
-        const list = c >= 11 ? [
-          { name: 'Tamil', color: '#ef4444' },
-          { name: 'English', color: '#3b82f6' },
-          { name: 'Mathematics', color: '#8b5cf6' },
-          { name: 'Physics', color: '#06b6d4' },
-          { name: 'Chemistry', color: '#ec4899' },
-          { name: 'Biology', color: '#84cc16' },
-          { name: 'Computer Science', color: '#6366f1' },
-          { name: 'Commerce', color: '#14b8a6' },
-          { name: 'Accountancy', color: '#f97316' },
-          { name: 'Economics', color: '#a855f7' },
-        ] : [
-          { name: 'Tamil', color: '#ef4444' },
-          { name: 'English', color: '#3b82f6' },
-          { name: 'Mathematics', color: '#8b5cf6' },
-          { name: 'Science', color: '#10b981' },
-          { name: 'Social Science', color: '#f59e0b' },
-        ];
-        for (const s of list) {
-          data.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active', board: 'State Board' });
-        }
-      }
-      await prisma.academicSubject.createMany({ data });
-    }
-
-    // Ensure CBSE default subjects exist
-    const cbseCount = await prisma.academicSubject.count({ where: { board: "CBSE" } });
-    if (cbseCount === 0) {
-      const cbseClasses = [6, 7, 8, 9, 10, 11, 12];
-      const cbseData: any[] = [];
-      const cbseMasters = [
-        { name: 'English Language & Literature', color: '#3b82f6', icon: 'book-open-cover', board: 'CBSE' },
-        { name: 'Hindi Course A', color: '#f97316', icon: 'comment-alt', board: 'CBSE' },
-        { name: 'Mathematics (Standard)', color: '#8b5cf6', icon: 'calculator', board: 'CBSE' },
-        { name: 'Science', color: '#10b981', icon: 'flask', board: 'CBSE' },
-        { name: 'Social Science', color: '#f59e0b', icon: 'globe', board: 'CBSE' },
-        { name: 'Information Technology', color: '#06b6d4', icon: 'laptop-code', board: 'CBSE' },
-        { name: 'Artificial Intelligence', color: '#a855f7', icon: 'microchip', board: 'CBSE' },
-        { name: 'Physics', color: '#0284c7', icon: 'atom', board: 'CBSE' },
-        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube', board: 'CBSE' },
-        { name: 'Biology', color: '#84cc16', icon: 'dna', board: 'CBSE' },
-        { name: 'Computer Science (083)', color: '#6366f1', icon: 'laptop-code', board: 'CBSE' },
-        { name: 'Informatics Practices (065)', color: '#0d9488', icon: 'database', board: 'CBSE' },
-        { name: 'Accountancy (055)', color: '#ea580c', icon: 'file-invoice', board: 'CBSE' },
-        { name: 'Business Studies (054)', color: '#14b8a6', icon: 'briefcase', board: 'CBSE' },
-        { name: 'Economics (030)', color: '#9333ea', icon: 'chart-line', board: 'CBSE' },
-      ];
-      for (const m of cbseMasters) {
-        cbseData.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active', board: 'CBSE' });
-      }
-      for (const c of cbseClasses) {
-        const list = c >= 11 ? [
-          { name: 'English Core', color: '#3b82f6' },
-          { name: 'Physics', color: '#0284c7' },
-          { name: 'Chemistry', color: '#ec4899' },
-          { name: 'Mathematics', color: '#8b5cf6' },
-          { name: 'Biology', color: '#84cc16' },
-          { name: 'Computer Science (083)', color: '#6366f1' },
-          { name: 'Accountancy (055)', color: '#ea580c' },
-          { name: 'Business Studies (054)', color: '#14b8a6' },
-          { name: 'Economics (030)', color: '#9333ea' },
-          { name: 'Informatics Practices (065)', color: '#0d9488' },
-        ] : [
-          { name: 'English Language & Literature', color: '#3b82f6' },
-          { name: 'Hindi Course A', color: '#f97316' },
-          { name: 'Mathematics', color: '#8b5cf6' },
-          { name: 'Science', color: '#10b981' },
-          { name: 'Social Science', color: '#f59e0b' },
-          { name: 'Information Technology', color: '#06b6d4' },
-        ];
-        for (const s of list) {
-          cbseData.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active', board: 'CBSE' });
-        }
-      }
-      await prisma.academicSubject.createMany({ data: cbseData });
-    }
   } catch (e) {
     console.error("Error creating academic tables/columns:", e);
   }
@@ -190,17 +96,35 @@ async function ensureAcademicTablesExist() {
 router.get("/classes", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
+    const { board } = req.query;
     let classes: any[] = [];
     try {
       if ((prisma as any).academicClass) {
+        const where: any = {};
+        if (board && String(board).trim() && String(board).trim() !== "All") {
+          where.OR = [
+            { board: String(board).trim() },
+            { board: "All" },
+            { board: null },
+            { board: "" },
+          ];
+        }
         classes = await (prisma as any).academicClass.findMany({
+          where,
           orderBy: { name: "asc" },
         });
       } else {
         throw new Error("academicClass model not loaded");
       }
     } catch {
-      classes = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicClass" ORDER BY "name" ASC`);
+      if (board && String(board).trim() && String(board).trim() !== "All") {
+        classes = await prisma.$queryRawUnsafe(
+          `SELECT "id", "name", "status", "board" FROM "AcademicClass" WHERE "board" = $1 OR "board" = 'All' OR "board" IS NULL ORDER BY "name" ASC`,
+          String(board).trim()
+        );
+      } else {
+        classes = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status", "board" FROM "AcademicClass" ORDER BY "name" ASC`);
+      }
     }
     res.json(classes);
   } catch (error: any) {
@@ -212,11 +136,12 @@ router.get("/classes", async (req: Request, res: Response) => {
 router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Class name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : "State Board";
     const id = randomUUID();
 
     let result: any = null;
@@ -224,19 +149,20 @@ router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: 
       if ((prisma as any).academicClass) {
         result = await (prisma as any).academicClass.upsert({
           where: { name: cleanName },
-          update: { updatedAt: new Date() },
-          create: { id, name: cleanName, status: "Active" },
+          update: { board: cleanBoard, updatedAt: new Date() },
+          create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
         throw new Error("academicClass model not loaded");
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicClass" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicClass" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
         id,
-        cleanName
+        cleanName,
+        cleanBoard
       );
-      result = { id, name: cleanName, status: "Active" };
+      result = { id, name: cleanName, board: cleanBoard, status: "Active" };
     }
     res.status(201).json(result);
   } catch (error: any) {
@@ -269,17 +195,18 @@ router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, re
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Class name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : undefined;
     let result: any = null;
     try {
       if ((prisma as any).academicClass) {
         result = await (prisma as any).academicClass.update({
           where: { id },
-          data: { name: cleanName, updatedAt: new Date() }
+          data: { name: cleanName, ...(cleanBoard ? { board: cleanBoard } : {}), updatedAt: new Date() }
         });
       } else {
         throw new Error("academicClass model not loaded");
@@ -299,17 +226,35 @@ router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, re
 router.get("/sections", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
+    const { board } = req.query;
     let sections: any[] = [];
     try {
       if ((prisma as any).academicSection) {
+        const where: any = {};
+        if (board && String(board).trim() && String(board).trim() !== "All") {
+          where.OR = [
+            { board: String(board).trim() },
+            { board: "All" },
+            { board: null },
+            { board: "" },
+          ];
+        }
         sections = await (prisma as any).academicSection.findMany({
+          where,
           orderBy: { name: "asc" },
         });
       } else {
         throw new Error("academicSection model not loaded");
       }
     } catch {
-      sections = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicSection" ORDER BY "name" ASC`);
+      if (board && String(board).trim() && String(board).trim() !== "All") {
+        sections = await prisma.$queryRawUnsafe(
+          `SELECT "id", "name", "status", "board" FROM "AcademicSection" WHERE "board" = $1 OR "board" = 'All' OR "board" IS NULL ORDER BY "name" ASC`,
+          String(board).trim()
+        );
+      } else {
+        sections = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status", "board" FROM "AcademicSection" ORDER BY "name" ASC`);
+      }
     }
     res.json(sections);
   } catch (error: any) {
@@ -321,11 +266,12 @@ router.get("/sections", async (req: Request, res: Response) => {
 router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Section name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : "State Board";
     const id = randomUUID();
 
     let result: any = null;
@@ -333,19 +279,20 @@ router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res:
       if ((prisma as any).academicSection) {
         result = await (prisma as any).academicSection.upsert({
           where: { name: cleanName },
-          update: { updatedAt: new Date() },
-          create: { id, name: cleanName, status: "Active" },
+          update: { board: cleanBoard, updatedAt: new Date() },
+          create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
         throw new Error("academicSection model not loaded");
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicSection" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicSection" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
         id,
-        cleanName
+        cleanName,
+        cleanBoard
       );
-      result = { id, name: cleanName, status: "Active" };
+      result = { id, name: cleanName, board: cleanBoard, status: "Active" };
     }
     res.status(201).json(result);
   } catch (error: any) {
@@ -378,17 +325,18 @@ router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, r
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Section name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : undefined;
     let result: any = null;
     try {
       if ((prisma as any).academicSection) {
         result = await (prisma as any).academicSection.update({
           where: { id },
-          data: { name: cleanName, updatedAt: new Date() }
+          data: { name: cleanName, ...(cleanBoard ? { board: cleanBoard } : {}), updatedAt: new Date() }
         });
       } else {
         throw new Error("academicSection model not loaded");
@@ -571,9 +519,21 @@ router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    await prisma.academicSubject.delete({
-      where: { id },
-    });
+    const { deleteAllNamed, board } = req.query;
+
+    const target = await prisma.academicSubject.findUnique({ where: { id } });
+    if (target && deleteAllNamed === "true") {
+      await prisma.academicSubject.deleteMany({
+        where: {
+          name: target.name,
+          ...(board && board !== "All" ? { board: String(board).trim() } : target.board ? { board: target.board } : {}),
+        },
+      });
+    } else {
+      await prisma.academicSubject.delete({
+        where: { id },
+      });
+    }
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting subject:", error);

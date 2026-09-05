@@ -76,22 +76,6 @@ const SCHOOL_BOARDS = [
   { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
 ];
 
-const STATE_BOARD_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
-
-const CBSE_SUBJECTS = [
-  "English Language & Literature", "English Core", "Hindi Course A", "Hindi Course B", "Hindi Core",
-  "Mathematics (Standard)", "Mathematics (Basic)", "Applied Mathematics", "Science", "Social Science",
-  "Physics", "Chemistry", "Biology", "Computer Science (083)", "Informatics Practices (065)",
-  "Information Technology (402)", "Artificial Intelligence (417)", "Accountancy (055)",
-  "Business Studies (054)", "Economics (030)", "History", "Political Science", "Geography",
-  "Psychology", "Sociology", "Physical Education", "Sanskrit", "General Knowledge"
-];
-
-const ALL_SUBJECTS = Array.from(new Set([...STATE_BOARD_SUBJECTS, ...CBSE_SUBJECTS]));
 
 const getSubjectIcon = (name: string) => {
   if (!name) return "📙";
@@ -629,45 +613,7 @@ export default function SuperadminAcademicsPage() {
       });
     }
 
-    if (selectedBoard === "CBSE") {
-      const defaultCbseCore = parseInt(cleanSyllabusClass, 10) >= 11
-        ? [
-          "English Core",
-          "Physics", "Chemistry", "Biology", "Mathematics",
-          "Computer Science (083)", "Informatics Practices (065)",
-          "Accountancy (055)", "Business Studies (054)", "Economics (030)",
-          "History", "Political Science", "Geography", "Physical Education"
-        ]
-        : [
-          "English Language & Literature", "Hindi Course A",
-          "Mathematics", "Science", "Social Science", "Information Technology"
-        ];
-      return defaultCbseCore.map(name => ({
-        id: name,
-        name: name,
-        icon: getSubjectIcon(name),
-        color: "#6366f1"
-      }));
-    }
-
-    const defaultCore = parseInt(cleanSyllabusClass, 10) >= 11
-      ? [
-        "Tamil", "English",
-        "Physics", "Chemistry", "Biology", "Mathematics",
-        "Computer Science",
-        "Commerce", "Accountancy", "Economics", "Computer Applications",
-        "Business Mathematics",
-        "History", "Geography", "Political Science",
-        "Basic Electrical", "Agriculture Science", "Office Management"
-      ]
-      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
-
-    return defaultCore.map(name => ({
-      id: name,
-      name: name,
-      icon: getSubjectIcon(name),
-      color: "#6366f1"
-    }));
+    return [];
   }, [subjects, syllabusClass, selectedBoard]);
 
   const filteredSyllabusSubjects = useMemo(() => {
@@ -742,9 +688,8 @@ export default function SuperadminAcademicsPage() {
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
-    const defaults = selectedBoard === "CBSE" ? CBSE_SUBJECTS : selectedBoard === "State Board" ? STATE_BOARD_SUBJECTS : ALL_SUBJECTS;
-    return Array.from(new Set([...dbNames, ...defaults, ...selectedSubjectNames])).filter(Boolean).sort();
-  }, [subjects, selectedSubjectNames, selectedBoard]);
+    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames]);
 
   const [subjectForm, setSubjectForm] = useState<{
     name: string; color: string; icon: string; class: string; section: string;
@@ -781,7 +726,8 @@ export default function SuperadminAcademicsPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await authFetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/classes${boardQuery}`);
       if (res.ok) {
         const data = await res.json();
         data.sort((a: ClassItem, b: ClassItem) => {
@@ -798,7 +744,8 @@ export default function SuperadminAcademicsPage() {
 
   const fetchSections = async () => {
     try {
-      const res = await authFetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/sections${boardQuery}`);
       if (res.ok) setSections(await res.json());
     } catch (err) {
       console.error(err);
@@ -842,11 +789,23 @@ export default function SuperadminAcademicsPage() {
       const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
       const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
       const method = isEdit ? "PUT" : "POST";
+      const boardToSave = selectedBoard === "All" ? "State Board" : selectedBoard;
 
-      const res = await fetch(endpoint, {
+      const payload: any = {
+        name: structureInput.trim(),
+        board: boardToSave,
+      };
+
+      if (structureModal.type === "subject") {
+        payload.color = "#6366f1";
+        payload.icon = getSubjectIcon(structureInput.trim());
+        payload.status = "Active";
+      }
+
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: structureInput.trim() }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -856,7 +815,7 @@ export default function SuperadminAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Updated!" : "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "saved"} directly to PostgreSQL database!`,
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" (${boardToSave}) ${isEdit ? "updated" : "saved"} successfully!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -889,7 +848,7 @@ export default function SuperadminAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
         fetchClasses();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -908,7 +867,7 @@ export default function SuperadminAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
         fetchSections();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -932,7 +891,7 @@ export default function SuperadminAcademicsPage() {
       };
 
       try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -966,7 +925,7 @@ export default function SuperadminAcademicsPage() {
             icon: matchingSub?.icon || subjectForm.icon || "📚",
             board: subjectForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
           };
-          const res = await fetch(`${API_BASE}/subjects`, {
+          const res = await authFetch(`${API_BASE}/subjects`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -997,7 +956,8 @@ export default function SuperadminAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      await authFetch(`${API_BASE}/subjects/${id}?deleteAllNamed=true${boardQuery}`, { method: "DELETE" });
       fetchSubjects();
       fetchResources();
     } catch (err) {
@@ -3083,7 +3043,9 @@ export default function SuperadminAcademicsPage() {
                             ? "Add New Section"
                             : "Add New Subject"}
                     </h3>
-                    <p className="text-[11px] font-semibold text-slate-400">Save single field directly to PostgreSQL database</p>
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      {structureModal.type === "class" ? "Enter class name to register" : structureModal.type === "section" ? "Enter section name to register" : "Enter subject name to register"}
+                    </p>
                   </div>
                 </div>
                 <button
