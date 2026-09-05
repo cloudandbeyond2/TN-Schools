@@ -21,8 +21,7 @@ frontend/.env.local
 
 # Runtime artifacts — user uploads and generated files
 backend/store/
-backend/uploads/
-uploads/
+
 
 # Logs
 *.log
