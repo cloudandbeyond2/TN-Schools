@@ -506,7 +506,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "fi fi-rr-calendar" },
       { label: "Exam Schedule", href: "/teacher/exams", icon: "fi fi-rr-document-signed" },
       { label: "Manage Mock Tests", href: "/teacher/mock-tests", icon: "fi fi-rr-list-check" },
-      { label: "Science Labs", href: "/teacher/labs", icon: "fi fi-rr-flask" },
+      // { label: "Science Labs", href: "/teacher/labs", icon: "fi fi-rr-flask" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "fi fi-rr-stats" },
 
       // Academics & Guidance
@@ -566,7 +566,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Resources & Admin
       { label: "Resources & Admin", href: "#", icon: "" },
       // { label: "AI Material Hub", href: "/teacher/material-hub", icon: "✨" },
-      { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
+      // { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
       { label: "Announcements", href: "/teacher/announcements", icon: "fi fi-rr-megaphone" },
       { label: "Club Events", href: "/teacher/events", icon: "fi fi-rr-calendar" },
 

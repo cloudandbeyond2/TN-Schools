@@ -422,18 +422,22 @@ export default function ClassesPage() {
       setForm((prev) => ({ ...prev, academicYear: "2024-25" }));
     }
 
-    if (form.className && form.section && schoolId) {
-      fetch(`${API_URL}/api/students?schoolId=${schoolId}&class=${form.className}&section=${form.section}`)
+    if (form.className && form.section) {
+      const clsClean = form.className.replace(/^Class\s+/i, '').trim();
+      const url = schoolId
+        ? `${API_URL}/api/students?schoolId=${schoolId}&class=${clsClean}&section=${form.section}`
+        : `${API_URL}/api/students?class=${clsClean}&section=${form.section}`;
+
+      fetch(url)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && typeof data.count === "number") {
-            const countVal = data.count > 0 ? String(data.count) : (Array.isArray(data.data) && data.data.length > 0 ? String(data.data.length) : "");
-            if (countVal) {
-              setForm((prev) => ({ ...prev, totalStudents: countVal }));
-            }
+            setForm((prev) => ({ ...prev, totalStudents: String(data.count) }));
           }
         })
         .catch((err) => console.error("Error auto-fetching student count:", err));
+    } else {
+      setForm((prev) => ({ ...prev, totalStudents: "0" }));
     }
   }, [form.className, form.section, schoolId, isModal, API_URL]);
 
@@ -1086,15 +1090,16 @@ export default function ClassesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Total Students</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold flex items-center justify-between">
+                    <span>Total Students</span>
+                    <span className="text-[9px] text-amber-600 dark:text-amber-400 font-normal">Auto-calculated</span>
+                  </label>
                   <input
                     type="number"
-                    min={0}
-                    max={100}
+                    readOnly
                     value={form.totalStudents}
-                    onChange={(e) => setForm({ ...form, totalStudents: e.target.value })}
-                    placeholder="e.g. 42"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors"
+                    placeholder="0"
+                    className="w-full bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-not-allowed select-none focus:outline-none"
                   />
                 </div>
               </div>
