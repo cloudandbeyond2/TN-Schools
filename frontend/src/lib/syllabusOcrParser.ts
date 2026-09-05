@@ -17,6 +17,7 @@ function cleanOcrText(text: string): string {
     .trim();
 }
 
+
 /**
  * Parses raw text extracted via OCR from textbook index images into individual separate Chapter rows.
  */
@@ -46,9 +47,10 @@ export function parseSyllabusTextToChapters(rawText: string, subjectName: string
     // Format A: Decimal Sub-chapter e.g. "1.1 Introduction", "4.2 Inverse..."
     const decimalMatch = line.match(/^(\d+)\.(\d+)\s+(.*)/);
 
-    // Format B: "Chapter 1 Reproduction...", "Chapter 4: Principles...", "1 Applications of Matrices..."
-    const mainChapterMatch = line.match(/^(?:Chapter\s+(\d+)|(\d+)[\.-])\s*(.*)/i)
-      || line.match(/^(Chapter\s+\d+[:\s\.-].*)/i);
+    // Format B: "Chapter 1 Reproduction...", "1 Applications of Matrices...", "2 Lines and Angles"
+    // Also handles OCR typos where numbers are misread: "Chapters Prime Time", "Chapter? Fractions"
+    const mainChapterMatch = line.match(/^((?:Chapter|Ch|Unit|Cahpter)s?[^\w\s]*\s*)(\d*)(.*)/i)
+      || line.match(/^()(\d+)[\.-\s]+(.*)/i);
 
     if (decimalMatch) {
       const parentNo = decimalMatch[1];
@@ -70,23 +72,15 @@ export function parseSyllabusTextToChapters(rawText: string, subjectName: string
       if (cleanSub && !currentChapter.subtopics.includes(cleanSub)) {
         currentChapter.subtopics.push(cleanSub);
       }
-    } else if (mainChapterMatch) {
-      let chNum = "";
-      let chTitle = "";
+    } else if (mainChapterMatch && (mainChapterMatch[1] || mainChapterMatch[2])) {
+      // Force sequential numbering to fix OCR misreads (like '5' read as '2')
+      let chNum = String(chCounter++);
+      let chTitle = mainChapterMatch[3]?.replace(/\s+\d+$/, "").trim() || "";
 
-      const match1 = line.match(/^(?:Chapter\s+(\d+)|(\d+)[\.-])\s*(.*)/i);
-      if (match1) {
-        chNum = match1[1] || match1[2] || String(chCounter++);
-        chTitle = match1[3]?.replace(/\s+\d+$/, "").trim() || line;
-      } else {
-        chNum = String(chCounter++);
-        chTitle = line.replace(/\s+\d+$/, "").trim();
-      }
+      // Remove any lingering "Chapter X:" prefix from the title for a cleaner UI
+      chTitle = chTitle.replace(/^(?:Chapter|Ch|Unit|Cahpter)s?\s*\d*[:\.-]?\s*/i, "").trim();
 
-      // Ensure title has clean "Chapter X: Title" format
-      const formattedTitle = chTitle.toLowerCase().startsWith("chapter")
-        ? chTitle
-        : `Chapter ${chNum}: ${chTitle}`;
+      const formattedTitle = chTitle || `Chapter ${chNum}`;
 
       currentChapter = {
         unitNo: chNum,
@@ -97,26 +91,25 @@ export function parseSyllabusTextToChapters(rawText: string, subjectName: string
     } else if (line.length > 2 && !/^\d+$/.test(line)) {
       const cleanLine = line.replace(/\s+\d+$/, "").trim();
 
-      // Match leading number like "1. மொழி" or "2. இயற்கை"
-      const numMatch = cleanLine.match(/^(\d+)[\.-]\s*(.*)/);
-      if (numMatch) {
-        const cNo = numMatch[1];
-        const cTitle = numMatch[2];
-        currentChapter = {
-          unitNo: cNo,
-          title: `${cNo}. ${cTitle}`,
-          subtopics: []
-        };
-        results.push(currentChapter);
-      } else if (currentChapter) {
-        // If current chapter has subtopics or this line is an extra line
-        const subNo = `${currentChapter.unitNo}.${currentChapter.subtopics.length + 1}`;
-        currentChapter.subtopics.push(`${subNo} ${cleanLine}`);
+      if (currentChapter) {
+        // If we have a chapter that is missing its title (e.g. title is just "Chapter X"),
+        // we assume this text is the actual title for that chapter. This handles both
+        // row-by-row and column-by-column OCR extractions where numbers and titles are separated.
+        const emptyChapter = results.find(r => /^Chapter\s+\d+$/i.test(r.title));
+
+        if (emptyChapter) {
+          // Completely replace the placeholder with the actual title
+          emptyChapter.title = cleanLine;
+        } else {
+          // If no chapters are missing titles, treat this extra line as a subtopic.
+          const subNo = `${currentChapter.unitNo}.${currentChapter.subtopics.length + 1}`;
+          currentChapter.subtopics.push(`${subNo} ${cleanLine}`);
+        }
       } else {
         const cNo = String(chCounter++);
         currentChapter = {
           unitNo: cNo,
-          title: `Chapter ${cNo}: ${cleanLine}`,
+          title: cleanLine,
           subtopics: []
         };
         results.push(currentChapter);
@@ -129,9 +122,10 @@ export function parseSyllabusTextToChapters(rawText: string, subjectName: string
     const validLines = rawLines.filter(l => l.length > 2 && !/^\d+$/.test(l));
     validLines.forEach((lineText, idx) => {
       const cNo = String(idx + 1);
+      const cleanTitle = lineText.replace(/^(?:Chapter|Ch|Unit|Cahpter)s?\s*\d*[:\.-]?\s*/i, "").trim();
       results.push({
         unitNo: cNo,
-        title: lineText.startsWith("Chapter") || /^\d+\./.test(lineText) ? lineText : `Chapter ${cNo}: ${lineText}`,
+        title: cleanTitle || `Chapter ${cNo}`,
         subtopics: []
       });
     });
