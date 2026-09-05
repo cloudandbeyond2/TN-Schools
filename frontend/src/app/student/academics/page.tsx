@@ -235,22 +235,29 @@ export default function AcademicsHubPage() {
 
         const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
         if (Array.isArray(resourcesJson)) {
+          const seenSyllabus = new Set<string>();
           resourcesJson.forEach((res: any) => {
             const catLower = (res.category || "").toLowerCase();
             if (catLower === "syllabus") {
               const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
-              if (!fetchedSyllabus[subName]) {
-                fetchedSyllabus[subName] = [];
+              const chTitle = res.topicName || res.title || "";
+              const chNum = res.chapterNumber || res.chapter || "Unit";
+              const sKey = `${subName.toLowerCase()}_${chNum}_${chTitle.toLowerCase()}`;
+              if (!seenSyllabus.has(sKey)) {
+                seenSyllabus.add(sKey);
+                if (!fetchedSyllabus[subName]) {
+                  fetchedSyllabus[subName] = [];
+                }
+                
+                fetchedSyllabus[subName].push({
+                  unit: res.chapterNumber || res.chapter || `Unit ${fetchedSyllabus[subName].length + 1}`,
+                  title: res.topicName || res.title,
+                  topics: res.description ? [res.description] : ["Curriculum details"],
+                  status: "in-progress",
+                  term: res.term || "Term 1",
+                  url: res.url
+                });
               }
-              
-              fetchedSyllabus[subName].push({
-                unit: res.chapterNumber || res.chapter || `Unit ${fetchedSyllabus[subName].length + 1}`,
-                title: res.topicName || res.title,
-                topics: res.description ? [res.description] : ["Curriculum details"],
-                status: "in-progress",
-                term: res.term || "Term 1",
-                url: res.url
-              });
             }
           });
         }
@@ -265,26 +272,29 @@ export default function AcademicsHubPage() {
           subjectsJson.forEach((sub: any) => {
             const subName = sub.name;
             if (allowedSubNames.has(subName.toLowerCase())) {
-              const expMatch = expectedGroupSubs.find((e) => e.name.toLowerCase() === subName.toLowerCase());
-              const color = sub.color || expMatch?.color || "#64748b";
-              const gradient = `from-[${color}] to-slate-600`;
-              const icon = sub.icon || expMatch?.icon || "📚";
-              const unitsCount = fetchedSyllabus[subName]?.length || 0;
+              // Ensure uniqueness: Only add if not already in fetchedSubjects
+              if (!fetchedSubjects.some((s) => s.name.toLowerCase() === subName.toLowerCase())) {
+                const expMatch = expectedGroupSubs.find((e) => e.name.toLowerCase() === subName.toLowerCase());
+                const color = sub.color || expMatch?.color || "#64748b";
+                const gradient = `from-[${color}] to-slate-600`;
+                const icon = sub.icon || expMatch?.icon || "📚";
+                const unitsCount = fetchedSyllabus[subName]?.length || 0;
 
-              fetchedSubjects.push({
-                name: subName,
-                color,
-                gradient,
-                icon,
-                teacher: "Class Teacher",
-                progress: 0,
-                units: unitsCount,
-                unitsDone: 0,
-              });
+                fetchedSubjects.push({
+                  name: subName,
+                  color,
+                  gradient,
+                  icon,
+                  teacher: sub.teacher?.name || sub.teacherName || "Class Teacher",
+                  progress: 0,
+                  units: unitsCount,
+                  unitsDone: 0,
+                });
+              }
             }
           });
 
-          // Ensure all expected group subjects exist for this student's group
+          // Ensure all expected group subjects exist for this student's group without duplication
           expectedGroupSubs.forEach((exp) => {
             if (!fetchedSubjects.some((s) => s.name.toLowerCase() === exp.name.toLowerCase())) {
               fetchedSubjects.push({
@@ -305,11 +315,16 @@ export default function AcademicsHubPage() {
         }
 
         if (Array.isArray(resourcesJson)) {
-          const fetchedResources: Resource[] = resourcesJson
-            .map((res: any) => {
+          const seenResourceKeys = new Set<string>();
+          const fetchedResources: Resource[] = [];
+          
+          resourcesJson.forEach((res: any) => {
+            const key = res.id || `${res.title}_${res.category}_${res.url}`;
+            if (!seenResourceKeys.has(key)) {
+              seenResourceKeys.add(key);
               const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
               const catLower = (res.category || "").toLowerCase();
-              return {
+              fetchedResources.push({
                 id: res.id,
                 title: res.title,
                 subject: subName,
@@ -321,8 +336,9 @@ export default function AcademicsHubPage() {
                 addedBy: res.addedBy || "Admin",
                 isNew: res.isNew || false,
                 popular: res.popular || false,
-              };
-            });
+              });
+            }
+          });
           setResources(fetchedResources);
         }
       } catch (err) {
@@ -1080,16 +1096,20 @@ export default function AcademicsHubPage() {
                       onClick={() => setSelectedSubject(sub.name)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
                         isSelected
-                          ? "bg-amber-50/80 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                          ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                          isSelected
+                            ? "bg-amber-100/90 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50 text-amber-900 dark:text-amber-200"
+                            : "bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700"
+                        }`}>
                           <RenderIcon icon={sub.icon} className="text-lg" />
                         </div>
                         <div>
-                          <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                          <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                             {sub.name}
                           </h4>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
