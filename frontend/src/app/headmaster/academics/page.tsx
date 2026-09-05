@@ -1141,9 +1141,10 @@ export default function HeadmasterAcademicsPage() {
   // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return matchClass && matchSection;
+      return hasClass && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
@@ -1165,7 +1166,10 @@ export default function HeadmasterAcademicsPage() {
   }, [subjects, resources, filterClass, filterSection]);
 
   const railSubjects = useMemo(() => {
-    const classFiltered = subjects.filter(s => filterClass ? s.class === String(filterClass) : true);
+    const classFiltered = subjects.filter(s => {
+      const hasClass = Boolean(s.class) && s.class !== "ALL";
+      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+    });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
       const found = subjects.find(s => s.name === name);

@@ -28,7 +28,7 @@ export default function SuperAdminDigitalLibraryPage() {
     fileUrl: "",
     schoolId: ""
   });
-  
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -53,7 +53,7 @@ export default function SuperAdminDigitalLibraryPage() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
-    
+
     try {
       const submitData = new FormData();
       submitData.append("title", formData.title);
@@ -65,7 +65,7 @@ export default function SuperAdminDigitalLibraryPage() {
       submitData.append("schoolId", formData.schoolId);
       submitData.append("role", "SUPER_ADMIN");
       submitData.append("userId", (session?.user as any)?.id || "admin");
-      
+
       if (selectedFile) {
         if (selectedFile.size > 500 * 1024 * 1024) {
           setMessage({
@@ -82,7 +82,7 @@ export default function SuperAdminDigitalLibraryPage() {
         method: "POST",
         body: submitData
       });
-      
+
       if (!res.ok) {
         if (res.status === 413) {
           throw new Error("File is too large for upload (maximum limit is 500MB).");
@@ -112,15 +112,15 @@ export default function SuperAdminDigitalLibraryPage() {
   return (
     <PortalLayout title="Digital Library Management" subtitle="Upload and distribute resources to schools" accentColor="#8b5cf6">
       <div className="w-full space-y-6">
-        
+
         {/* Top Hero Banner */}
-        <div 
+        <div
           className="banner-text-white relative overflow-hidden rounded-3xl p-6 md:p-8 shadow-xl text-white"
           style={{ background: 'linear-gradient(135deg, #5b21b6 0%, #4338ca 50%, #6b21a8 100%)', color: '#ffffff' }}
         >
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
-              <div 
+              <div
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border border-white/30 shadow-sm"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
               >
@@ -136,14 +136,14 @@ export default function SuperAdminDigitalLibraryPage() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <div 
+              <div
                 className="px-4 py-3 rounded-2xl border border-white/25 text-center min-w-[95px] shadow-sm"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
               >
                 <div className="text-2xl font-black" style={{ color: '#ffffff' }}>{schools.length || "38+"}</div>
                 <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: '#f3e8ff' }}>Schools</div>
               </div>
-              <div 
+              <div
                 className="px-4 py-3 rounded-2xl border border-white/25 text-center min-w-[95px] shadow-sm"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(8px)', color: '#ffffff' }}
               >
@@ -154,12 +154,12 @@ export default function SuperAdminDigitalLibraryPage() {
           </div>
 
           {/* Decorative background glow circles */}
-          <div 
-            className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full blur-2xl pointer-events-none" 
+          <div
+            className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full blur-2xl pointer-events-none"
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
           />
-          <div 
-            className="absolute left-1/2 -top-12 w-48 h-48 rounded-full blur-3xl pointer-events-none" 
+          <div
+            className="absolute left-1/2 -top-12 w-48 h-48 rounded-full blur-3xl pointer-events-none"
             style={{ backgroundColor: 'rgba(192, 132, 252, 0.25)' }}
           />
         </div>
@@ -186,27 +186,27 @@ export default function SuperAdminDigitalLibraryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Resource Title *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500" 
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                   placeholder="e.g., Advanced Mathematics Guide"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Target School *</label>
                 <div className="relative">
                   <Building className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                  <select 
+                  <select
                     required
                     value={formData.schoolId}
-                    onChange={(e) => setFormData({...formData, schoolId: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, schoolId: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 focus:ring-2 focus:ring-violet-500 appearance-none"
                   >
-                    <option value="" disabled>Select a school to distribute to</option>
+                    <option value="" disabled>Select the target school</option>
                     <option value="global">🌐 Global (All Schools)</option>
                     {schools.map(s => (
                       <option key={s.id} value={s.id}>{s.name}</option>
@@ -217,9 +217,9 @@ export default function SuperAdminDigitalLibraryPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Category *</label>
-                <select 
+                <select
                   value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                 >
                   {CATEGORIES.map(cat => (
@@ -230,9 +230,9 @@ export default function SuperAdminDigitalLibraryPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Class Level *</label>
-                <select 
+                <select
                   value={formData.class}
-                  onChange={(e) => setFormData({...formData, class: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, class: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                 >
                   {CLASSES.map(cls => (
@@ -243,33 +243,33 @@ export default function SuperAdminDigitalLibraryPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Subject *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={formData.subject}
-                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500" 
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                   placeholder="e.g., Physics"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image/Video)</label>
-                <input 
+                <input
                   type="file"
                   accept="image/*,application/pdf,video/*"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-violet-500" 
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-violet-500"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">OR File URL</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   value={formData.fileUrl}
-                  onChange={(e) => setFormData({...formData, fileUrl: e.target.value})}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500" 
+                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                   placeholder="https://..."
                 />
               </div>
@@ -277,17 +277,17 @@ export default function SuperAdminDigitalLibraryPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Description</label>
-              <textarea 
+              <textarea
                 rows={3}
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500" 
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-violet-500"
                 placeholder="Add a brief description of the material..."
               />
             </div>
 
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
-              <button 
+              <button
                 type="submit"
                 disabled={loading}
                 className="bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
