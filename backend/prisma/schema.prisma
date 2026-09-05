@@ -2090,6 +2090,7 @@ model AcademicSubject {
   medium      String?
   description String?
   schoolId    String?
+  board       String?            @default("State Board")
   status      String             @default("Active")
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
@@ -2113,6 +2114,7 @@ model AcademicResource {
   class            String?
   section          String?
   schoolId         String?
+  board            String?  @default("State Board")
   group            String?
   term             String?
   chapterNumber    String?

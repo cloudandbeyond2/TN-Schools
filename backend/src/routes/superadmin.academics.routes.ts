@@ -68,6 +68,8 @@ async function ensureAcademicTablesExist() {
     `);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
 
     // Ensure default classes exist
     const classCount = await prisma.academicClass.count();
@@ -80,27 +82,27 @@ async function ensureAcademicTablesExist() {
       await prisma.academicClass.createMany({ data: defaultClasses });
     }
 
-    // Ensure default subjects exist
+    // Ensure default State Board and CBSE subjects exist
     const subjectCount = await prisma.academicSubject.count();
     if (subjectCount === 0) {
       const classes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
       const data: any[] = [];
       const masters = [
-        { name: 'Tamil', color: '#ef4444', icon: 'scroll' },
-        { name: 'English', color: '#3b82f6', icon: 'comment-alt' },
-        { name: 'Mathematics', color: '#8b5cf6', icon: 'calculator' },
-        { name: 'Science', color: '#10b981', icon: 'flask' },
-        { name: 'Social Science', color: '#f59e0b', icon: 'globe' },
-        { name: 'Physics', color: '#06b6d4', icon: 'atom' },
-        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube' },
-        { name: 'Biology', color: '#84cc16', icon: 'dna' },
-        { name: 'Computer Science', color: '#6366f1', icon: 'laptop-code' },
-        { name: 'Commerce', color: '#14b8a6', icon: 'briefcase' },
-        { name: 'Accountancy', color: '#f97316', icon: 'file-invoice' },
-        { name: 'Economics', color: '#a855f7', icon: 'chart-line' },
+        { name: 'Tamil', color: '#ef4444', icon: 'scroll', board: 'State Board' },
+        { name: 'English', color: '#3b82f6', icon: 'comment-alt', board: 'State Board' },
+        { name: 'Mathematics', color: '#8b5cf6', icon: 'calculator', board: 'State Board' },
+        { name: 'Science', color: '#10b981', icon: 'flask', board: 'State Board' },
+        { name: 'Social Science', color: '#f59e0b', icon: 'globe', board: 'State Board' },
+        { name: 'Physics', color: '#06b6d4', icon: 'atom', board: 'State Board' },
+        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube', board: 'State Board' },
+        { name: 'Biology', color: '#84cc16', icon: 'dna', board: 'State Board' },
+        { name: 'Computer Science', color: '#6366f1', icon: 'laptop-code', board: 'State Board' },
+        { name: 'Commerce', color: '#14b8a6', icon: 'briefcase', board: 'State Board' },
+        { name: 'Accountancy', color: '#f97316', icon: 'file-invoice', board: 'State Board' },
+        { name: 'Economics', color: '#a855f7', icon: 'chart-line', board: 'State Board' },
       ];
       for (const m of masters) {
-        data.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active' });
+        data.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active', board: m.board });
       }
       for (const c of classes) {
         const list = c >= 11 ? [
@@ -122,10 +124,62 @@ async function ensureAcademicTablesExist() {
           { name: 'Social Science', color: '#f59e0b' },
         ];
         for (const s of list) {
-          data.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active' });
+          data.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active', board: 'State Board' });
         }
       }
       await prisma.academicSubject.createMany({ data });
+    }
+
+    // Ensure CBSE default subjects exist
+    const cbseCount = await prisma.academicSubject.count({ where: { board: "CBSE" } });
+    if (cbseCount === 0) {
+      const cbseClasses = [6, 7, 8, 9, 10, 11, 12];
+      const cbseData: any[] = [];
+      const cbseMasters = [
+        { name: 'English Language & Literature', color: '#3b82f6', icon: 'book-open-cover', board: 'CBSE' },
+        { name: 'Hindi Course A', color: '#f97316', icon: 'comment-alt', board: 'CBSE' },
+        { name: 'Mathematics (Standard)', color: '#8b5cf6', icon: 'calculator', board: 'CBSE' },
+        { name: 'Science', color: '#10b981', icon: 'flask', board: 'CBSE' },
+        { name: 'Social Science', color: '#f59e0b', icon: 'globe', board: 'CBSE' },
+        { name: 'Information Technology', color: '#06b6d4', icon: 'laptop-code', board: 'CBSE' },
+        { name: 'Artificial Intelligence', color: '#a855f7', icon: 'microchip', board: 'CBSE' },
+        { name: 'Physics', color: '#0284c7', icon: 'atom', board: 'CBSE' },
+        { name: 'Chemistry', color: '#ec4899', icon: 'test-tube', board: 'CBSE' },
+        { name: 'Biology', color: '#84cc16', icon: 'dna', board: 'CBSE' },
+        { name: 'Computer Science (083)', color: '#6366f1', icon: 'laptop-code', board: 'CBSE' },
+        { name: 'Informatics Practices (065)', color: '#0d9488', icon: 'database', board: 'CBSE' },
+        { name: 'Accountancy (055)', color: '#ea580c', icon: 'file-invoice', board: 'CBSE' },
+        { name: 'Business Studies (054)', color: '#14b8a6', icon: 'briefcase', board: 'CBSE' },
+        { name: 'Economics (030)', color: '#9333ea', icon: 'chart-line', board: 'CBSE' },
+      ];
+      for (const m of cbseMasters) {
+        cbseData.push({ id: randomUUID(), name: m.name, color: m.color, icon: m.icon, class: null, status: 'Active', board: 'CBSE' });
+      }
+      for (const c of cbseClasses) {
+        const list = c >= 11 ? [
+          { name: 'English Core', color: '#3b82f6' },
+          { name: 'Physics', color: '#0284c7' },
+          { name: 'Chemistry', color: '#ec4899' },
+          { name: 'Mathematics', color: '#8b5cf6' },
+          { name: 'Biology', color: '#84cc16' },
+          { name: 'Computer Science (083)', color: '#6366f1' },
+          { name: 'Accountancy (055)', color: '#ea580c' },
+          { name: 'Business Studies (054)', color: '#14b8a6' },
+          { name: 'Economics (030)', color: '#9333ea' },
+          { name: 'Informatics Practices (065)', color: '#0d9488' },
+        ] : [
+          { name: 'English Language & Literature', color: '#3b82f6' },
+          { name: 'Hindi Course A', color: '#f97316' },
+          { name: 'Mathematics', color: '#8b5cf6' },
+          { name: 'Science', color: '#10b981' },
+          { name: 'Social Science', color: '#f59e0b' },
+          { name: 'Information Technology', color: '#06b6d4' },
+        ];
+        for (const s of list) {
+          cbseData.push({ id: randomUUID(), name: s.name, color: s.color, class: String(c), status: 'Active', board: 'CBSE' });
+        }
+      }
+      await prisma.academicSubject.createMany({ data: cbseData });
     }
   } catch (e) {
     console.error("Error creating academic tables/columns:", e);
@@ -356,7 +410,7 @@ router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, r
 router.get("/subjects", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { class: className, status, schoolId } = req.query;
+    const { class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
     const where: any = {};
@@ -393,15 +447,26 @@ router.get("/subjects", async (req: Request, res: Response) => {
     }
 
     if (targetSchoolId) {
-      where.AND = [
-        {
-          OR: [
-            { schoolId: targetSchoolId },
-            { schoolId: null },
-            { schoolId: "" }
-          ]
-        }
-      ];
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { schoolId: targetSchoolId },
+          { schoolId: null },
+          { schoolId: "" }
+        ]
+      });
+    }
+
+    if (board && String(board).trim() && String(board).trim() !== "All") {
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { board: String(board).trim() },
+          { board: "All" },
+          { board: null },
+          { board: "" }
+        ]
+      });
     }
 
     const subjects = await prisma.academicSubject.findMany({
@@ -419,18 +484,20 @@ router.get("/subjects", async (req: Request, res: Response) => {
 router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId, board } = req.body;
     if (!name || !String(name).trim()) return res.status(400).json({ error: "Name is required" });
 
     const cleanName = String(name).trim();
     const cleanClass = className ? String(className).trim() : null;
     const targetSchoolId = schoolId || req.user?.schoolId || null;
+    const cleanBoard = board ? String(board).trim() : "State Board";
 
-    // Check if subject with this exact name and class already exists
+    // Check if subject with this exact name, class and board already exists
     const existing = await prisma.academicSubject.findFirst({
       where: {
         name: cleanName,
         class: cleanClass,
+        board: cleanBoard,
       },
     });
 
@@ -446,6 +513,7 @@ router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res:
           medium: medium || existing.medium,
           description: description || existing.description,
           status: status || existing.status,
+          board: cleanBoard,
           schoolId: targetSchoolId || (existing as any).schoolId,
         } as any,
       });
@@ -463,6 +531,7 @@ router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res:
         subjectCode,
         medium,
         description,
+        board: cleanBoard,
         schoolId: targetSchoolId,
         status: status || "Active",
       } as any,
@@ -479,13 +548,14 @@ router.put("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, r
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId, board } = req.body;
     const targetSchoolId = schoolId || req.user?.schoolId || undefined;
 
     const subject = await prisma.academicSubject.update({
       where: { id },
       data: { 
         name, color, icon, class: className, section, subjectCode, medium, description, status,
+        ...(board !== undefined ? { board: String(board).trim() } : {}),
         ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
       },
     });
@@ -517,7 +587,7 @@ router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request
 router.get("/resources", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { category, subjectId, class: className, status, schoolId } = req.query;
+    const { category, subjectId, class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
     const where: any = {};
@@ -558,15 +628,26 @@ router.get("/resources", async (req: Request, res: Response) => {
     }
 
     if (targetSchoolId) {
-      where.AND = [
-        {
-          OR: [
-            { schoolId: targetSchoolId },
-            { schoolId: null },
-            { schoolId: "" }
-          ]
-        }
-      ];
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { schoolId: targetSchoolId },
+          { schoolId: null },
+          { schoolId: "" }
+        ]
+      });
+    }
+
+    if (board && String(board).trim() && String(board).trim() !== "All") {
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { board: String(board).trim() },
+          { board: "All" },
+          { board: null },
+          { board: "" }
+        ]
+      });
     }
 
     const resources = await prisma.academicResource.findMany({
@@ -589,7 +670,7 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId, board
     } = req.body;
     
     if (!title || !subjectId || !category || !type) {
@@ -597,6 +678,7 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
     }
 
     const targetSchoolId = schoolId || req.user?.schoolId || null;
+    const cleanBoard = board ? String(board).trim() : "State Board";
 
     let finalSubjectId = subjectId;
     const existingSubject = await prisma.academicSubject.findUnique({ where: { id: subjectId } });
@@ -613,6 +695,7 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
           data: {
             name: String(subjectId).trim(),
             class: className ? String(className).trim() : null,
+            board: cleanBoard,
             status: "Active",
           },
         });
@@ -626,6 +709,7 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        board: cleanBoard,
         schoolId: targetSchoolId
       } as any,
       include: { subject: true },
@@ -646,10 +730,11 @@ router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId, board
     } = req.body;
 
     const targetSchoolId = schoolId || req.user?.schoolId || undefined;
+    const cleanBoard = board !== undefined ? String(board).trim() : undefined;
 
     let finalSubjectId = subjectId;
     if (subjectId) {
@@ -667,6 +752,7 @@ router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res
             data: {
               name: String(subjectId).trim(),
               class: className ? String(className).trim() : null,
+              board: cleanBoard || "State Board",
               status: "Active",
             },
           });
@@ -682,6 +768,7 @@ router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        ...(cleanBoard !== undefined ? { board: cleanBoard } : {}),
         ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
       },
       include: { subject: true },
