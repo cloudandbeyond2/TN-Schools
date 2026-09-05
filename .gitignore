@@ -16,13 +16,12 @@ backend/node_modules/.prisma/
 .env
 .env.local
 .env.production
-.env*.local
+.env*.local                                                     
 frontend/.env.local
 
 # Runtime artifacts — user uploads and generated files
 backend/store/
-backend/uploads/
-uploads/
+
 
 # Logs
 *.log

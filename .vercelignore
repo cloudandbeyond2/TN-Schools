@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+.vscode
+.env*
+_preview
+*.md
+TN_Schools_CRUD_Reference.html
+backend/scratch
+backend/uploads
+backend/store
+backend/*.log
