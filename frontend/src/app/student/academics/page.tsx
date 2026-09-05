@@ -13,8 +13,8 @@ import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIco
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
    so every icon on this page is a `fi fi-rr-*` class.
 ──────────────────────────────────────────────────────────── */
-const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
-  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
+const Fi = ({ name, className = "", style = {} }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
 /* ────────────────────────────────────────────────────────────
@@ -130,6 +130,14 @@ const TYPE_COLORS: Record<Resource["type"], string> = {
 
 const BOOKMARK_KEY = "academics-bookmarks";
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
 /* ────────────────────────────────────────────────────────────
    Page component
 ──────────────────────────────────────────────────────────── */
@@ -139,6 +147,7 @@ export default function AcademicsHubPage() {
   const CATEGORIES = useMemo(() => getCategories(lang), [lang]);
 
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [showSavedOnly, setShowSavedOnly] = useState(false);
@@ -214,13 +223,14 @@ export default function AcademicsHubPage() {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const schoolQuery = studentSchoolId ? `&schoolId=${encodeURIComponent(studentSchoolId)}` : "";
+        const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
         
-        // 1. Fetch Subjects for this class & school
-        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active${schoolQuery}`);
+        // 1. Fetch Subjects for this class & school & board
+        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active${schoolQuery}${boardQuery}`);
         const subjectsJson = await subjectsRes.json();
         
-        // 2. Fetch Resources for this class & school
-        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active${schoolQuery}`);
+        // 2. Fetch Resources for this class & school & board
+        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active${schoolQuery}${boardQuery}`);
         const resourcesJson = await resourcesRes.json();
 
         const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
@@ -326,7 +336,7 @@ export default function AcademicsHubPage() {
     if (classNum && classNum > 0 && status === "authenticated") {
       fetchData();
     }
-  }, [classNum, studentId, status]);
+  }, [classNum, studentId, status, selectedBoard]);
 
   // Return database-fetched subjects for this student's class
   const subjects = useMemo<SubjectInfo[]>(() => {
@@ -666,34 +676,65 @@ export default function AcademicsHubPage() {
       themeClass="theme-student"
     >
       {/* ── Hero banner ─────────────────────────────────── */}
-      <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+      <div className="hero-band relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <span
                 className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center"
-                style={{ color: "#fff" }}
+                style={{ color: "#ffffff" }}
               >
-                <Fi name="graduation-cap" className="text-xl" />
+                <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
               </span>
               <span
-                className="text-[11px] font-black uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.85)" }}
+                className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20"
+                style={{ color: "#ffffff" }}
               >
-                {lang === "தமிழ்" ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநிலப் பாடத்திட்டம்` : `Class ${studentClass} · Tamil Nadu State Board`}
+                {lang === "தமிழ்" ? `வகுப்பு ${studentClass}` : `Class ${studentClass}`}
                 {isHigherSecondary ? ` · ${HS_GROUP_LABELS[studentGroup]}` : ""}
               </span>
+              <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
+              </span>
             </div>
-            <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
+            <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
               {lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள் மையம்" : "Academics & Subjects Hub"}
             </div>
-            <p className="text-sm max-w-xl" style={{ color: "rgba(255,255,255,0.9)" }}>
-              {lang === "தமிழ்"
-                ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
-                : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place."}
+            <p className="text-sm max-w-xl mb-4" style={{ color: "rgba(255,255,255,0.95)" }}>
+              {selectedBoard === "CBSE"
+                ? (lang === "தமிழ்" ? "CBSE பாடத்திட்டம், NCERT பாடப்புத்தகங்கள், AISSE/AISSCE மாதிரித் தேர்வுகள் மற்றும் ஆசிரியர் குறிப்புகளை அணுகவும்." : "Explore CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, formulas & revision notes.")
+                : (lang === "தமிழ்"
+                  ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
+                  : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place.")}
             </p>
+
+            {/* Board Selector Quick Switcher Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                <span style={{ color: "#ffffff" }}>Board:</span>
+              </span>
+              {SCHOOL_BOARDS.map(b => {
+                const isActive = selectedBoard === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedBoard(b.id)}
+                    style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                      ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                      : "hover:bg-white/30 border border-white/25 !text-white"
+                      }`}
+                  >
+                    <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                    <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             {[

@@ -10,8 +10,8 @@ import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIco
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph
 ──────────────────────────────────────────────────────────── */
-const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
-  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
+const Fi = ({ name, className = "", style = {} }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
 /* ────────────────────────────────────────────────────────────
@@ -84,6 +84,14 @@ interface ClassAssignment {
   schedule?: string;
   totalStudents?: number;
 }
+
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
 
 /* ────────────────────────────────────────────────────────────
    Category Metadata
@@ -159,6 +167,7 @@ export default function AcademicsHubPage() {
   const { data: session } = useSession();
 
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [selectedClass, setSelectedClass] = useState<string>("ALL");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
   const [search, setSearch] = useState("");
@@ -281,10 +290,14 @@ export default function AcademicsHubPage() {
         }
         setAssignedClasses(teacherClassesList);
 
-        // 2. Fetch DB subjects & resources
+        // 2. Fetch DB subjects & resources with board filtering
+        const boardQuery = selectedBoard && selectedBoard !== "All" ? `board=${encodeURIComponent(selectedBoard)}` : "";
+        const subUrl = `${API_URL}/api/superadmin/academics/subjects?status=Active${boardQuery ? `&${boardQuery}` : ""}`;
+        const resUrl = `${API_URL}/api/superadmin/academics/resources${boardQuery ? `?${boardQuery}` : ""}`;
+
         const [subRes, resRes] = await Promise.all([
-          fetch(`${API_URL}/api/superadmin/academics/subjects?status=Active`),
-          fetch(`${API_URL}/api/superadmin/academics/resources`)
+          fetch(subUrl),
+          fetch(resUrl)
         ]);
 
         if (subRes.ok) {
@@ -302,7 +315,7 @@ export default function AcademicsHubPage() {
       }
     };
     fetchData();
-  }, [session]);
+  }, [session, selectedBoard]);
 
   // Sync default syllabus class and subject with assignedClasses
   useEffect(() => {
@@ -846,25 +859,56 @@ export default function AcademicsHubPage() {
       themeClass="theme-teacher"
     >
       {/* ── Hero Banner ── */}
-      <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-6 md:p-8 shadow-xl text-white">
+      <div className="hero-band relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-6 md:p-8 shadow-xl text-white">
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-white">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center !text-white" style={{ color: "#ffffff" }}>
-                <Fi name="graduation-cap" className="text-xl !text-white" />
+                <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
               </span>
-              <span className="text-[11px] font-black uppercase tracking-widest !text-white" style={{ color: "#ffffff" }}>
+              <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20" style={{ color: "#ffffff" }}>
                 Teacher Academic Workspace
               </span>
+              <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
+              </span>
             </div>
-            <p className="text-2xl md:text-3xl font-black mb-1 !text-white" >
-              Class & Subject Curriculum Hub
+            <p className="text-2xl md:text-3xl font-black mb-1 !text-white" style={{ color: "#ffffff" }}>
+              Class &amp; Subject Curriculum Hub
             </p>
-            <p className="text-sm max-w-xl !text-white/95" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
-              Browse textbooks, syllabus units, study materials, video lessons, and generate AI lesson plans for your assigned classes.
+            <p className="text-sm max-w-xl mb-4 !text-white/95" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
+              {selectedBoard === "CBSE"
+                ? "Browse CBSE curriculum, NCERT textbooks, AISSE/AISSCE materials, and generate AI lesson plans for your assigned classes."
+                : "Browse textbooks, syllabus units, study materials, video lessons, and generate AI lesson plans for your assigned classes."}
             </p>
+
+            {/* Board Selector Quick Switcher Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                <span style={{ color: "#ffffff" }}>Board:</span>
+              </span>
+              {SCHOOL_BOARDS.map(b => {
+                const isActive = selectedBoard === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedBoard(b.id)}
+                    style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                      ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                      : "hover:bg-white/30 border border-white/25 !text-white"
+                      }`}
+                  >
+                    <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                    <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">

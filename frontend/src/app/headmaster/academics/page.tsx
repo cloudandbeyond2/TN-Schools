@@ -40,10 +40,36 @@ const SYLLABUS_CLASSES = [
   { id: "12", name: "Class 12", badge: "HSC" },
 ];
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
+const STATE_BOARD_SUBJECTS = [
+  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
+  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
+  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
+];
+
+const CBSE_SUBJECTS = [
+  "English Language & Literature", "English Core", "Hindi Course A", "Hindi Course B", "Hindi Core",
+  "Mathematics (Standard)", "Mathematics (Basic)", "Applied Mathematics", "Science", "Social Science",
+  "Physics", "Chemistry", "Biology", "Computer Science (083)", "Informatics Practices (065)",
+  "Information Technology (402)", "Artificial Intelligence (417)", "Accountancy (055)",
+  "Business Studies (054)", "Economics (030)", "History", "Political Science", "Geography",
+  "Psychology", "Sociology", "Physical Education", "Sanskrit", "General Knowledge"
+];
+
+const ALL_SUBJECTS = Array.from(new Set([...STATE_BOARD_SUBJECTS, ...CBSE_SUBJECTS]));
+
 const getSubjectIcon = (name: string) => {
   if (!name) return "book-alt";
   const n = name.toLowerCase();
   if (n.includes("tamil")) return "scroll";
+  if (n.includes("hindi")) return "book-open-cover";
   if (n.includes("english")) return "comment-user";
   if (n.includes("math")) return "ruler-combined";
   if (n.includes("science") && !n.includes("social")) return "microscope";
@@ -51,8 +77,8 @@ const getSubjectIcon = (name: string) => {
   if (n.includes("physics")) return "bolt";
   if (n.includes("chemistry") || n.includes("chem")) return "flask";
   if (n.includes("biology") || n.includes("bio")) return "dna";
-  if (n.includes("computer")) return "computer";
-  if (n.includes("commerce") || n.includes("account")) return "briefcase";
+  if (n.includes("computer") || n.includes("it") || n.includes("information tech") || n.includes("ai")) return "computer";
+  if (n.includes("commerce") || n.includes("account") || n.includes("business")) return "briefcase";
   if (n.includes("economic")) return "stats";
   return "book-alt";
 };
@@ -74,6 +100,7 @@ interface Subject {
   subjectCode?: string;
   medium?: string;
   description?: string;
+  board?: string;
   status?: string;
 }
 
@@ -109,6 +136,7 @@ interface Resource {
   contentType?: string;
   author?: string;
   isbn?: string;
+  board?: string;
   status?: string;
   attachmentType?: string;
   subject?: Subject;
@@ -140,12 +168,6 @@ const CATEGORIES = [
 ];
 
 const RESOURCE_TYPES = ["PDF", "DOC", "Video", "Audio", "Interactive", "eBook", "Link"];
-
-const ALL_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
 
 const TYPE_ICONS: Record<string, string> = {
   PDF: "document",
@@ -255,6 +277,7 @@ export default function HeadmasterAcademicsPage() {
   };
 
   // Search & Filter
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterClass, setFilterClass] = useState("");
@@ -289,7 +312,8 @@ export default function HeadmasterAcademicsPage() {
     unitNo: "1",
     subunitNo: "1.1",
     title: "",
-    subtopics: ""
+    subtopics: "",
+    board: "State Board"
   });
 
   const [subchaptersList, setSubchaptersList] = useState<Array<{ no: string; title: string }>>([
@@ -305,7 +329,8 @@ export default function HeadmasterAcademicsPage() {
       unitNo: nextUnit,
       subunitNo: `${nextUnit}.1`,
       title: "",
-      subtopics: ""
+      subtopics: "",
+      board: selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList([
       { no: `${nextUnit}.1`, title: "" }
@@ -332,7 +357,8 @@ export default function HeadmasterAcademicsPage() {
       unitNo: uNo,
       subunitNo: ch.meta?.match(/\d+\.\d+/)?.[0] || `${uNo}.1`,
       title: ch.chapter || ch.title || "",
-      subtopics: desc
+      subtopics: desc,
+      board: ch.board || selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList(parsedList);
     setChapterModal({ isOpen: true, editId: ch.id });
@@ -431,6 +457,7 @@ export default function HeadmasterAcademicsPage() {
             description: item.subtopics.join(" • ") || item.title,
             meta: "AI OCR Parsed • Auto Extracted",
             status: "Active",
+            board: selectedBoard === "All" ? "State Board" : selectedBoard,
             schoolId: userSchoolId || undefined
           })
         });
@@ -483,6 +510,7 @@ export default function HeadmasterAcademicsPage() {
         description: formattedSubtopics || chapterForm.title.trim(),
         meta: `Subunit ${chapterForm.subunitNo || `${chapterForm.unitNo}.1`} • Active`,
         status: "Active",
+        board: chapterForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         schoolId: userSchoolId || undefined
       };
 
@@ -522,7 +550,13 @@ export default function HeadmasterAcademicsPage() {
     if (classes.length > 0) {
       return classes.map(c => {
         const cleanVal = String(c.name).replace(/^Class\s+/i, '').trim();
-        const badgeStr = parseInt(cleanVal) >= 11 ? "HSC" : "SSLC";
+        const num = parseInt(cleanVal, 10);
+        let badgeStr = "SSLC";
+        if (selectedBoard === "CBSE") {
+          badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+        } else {
+          badgeStr = num >= 11 ? "HSC" : "SSLC";
+        }
         return {
           id: cleanVal,
           name: c.name.startsWith("Class") ? c.name : `Class ${c.name}`,
@@ -530,8 +564,15 @@ export default function HeadmasterAcademicsPage() {
         };
       });
     }
-    return SYLLABUS_CLASSES;
-  }, [classes]);
+    return SYLLABUS_CLASSES.map(sc => {
+      const num = parseInt(sc.id, 10);
+      let badgeStr = sc.badge;
+      if (selectedBoard === "CBSE") {
+        badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+      }
+      return { ...sc, badge: badgeStr };
+    });
+  }, [classes, selectedBoard]);
 
   const syllabusSubjectsForClass = useMemo(() => {
     const cleanSyllabusClass = String(syllabusClass).replace(/^Class\s+/i, '').trim();
@@ -539,7 +580,9 @@ export default function HeadmasterAcademicsPage() {
     const dbSubs = subjects.filter(s => {
       if (!s.class) return false;
       const cVal = String(s.class).replace(/^Class\s+/i, '').trim();
-      return cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchClass = cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
+      return matchClass && matchBoard;
     });
 
     const namesFromDb = Array.from(new Set(dbSubs.map(s => s.name).filter(Boolean)));
@@ -556,7 +599,28 @@ export default function HeadmasterAcademicsPage() {
       });
     }
 
-    const defaultCore = parseInt(cleanSyllabusClass) >= 11
+    if (selectedBoard === "CBSE") {
+      const defaultCbseCore = parseInt(cleanSyllabusClass, 10) >= 11
+        ? [
+          "English Core",
+          "Physics", "Chemistry", "Biology", "Mathematics",
+          "Computer Science (083)", "Informatics Practices (065)",
+          "Accountancy (055)", "Business Studies (054)", "Economics (030)",
+          "History", "Political Science", "Geography", "Physical Education"
+        ]
+        : [
+          "English Language & Literature", "Hindi Course A",
+          "Mathematics", "Science", "Social Science", "Information Technology"
+        ];
+      return defaultCbseCore.map(name => ({
+        id: name,
+        name: name,
+        icon: getSubjectIcon(name),
+        color: "#6366f1"
+      }));
+    }
+
+    const defaultCore = parseInt(cleanSyllabusClass, 10) >= 11
       ? [
         "Tamil", "English",
         "Physics", "Chemistry", "Biology", "Mathematics",
@@ -574,7 +638,7 @@ export default function HeadmasterAcademicsPage() {
       icon: getSubjectIcon(name),
       color: "#6366f1"
     }));
-  }, [subjects, syllabusClass]);
+  }, [subjects, syllabusClass, selectedBoard]);
 
   useEffect(() => {
     if (syllabusSubjectsForClass.length > 0) {
@@ -593,6 +657,8 @@ export default function HeadmasterAcademicsPage() {
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
 
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
+
       const resSub = subjects.find(s => s.id === res.subjectId);
       const subName = resSub?.name || res.title || "";
       const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
@@ -603,7 +669,7 @@ export default function HeadmasterAcademicsPage() {
           (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
         : true;
 
-      return matchClass && matchSubject && matchSearch;
+      return matchClass && matchBoard && matchSubject && matchSearch;
     });
 
     return list.sort((a, b) => {
@@ -614,17 +680,18 @@ export default function HeadmasterAcademicsPage() {
       };
       return extractNum(a) - extractNum(b);
     });
-  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery, selectedBoard]);
 
   const getSubjectStats = (subName: string) => {
     const items = resources.filter(res => {
       const isSyllabus = res.category === "syllabus";
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const resSub = subjects.find(s => s.id === res.subjectId);
       const sName = resSub?.name || "";
       const matchSub = sName.toLowerCase() === subName.toLowerCase() || res.title.toLowerCase().includes(subName.toLowerCase());
-      return isSyllabus && matchClass && matchSub;
+      return isSyllabus && matchClass && matchBoard && matchSub;
     });
 
     const total = items.length;
@@ -634,12 +701,13 @@ export default function HeadmasterAcademicsPage() {
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
-    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
-  }, [subjects, selectedSubjectNames]);
+    const defaults = selectedBoard === "CBSE" ? CBSE_SUBJECTS : selectedBoard === "State Board" ? STATE_BOARD_SUBJECTS : ALL_SUBJECTS;
+    return Array.from(new Set([...dbNames, ...defaults, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames, selectedBoard]);
 
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
-    subjectCode: "", medium: "", description: "", status: "Active"
+    subjectCode: "", medium: "", description: "", board: "State Board", status: "Active"
   });
 
   const [resourceForm, setResourceForm] = useState({
@@ -647,7 +715,8 @@ export default function HeadmasterAcademicsPage() {
     class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
     learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
     coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "", status: "Active", attachmentType: "Link"
+    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "",
+    board: "State Board", status: "Active", attachmentType: "Link"
   });
 
   useEffect(() => {
@@ -655,7 +724,7 @@ export default function HeadmasterAcademicsPage() {
     fetchResources();
     fetchClasses();
     fetchSections();
-  }, []);
+  }, [selectedBoard]);
 
   const fetchClasses = async () => {
     try {
@@ -688,7 +757,8 @@ export default function HeadmasterAcademicsPage() {
     setLoading(true);
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
-      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -701,7 +771,8 @@ export default function HeadmasterAcademicsPage() {
     setLoading(true);
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
-      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -899,6 +970,7 @@ export default function HeadmasterAcademicsPage() {
         subjectCode: sub.subjectCode || "",
         medium: sub.medium || "",
         description: sub.description || "",
+        board: sub.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: sub.status || "Active"
       });
     } else {
@@ -906,7 +978,18 @@ export default function HeadmasterAcademicsPage() {
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
       setSubjectSearchQuery("");
-      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
+      setSubjectForm({
+        name: "",
+        color: "#6366f1",
+        icon: "📚",
+        class: filterClass || "",
+        section: filterSection || "",
+        subjectCode: "",
+        medium: "",
+        description: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active"
+      });
     }
     setError("");
     setShowSubjectModal(true);
@@ -924,7 +1007,8 @@ export default function HeadmasterAcademicsPage() {
         ...resourceForm,
         schoolId: userSchoolId || undefined,
         category: activeTab === "overview" ? (resourceForm.contentType || "materials") : activeTab,
-        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
+        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
+        board: resourceForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
       const res = await fetch(url, {
         method,
@@ -977,6 +1061,7 @@ export default function HeadmasterAcademicsPage() {
         lessonTitle: res.lessonTitle || "", youtubeUrl: res.youtubeUrl || "",
         videoDuration: res.videoDuration || "", thumbnail: res.thumbnail || "",
         contentType: res.contentType || "", author: res.author || "", isbn: res.isbn || "",
+        board: res.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: res.status || "Active",
         attachmentType: res.attachmentType || "Link"
       });
@@ -987,7 +1072,9 @@ export default function HeadmasterAcademicsPage() {
         class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "", status: "Active", attachmentType: "Link"
+        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active", attachmentType: "Link"
       });
     }
     setError("");
@@ -1215,25 +1302,56 @@ export default function HeadmasterAcademicsPage() {
       <div className="space-y-6">
 
         {/* ── Hero Banner ─────────────────────────────────── */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+        <div className="hero-band relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-left">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center" style={{ color: "#ffffff" }}>
-                  <Fi name="graduation-cap" className="text-xl" style={{ color: "#ffffff" }} />
+                  <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
                 </span>
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-                  {filterClass ? (lang === "தமிழ்" ? `வகுப்பு ${filterClass}` : `Class ${filterClass}`) : (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes")} · Tamil Nadu State Board
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20" style={{ color: "#ffffff" }}>
+                  {filterClass ? (lang === "தமிழ்" ? `வகுப்பு ${filterClass}` : `Class ${filterClass}`) : (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes")}
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                  {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
                 </span>
               </div>
               <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
                 {lang === "தமிழ்" ? "கல்வி & பாடங்கள் மையம்" : "Academics & Subjects Hub"}
               </div>
-              <p className="text-sm max-w-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                {lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், பாடப்புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும். ஆசிரியர் பதிவேற்றங்கள் மற்றும் பாடத்திட்ட சீரமைப்பை நிர்வகிக்கவும்." : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
+              <p className="text-sm max-w-xl leading-relaxed mb-4" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
+                {selectedBoard === "CBSE" 
+                  ? (lang === "தமிழ்" ? "CBSE பாடத்திட்டம், NCERT பாடப்புத்தகங்கள், AISSE/AISSCE மாதிரித் தேர்வுகள் மற்றும் ஆசிரியர் குறிப்புகளை நிர்வகிக்கவும்." : "Manage CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, marking schemes & lesson notes.")
+                  : (lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், சமச்சீர் கல்வி புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும்." : "Review class subjects, term plans, Samacheer Kalvi textbooks, learning notes, mock-tests and educational media.")}
               </p>
+
+              {/* Board Selector Pills & Dropdown */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                  <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                  <span style={{ color: "#ffffff" }}>Board:</span>
+                </span>
+                {SCHOOL_BOARDS.map(b => {
+                  const isActive = selectedBoard === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setSelectedBoard(b.id)}
+                      style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                        ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                        : "hover:bg-white/30 border border-white/25 !text-white"
+                        }`}
+                    >
+                      <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                      <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Stats count boxes */}
@@ -2487,7 +2605,7 @@ export default function HeadmasterAcademicsPage() {
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                  <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
@@ -2499,6 +2617,16 @@ export default function HeadmasterAcademicsPage() {
                       ) : (
                         [...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)
                       )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select value={subjectForm.board || "State Board"} onChange={e => setSubjectForm({ ...subjectForm, board: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                      <option value="State Board">State Board (Govt)</option>
+                      <option value="CBSE">CBSE (NCERT)</option>
+                      <option value="ICSE">ICSE</option>
+                      <option value="Matriculation">Matriculation</option>
+                      <option value="All">All Boards</option>
                     </select>
                   </div>
                 </div>
@@ -2698,7 +2826,7 @@ export default function HeadmasterAcademicsPage() {
               <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select
@@ -2719,7 +2847,7 @@ export default function HeadmasterAcademicsPage() {
                           subjectId: isStillValid ? resourceForm.subjectId : (filtered.length > 0 ? filtered[0].id : "")
                         });
                       }}
-                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold"
                     >
                       <option value="">Select Class</option>
                       {classes.length > 0 ? (
@@ -2734,7 +2862,7 @@ export default function HeadmasterAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
-                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold">
                       <option value="" disabled>Select subject</option>
                       {(() => {
                         const cleanClass = String(resourceForm.class || "").replace(/^Class\s+/i, '').trim();
@@ -2750,6 +2878,16 @@ export default function HeadmasterAcademicsPage() {
                         const unique = Array.from(new Map(filtered.map(s => [s.name.toLowerCase().trim(), s])).values());
                         return unique.map(s => <option key={s.id} value={s.id}>{s.name}</option>);
                       })()}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select value={resourceForm.board || "State Board"} onChange={e => setResourceForm({ ...resourceForm, board: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold">
+                      <option value="State Board">State Board (Govt)</option>
+                      <option value="CBSE">CBSE (NCERT)</option>
+                      <option value="ICSE">ICSE</option>
+                      <option value="Matriculation">Matriculation</option>
+                      <option value="All">All Boards</option>
                     </select>
                   </div>
                 </div>
@@ -3192,6 +3330,23 @@ export default function HeadmasterAcademicsPage() {
                       className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                    SCHOOL BOARD / CURRICULUM
+                  </label>
+                  <select
+                    value={chapterForm.board || "State Board"}
+                    onChange={(e) => setChapterForm({ ...chapterForm, board: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  >
+                    <option value="State Board">State Board (Government / Samacheer)</option>
+                    <option value="CBSE">CBSE (NCERT Curriculum)</option>
+                    <option value="ICSE">ICSE Board</option>
+                    <option value="Matriculation">Matriculation</option>
+                    <option value="All">All Boards</option>
+                  </select>
                 </div>
 
                 <div>

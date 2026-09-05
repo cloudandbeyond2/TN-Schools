@@ -68,10 +68,36 @@ const SYLLABUS_CLASSES = [
   { id: "12", name: "Class 12", badge: "HSC" },
 ];
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
+const STATE_BOARD_SUBJECTS = [
+  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
+  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
+  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
+];
+
+const CBSE_SUBJECTS = [
+  "English Language & Literature", "English Core", "Hindi Course A", "Hindi Course B", "Hindi Core",
+  "Mathematics (Standard)", "Mathematics (Basic)", "Applied Mathematics", "Science", "Social Science",
+  "Physics", "Chemistry", "Biology", "Computer Science (083)", "Informatics Practices (065)",
+  "Information Technology (402)", "Artificial Intelligence (417)", "Accountancy (055)",
+  "Business Studies (054)", "Economics (030)", "History", "Political Science", "Geography",
+  "Psychology", "Sociology", "Physical Education", "Sanskrit", "General Knowledge"
+];
+
+const ALL_SUBJECTS = Array.from(new Set([...STATE_BOARD_SUBJECTS, ...CBSE_SUBJECTS]));
+
 const getSubjectIcon = (name: string) => {
   if (!name) return "📙";
   const n = name.toLowerCase();
   if (n.includes("tamil")) return "📜";
+  if (n.includes("hindi")) return "📖";
   if (n.includes("english")) return "🗣️";
   if (n.includes("math")) return "📐";
   if (n.includes("physic")) return "⚡";
@@ -80,7 +106,7 @@ const getSubjectIcon = (name: string) => {
   if (n.includes("zoology") || n.includes("bio")) return "🧬";
   if (n.includes("science") && !n.includes("social")) return "🔬";
   if (n.includes("social") || n.includes("geograph") || n.includes("history")) return "🌍";
-  if (n.includes("computer") || n.includes("tech")) return "💻";
+  if (n.includes("computer") || n.includes("tech") || n.includes("it") || n.includes("ai")) return "💻";
   if (n.includes("commerce") || n.includes("account") || n.includes("business")) return "💼";
   if (n.includes("economic")) return "📈";
   if (n.includes("art") || n.includes("craft")) return "🎨";
@@ -97,6 +123,7 @@ interface Subject {
   subjectCode?: string;
   medium?: string;
   description?: string;
+  board?: string;
   status?: string;
 }
 
@@ -132,6 +159,7 @@ interface Resource {
   contentType?: string;
   author?: string;
   isbn?: string;
+  board?: string;
   status?: string;
   attachmentType?: string;
   subject?: Subject;
@@ -163,12 +191,6 @@ const CATEGORIES = [
 ];
 
 const RESOURCE_TYPES = ["PDF", "DOC", "Video", "Audio", "Interactive", "eBook", "Link"];
-
-const ALL_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
 
 const TYPE_ICONS: Record<string, string> = {
   PDF: "document",
@@ -287,6 +309,7 @@ export default function SuperadminAcademicsPage() {
   };
 
   // Search & Filter
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterClass, setFilterClass] = useState("");
@@ -321,7 +344,8 @@ export default function SuperadminAcademicsPage() {
     unitNo: "1",
     subunitNo: "1.1",
     title: "",
-    subtopics: ""
+    subtopics: "",
+    board: "State Board"
   });
 
   const [subchaptersList, setSubchaptersList] = useState<Array<{ no: string; title: string }>>([
@@ -337,7 +361,8 @@ export default function SuperadminAcademicsPage() {
       unitNo: nextUnit,
       subunitNo: `${nextUnit}.1`,
       title: "",
-      subtopics: ""
+      subtopics: "",
+      board: selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList([
       { no: `${nextUnit}.1`, title: "" }
@@ -364,7 +389,8 @@ export default function SuperadminAcademicsPage() {
       unitNo: uNo,
       subunitNo: ch.meta?.match(/\d+\.\d+/)?.[0] || `${uNo}.1`,
       title: ch.chapter || ch.title || "",
-      subtopics: desc
+      subtopics: desc,
+      board: ch.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
     });
     setSubchaptersList(parsedList);
     setChapterModal({ isOpen: true, editId: ch.id });
@@ -413,46 +439,30 @@ export default function SuperadminAcademicsPage() {
       }
     });
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64Image = event.target?.result as string;
-      try {
-        const res = await fetch(`${API_BASE}/parse-syllabus-ai`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: base64Image,
-            mimeType: file.type
-          })
-        });
-        
-        const json = await res.json();
-        if (!json.success || !json.data || json.data.length === 0) {
-          throw new Error(json.error || "Could not extract readable text from image. Please ensure the textbook index image is clear.");
-        }
+    try {
+      const { performOcrAndParseSyllabus } = await import("@/lib/syllabusOcrParser");
+      const { parsedUnits } = await performOcrAndParseSyllabus(file, selectedSyllabusSubject);
 
-        Swal.close();
-        setOcrPreviewModal({
-          isOpen: true,
-          units: json.data.map((u: any, idx: number) => ({
-             unitNo: String(idx + 1),
-             title: u.title,
-             subtopics: u.subtopics || []
-          }))
-        });
-      } catch (err: any) {
-        console.error(err);
-        Swal.fire({
-          icon: "error",
-          title: "AI Parsing Error",
-          text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
-        });
-      } finally {
-        setParsingSyllabus(false);
-        e.target.value = "";
+      if (!parsedUnits || parsedUnits.length === 0) {
+        throw new Error("Could not extract readable text from image. Please ensure the textbook index image is clear.");
       }
-    };
-    reader.readAsDataURL(file);
+
+      Swal.close();
+      setOcrPreviewModal({
+        isOpen: true,
+        units: parsedUnits
+      });
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "OCR Parsing Error",
+        text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
+      });
+    } finally {
+      setParsingSyllabus(false);
+      e.target.value = "";
+    }
   };
 
   const handleSaveOcrUnitsToDb = async () => {
@@ -464,7 +474,7 @@ export default function SuperadminAcademicsPage() {
 
       for (let i = 0; i < ocrPreviewModal.units.length; i++) {
         const item = ocrPreviewModal.units[i];
-        await fetch(`${API_BASE}/resources`, {
+        await authFetch(`${API_BASE}/resources`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -478,7 +488,8 @@ export default function SuperadminAcademicsPage() {
             chapterNumber: item.unitNo || String(syllabusChapters.length + i + 1),
             description: item.subtopics.join(" • ") || item.title,
             meta: "AI OCR Parsed • Auto Extracted",
-            status: "Active"
+            status: "Active",
+            board: selectedBoard === "All" ? "State Board" : selectedBoard
           })
         });
       }
@@ -529,10 +540,11 @@ export default function SuperadminAcademicsPage() {
         chapterNumber: chapterForm.unitNo || String(syllabusChapters.length + 1),
         description: formattedSubtopics || chapterForm.title.trim(),
         meta: `Subunit ${chapterForm.subunitNo || `${chapterForm.unitNo}.1`} • Active`,
-        status: "Active"
+        status: "Active",
+        board: chapterForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
 
-      const res = await fetch(endpoint, {
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -568,7 +580,13 @@ export default function SuperadminAcademicsPage() {
     if (classes.length > 0) {
       return classes.map(c => {
         const cleanVal = String(c.name).replace(/^Class\s+/i, '').trim();
-        const badgeStr = parseInt(cleanVal) >= 11 ? "HSC" : "SSLC";
+        const num = parseInt(cleanVal, 10);
+        let badgeStr = "SSLC";
+        if (selectedBoard === "CBSE") {
+          badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+        } else {
+          badgeStr = num >= 11 ? "HSC" : "SSLC";
+        }
         return {
           id: cleanVal,
           name: c.name.startsWith("Class") ? c.name : `Class ${c.name}`,
@@ -576,8 +594,15 @@ export default function SuperadminAcademicsPage() {
         };
       });
     }
-    return SYLLABUS_CLASSES;
-  }, [classes]);
+    return SYLLABUS_CLASSES.map(sc => {
+      const num = parseInt(sc.id, 10);
+      let badgeStr = sc.badge;
+      if (selectedBoard === "CBSE") {
+        badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+      }
+      return { ...sc, badge: badgeStr };
+    });
+  }, [classes, selectedBoard]);
 
   const syllabusSubjectsForClass = useMemo(() => {
     const cleanSyllabusClass = String(syllabusClass).replace(/^Class\s+/i, '').trim();
@@ -585,7 +610,9 @@ export default function SuperadminAcademicsPage() {
     const dbSubs = subjects.filter(s => {
       if (!s.class) return false;
       const cVal = String(s.class).replace(/^Class\s+/i, '').trim();
-      return cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchClass = cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
+      return matchClass && matchBoard;
     });
 
     const namesFromDb = Array.from(new Set(dbSubs.map(s => s.name).filter(Boolean)));
@@ -602,7 +629,28 @@ export default function SuperadminAcademicsPage() {
       });
     }
 
-    const defaultCore = parseInt(cleanSyllabusClass) >= 11
+    if (selectedBoard === "CBSE") {
+      const defaultCbseCore = parseInt(cleanSyllabusClass, 10) >= 11
+        ? [
+          "English Core",
+          "Physics", "Chemistry", "Biology", "Mathematics",
+          "Computer Science (083)", "Informatics Practices (065)",
+          "Accountancy (055)", "Business Studies (054)", "Economics (030)",
+          "History", "Political Science", "Geography", "Physical Education"
+        ]
+        : [
+          "English Language & Literature", "Hindi Course A",
+          "Mathematics", "Science", "Social Science", "Information Technology"
+        ];
+      return defaultCbseCore.map(name => ({
+        id: name,
+        name: name,
+        icon: getSubjectIcon(name),
+        color: "#6366f1"
+      }));
+    }
+
+    const defaultCore = parseInt(cleanSyllabusClass, 10) >= 11
       ? [
         "Tamil", "English",
         "Physics", "Chemistry", "Biology", "Mathematics",
@@ -620,7 +668,7 @@ export default function SuperadminAcademicsPage() {
       icon: getSubjectIcon(name),
       color: "#6366f1"
     }));
-  }, [subjects, syllabusClass]);
+  }, [subjects, syllabusClass, selectedBoard]);
 
   const filteredSyllabusSubjects = useMemo(() => {
     if (!searchQuery.trim()) return syllabusSubjectsForClass;
@@ -648,6 +696,8 @@ export default function SuperadminAcademicsPage() {
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
 
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
+
       const resSub = subjects.find(s => s.id === res.subjectId);
       const subName = resSub?.name || res.title || "";
       const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
@@ -660,7 +710,7 @@ export default function SuperadminAcademicsPage() {
           (res.description && res.description.toLowerCase().includes(q.toLowerCase())))
         : true;
 
-      return matchClass && matchSubject && matchSearch;
+      return matchClass && matchBoard && matchSubject && matchSearch;
     });
 
     return list.sort((a, b) => {
@@ -671,17 +721,18 @@ export default function SuperadminAcademicsPage() {
       };
       return extractNum(a) - extractNum(b);
     });
-  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, searchQuery, syllabusSearchQuery]);
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, searchQuery, syllabusSearchQuery, selectedBoard]);
 
   const getSubjectStats = (subName: string) => {
     const items = resources.filter(res => {
       const isSyllabus = res.category === "syllabus";
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const resSub = subjects.find(s => s.id === res.subjectId);
       const sName = resSub?.name || "";
       const matchSub = sName.toLowerCase() === subName.toLowerCase() || res.title.toLowerCase().includes(subName.toLowerCase());
-      return isSyllabus && matchClass && matchSub;
+      return isSyllabus && matchClass && matchBoard && matchSub;
     });
 
     const total = items.length;
@@ -691,21 +742,34 @@ export default function SuperadminAcademicsPage() {
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
-    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
-  }, [subjects, selectedSubjectNames]);
+    const defaults = selectedBoard === "CBSE" ? CBSE_SUBJECTS : selectedBoard === "State Board" ? STATE_BOARD_SUBJECTS : ALL_SUBJECTS;
+    return Array.from(new Set([...dbNames, ...defaults, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames, selectedBoard]);
 
-  const [subjectForm, setSubjectForm] = useState({
+  const [subjectForm, setSubjectForm] = useState<{
+    name: string; color: string; icon: string; class: string; section: string;
+    subjectCode: string; medium: string; description: string; board: string; status: string;
+    topicName?: string; subtopic?: string;
+  }>({
     name: "", color: "", icon: "", class: "", section: "",
-    subjectCode: "", medium: "", description: "", status: "Active",
+    subjectCode: "", medium: "", description: "", board: "State Board", status: "Active",
     topicName: "", subtopic: ""
   });
 
-  const [resourceForm, setResourceForm] = useState({
+  const [resourceForm, setResourceForm] = useState<{
+    title: string; subjectId: string; type: string; url: string; meta: string; description: string; addedBy: string;
+    class: string; section: string; group: string; term: string; chapterNumber: string; topicName: string;
+    learningOutcomes: string; medium: string; bookVersion: string; publisher: string; language: string;
+    coverImage: string; materialType: string; downloadAllowed: boolean; chapter: string; lessonTitle: string;
+    youtubeUrl: string; videoDuration: string; thumbnail: string; contentType: string; author: string; isbn: string;
+    board: string; status: string; attachmentType: string; subtopic?: string;
+  }>({
     title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "",
-    class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "", subtopic: "",
+    class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
     learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
     coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "", status: "Active", attachmentType: "Link"
+    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "",
+    board: "State Board", status: "Active", attachmentType: "Link", subtopic: ""
   });
 
   useEffect(() => {
@@ -713,14 +777,13 @@ export default function SuperadminAcademicsPage() {
     fetchResources();
     fetchClasses();
     fetchSections();
-  }, []);
+  }, [selectedBoard]);
 
   const fetchClasses = async () => {
     try {
       const res = await authFetch(`${API_BASE}/classes?_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
-        // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
         data.sort((a: ClassItem, b: ClassItem) => {
           const numA = parseInt(a.name.replace(/\D/g, "")) || 0;
           const numB = parseInt(b.name.replace(/\D/g, "")) || 0;
@@ -745,7 +808,8 @@ export default function SuperadminAcademicsPage() {
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API_BASE}/subjects?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/subjects${boardQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -757,7 +821,8 @@ export default function SuperadminAcademicsPage() {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API_BASE}/resources?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/resources${boardQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -862,7 +927,8 @@ export default function SuperadminAcademicsPage() {
       const payload = {
         ...subjectForm,
         color: subjectForm.color || "#6366f1",
-        icon: subjectForm.icon || "📚"
+        icon: subjectForm.icon || "📚",
+        board: subjectForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
 
       try {
@@ -897,7 +963,8 @@ export default function SuperadminAcademicsPage() {
             ...subjectForm,
             name: subName,
             color: matchingSub?.color || subjectForm.color || "#6366f1",
-            icon: matchingSub?.icon || subjectForm.icon || "📚"
+            icon: matchingSub?.icon || subjectForm.icon || "📚",
+            board: subjectForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
           };
           const res = await fetch(`${API_BASE}/subjects`, {
             method: "POST",
@@ -953,16 +1020,26 @@ export default function SuperadminAcademicsPage() {
         subjectCode: sub.subjectCode || "",
         medium: sub.medium || "",
         description: sub.description || "",
-        status: sub.status || "Active",
-        topicName: (sub as any).topicName || "",
-        subtopic: sub.description || ""
+        board: sub.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
+        status: sub.status || "Active"
       });
     } else {
       setEditSubjectId(null);
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
       setSubjectSearchQuery("");
-      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active", topicName: "", subtopic: "" });
+      setSubjectForm({
+        name: "",
+        color: "#6366f1",
+        icon: "📚",
+        class: filterClass || "",
+        section: filterSection || "",
+        subjectCode: "",
+        medium: "",
+        description: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active"
+      });
     }
     setError("");
     setShowSubjectModal(true);
@@ -981,11 +1058,8 @@ export default function SuperadminAcademicsPage() {
         category: activeTab !== "overview" && activeTab !== "structure" && activeTab !== "subjects" ? activeTab : (resourceForm.contentType || "materials"),
         title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
         topicName: resourceForm.topicName,
-        description: resourceForm.subtopic
-          ? (resourceForm.description && resourceForm.description !== resourceForm.subtopic
-              ? `${resourceForm.subtopic} • ${resourceForm.description}`
-              : resourceForm.subtopic)
-          : resourceForm.description
+        board: resourceForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
+        description: resourceForm.description
       };
       const res = await authFetch(url, {
         method,
@@ -1031,7 +1105,6 @@ export default function SuperadminAcademicsPage() {
         meta: res.meta || "", description: res.description || "", addedBy: res.addedBy || "",
         class: res.class || "", section: res.section || "", group: res.group || "",
         term: res.term || "", chapterNumber: res.chapterNumber || "", topicName: res.topicName || "",
-        subtopic: res.description || "",
         learningOutcomes: res.learningOutcomes || "", medium: res.medium || "",
         bookVersion: res.bookVersion || "", publisher: res.publisher || "", language: res.language || "",
         coverImage: res.coverImage || "", materialType: res.materialType || "",
@@ -1039,6 +1112,7 @@ export default function SuperadminAcademicsPage() {
         lessonTitle: res.lessonTitle || "", youtubeUrl: res.youtubeUrl || "",
         videoDuration: res.videoDuration || "", thumbnail: res.thumbnail || "",
         contentType: res.contentType || "", author: res.author || "", isbn: res.isbn || "",
+        board: res.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: res.status || "Active",
         attachmentType: res.attachmentType || "Link"
       });
@@ -1046,12 +1120,14 @@ export default function SuperadminAcademicsPage() {
       setEditResourceId(null);
       setResourceForm({
         title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Super Admin",
-        class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "", subtopic: "",
+        class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
         youtubeUrl: "", videoDuration: "", thumbnail: "",
         contentType: ["textbooks", "materials", "notes", "videos", "digital", "reference"].includes(activeTab) ? activeTab : "materials",
-        author: "", isbn: "", status: "Active", attachmentType: "Link"
+        author: "", isbn: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active", attachmentType: "Link"
       });
     }
     setError("");
@@ -1182,25 +1258,56 @@ export default function SuperadminAcademicsPage() {
       <div className="space-y-6">
 
         {/* ── Hero Banner ─────────────────────────────────── */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+        <div className="hero-band relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-left">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center" style={{ color: "#ffffff" }}>
-                  <Fi name="graduation-cap" className="text-xl" style={{ color: "#ffffff" }} />
+                  <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
                 </span>
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-                  {filterClass ? `Class ${filterClass}` : "All Classes"} · Tamil Nadu State Board
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20" style={{ color: "#ffffff" }}>
+                  {filterClass ? `Class ${filterClass}` : "All Classes"}
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                  {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
                 </span>
               </div>
               <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
-                Academics & Subjects Hub
+                Academics &amp; Subjects Hub
               </div>
-              <p className="text-sm max-w-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment.
+              <p className="text-sm max-w-xl leading-relaxed mb-4" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
+                {selectedBoard === "CBSE"
+                  ? "Manage CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, marking schemes & lesson notes."
+                  : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
               </p>
+
+              {/* Board Selector Quick Switcher Pills */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                  <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                  <span style={{ color: "#ffffff" }}>Board:</span>
+                </span>
+                {SCHOOL_BOARDS.map(b => {
+                  const isActive = selectedBoard === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setSelectedBoard(b.id)}
+                      style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                        ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                        : "hover:bg-white/30 border border-white/25 !text-white"
+                        }`}
+                    >
+                      <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                      <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Stats count boxes */}
@@ -2288,7 +2395,20 @@ export default function SuperadminAcademicsPage() {
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select
+                      required
+                      value={subjectForm.board || "State Board"}
+                      onChange={e => setSubjectForm({ ...subjectForm, board: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none font-semibold text-xs sm:text-sm"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
@@ -2551,7 +2671,20 @@ export default function SuperadminAcademicsPage() {
               <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Board *</label>
+                    <select
+                      required
+                      value={resourceForm.board || "State Board"}
+                      onChange={e => setResourceForm({ ...resourceForm, board: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm font-semibold"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.shortLabel}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select
@@ -2572,7 +2705,7 @@ export default function SuperadminAcademicsPage() {
                           subjectId: isStillValid ? resourceForm.subjectId : ""
                         });
                       }}
-                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm"
                     >
                       <option value="">Select Class</option>
                       {classes.length > 0 ? (
@@ -2587,7 +2720,7 @@ export default function SuperadminAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
-                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm">
                       <option value="" disabled>Select subject</option>
                       {(() => {
                         const cleanClass = String(resourceForm.class || "").replace(/^Class\s+/i, '').trim();
@@ -3036,9 +3169,24 @@ export default function SuperadminAcademicsPage() {
               </div>
 
               <form onSubmit={handleSaveChapter} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-                {/* Combined Row for Unit No. & Chapter Title */}
+                {/* School Board & Combined Row for Unit No. & Chapter Title */}
                 <div className="grid grid-cols-12 gap-3">
-                  <div className="col-span-4">
+                  <div className="col-span-12 sm:col-span-4">
+                    <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                      SCHOOL BOARD
+                    </label>
+                    <select
+                      value={chapterForm.board || "State Board"}
+                      onChange={e => setChapterForm({ ...chapterForm, board: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.shortLabel}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-span-4 sm:col-span-3">
                     <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
                       UNIT NO.
                     </label>
@@ -3062,7 +3210,7 @@ export default function SuperadminAcademicsPage() {
                     />
                   </div>
 
-                  <div className="col-span-8">
+                  <div className="col-span-8 sm:col-span-5">
                     <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
                       CHAPTER TITLE / UNIT NAME
                     </label>

@@ -145,12 +145,46 @@ h1, h2, h3, h4, h5, h6 {
   color: inherit !important;
 }
 
-/* Hero bands on colored/gradient backgrounds — force all text to white */
-.hero-band, .hero-band * {
+/* Hero bands on colored/gradient backgrounds — force text to white except active board pill */
+.hero-band:not(.hero-board-active),
+.hero-band *:not(.hero-board-active):not(.hero-board-active *),
+.hero-band i:not(.hero-board-active *),
+.hero-band span:not(.hero-board-active *),
+.hero-band p:not(.hero-board-active *),
+.hero-band h1:not(.hero-board-active *),
+.hero-band h2:not(.hero-board-active *),
+.hero-band h3:not(.hero-board-active *),
+.hero-band div:not(.hero-board-active):not(.hero-board-active *),
+.hero-band label:not(.hero-board-active *) {
   color: #ffffff !important;
 }
+
+/* Active board filter pill — crisp black text & icon on white background */
+.hero-band button.hero-board-active,
+.hero-band .hero-board-active,
+.hero-band .hero-board-active *,
+.hero-band .hero-board-active span,
+.hero-band .hero-board-active i,
+.hero-band .hero-board-active svg,
+.hero-band .hero-board-active svg *,
+.hero-board-active,
+.hero-board-active *,
+.hero-board-active span,
+.hero-board-active i {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  fill: #000000 !important;
+}
+
+.hero-band button.hero-board-active,
+.hero-band .hero-board-active,
+.hero-board-active {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
 .hero-band .text-white\/80 {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .btn-primary {
