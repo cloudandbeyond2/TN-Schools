@@ -59,7 +59,6 @@ const SCHOOL_BOARDS = [
   { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
 ];
 
-
 const getSubjectIcon = (name: string) => {
   if (!name) return "book-alt";
   const n = name.toLowerCase();

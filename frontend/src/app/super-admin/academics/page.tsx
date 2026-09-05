@@ -46,7 +46,7 @@ const getYouTubeEmbedUrl = (url?: string) => {
     if (match && match[2].length === 11) {
       return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
     }
-  } catch {}
+  } catch { }
   return url;
 };
 
@@ -361,12 +361,12 @@ export default function SuperadminAcademicsPage() {
 
     const parsedList = rawItems.length > 0
       ? rawItems.map((item: string, idx: number) => {
-          const matchNo = item.match(/^(\d+\.\d+)\s*(.*)/);
-          if (matchNo) {
-            return { no: matchNo[1], title: matchNo[2] || item };
-          }
-          return { no: `${uNo}.${idx + 1}`, title: item };
-        })
+        const matchNo = item.match(/^(\d+\.\d+)\s*(.*)/);
+        if (matchNo) {
+          return { no: matchNo[1], title: matchNo[2] || item };
+        }
+        return { no: `${uNo}.${idx + 1}`, title: item };
+      })
       : [{ no: `${uNo}.1`, title: "" }];
 
     setChapterForm({
@@ -2184,13 +2184,12 @@ export default function SuperadminAcademicsPage() {
                             <div className="flex items-center gap-1.5">
                               {/* Medium Badge */}
                               {res.medium && (
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                  res.medium.toLowerCase() === "tamil"
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${res.medium.toLowerCase() === "tamil"
                                     ? "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800/50"
                                     : res.medium.toLowerCase() === "english"
                                       ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800/50"
                                       : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800/50"
-                                }`}>
+                                  }`}>
                                   {res.medium.toUpperCase()}
                                 </span>
                               )}

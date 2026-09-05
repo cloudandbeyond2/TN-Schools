@@ -74,7 +74,7 @@ async function ensureAcademicTablesExist() {
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
-
+    
     // Ensure default classes exist
     const classCount = await prisma.academicClass.count();
     if (classCount === 0) {
