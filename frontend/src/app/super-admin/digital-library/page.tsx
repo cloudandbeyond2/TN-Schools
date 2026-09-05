@@ -275,6 +275,7 @@ export default function SuperAdminDigitalLibraryPage() {
               </div>
             </div>
 
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Description</label>
               <textarea
