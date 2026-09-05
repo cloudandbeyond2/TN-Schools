@@ -17,6 +17,7 @@ function cleanOcrText(text: string): string {
     .trim();
 }
 
+
 /**
  * Parses raw text extracted via OCR from textbook index images into individual separate Chapter rows.
  */
@@ -95,7 +96,7 @@ export function parseSyllabusTextToChapters(rawText: string, subjectName: string
         // we assume this text is the actual title for that chapter. This handles both
         // row-by-row and column-by-column OCR extractions where numbers and titles are separated.
         const emptyChapter = results.find(r => /^Chapter\s+\d+$/i.test(r.title));
-        
+
         if (emptyChapter) {
           // Completely replace the placeholder with the actual title
           emptyChapter.title = cleanLine;
