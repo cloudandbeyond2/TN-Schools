@@ -1379,14 +1379,14 @@ export default function AcademicsHubPage() {
                         setSelectedSubject(sub.name);
                       }}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                          ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                          : "glass border-[var(--border)] hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                          ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                          : "glass border-[var(--border)] border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                         }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xl shrink-0">{sub.icon}</span>
                         <div>
-                          <h4 className="font-extrabold text-sm text-[var(--text-heading)] leading-snug">
+                          <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-[var(--text-heading)]"}`}>
                             {sub.name}
                           </h4>
                           <p className="text-[10px] text-[var(--text-muted)] font-semibold mt-0.5">

@@ -1137,9 +1137,10 @@ export default function SuperadminAcademicsPage() {
   // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return matchClass && matchSection;
+      return hasClass && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
@@ -1158,7 +1159,10 @@ export default function SuperadminAcademicsPage() {
   }, [subjects, resources, filterClass, filterSection]);
 
   const railSubjects = useMemo(() => {
-    const classFiltered = subjects.filter(s => filterClass ? s.class === String(filterClass) : true);
+    const classFiltered = subjects.filter(s => {
+      const hasClass = Boolean(s.class) && s.class !== "ALL";
+      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+    });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
       const found = subjects.find(s => s.name === name);
@@ -2014,16 +2018,19 @@ export default function SuperadminAcademicsPage() {
                               key={sub.name}
                               onClick={() => setSelectedSyllabusSubject(sub.name)}
                               className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-md scale-[1.01]"
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                                 }`}
                             >
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xl shrink-0 shadow-sm">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-sm transition-all ${isSelected
+                                  ? "bg-amber-100/90 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50"
+                                  : "bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700"
+                                  }`}>
                                   {iconSymbol}
                                 </div>
                                 <div>
-                                  <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                                  <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                                     {sub.name}
                                   </h4>
                                   <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">

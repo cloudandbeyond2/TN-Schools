@@ -3,7 +3,7 @@
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useRef, useCallback, useEffect } from "react";
 
-const CLASS_OPTIONS = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+const CLASS_OPTIONS = ["6", "7", "8", "9", "10", "11", "12"];
 
 const SUBJECT_PRESETS: Record<string, { icon: string; color: string }> = {
   Mathematics: { icon: "📐", color: "#6366f1" },
@@ -183,21 +183,19 @@ export default function SyllabusUploadPage() {
       <div className="flex items-center gap-2 mb-6">
         <button
           onClick={() => setView("upload")}
-          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
-            view === "upload"
-              ? "bg-violet-600 text-white border-violet-600 shadow-sm"
-              : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
-          }`}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${view === "upload"
+            ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+            : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
+            }`}
         >
           ⬆️ Upload PDF
         </button>
         <button
           onClick={() => setView("manage")}
-          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
-            view === "manage"
-              ? "bg-violet-600 text-white border-violet-600 shadow-sm"
-              : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
-          }`}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${view === "manage"
+            ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+            : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
+            }`}
         >
           🗂️ Manage Syllabus
         </button>
@@ -206,327 +204,325 @@ export default function SyllabusUploadPage() {
       {view === "manage" ? (
         <ManageSyllabus API_URL={API_URL} />
       ) : (
-      <>
-      {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
-        {(["upload", "preview", "done"] as const).map((s, i) => {
-          const labels = ["Upload & Extract", "Review Structure", "Complete"];
-          const active = step === s || (step === "extracting" && s === "upload") || (step === "saving" && s === "preview");
-          const completed =
-            (s === "upload" && ["preview", "saving", "done"].includes(step)) ||
-            (s === "preview" && step === "done");
-          return (
-            <div key={s} className="flex items-center gap-2">
-              {i > 0 && <div className={`w-8 h-0.5 ${completed ? "bg-violet-500" : "bg-slate-200 dark:bg-slate-700"}`} />}
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${
-                    completed
-                      ? "bg-violet-500 text-white"
-                      : active
-                      ? "bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 ring-2 ring-violet-400"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-400"
-                  }`}
-                >
-                  {completed ? "✓" : i + 1}
-                </div>
-                <span className={`text-xs font-bold ${active || completed ? "text-slate-700 dark:text-slate-200" : "text-slate-400"}`}>
-                  {labels[i]}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Error banner */}
-      {error && (
-        <div className="mb-6 px-5 py-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-semibold flex items-start gap-3">
-          <span className="text-lg flex-shrink-0">⚠️</span>
-          <div>
-            <p>{error}</p>
-            <button onClick={() => setError(null)} className="text-xs mt-1 underline opacity-70 hover:opacity-100">Dismiss</button>
-          </div>
-        </div>
-      )}
-
-      {/* ───── STEP 1: Upload ───── */}
-      {(step === "upload" || step === "extracting") && (
-        <div className="space-y-6">
-          {/* Class + Subject row */}
-          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 space-y-5">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">1. Select Class & Subject</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Class</label>
-                <select
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className="w-full px-4 py-3 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 font-extrabold rounded-xl border border-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  disabled={step === "extracting"}
-                >
-                  {CLASS_OPTIONS.map((c) => (
-                    <option key={c} value={c}>{c}th Standard</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  Subject Name <span className="text-slate-400 font-normal">(optional — AI will detect from PDF)</span>
-                </label>
-                <input
-                  type="text"
-                  value={subjectName}
-                  onChange={(e) => {
-                    setSubjectName(e.target.value);
-                    applyPreset(e.target.value);
-                  }}
-                  placeholder="e.g. Mathematics, Science, Tamil..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  disabled={step === "extracting"}
-                  list="subject-presets"
-                />
-                <datalist id="subject-presets">
-                  {Object.keys(SUBJECT_PRESETS).map((n) => <option key={n} value={n} />)}
-                </datalist>
-              </div>
-            </div>
-
-            {/* Icon + Color */}
-            <div className="flex items-center gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Icon</label>
-                <input
-                  type="text"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  className="w-16 px-3 py-3 text-center text-xl rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  disabled={step === "extracting"}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="w-10 h-10 rounded-lg border-0 cursor-pointer"
-                    disabled={step === "extracting"}
-                  />
-                  <span className="text-xs font-mono text-slate-400">{color}</span>
-                </div>
-              </div>
-              <div className="ml-auto flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <span className="text-xl">{icon}</span>
-                <span className="font-bold text-sm" style={{ color }}>{subjectName || "Subject"}</span>
-                <span className="text-xs text-slate-400 font-semibold">Class {selectedClass}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* PDF Upload */}
-          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 space-y-5">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">2. Upload Textbook PDF</h3>
-
-            <div
-              onClick={() => step !== "extracting" && fileRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer ${
-                file
-                  ? "border-violet-400 bg-violet-50/50 dark:bg-violet-950/20"
-                  : "border-slate-300 dark:border-slate-700 hover:border-violet-400 hover:bg-violet-50/30 dark:hover:bg-violet-950/10"
-              } ${step === "extracting" ? "pointer-events-none opacity-60" : ""}`}
-            >
-              <input
-                ref={fileRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
-                disabled={step === "extracting"}
-              />
-              {file ? (
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-4xl">📄</span>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{file.name}</p>
-                  <p className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
-                  {step !== "extracting" && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setFile(null); if (fileRef.current) fileRef.current.value = ""; }}
-                      className="text-xs text-red-500 font-bold mt-1 hover:underline"
+        <>
+          {/* Step indicator */}
+          <div className="flex items-center gap-2 mb-8">
+            {(["upload", "preview", "done"] as const).map((s, i) => {
+              const labels = ["Upload & Extract", "Review Structure", "Complete"];
+              const active = step === s || (step === "extracting" && s === "upload") || (step === "saving" && s === "preview");
+              const completed =
+                (s === "upload" && ["preview", "saving", "done"].includes(step)) ||
+                (s === "preview" && step === "done");
+              return (
+                <div key={s} className="flex items-center gap-2">
+                  {i > 0 && <div className={`w-8 h-0.5 ${completed ? "bg-violet-500" : "bg-slate-200 dark:bg-slate-700"}`} />}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${completed
+                        ? "bg-violet-500 text-white"
+                        : active
+                          ? "bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 ring-2 ring-violet-400"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                        }`}
                     >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-4xl opacity-40">📤</span>
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Click to select a PDF file</p>
-                  <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 150 MB)</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Extract button */}
-          <button
-            onClick={handleExtract}
-            disabled={!file || step === "extracting"}
-            className="w-full py-4 rounded-2xl font-extrabold text-white text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: step === "extracting" ? "#7c3aed" : `linear-gradient(135deg, #7c3aed, #6366f1)` }}
-          >
-            {step === "extracting" ? (
-              <span className="flex items-center justify-center gap-3">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                AI is extracting syllabus structure...
-              </span>
-            ) : (
-              "Extract Syllabus with AI"
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* ───── STEP 2: Preview ───── */}
-      {(step === "preview" || step === "saving") && preview && (
-        <div className="space-y-6">
-          {/* Summary bar */}
-          <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{preview.icon}</span>
-              <div>
-                <h3 className="font-black text-lg text-slate-800 dark:text-white">{preview.subjectName}</h3>
-                <p className="text-xs text-slate-500 font-semibold">
-                  Class {preview.className}
-                  {preview.language ? ` | ${preview.language}` : ""}
-                  {preview.pdfPages ? ` | ${preview.pdfPages} pages` : ""}
-                </p>
-              </div>
-            </div>
-            <div className="ml-auto flex items-center gap-3">
-              <StatBadge label="Units" value={preview.totalUnits} bg="bg-violet-100 dark:bg-violet-950/40" text="text-violet-700 dark:text-violet-300" />
-              <StatBadge label="Lessons" value={preview.totalTopics} bg="bg-emerald-100 dark:bg-emerald-950/40" text="text-emerald-700 dark:text-emerald-300" />
-            </div>
-          </div>
-
-          {/* Unit list */}
-          <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                Extracted Units — Review Before Saving
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">Each unit below becomes one visual card on the Syllabus Board.</p>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {preview.units.map((unit) => (
-                <div key={unit.unitNumber} className="px-6 py-4">
-                  <div className="flex items-start gap-3 mb-2">
-                    <span
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-black text-white flex-shrink-0"
-                      style={{ background: preview.color }}
-                    >
-                      {unit.unitNumber}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-lg leading-none">{unit.emoji}</span>
-                        <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">{unit.primaryTitle}</h4>
-                        {unit.secondaryTitle && (
-                          <span className="text-xs italic text-slate-400">{unit.secondaryTitle}</span>
-                        )}
-                      </div>
-                      {unit.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{unit.description}</p>
-                      )}
-                      {unit.tip && (
-                        <p className="text-[11px] font-semibold mt-1" style={{ color: preview.color }}>💡 {unit.tip}</p>
-                      )}
+                      {completed ? "✓" : i + 1}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase flex-shrink-0">
-                      {unit.lessons.length} lesson{unit.lessons.length !== 1 ? "s" : ""}
+                    <span className={`text-xs font-bold ${active || completed ? "text-slate-700 dark:text-slate-200" : "text-slate-400"}`}>
+                      {labels[i]}
                     </span>
                   </div>
-                  {unit.lessons.length > 0 && (
-                    <div className="ml-12 flex flex-wrap gap-1.5">
-                      {unit.lessons.map((lesson, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700"
-                          title={lesson.nameEnglish}
-                        >
-                          {lesson.name}
-                        </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Error banner */}
+          {error && (
+            <div className="mb-6 px-5 py-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-semibold flex items-start gap-3">
+              <span className="text-lg flex-shrink-0">⚠️</span>
+              <div>
+                <p>{error}</p>
+                <button onClick={() => setError(null)} className="text-xs mt-1 underline opacity-70 hover:opacity-100">Dismiss</button>
+              </div>
+            </div>
+          )}
+
+          {/* ───── STEP 1: Upload ───── */}
+          {(step === "upload" || step === "extracting") && (
+            <div className="space-y-6">
+              {/* Class + Subject row */}
+              <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 space-y-5">
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">1. Select Class & Subject</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Class</label>
+                    <select
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      className="w-full px-4 py-3 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 font-extrabold rounded-xl border border-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                      disabled={step === "extracting"}
+                    >
+                      {CLASS_OPTIONS.map((c) => (
+                        <option key={c} value={c}>{c}th Standard</option>
                       ))}
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
+                      Subject Name <span className="text-slate-400 font-normal">(optional — AI will detect from PDF)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={subjectName}
+                      onChange={(e) => {
+                        setSubjectName(e.target.value);
+                        applyPreset(e.target.value);
+                      }}
+                      placeholder="e.g. Mathematics, Science, Tamil..."
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-violet-400"
+                      disabled={step === "extracting"}
+                      list="subject-presets"
+                    />
+                    <datalist id="subject-presets">
+                      {Object.keys(SUBJECT_PRESETS).map((n) => <option key={n} value={n} />)}
+                    </datalist>
+                  </div>
+                </div>
+
+                {/* Icon + Color */}
+                <div className="flex items-center gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Icon</label>
+                    <input
+                      type="text"
+                      value={icon}
+                      onChange={(e) => setIcon(e.target.value)}
+                      className="w-16 px-3 py-3 text-center text-xl rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                      disabled={step === "extracting"}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="w-10 h-10 rounded-lg border-0 cursor-pointer"
+                        disabled={step === "extracting"}
+                      />
+                      <span className="text-xs font-mono text-slate-400">{color}</span>
+                    </div>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <span className="text-xl">{icon}</span>
+                    <span className="font-bold text-sm" style={{ color }}>{subjectName || "Subject"}</span>
+                    <span className="text-xs text-slate-400 font-semibold">Class {selectedClass}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* PDF Upload */}
+              <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 space-y-5">
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">2. Upload Textbook PDF</h3>
+
+                <div
+                  onClick={() => step !== "extracting" && fileRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer ${file
+                    ? "border-violet-400 bg-violet-50/50 dark:bg-violet-950/20"
+                    : "border-slate-300 dark:border-slate-700 hover:border-violet-400 hover:bg-violet-50/30 dark:hover:bg-violet-950/10"
+                    } ${step === "extracting" ? "pointer-events-none opacity-60" : ""}`}
+                >
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    disabled={step === "extracting"}
+                  />
+                  {file ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-4xl">📄</span>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{file.name}</p>
+                      <p className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                      {step !== "extracting" && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setFile(null); if (fileRef.current) fileRef.current.value = ""; }}
+                          className="text-xs text-red-500 font-bold mt-1 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-4xl opacity-40">📤</span>
+                      <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Click to select a PDF file</p>
+                      <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 150 MB)</p>
                     </div>
                   )}
                 </div>
-              ))}
+              </div>
+
+              {/* Extract button */}
+              <button
+                onClick={handleExtract}
+                disabled={!file || step === "extracting"}
+                className="w-full py-4 rounded-2xl font-extrabold text-white text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: step === "extracting" ? "#7c3aed" : `linear-gradient(135deg, #7c3aed, #6366f1)` }}
+              >
+                {step === "extracting" ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    AI is extracting syllabus structure...
+                  </span>
+                ) : (
+                  "Extract Syllabus with AI"
+                )}
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => { setStep("upload"); setPreview(null); }}
-              disabled={step === "saving"}
-              className="px-6 py-3.5 rounded-2xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-40"
-            >
-              Back to Upload
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={step === "saving"}
-              className="flex-1 py-3.5 rounded-2xl font-extrabold text-white text-sm uppercase tracking-wider transition-all disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
-            >
-              {step === "saving" ? (
-                <span className="flex items-center justify-center gap-3">
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving to database...
-                </span>
-              ) : (
-                `Confirm & Save ${preview.totalUnits} Units to Database`
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+          {/* ───── STEP 2: Preview ───── */}
+          {(step === "preview" || step === "saving") && preview && (
+            <div className="space-y-6">
+              {/* Summary bar */}
+              <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{preview.icon}</span>
+                  <div>
+                    <h3 className="font-black text-lg text-slate-800 dark:text-white">{preview.subjectName}</h3>
+                    <p className="text-xs text-slate-500 font-semibold">
+                      Class {preview.className}
+                      {preview.language ? ` | ${preview.language}` : ""}
+                      {preview.pdfPages ? ` | ${preview.pdfPages} pages` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="ml-auto flex items-center gap-3">
+                  <StatBadge label="Units" value={preview.totalUnits} bg="bg-violet-100 dark:bg-violet-950/40" text="text-violet-700 dark:text-violet-300" />
+                  <StatBadge label="Lessons" value={preview.totalTopics} bg="bg-emerald-100 dark:bg-emerald-950/40" text="text-emerald-700 dark:text-emerald-300" />
+                </div>
+              </div>
 
-      {/* ───── STEP 3: Done ───── */}
-      {step === "done" && saveResult && (
-        <div className="glass rounded-3xl p-10 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-center space-y-5">
-          <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center">
-            <span className="text-4xl">✅</span>
-          </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white">Syllabus Saved Successfully!</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            <strong>{saveResult.subject.name}</strong> for Class {saveResult.subject.class} now has{" "}
-            <strong>{saveResult.totalUnits} units</strong> and <strong>{saveResult.totalTopics} topics</strong> in the system.
-          </p>
-          <p className="text-xs text-slate-400">
-            Teachers can now generate AI lesson insights and publish units to students via the Syllabus Board.
-          </p>
-          <div className="flex items-center justify-center gap-3 pt-4">
-            <button
-              onClick={handleReset}
-              className="px-6 py-3 rounded-2xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-            >
-              Upload Another PDF
-            </button>
-            <a
-              href="/super-admin/academics"
-              className="px-6 py-3 rounded-2xl font-extrabold text-sm text-white transition-all"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #6366f1)" }}
-            >
-              Go to Academics Hub
-            </a>
-          </div>
-        </div>
-      )}
-      </>
+              {/* Unit list */}
+              <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                    Extracted Units — Review Before Saving
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">Each unit below becomes one visual card on the Syllabus Board.</p>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {preview.units.map((unit) => (
+                    <div key={unit.unitNumber} className="px-6 py-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <span
+                          className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-black text-white flex-shrink-0"
+                          style={{ background: preview.color }}
+                        >
+                          {unit.unitNumber}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-lg leading-none">{unit.emoji}</span>
+                            <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">{unit.primaryTitle}</h4>
+                            {unit.secondaryTitle && (
+                              <span className="text-xs italic text-slate-400">{unit.secondaryTitle}</span>
+                            )}
+                          </div>
+                          {unit.description && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{unit.description}</p>
+                          )}
+                          {unit.tip && (
+                            <p className="text-[11px] font-semibold mt-1" style={{ color: preview.color }}>💡 {unit.tip}</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase flex-shrink-0">
+                          {unit.lessons.length} lesson{unit.lessons.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      {unit.lessons.length > 0 && (
+                        <div className="ml-12 flex flex-wrap gap-1.5">
+                          {unit.lessons.map((lesson, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700"
+                              title={lesson.nameEnglish}
+                            >
+                              {lesson.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setStep("upload"); setPreview(null); }}
+                  disabled={step === "saving"}
+                  className="px-6 py-3.5 rounded-2xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-40"
+                >
+                  Back to Upload
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={step === "saving"}
+                  className="flex-1 py-3.5 rounded-2xl font-extrabold text-white text-sm uppercase tracking-wider transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                >
+                  {step === "saving" ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving to database...
+                    </span>
+                  ) : (
+                    `Confirm & Save ${preview.totalUnits} Units to Database`
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ───── STEP 3: Done ───── */}
+          {step === "done" && saveResult && (
+            <div className="glass rounded-3xl p-10 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-center space-y-5">
+              <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center">
+                <span className="text-4xl">✅</span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-800 dark:text-white">Syllabus Saved Successfully!</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                <strong>{saveResult.subject.name}</strong> for Class {saveResult.subject.class} now has{" "}
+                <strong>{saveResult.totalUnits} units</strong> and <strong>{saveResult.totalTopics} topics</strong> in the system.
+              </p>
+              <p className="text-xs text-slate-400">
+                Teachers can now generate AI lesson insights and publish units to students via the Syllabus Board.
+              </p>
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <button
+                  onClick={handleReset}
+                  className="px-6 py-3 rounded-2xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                >
+                  Upload Another PDF
+                </button>
+                <a
+                  href="/super-admin/academics"
+                  className="px-6 py-3 rounded-2xl font-extrabold text-sm text-white transition-all"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #6366f1)" }}
+                >
+                  Go to Academics Hub
+                </a>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </PortalLayout>
   );
