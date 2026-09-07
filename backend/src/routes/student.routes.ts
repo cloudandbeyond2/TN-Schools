@@ -395,10 +395,18 @@ router.post('/marks/bulk', async (req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { schoolId, class: cls, section, userId } = req.query;
+    const classFilter = cls ? {
+      in: Array.from(new Set([
+        String(cls).trim(),
+        `Class ${String(cls).replace(/^Class\s+/i, '').trim()}`,
+        String(cls).replace(/^Class\s+/i, '').trim()
+      ]))
+    } : undefined;
+
     const students = await prisma.student.findMany({
       where: {
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
-        ...(cls ? { class: String(cls) } : {}),
+        ...(classFilter ? { class: classFilter } : {}),
         ...(section ? { section: String(section) } : {}),
         ...(userId ? { userId: String(userId) } : {}),
       },

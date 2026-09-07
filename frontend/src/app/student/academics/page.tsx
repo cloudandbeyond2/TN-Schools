@@ -2,19 +2,40 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
+import { HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
+import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIcon } from "react-icons/fi";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
    so every icon on this page is a `fi fi-rr-*` class.
 ──────────────────────────────────────────────────────────── */
-const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
-  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
+const Fi = ({ name, className = "", style = {} }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
+
+/* ────────────────────────────────────────────────────────────
+   RenderIcon helper — supports both Flaticon glyph keys ("comment-alt", "flask") and Emojis ("📖", "🧪")
+──────────────────────────────────────────────────────────── */
+const RenderIcon = ({ icon, className = "text-xl" }: { icon?: string; className?: string }) => {
+  if (!icon) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} />;
+
+  const str = String(icon).trim();
+
+  // If string consists of icon name keys like "comment-alt", "calculator", "flask", "book-alt"
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} />;
+  }
+
+  // Otherwise it's an emoji character string like "📖", "🧪", "📐", "🪔"
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`}>{str}</span>;
+};
 
 /* ────────────────────────────────────────────────────────────
    Types
@@ -109,6 +130,14 @@ const TYPE_COLORS: Record<Resource["type"], string> = {
 
 const BOOKMARK_KEY = "academics-bookmarks";
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
 /* ────────────────────────────────────────────────────────────
    Page component
 ──────────────────────────────────────────────────────────── */
@@ -118,6 +147,7 @@ export default function AcademicsHubPage() {
   const CATEGORIES = useMemo(() => getCategories(lang), [lang]);
 
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [showSavedOnly, setShowSavedOnly] = useState(false);
@@ -144,6 +174,47 @@ export default function AcademicsHubPage() {
   const [syllabusData, setSyllabusData] = useState<Record<string, SyllabusUnit[]>>({});
   const [loading, setLoading] = useState(true);
 
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, dbSubjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
+
   const studentId = String((session?.user as any)?.id || "");
 
   useEffect(() => {
@@ -152,51 +223,54 @@ export default function AcademicsHubPage() {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const schoolQuery = studentSchoolId ? `&schoolId=${encodeURIComponent(studentSchoolId)}` : "";
+        const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
         
-        // 1. Fetch Subjects for this class & school
-        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active${schoolQuery}`);
+        // 1. Fetch Subjects for this class & school & board
+        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active${schoolQuery}${boardQuery}`);
         const subjectsJson = await subjectsRes.json();
         
-        // 2. Fetch Resources for this class & school
-        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active${schoolQuery}`);
+        // 2. Fetch Resources for this class & school & board
+        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active${schoolQuery}${boardQuery}`);
         const resourcesJson = await resourcesRes.json();
 
         const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
         if (Array.isArray(resourcesJson)) {
+          const seenSyllabus = new Set<string>();
           resourcesJson.forEach((res: any) => {
             const catLower = (res.category || "").toLowerCase();
             if (catLower === "syllabus") {
               const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
-              if (!fetchedSyllabus[subName]) {
-                fetchedSyllabus[subName] = [];
+              const chTitle = res.topicName || res.title || "";
+              const chNum = res.chapterNumber || res.chapter || "Unit";
+              const sKey = `${subName.toLowerCase()}_${chNum}_${chTitle.toLowerCase()}`;
+              if (!seenSyllabus.has(sKey)) {
+                seenSyllabus.add(sKey);
+                if (!fetchedSyllabus[subName]) {
+                  fetchedSyllabus[subName] = [];
+                }
+                
+                fetchedSyllabus[subName].push({
+                  unit: res.chapterNumber || res.chapter || `Unit ${fetchedSyllabus[subName].length + 1}`,
+                  title: res.topicName || res.title,
+                  topics: res.description ? [res.description] : ["Curriculum details"],
+                  status: "in-progress",
+                  term: res.term || "Term 1",
+                  url: res.url
+                });
               }
-              
-              fetchedSyllabus[subName].push({
-                unit: res.chapterNumber || res.chapter || `Unit ${fetchedSyllabus[subName].length + 1}`,
-                title: res.topicName || res.title,
-                topics: res.description ? [res.description] : ["Curriculum details"],
-                status: "in-progress",
-                term: res.term || "Term 1",
-                url: res.url
-              });
             }
           });
         }
         
-        const userStream = (session?.user as any)?.stream || (session?.user as any)?.group || studentGroup;
-        const expectedGroupSubs = getGroupSubjectsForClass(classNum, userStream);
-        const allowedSubNames = new Set(expectedGroupSubs.map((s) => s.name.toLowerCase()));
-
         if (Array.isArray(subjectsJson)) {
           const fetchedSubjects: SubjectInfo[] = [];
 
           subjectsJson.forEach((sub: any) => {
             const subName = sub.name;
-            if (allowedSubNames.has(subName.toLowerCase())) {
-              const expMatch = expectedGroupSubs.find((e) => e.name.toLowerCase() === subName.toLowerCase());
-              const color = sub.color || expMatch?.color || "#64748b";
+            if (subName && !fetchedSubjects.some((s) => s.name.toLowerCase() === subName.toLowerCase())) {
+              const color = sub.color || "#6366f1";
               const gradient = `from-[${color}] to-slate-600`;
-              const icon = sub.icon || expMatch?.icon || "📚";
+              const icon = sub.icon || "📚";
               const unitsCount = fetchedSyllabus[subName]?.length || 0;
 
               fetchedSubjects.push({
@@ -204,25 +278,9 @@ export default function AcademicsHubPage() {
                 color,
                 gradient,
                 icon,
-                teacher: "Class Teacher",
+                teacher: sub.teacher?.name || sub.teacherName || "Class Teacher",
                 progress: 0,
                 units: unitsCount,
-                unitsDone: 0,
-              });
-            }
-          });
-
-          // Ensure all expected group subjects exist for this student's group
-          expectedGroupSubs.forEach((exp) => {
-            if (!fetchedSubjects.some((s) => s.name.toLowerCase() === exp.name.toLowerCase())) {
-              fetchedSubjects.push({
-                name: exp.name,
-                color: exp.color,
-                gradient: `from-[${exp.color}] to-slate-600`,
-                icon: exp.icon,
-                teacher: "Class Teacher",
-                progress: 0,
-                units: fetchedSyllabus[exp.name]?.length || 0,
                 unitsDone: 0,
               });
             }
@@ -233,11 +291,16 @@ export default function AcademicsHubPage() {
         }
 
         if (Array.isArray(resourcesJson)) {
-          const fetchedResources: Resource[] = resourcesJson
-            .map((res: any) => {
+          const seenResourceKeys = new Set<string>();
+          const fetchedResources: Resource[] = [];
+          
+          resourcesJson.forEach((res: any) => {
+            const key = res.id || `${res.title}_${res.category}_${res.url}`;
+            if (!seenResourceKeys.has(key)) {
+              seenResourceKeys.add(key);
               const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
               const catLower = (res.category || "").toLowerCase();
-              return {
+              fetchedResources.push({
                 id: res.id,
                 title: res.title,
                 subject: subName,
@@ -249,8 +312,9 @@ export default function AcademicsHubPage() {
                 addedBy: res.addedBy || "Admin",
                 isNew: res.isNew || false,
                 popular: res.popular || false,
-              };
-            });
+              });
+            }
+          });
           setResources(fetchedResources);
         }
       } catch (err) {
@@ -264,12 +328,18 @@ export default function AcademicsHubPage() {
     if (classNum && classNum > 0 && status === "authenticated") {
       fetchData();
     }
-  }, [classNum, studentId, status]);
+  }, [classNum, studentId, status, selectedBoard]);
 
-  // Return database-fetched subjects for this student's class
+  // Return database-fetched subjects for this student's class (filtered by stream/group for Classes 11 & 12)
   const subjects = useMemo<SubjectInfo[]>(() => {
+    if (isHigherSecondary && studentGroup) {
+      const allowedHs = getGroupSubjectsForClass(classNum, studentGroup);
+      const allowedSet = new Set(allowedHs.map((s) => s.name.toLowerCase()));
+      const filtered = dbSubjects.filter((s) => allowedSet.has(s.name.toLowerCase()));
+      if (filtered.length > 0) return filtered;
+    }
     return dbSubjects;
-  }, [dbSubjects]);
+  }, [dbSubjects, isHigherSecondary, studentGroup, classNum]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -427,7 +497,7 @@ export default function AcademicsHubPage() {
         className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
         style={{ backgroundColor: `${t.color}1a`, color: t.color }}
       >
-        {t.icon} {name}
+        <RenderIcon icon={t.icon} className="text-xs mr-0.5" /> {name}
       </span>
     );
   };
@@ -522,7 +592,9 @@ export default function AcademicsHubPage() {
           ) : (
             <>
               <span className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-              <span className="text-4xl opacity-40 absolute left-4 bottom-3">{t.icon}</span>
+              <span className="text-4xl opacity-40 absolute left-4 bottom-3 flex items-center justify-center">
+                <RenderIcon icon={t.icon} className="text-4xl" />
+              </span>
             </>
           )}
           <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg z-10">
@@ -602,34 +674,65 @@ export default function AcademicsHubPage() {
       themeClass="theme-student"
     >
       {/* ── Hero banner ─────────────────────────────────── */}
-      <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+      <div className="hero-band relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <span
                 className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center"
-                style={{ color: "#fff" }}
+                style={{ color: "#ffffff" }}
               >
-                <Fi name="graduation-cap" className="text-xl" />
+                <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
               </span>
               <span
-                className="text-[11px] font-black uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.85)" }}
+                className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20"
+                style={{ color: "#ffffff" }}
               >
-                {lang === "தமிழ்" ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநிலப் பாடத்திட்டம்` : `Class ${studentClass} · Tamil Nadu State Board`}
+                {lang === "தமிழ்" ? `வகுப்பு ${studentClass}` : `Class ${studentClass}`}
                 {isHigherSecondary ? ` · ${HS_GROUP_LABELS[studentGroup]}` : ""}
               </span>
+              <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
+              </span>
             </div>
-            <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
+            <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
               {lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள் மையம்" : "Academics & Subjects Hub"}
             </div>
-            <p className="text-sm max-w-xl" style={{ color: "rgba(255,255,255,0.9)" }}>
-              {lang === "தமிழ்"
-                ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
-                : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place."}
+            <p className="text-sm max-w-xl mb-4" style={{ color: "rgba(255,255,255,0.95)" }}>
+              {selectedBoard === "CBSE"
+                ? (lang === "தமிழ்" ? "CBSE பாடத்திட்டம், NCERT பாடப்புத்தகங்கள், AISSE/AISSCE மாதிரித் தேர்வுகள் மற்றும் ஆசிரியர் குறிப்புகளை அணுகவும்." : "Explore CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, formulas & revision notes.")
+                : (lang === "தமிழ்"
+                  ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
+                  : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place.")}
             </p>
+
+            {/* Board Selector Quick Switcher Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                <span style={{ color: "#ffffff" }}>Board:</span>
+              </span>
+              {SCHOOL_BOARDS.map(b => {
+                const isActive = selectedBoard === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedBoard(b.id)}
+                    style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                      ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                      : "hover:bg-white/30 border border-white/25 !text-white"
+                      }`}
+                  >
+                    <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                    <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             {[
@@ -653,73 +756,79 @@ export default function AcademicsHubPage() {
         </div>
       </div>
 
-      {/* ── Subject filter rail ─────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1 scrollbar-thin">
-        <button
-          onClick={() => setSelectedSubject("All")}
-          className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-            selectedSubject === "All"
-              ? "bg-indigo-600 border-indigo-600 shadow-md"
-              : "glass border-[var(--border)] text-[var(--text-main)] hover:border-indigo-400"
-          }`}
-          style={selectedSubject === "All" ? { color: "#fff" } : undefined}
-        >
-          <Fi name="apps" className="text-sm" /> {lang === "தமிழ்" ? "அனைத்து பாடங்களும்" : "All Subjects"}
-        </button>
-        {subjects.map((s) => {
-          const active = selectedSubject === s.name;
-          return (
-            <button
-              key={s.name}
-              onClick={() => setSelectedSubject(active ? "All" : s.name)}
-              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                active ? "shadow-md" : "glass text-[var(--text-main)] hover:shadow"
-              }`}
-              style={
-                active
-                  ? { backgroundColor: s.color, borderColor: s.color, color: "#fff" }
-                  : { borderColor: `${s.color}55` }
-              }
-            >
-              <span>{s.icon}</span> {s.name}
-            </button>
-          );
-        })}
-      </div>
 
-      {/* ── Category tabs ───────────────────────────────── */}
-      <div className="glass rounded-2xl border border-[var(--border)] p-1.5 mb-5 flex gap-1 overflow-x-auto scrollbar-thin">
-        {CATEGORIES.map((c) => {
-          const active = activeTab === c.key;
-          const count =
-            c.key === "overview" || c.key === "subjects" || c.key === "syllabus"
-              ? null
-              : countByCategory(c.key);
-          return (
+
+      {/* ── Category tabs with Arrow Navigation ─────────── */}
+      <div className="relative flex items-center group mb-5">
+        {/* Left Arrow Mark */}
+        {canScrollLeft && (
+          <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-l-2xl pointer-events-none">
             <button
-              key={c.key}
-              onClick={() => setActiveTab(c.key)}
-              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                active
-                  ? `bg-gradient-to-br ${c.gradient} shadow-md text-white`
-                  : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-              }`}
-              style={active ? { color: "#fff" } : undefined}
+              onClick={() => scrollTabs("left")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll left"
+              title="Previous tabs"
             >
-              <Fi name={c.icon} className="text-sm" />
-              {c.label}
-              {count !== null && (
-                <span
-                  className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                    active ? "bg-white/25" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
+              <FiChevronLeftIcon className="text-sm" />
             </button>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Scrollable Tabs */}
+        <div
+          ref={tabsContainerRef}
+          onScroll={checkScroll}
+          className="w-full glass rounded-2xl border border-[var(--border)] p-1.5 flex gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
+        >
+          {CATEGORIES.map((c) => {
+            const active = activeTab === c.key;
+            const count =
+              c.key === "overview" || c.key === "subjects" || c.key === "syllabus"
+                ? null
+                : countByCategory(c.key);
+            return (
+              <button
+                key={c.key}
+                onClick={() => setActiveTab(c.key)}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none whitespace-nowrap ${
+                  active
+                    ? `bg-gradient-to-br ${c.gradient} shadow-md text-white scale-[1.02]`
+                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                }`}
+                style={active ? { color: "#fff" } : undefined}
+                title={c.label}
+              >
+                <Fi name={c.icon} className="text-sm shrink-0" />
+                <span>{c.label}</span>
+                {count !== null && (
+                  <span
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${
+                      active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Arrow Mark */}
+        {canScrollRight && (
+          <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-[var(--bg-card,#ffffff)] via-[var(--bg-card,#ffffff)]/95 to-transparent rounded-r-2xl pointer-events-none">
+            <button
+              onClick={() => scrollTabs("right")}
+              type="button"
+              className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label="Scroll right"
+              title="Next tabs"
+            >
+              <FiChevronRightIcon className="text-sm" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Toolbar (search + saved filter) ─────────────── */}
@@ -883,9 +992,9 @@ export default function AcademicsHubPage() {
                 />
                 <div className="flex justify-between items-start mb-4 relative z-10">
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform`}
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform text-white`}
                   >
-                    {s.icon}
+                    <RenderIcon icon={s.icon} className="text-2xl" />
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-black text-[var(--text-heading)]">{s.progress}%</span>
@@ -946,7 +1055,7 @@ export default function AcademicsHubPage() {
 
       {/* ══ SYLLABUS TAB ═════════════════════════════════ */}
       {activeTab === "syllabus" && (() => {
-        const activeSubName = selectedSubject === "All" ? (subjects[0]?.name || "Accountancy") : selectedSubject;
+        const activeSubName = selectedSubject === "All" ? (subjects[0]?.name || "Tamil") : selectedSubject;
         const currentSubjectInfo = subjects.find(s => s.name.toLowerCase() === activeSubName.toLowerCase()) || subjects[0];
         const activeChapters = syllabusData[activeSubName] || [];
 
@@ -969,14 +1078,20 @@ export default function AcademicsHubPage() {
                       onClick={() => setSelectedSubject(sub.name)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
                         isSelected
-                          ? "bg-amber-50/80 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                          ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl shrink-0">{sub.icon}</span>
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                          isSelected
+                            ? "bg-amber-100/90 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50 text-amber-900 dark:text-amber-200"
+                            : "bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700"
+                        }`}>
+                          <RenderIcon icon={sub.icon} className="text-lg" />
+                        </div>
                         <div>
-                          <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                          <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                             {sub.name}
                           </h4>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
@@ -996,7 +1111,9 @@ export default function AcademicsHubPage() {
                 {/* Header Bar */}
                 <div className="pb-5 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-2xl">{currentSubjectInfo?.icon || "📚"}</span>
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                      <RenderIcon icon={currentSubjectInfo?.icon || "📚"} className="text-xl" />
+                    </div>
                     <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">
                       {activeSubName} — Class {studentClass}
                     </h3>
@@ -1149,8 +1266,8 @@ export default function AcademicsHubPage() {
                   background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color || '#64748b'}, #475569)`
                 }}
               >
-                <span className="text-6xl opacity-30 absolute left-6 bottom-3">
-                  {subjectTheme(previewResource.subject).icon}
+                <span className="text-6xl opacity-30 absolute left-6 bottom-3 flex items-center justify-center">
+                  <RenderIcon icon={subjectTheme(previewResource.subject).icon} className="text-6xl text-white" />
                 </span>
                 <span
                   className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"

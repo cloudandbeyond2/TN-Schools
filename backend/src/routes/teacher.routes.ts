@@ -485,13 +485,19 @@ router.get('/homework/:id/submissions', async (req: Request, res: Response) => {
 router.put('/homework/submissions/:subId', async (req: Request, res: Response) => {
   try {
     const { score, status, feedback } = req.body;
+    const existing = await prisma.homeworkSubmission.findUnique({ where: { id: req.params.subId } });
+    
+    // Preserve existing date if already set, otherwise record timestamp when graded/submitted
+    const currentDate = 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const finalDate = (existing?.date && existing.date !== '—') ? existing.date : currentDate;
+
     const submission = await prisma.homeworkSubmission.update({
       where: { id: req.params.subId },
       data: {
         score,
-        status,
+        status: status || 'graded',
         feedback,
-        date: status === 'submitted' ? 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
+        date: finalDate,
       },
     });
     res.json({ success: true, data: submission });

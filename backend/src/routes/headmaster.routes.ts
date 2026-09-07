@@ -3,6 +3,8 @@ import { prisma } from '../config/prisma';
 import { hashPassword } from '../utils/password';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -1226,9 +1228,6 @@ router.delete('/alumni/:id', async (req: Request, res: Response) => {
 });
 
 // ─── PTA Meeting Endpoints (Headmaster creates, parents view) ─────
-
-import fs from 'fs';
-import path from 'path';
 
 const RSVPS_FILE = path.join(__dirname, '../../data/pta_rsvps.json');
 
@@ -2829,6 +2828,48 @@ router.get('/mdm/block-overview', async (req: Request, res: Response) => {
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
+});
+
+// ── SCHEME ALLOCATIONS & BENEFICIARIES ──────────────────────────────────────
+const SCHEME_ALLOCATIONS_FILE = path.join(__dirname, '../../data/scheme_allocations.json');
+
+function getSchemeAllocationsData() {
+  try {
+    if (fs.existsSync(SCHEME_ALLOCATIONS_FILE)) {
+      const content = fs.readFileSync(SCHEME_ALLOCATIONS_FILE, 'utf-8');
+      return JSON.parse(content);
+    }
+  } catch (e) {
+    console.error('Error reading scheme_allocations.json:', e);
+  }
+  return { allocations: {}, beneficiaries: [] };
+}
+
+function saveSchemeAllocationsData(data: any) {
+  try {
+    const dir = path.dirname(SCHEME_ALLOCATIONS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SCHEME_ALLOCATIONS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error writing scheme_allocations.json:', e);
+  }
+}
+
+router.get('/schemes/allocations', (_req: Request, res: Response) => {
+  const data = getSchemeAllocationsData();
+  res.json({ success: true, data });
+});
+
+router.post('/schemes/allocations', (req: Request, res: Response) => {
+  const { allocations, beneficiaries } = req.body;
+  const current = getSchemeAllocationsData();
+  const updated = {
+    allocations: allocations !== undefined ? allocations : current.allocations,
+    beneficiaries: beneficiaries !== undefined ? beneficiaries : current.beneficiaries,
+    updatedAt: new Date().toISOString()
+  };
+  saveSchemeAllocationsData(updated);
+  res.json({ success: true, data: updated });
 });
 
 export default router;

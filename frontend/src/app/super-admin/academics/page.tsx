@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import {
   FiEdit2 as FiEditIcon,
@@ -10,7 +10,9 @@ import {
   FiSearch as FiSearchIcon,
   FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
-  FiExternalLink as FiExternalLinkIcon
+  FiExternalLink as FiExternalLinkIcon,
+  FiChevronLeft as FiChevronLeftIcon,
+  FiChevronRight as FiChevronRightIcon
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
@@ -44,7 +46,7 @@ const getYouTubeEmbedUrl = (url?: string) => {
     if (match && match[2].length === 11) {
       return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
     }
-  } catch {}
+  } catch { }
   return url;
 };
 
@@ -66,21 +68,33 @@ const SYLLABUS_CLASSES = [
   { id: "12", name: "Class 12", badge: "HSC" },
 ];
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
+
 const getSubjectIcon = (name: string) => {
-  if (!name) return "📚";
+  if (!name) return "📙";
   const n = name.toLowerCase();
   if (n.includes("tamil")) return "📜";
+  if (n.includes("hindi")) return "📖";
   if (n.includes("english")) return "🗣️";
   if (n.includes("math")) return "📐";
-  if (n.includes("science") && !n.includes("social")) return "🔬";
-  if (n.includes("social")) return "🌍";
-  if (n.includes("physics")) return "⚡";
+  if (n.includes("physic")) return "⚡";
   if (n.includes("chem")) return "🧪";
-  if (n.includes("bio")) return "🧬";
-  if (n.includes("computer")) return "💻";
-  if (n.includes("commerce") || n.includes("account")) return "💼";
+  if (n.includes("botany")) return "🌿";
+  if (n.includes("zoology") || n.includes("bio")) return "🧬";
+  if (n.includes("science") && !n.includes("social")) return "🔬";
+  if (n.includes("social") || n.includes("geograph") || n.includes("history")) return "🌍";
+  if (n.includes("computer") || n.includes("tech") || n.includes("it") || n.includes("ai")) return "💻";
+  if (n.includes("commerce") || n.includes("account") || n.includes("business")) return "💼";
   if (n.includes("economic")) return "📈";
-  return "📚";
+  if (n.includes("art") || n.includes("craft")) return "🎨";
+  return "📙";
 };
 
 interface Subject {
@@ -93,6 +107,7 @@ interface Subject {
   subjectCode?: string;
   medium?: string;
   description?: string;
+  board?: string;
   status?: string;
 }
 
@@ -128,6 +143,7 @@ interface Resource {
   contentType?: string;
   author?: string;
   isbn?: string;
+  board?: string;
   status?: string;
   attachmentType?: string;
   subject?: Subject;
@@ -146,25 +162,19 @@ interface SectionItem {
 }
 
 const CATEGORIES = [
-  { key: "overview", label: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
-  { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
-  { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
-  { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
-  { key: "textbooks", label: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
-  { key: "materials", label: "Study Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
-  { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
-  { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
-  { key: "digital", label: "Digital Content", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
-  { key: "reference", label: "Reference Materials", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
+  { key: "overview", label: "Overview", shortLabel: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
+  { key: "structure", label: "Class & Structure Setup", shortLabel: "Structure", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
+  { key: "subjects", label: "Class Subjects", shortLabel: "Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
+  { key: "syllabus", label: "Syllabus", shortLabel: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
+  { key: "textbooks", label: "Textbooks", shortLabel: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
+  { key: "materials", label: "Study Materials", shortLabel: "Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
+  { key: "notes", label: "Teacher Notes", shortLabel: "Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
+  { key: "videos", label: "Video Lessons", shortLabel: "Videos", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
+  { key: "digital", label: "Digital Content", shortLabel: "Digital", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
+  { key: "reference", label: "Reference Materials", shortLabel: "Reference", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
 ];
 
 const RESOURCE_TYPES = ["PDF", "DOC", "Video", "Audio", "Interactive", "eBook", "Link"];
-
-const ALL_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
 
 const TYPE_ICONS: Record<string, string> = {
   PDF: "document",
@@ -206,6 +216,47 @@ export default function SuperadminAcademicsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, subjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
+
   // Structure Popup Modal States
   const [structureModal, setStructureModal] = useState<{
     isOpen: boolean;
@@ -242,6 +293,7 @@ export default function SuperadminAcademicsPage() {
   };
 
   // Search & Filter
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterClass, setFilterClass] = useState("");
@@ -276,7 +328,8 @@ export default function SuperadminAcademicsPage() {
     unitNo: "1",
     subunitNo: "1.1",
     title: "",
-    subtopics: ""
+    subtopics: "",
+    board: "State Board"
   });
 
   const [subchaptersList, setSubchaptersList] = useState<Array<{ no: string; title: string }>>([
@@ -292,7 +345,8 @@ export default function SuperadminAcademicsPage() {
       unitNo: nextUnit,
       subunitNo: `${nextUnit}.1`,
       title: "",
-      subtopics: ""
+      subtopics: "",
+      board: selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList([
       { no: `${nextUnit}.1`, title: "" }
@@ -307,19 +361,20 @@ export default function SuperadminAcademicsPage() {
 
     const parsedList = rawItems.length > 0
       ? rawItems.map((item: string, idx: number) => {
-          const matchNo = item.match(/^(\d+\.\d+)\s*(.*)/);
-          if (matchNo) {
-            return { no: matchNo[1], title: matchNo[2] || item };
-          }
-          return { no: `${uNo}.${idx + 1}`, title: item };
-        })
+        const matchNo = item.match(/^(\d+\.\d+)\s*(.*)/);
+        if (matchNo) {
+          return { no: matchNo[1], title: matchNo[2] || item };
+        }
+        return { no: `${uNo}.${idx + 1}`, title: item };
+      })
       : [{ no: `${uNo}.1`, title: "" }];
 
     setChapterForm({
       unitNo: uNo,
       subunitNo: ch.meta?.match(/\d+\.\d+/)?.[0] || `${uNo}.1`,
       title: ch.chapter || ch.title || "",
-      subtopics: desc
+      subtopics: desc,
+      board: ch.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
     });
     setSubchaptersList(parsedList);
     setChapterModal({ isOpen: true, editId: ch.id });
@@ -368,46 +423,30 @@ export default function SuperadminAcademicsPage() {
       }
     });
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64Image = event.target?.result as string;
-      try {
-        const res = await fetch(`${API_BASE}/parse-syllabus-ai`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: base64Image,
-            mimeType: file.type
-          })
-        });
-        
-        const json = await res.json();
-        if (!json.success || !json.data || json.data.length === 0) {
-          throw new Error(json.error || "Could not extract readable text from image. Please ensure the textbook index image is clear.");
-        }
+    try {
+      const { performOcrAndParseSyllabus } = await import("@/lib/syllabusOcrParser");
+      const { parsedUnits } = await performOcrAndParseSyllabus(file, selectedSyllabusSubject);
 
-        Swal.close();
-        setOcrPreviewModal({
-          isOpen: true,
-          units: json.data.map((u: any, idx: number) => ({
-             unitNo: String(idx + 1),
-             title: u.title,
-             subtopics: u.subtopics || []
-          }))
-        });
-      } catch (err: any) {
-        console.error(err);
-        Swal.fire({
-          icon: "error",
-          title: "AI Parsing Error",
-          text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
-        });
-      } finally {
-        setParsingSyllabus(false);
-        e.target.value = "";
+      if (!parsedUnits || parsedUnits.length === 0) {
+        throw new Error("Could not extract readable text from image. Please ensure the textbook index image is clear.");
       }
-    };
-    reader.readAsDataURL(file);
+
+      Swal.close();
+      setOcrPreviewModal({
+        isOpen: true,
+        units: parsedUnits
+      });
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "OCR Parsing Error",
+        text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
+      });
+    } finally {
+      setParsingSyllabus(false);
+      e.target.value = "";
+    }
   };
 
   const handleSaveOcrUnitsToDb = async () => {
@@ -419,7 +458,7 @@ export default function SuperadminAcademicsPage() {
 
       for (let i = 0; i < ocrPreviewModal.units.length; i++) {
         const item = ocrPreviewModal.units[i];
-        await fetch(`${API_BASE}/resources`, {
+        await authFetch(`${API_BASE}/resources`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -433,7 +472,8 @@ export default function SuperadminAcademicsPage() {
             chapterNumber: item.unitNo || String(syllabusChapters.length + i + 1),
             description: item.subtopics.join(" • ") || item.title,
             meta: "AI OCR Parsed • Auto Extracted",
-            status: "Active"
+            status: "Active",
+            board: selectedBoard === "All" ? "State Board" : selectedBoard
           })
         });
       }
@@ -484,10 +524,11 @@ export default function SuperadminAcademicsPage() {
         chapterNumber: chapterForm.unitNo || String(syllabusChapters.length + 1),
         description: formattedSubtopics || chapterForm.title.trim(),
         meta: `Subunit ${chapterForm.subunitNo || `${chapterForm.unitNo}.1`} • Active`,
-        status: "Active"
+        status: "Active",
+        board: chapterForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
 
-      const res = await fetch(endpoint, {
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -523,7 +564,13 @@ export default function SuperadminAcademicsPage() {
     if (classes.length > 0) {
       return classes.map(c => {
         const cleanVal = String(c.name).replace(/^Class\s+/i, '').trim();
-        const badgeStr = parseInt(cleanVal) >= 11 ? "HSC" : "SSLC";
+        const num = parseInt(cleanVal, 10);
+        let badgeStr = "SSLC";
+        if (selectedBoard === "CBSE") {
+          badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+        } else {
+          badgeStr = num >= 11 ? "HSC" : "SSLC";
+        }
         return {
           id: cleanVal,
           name: c.name.startsWith("Class") ? c.name : `Class ${c.name}`,
@@ -531,8 +578,15 @@ export default function SuperadminAcademicsPage() {
         };
       });
     }
-    return SYLLABUS_CLASSES;
-  }, [classes]);
+    return SYLLABUS_CLASSES.map(sc => {
+      const num = parseInt(sc.id, 10);
+      let badgeStr = sc.badge;
+      if (selectedBoard === "CBSE") {
+        badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+      }
+      return { ...sc, badge: badgeStr };
+    });
+  }, [classes, selectedBoard]);
 
   const syllabusSubjectsForClass = useMemo(() => {
     const cleanSyllabusClass = String(syllabusClass).replace(/^Class\s+/i, '').trim();
@@ -540,7 +594,9 @@ export default function SuperadminAcademicsPage() {
     const dbSubs = subjects.filter(s => {
       if (!s.class) return false;
       const cVal = String(s.class).replace(/^Class\s+/i, '').trim();
-      return cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchClass = cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
+      return matchClass && matchBoard;
     });
 
     const namesFromDb = Array.from(new Set(dbSubs.map(s => s.name).filter(Boolean)));
@@ -557,34 +613,26 @@ export default function SuperadminAcademicsPage() {
       });
     }
 
-    const defaultCore = parseInt(cleanSyllabusClass) >= 11
-      ? [
-        "Tamil", "English",
-        "Physics", "Chemistry", "Biology", "Mathematics",
-        "Computer Science",
-        "Commerce", "Accountancy", "Economics", "Computer Applications",
-        "Business Mathematics",
-        "History", "Geography", "Political Science",
-        "Basic Electrical", "Agriculture Science", "Office Management"
-      ]
-      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
+    return [];
+  }, [subjects, syllabusClass, selectedBoard]);
 
-    return defaultCore.map(name => ({
-      id: name,
-      name: name,
-      icon: getSubjectIcon(name),
-      color: "#6366f1"
-    }));
-  }, [subjects, syllabusClass]);
+  const filteredSyllabusSubjects = useMemo(() => {
+    if (!searchQuery.trim()) return syllabusSubjectsForClass;
+    const q = searchQuery.toLowerCase().trim();
+    return syllabusSubjectsForClass.filter(sub =>
+      sub.name.toLowerCase().includes(q)
+    );
+  }, [syllabusSubjectsForClass, searchQuery]);
 
   useEffect(() => {
-    if (syllabusSubjectsForClass.length > 0) {
-      const exists = syllabusSubjectsForClass.some(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
+    const activeList = filteredSyllabusSubjects;
+    if (activeList.length > 0) {
+      const exists = activeList.some(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
       if (!exists) {
-        setSelectedSyllabusSubject(syllabusSubjectsForClass[0].name);
+        setSelectedSyllabusSubject(activeList[0].name);
       }
     }
-  }, [syllabusClass, syllabusSubjectsForClass]);
+  }, [syllabusClass, filteredSyllabusSubjects]);
 
   const syllabusChapters = useMemo(() => {
     const list = resources.filter(res => {
@@ -594,17 +642,21 @@ export default function SuperadminAcademicsPage() {
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
 
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
+
       const resSub = subjects.find(s => s.id === res.subjectId);
       const subName = resSub?.name || res.title || "";
       const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
 
-      const matchSearch = syllabusSearchQuery.trim()
-        ? (res.title.toLowerCase().includes(syllabusSearchQuery.toLowerCase()) ||
-          (res.chapter && res.chapter.toLowerCase().includes(syllabusSearchQuery.toLowerCase())) ||
-          (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
+      const q = searchQuery.trim() || syllabusSearchQuery.trim();
+      const matchSearch = q
+        ? (res.title.toLowerCase().includes(q.toLowerCase()) ||
+          (res.chapter && res.chapter.toLowerCase().includes(q.toLowerCase())) ||
+          (res.topicName && res.topicName.toLowerCase().includes(q.toLowerCase())) ||
+          (res.description && res.description.toLowerCase().includes(q.toLowerCase())))
         : true;
 
-      return matchClass && matchSubject && matchSearch;
+      return matchClass && matchBoard && matchSubject && matchSearch;
     });
 
     return list.sort((a, b) => {
@@ -615,17 +667,18 @@ export default function SuperadminAcademicsPage() {
       };
       return extractNum(a) - extractNum(b);
     });
-  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, searchQuery, syllabusSearchQuery, selectedBoard]);
 
   const getSubjectStats = (subName: string) => {
     const items = resources.filter(res => {
       const isSyllabus = res.category === "syllabus";
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const resSub = subjects.find(s => s.id === res.subjectId);
       const sName = resSub?.name || "";
       const matchSub = sName.toLowerCase() === subName.toLowerCase() || res.title.toLowerCase().includes(subName.toLowerCase());
-      return isSyllabus && matchClass && matchSub;
+      return isSyllabus && matchClass && matchBoard && matchSub;
     });
 
     const total = items.length;
@@ -638,17 +691,30 @@ export default function SuperadminAcademicsPage() {
     return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
   }, [subjects, selectedSubjectNames]);
 
-  const [subjectForm, setSubjectForm] = useState({
+  const [subjectForm, setSubjectForm] = useState<{
+    name: string; color: string; icon: string; class: string; section: string;
+    subjectCode: string; medium: string; description: string; board: string; status: string;
+    topicName?: string; subtopic?: string;
+  }>({
     name: "", color: "", icon: "", class: "", section: "",
-    subjectCode: "", medium: "", description: "", status: "Active"
+    subjectCode: "", medium: "", description: "", board: "State Board", status: "Active",
+    topicName: "", subtopic: ""
   });
 
-  const [resourceForm, setResourceForm] = useState({
+  const [resourceForm, setResourceForm] = useState<{
+    title: string; subjectId: string; type: string; url: string; meta: string; description: string; addedBy: string;
+    class: string; section: string; group: string; term: string; chapterNumber: string; topicName: string;
+    learningOutcomes: string; medium: string; bookVersion: string; publisher: string; language: string;
+    coverImage: string; materialType: string; downloadAllowed: boolean; chapter: string; lessonTitle: string;
+    youtubeUrl: string; videoDuration: string; thumbnail: string; contentType: string; author: string; isbn: string;
+    board: string; status: string; attachmentType: string; subtopic?: string;
+  }>({
     title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "",
     class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
     learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
     coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "", status: "Active", attachmentType: "Link"
+    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "",
+    board: "State Board", status: "Active", attachmentType: "Link", subtopic: ""
   });
 
   useEffect(() => {
@@ -656,14 +722,14 @@ export default function SuperadminAcademicsPage() {
     fetchResources();
     fetchClasses();
     fetchSections();
-  }, []);
+  }, [selectedBoard]);
 
   const fetchClasses = async () => {
     try {
-      const res = await authFetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/classes${boardQuery}`);
       if (res.ok) {
         const data = await res.json();
-        // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
         data.sort((a: ClassItem, b: ClassItem) => {
           const numA = parseInt(a.name.replace(/\D/g, "")) || 0;
           const numB = parseInt(b.name.replace(/\D/g, "")) || 0;
@@ -678,7 +744,8 @@ export default function SuperadminAcademicsPage() {
 
   const fetchSections = async () => {
     try {
-      const res = await authFetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/sections${boardQuery}`);
       if (res.ok) setSections(await res.json());
     } catch (err) {
       console.error(err);
@@ -688,7 +755,8 @@ export default function SuperadminAcademicsPage() {
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API_BASE}/subjects?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/subjects${boardQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -700,7 +768,8 @@ export default function SuperadminAcademicsPage() {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API_BASE}/resources?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/resources${boardQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -720,11 +789,23 @@ export default function SuperadminAcademicsPage() {
       const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
       const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
       const method = isEdit ? "PUT" : "POST";
+      const boardToSave = selectedBoard === "All" ? "State Board" : selectedBoard;
 
-      const res = await fetch(endpoint, {
+      const payload: any = {
+        name: structureInput.trim(),
+        board: boardToSave,
+      };
+
+      if (structureModal.type === "subject") {
+        payload.color = "#6366f1";
+        payload.icon = getSubjectIcon(structureInput.trim());
+        payload.status = "Active";
+      }
+
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: structureInput.trim() }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -734,7 +815,7 @@ export default function SuperadminAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Updated!" : "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" (${boardToSave}) ${isEdit ? "updated" : "saved"} successfully!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -767,7 +848,7 @@ export default function SuperadminAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
         fetchClasses();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -786,7 +867,7 @@ export default function SuperadminAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
         fetchSections();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -805,11 +886,12 @@ export default function SuperadminAcademicsPage() {
       const payload = {
         ...subjectForm,
         color: subjectForm.color || "#6366f1",
-        icon: subjectForm.icon || "📚"
+        icon: subjectForm.icon || "📚",
+        board: subjectForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
 
       try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -840,9 +922,10 @@ export default function SuperadminAcademicsPage() {
             ...subjectForm,
             name: subName,
             color: matchingSub?.color || subjectForm.color || "#6366f1",
-            icon: matchingSub?.icon || subjectForm.icon || "📚"
+            icon: matchingSub?.icon || subjectForm.icon || "📚",
+            board: subjectForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
           };
-          const res = await fetch(`${API_BASE}/subjects`, {
+          const res = await authFetch(`${API_BASE}/subjects`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -873,7 +956,8 @@ export default function SuperadminAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      await authFetch(`${API_BASE}/subjects/${id}?deleteAllNamed=true${boardQuery}`, { method: "DELETE" });
       fetchSubjects();
       fetchResources();
     } catch (err) {
@@ -896,6 +980,7 @@ export default function SuperadminAcademicsPage() {
         subjectCode: sub.subjectCode || "",
         medium: sub.medium || "",
         description: sub.description || "",
+        board: sub.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: sub.status || "Active"
       });
     } else {
@@ -903,7 +988,18 @@ export default function SuperadminAcademicsPage() {
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
       setSubjectSearchQuery("");
-      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
+      setSubjectForm({
+        name: "",
+        color: "#6366f1",
+        icon: "📚",
+        class: filterClass || "",
+        section: filterSection || "",
+        subjectCode: "",
+        medium: "",
+        description: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active"
+      });
     }
     setError("");
     setShowSubjectModal(true);
@@ -920,7 +1016,10 @@ export default function SuperadminAcademicsPage() {
       const payload = {
         ...resourceForm,
         category: activeTab !== "overview" && activeTab !== "structure" && activeTab !== "subjects" ? activeTab : (resourceForm.contentType || "materials"),
-        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
+        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
+        topicName: resourceForm.topicName,
+        board: resourceForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
+        description: resourceForm.description
       };
       const res = await authFetch(url, {
         method,
@@ -973,6 +1072,7 @@ export default function SuperadminAcademicsPage() {
         lessonTitle: res.lessonTitle || "", youtubeUrl: res.youtubeUrl || "",
         videoDuration: res.videoDuration || "", thumbnail: res.thumbnail || "",
         contentType: res.contentType || "", author: res.author || "", isbn: res.isbn || "",
+        board: res.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: res.status || "Active",
         attachmentType: res.attachmentType || "Link"
       });
@@ -980,10 +1080,14 @@ export default function SuperadminAcademicsPage() {
       setEditResourceId(null);
       setResourceForm({
         title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Super Admin",
-        class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
+        class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "", status: "Active", attachmentType: "Link"
+        youtubeUrl: "", videoDuration: "", thumbnail: "",
+        contentType: ["textbooks", "materials", "notes", "videos", "digital", "reference"].includes(activeTab) ? activeTab : "materials",
+        author: "", isbn: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active", attachmentType: "Link"
       });
     }
     setError("");
@@ -993,9 +1097,10 @@ export default function SuperadminAcademicsPage() {
   // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return matchClass && matchSection;
+      return hasClass && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
@@ -1014,7 +1119,10 @@ export default function SuperadminAcademicsPage() {
   }, [subjects, resources, filterClass, filterSection]);
 
   const railSubjects = useMemo(() => {
-    const classFiltered = subjects.filter(s => filterClass ? s.class === String(filterClass) : true);
+    const classFiltered = subjects.filter(s => {
+      const hasClass = Boolean(s.class) && s.class !== "ALL";
+      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+    });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
       const found = subjects.find(s => s.name === name);
@@ -1114,25 +1222,56 @@ export default function SuperadminAcademicsPage() {
       <div className="space-y-6">
 
         {/* ── Hero Banner ─────────────────────────────────── */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+        <div className="hero-band relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-left">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center" style={{ color: "#ffffff" }}>
-                  <Fi name="graduation-cap" className="text-xl" style={{ color: "#ffffff" }} />
+                  <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
                 </span>
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-                  {filterClass ? `Class ${filterClass}` : "All Classes"} · Tamil Nadu State Board
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20" style={{ color: "#ffffff" }}>
+                  {filterClass ? `Class ${filterClass}` : "All Classes"}
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                  {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
                 </span>
               </div>
               <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
-                Academics & Subjects Hub
+                Academics &amp; Subjects Hub
               </div>
-              <p className="text-sm max-w-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment.
+              <p className="text-sm max-w-xl leading-relaxed mb-4" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
+                {selectedBoard === "CBSE"
+                  ? "Manage CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, marking schemes & lesson notes."
+                  : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
               </p>
+
+              {/* Board Selector Quick Switcher Pills */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                  <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                  <span style={{ color: "#ffffff" }}>Board:</span>
+                </span>
+                {SCHOOL_BOARDS.map(b => {
+                  const isActive = selectedBoard === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setSelectedBoard(b.id)}
+                      style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                        ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                        : "hover:bg-white/30 border border-white/25 !text-white"
+                        }`}
+                    >
+                      <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                      <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Stats count boxes */}
@@ -1159,174 +1298,204 @@ export default function SuperadminAcademicsPage() {
           </div>
         </div>
 
-        {/* ── Subject Filter Rail ─────────────────────────── */}
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none scroll-smooth">
-          <button
-            onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
-              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
-              }`}
+        {/* ── Category Tabs with Arrow Navigation ────────── */}
+        <div className="relative flex items-center group">
+          {/* Left Arrow Mark */}
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-l-2xl pointer-events-none">
+              <button
+                onClick={() => scrollTabs("left")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll left"
+                title="Previous tabs"
+              >
+                <FiChevronLeftIcon className="text-sm" />
+              </button>
+            </div>
+          )}
+
+          {/* Scrollable Tabs */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkScroll}
+            className="w-full bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
           >
-            <Fi name="apps" className="text-sm" /> All Subjects
-          </button>
-          {railSubjects.map((s) => {
-            const active = selectedSubject === s.name;
-            return (
-              <button
-                key={s.name}
-                onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
-                  }`}
-                style={
-                  active
-                    ? { backgroundColor: s.color, borderColor: s.color }
-                    : { borderColor: `${s.color}55` }
-                }
-              >
-                <span>{s.icon}</span> {s.name}
-              </button>
-            );
-          })}
-        </div>
+            {CATEGORIES.map((c) => {
+              const active = activeTab === c.key;
+              const count = (c.key === "overview") ? null : countByCategory(c.key);
 
-        {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
-          {CATEGORIES.map((c) => {
-            const active = activeTab === c.key;
-            const count = (c.key === "overview") ? null : countByCategory(c.key);
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setActiveTab(c.key)}
+                  className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
+                    ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                    }`}
+                  style={active ? { background: c.gradient } : undefined}
+                  title={c.label}
+                >
+                  <Fi name={c.icon} className="text-xs shrink-0" />
+                  <span className="whitespace-nowrap">{c.label}</span>
+                  {count !== null && (
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-            return (
+          {/* Right Arrow Mark */}
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-r-2xl pointer-events-none">
               <button
-                key={c.key}
-                onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
-                  ? `text-white shadow-md`
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-                style={active ? { background: c.gradient } : undefined}
+                onClick={() => scrollTabs("right")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll right"
+                title="Next tabs"
               >
-                <Fi name={c.icon} className="text-sm" />
-                {c.label}
-                {count !== null && (
-                  <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                      }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <FiChevronRightIcon className="text-sm" />
               </button>
-            );
-          })}
+            </div>
+          )}
         </div>
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
-        {activeTab !== "syllabus" && (
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
-            {/* Left search */}
-            <div className="relative w-full md:flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm space-y-3">
+          {/* Top Row: Search Input & Primary Add Action */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <FiSearchIcon className="text-sm" />
               </span>
               <input
                 type="text"
-                placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+                placeholder={`Search ${activeTab === "syllabus" ? "chapters & sub-chapters" : CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
+                className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-700 dark:text-slate-200 transition-all placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
-                  <FiXIcon className="text-sm" />
+                  <FiXIcon className="text-xs" />
                 </button>
               )}
             </div>
 
-            {/* Filters & Add Action */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+            {activeTab !== "structure" && (
+              <button
+                onClick={() => (activeTab === "subjects" ? openSubjectModal() : activeTab === "syllabus" ? setChapterModal({ isOpen: true, editId: null }) : openResourceModal())}
+                className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:shadow-lg active:scale-95 transition-all cursor-pointer whitespace-nowrap"
               >
-                <option value="All">All Statuses</option>
-                <option value="Active">Approved</option>
-                <option value="Inactive">Rejected</option>
-              </select>
-
-              {/* Class Filter */}
-              <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
-              >
-                <option value="">All Classes</option>
-                {classes.length > 0 ? (
-                  classes.map(c => {
-                    const val = c.name.replace(/^Class\s+/i, '');
-                    return <option key={c.id} value={val}>{c.name}</option>;
-                  })
-                ) : (
-                  [...Array(12)].map((_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
-                  ))
-                )}
-              </select>
-
-              {/* Section Filter */}
-              <select
-                value={filterSection}
-                onChange={(e) => setFilterSection(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
-              >
-                <option value="">All Sections</option>
-                {sections.length > 0 ? (
-                  sections.map(s => {
-                    const val = s.name.replace(/^Section\s+/i, '');
-                    return <option key={s.id} value={val}>{s.name}</option>;
-                  })
-                ) : (
-                  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
-                    <option key={s} value={s}>Section {s}</option>
-                  ))
-                )}
-              </select>
-
-              {/* Clear Button */}
-              {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
-                <button
-                  onClick={() => {
-                    setFilterClass("");
-                    setFilterSection("");
-                    setStatusFilter("All");
-                    setSelectedSubject("All");
-                    setSearchQuery("");
-                  }}
-                  className="p-2 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
-                  title="Clear Filters"
-                >
-                  Clear
-                </button>
-              )}
-
-              {/* Add Subject/Resource Button */}
-              {activeTab !== "overview" && activeTab !== "structure" && (
-                <button
-                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0 cursor-pointer"
-                >
-                  <FiPlusIcon className="text-sm" />
-                  Add {CATEGORIES.find(c => c.key === activeTab)?.label}
-                </button>
-              )}
-            </div>
+                <FiPlusIcon className="text-sm" />
+                <span>Add {activeTab === "overview" ? "Resource" : activeTab === "syllabus" ? "Chapter" : CATEGORIES.find(c => c.key === activeTab)?.label}</span>
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Bottom Row: Filter Dropdowns & Clear Button */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+              <FiFilterIcon className="text-xs" /> Filter:
+            </span>
+
+            {/* Subject Filter */}
+            <select
+              value={activeTab === "syllabus" ? (selectedSyllabusSubject || "All") : selectedSubject}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedSubject(val);
+                if (activeTab === "syllabus") setSelectedSyllabusSubject(val === "All" ? (syllabusSubjectsForClass[0]?.name || "Tamil") : val);
+              }}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="All">All Subjects</option>
+              {railSubjects.map(s => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Approved</option>
+              <option value="Inactive">Rejected</option>
+            </select>
+
+            {/* Class Filter */}
+            <select
+              value={activeTab === "syllabus" ? (syllabusClass || filterClass) : filterClass}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterClass(val);
+                if (activeTab === "syllabus" && val) setSyllabusClass(val);
+              }}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="">All Classes</option>
+              {classes.length > 0 ? (
+                classes.map(c => {
+                  const val = c.name.replace(/^Class\s+/i, '');
+                  return <option key={c.id} value={val}>{c.name}</option>;
+                })
+              ) : (
+                [...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
+                ))
+              )}
+            </select>
+
+            {/* Section Filter */}
+            <select
+              value={filterSection}
+              onChange={(e) => setFilterSection(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            >
+              <option value="">All Sections</option>
+              {sections.length > 0 ? (
+                sections.map(s => {
+                  const val = s.name.replace(/^Section\s+/i, '');
+                  return <option key={s.id} value={val}>{s.name}</option>;
+                })
+              ) : (
+                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
+                  <option key={s} value={s}>Section {s}</option>
+                ))
+              )}
+            </select>
+
+            {/* Clear Button */}
+            {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
+              <button
+                onClick={() => {
+                  setFilterClass("");
+                  setFilterSection("");
+                  setStatusFilter("All");
+                  setSelectedSubject("All");
+                  setSearchQuery("");
+                }}
+                className="px-2.5 py-1.5 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex items-center gap-1"
+                title="Clear Filters"
+              >
+                <FiXIcon className="text-xs" /> Clear
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* ══ CONTENT PANELS ════════════════════════════════ */}
         {loading ? (
@@ -1339,37 +1508,6 @@ export default function SuperadminAcademicsPage() {
             {/* ══ STRUCTURE SETUP TAB (CLASS, SECTION, SUBJECT SETUP) ═════════ */}
             {activeTab === "structure" && (
               <div className="space-y-6 text-left">
-                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div>
-                    {/* <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
-                      <Fi name="settings-sliders" className="text-sm" /> PostgreSQL Master Data
-                    </div> */}
-                    <h2 className="text-xl font-black">Class, Section & Subject Structure Setup</h2>
-                    <p className="text-xs text-emerald-100 mt-1 max-w-xl">
-                      Easily add and manage school classes, section groups, and subject masters. All additions are saved directly to PostgreSQL.
-                    </p>
-                  </div>
-                  {/* <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "class" }); }}
-                      className="px-4 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Class
-                    </button>
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section" }); }}
-                      className="px-4 py-2.5 bg-emerald-950/40 text-white hover:bg-emerald-950/60 border border-white/20 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Section
-                    </button>
-                    <button
-                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject" }); }}
-                      className="px-4 py-2.5 bg-white/20 text-white hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlusIcon size={14} /> Add Subject
-                    </button>
-                  </div> */}
-                </div>
 
                 {/* 3 Master Cards Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1821,53 +1959,6 @@ export default function SuperadminAcademicsPage() {
             {/* ══ DEDICATED SYLLABUS MANAGEMENT TAB ════════════════════ */}
             {activeTab === "syllabus" && (
               <div className="space-y-6 text-left font-sans">
-                {/* Header Banner */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black">
-                        <Fi name="book-alt" className="text-xl" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">
-                          Syllabus Management
-                        </h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          Manage state curriculum by class, subject, and chapter. Control AI mapping and chapter visibility.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Horizontal Class Pills Selection Bar */}
-                <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-                  {dynamicSyllabusClasses.map((cls) => {
-                    const isSelected = syllabusClass === cls.id;
-                    return (
-                      <button
-                        key={cls.id}
-                        onClick={() => setSyllabusClass(cls.id)}
-                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isSelected
-                          ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
-                          : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-400 dark:hover:border-amber-700/60"
-                          }`}
-                      >
-                        <span>{cls.name}</span>
-                        <span
-                          className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${isSelected
-                            ? "bg-white/20 text-white"
-                            : cls.badge === "HSC"
-                              ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
-                              : "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50"
-                            }`}
-                        >
-                          {cls.badge}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
 
                 {/* 2-Column Main Layout: Left Subjects Panel & Right Chapters Panel */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1877,32 +1968,44 @@ export default function SuperadminAcademicsPage() {
                       SUBJECTS
                     </div>
                     <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
-                      {syllabusSubjectsForClass.map((sub) => {
-                        const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
-                        const stats = getSubjectStats(sub.name);
-                        return (
-                          <div
-                            key={sub.name}
-                            onClick={() => setSelectedSyllabusSubject(sub.name)}
-                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                              ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
-                              }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl shrink-0">{sub.icon}</span>
-                              <div>
-                                <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
-                                  {sub.name}
-                                </h4>
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
-                                  {stats.total}/0 chapters · {stats.aiCount} AI
-                                </p>
+                      {filteredSyllabusSubjects.length > 0 ? (
+                        filteredSyllabusSubjects.map((sub) => {
+                          const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
+                          const stats = getSubjectStats(sub.name);
+                          const iconSymbol = getSubjectIcon(sub.name);
+                          return (
+                            <div
+                              key={sub.name}
+                              onClick={() => setSelectedSyllabusSubject(sub.name)}
+                              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
+                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-sm transition-all ${isSelected
+                                  ? "bg-amber-100/90 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50"
+                                  : "bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700"
+                                  }`}>
+                                  {iconSymbol}
+                                </div>
+                                <div>
+                                  <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
+                                    {sub.name}
+                                  </h4>
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                                    {stats.total} chapters · {stats.aiCount} AI-mapped
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      ) : (
+                        <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                          No subjects match "{searchQuery}"
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1912,37 +2015,22 @@ export default function SuperadminAcademicsPage() {
                       {/* Header Bar */}
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">{getSubjectIcon(selectedSyllabusSubject)}</span>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">
-                              {selectedSyllabusSubject} — Class {syllabusClass}
-                            </h3>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center text-2xl shrink-0 shadow-sm">
+                              {getSubjectIcon(selectedSyllabusSubject)}
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+                                {selectedSyllabusSubject} — Class {syllabusClass}
+                              </h3>
+                              <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                                {syllabusChapters.length} chapters · {syllabusChapters.filter(c => c.status === "Active").length} enabled · {syllabusChapters.filter(c => c.meta?.toLowerCase().includes("ai")).length} AI-mapped
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-xs text-slate-400 font-semibold mt-0.5">
-                            {syllabusChapters.length} chapters · {syllabusChapters.filter(c => c.status === "Active").length} enabled · {syllabusChapters.filter(c => c.meta?.toLowerCase().includes("ai")).length} AI-mapped
-                          </p>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <FiSearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" size={13} />
-                            <input
-                              type="text"
-                              placeholder="Search chapters..."
-                              value={syllabusSearchQuery}
-                              onChange={(e) => setSyllabusSearchQuery(e.target.value)}
-                              className="pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500/20 w-48 md:w-60"
-                            />
-                            {syllabusSearchQuery && (
-                              <button
-                                onClick={() => setSyllabusSearchQuery("")}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                              >
-                                <FiXIcon size={12} />
-                              </button>
-                            )}
-                          </div>
-
                           <label
                             className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
                             style={{ color: "#ffffff" }}
@@ -1957,13 +2045,6 @@ export default function SuperadminAcademicsPage() {
                               className="hidden"
                             />
                           </label>
-
-                          <button
-                            onClick={openAddChapterModal}
-                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-                          >
-                            <FiPlusIcon size={14} /> Chapter
-                          </button>
                         </div>
                       </div>
 
@@ -2054,14 +2135,8 @@ export default function SuperadminAcademicsPage() {
                                       0 chapters added for {selectedSyllabusSubject} - Class {syllabusClass}
                                     </p>
                                     <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                                      Click the "+ Chapter" button above to add state board chapters and unit maps.
+                                      Click the "+ Add Chapter" button in the top bar to add state board chapters and unit maps.
                                     </p>
-                                    <button
-                                      onClick={openAddChapterModal}
-                                      className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
-                                    >
-                                      + Add Chapter
-                                    </button>
                                   </div>
                                 </td>
                               </tr>
@@ -2109,13 +2184,12 @@ export default function SuperadminAcademicsPage() {
                             <div className="flex items-center gap-1.5">
                               {/* Medium Badge */}
                               {res.medium && (
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                  res.medium.toLowerCase() === "tamil"
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${res.medium.toLowerCase() === "tamil"
                                     ? "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800/50"
                                     : res.medium.toLowerCase() === "english"
                                       ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800/50"
                                       : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800/50"
-                                }`}>
+                                  }`}>
                                   {res.medium.toUpperCase()}
                                 </span>
                               )}
@@ -2165,22 +2239,31 @@ export default function SuperadminAcademicsPage() {
                             {res.title}
                           </h3>
 
-                          {/* Syllabus Custom Information */}
-                          {res.category === "syllabus" && (
-                            <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-1">
-                              {res.chapterNumber && <span>Ch {res.chapterNumber}: </span>}
-                              {res.topicName && <span>{res.topicName}</span>}
+                          {/* Topic, Subtopic & Custom Information for ALL tabs */}
+                          {(res.topicName || res.description || res.chapterNumber || res.learningOutcomes) && (
+                            <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-2 flex flex-wrap items-center gap-1.5">
+                              {res.chapterNumber && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                  Ch {res.chapterNumber}
+                                </span>
+                              )}
+                              {res.topicName && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/50">
+                                  📌 <span className="font-extrabold text-teal-800 dark:text-teal-200">Topic:</span> {res.topicName}
+                                </span>
+                              )}
+                              {res.description && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50">
+                                  🏷️ <span className="font-extrabold text-indigo-800 dark:text-indigo-200">Subtopic:</span> {res.description}
+                                </span>
+                              )}
                               {res.learningOutcomes && (
-                                <p className="text-[10px] text-slate-400 font-normal leading-relaxed mt-1">
+                                <p className="text-[10px] text-slate-400 font-normal leading-relaxed mt-1 w-full">
                                   Outcomes: {res.learningOutcomes}
                                 </p>
                               )}
                             </div>
                           )}
-
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">
-                            {res.description || "No description provided for this resource."}
-                          </p>
                         </div>
 
                         {/* Bottom line: details & admin operations */}
@@ -2243,7 +2326,7 @@ export default function SuperadminAcademicsPage() {
       {/* --- Subject Modal --- */}
       <AnimatePresence>
         {showSubjectModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2255,22 +2338,43 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-[#121824] w-full max-w-md rounded-[2rem] shadow-2xl overflow-visible relative z-10 border border-slate-100 dark:border-slate-800/80"
+              className="bg-white dark:bg-[#121824] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col relative z-10 border border-slate-100 dark:border-slate-800/80 text-left font-sans"
               key={editSubjectId ?? 'add-subject'}
             >
-              <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800/60">
-                <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
-                  {editSubjectId ? "Edit Subject" : "Add Subject"}
-                </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+                      {editSubjectId ? "Edit Class Subject" : "Add New Class Subject"}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400">Configure subject, topic & subtopic structure</p>
+                  </div>
+                </div>
                 <button onClick={() => setShowSubjectModal(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
-                  <FiXIcon className="text-xl" />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
-              <form onSubmit={handleSaveSubject} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
+              <form onSubmit={handleSaveSubject} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select
+                      required
+                      value={subjectForm.board || "State Board"}
+                      onChange={e => setSubjectForm({ ...subjectForm, board: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none font-semibold text-xs sm:text-sm"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
@@ -2418,6 +2522,34 @@ export default function SuperadminAcademicsPage() {
                   </div>
                 )}
 
+                {/* Topic Name & Subtopic Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1">
+                      Topic Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Algebra / Number Systems"
+                      value={subjectForm.topicName || ""}
+                      onChange={e => setSubjectForm({ ...subjectForm, topicName: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1">
+                      Subtopic
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Quadratic Equations"
+                      value={subjectForm.subtopic || ""}
+                      onChange={e => setSubjectForm({ ...subjectForm, subtopic: e.target.value, description: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
@@ -2465,7 +2597,7 @@ export default function SuperadminAcademicsPage() {
       {/* --- Resource Modal --- */}
       <AnimatePresence>
         {showResourceModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2477,21 +2609,48 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-[#121824] w-full max-w-xl rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto relative z-10 border border-slate-100 dark:border-slate-800/80"
+              className="bg-white dark:bg-[#121824] w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col relative z-10 border border-slate-100 dark:border-slate-800/80 text-left font-sans"
             >
-              <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800/60 sticky top-0 bg-white/80 dark:bg-[#121824]/80 backdrop-blur-md z-20">
-                <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
-                  {editResourceId ? `Edit ${CATEGORIES.find(t => t.key === activeTab)?.label}` : `Add ${CATEGORIES.find(t => t.key === activeTab)?.label}`}
-                </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100 leading-tight">
+                      {editResourceId
+                        ? `Edit ${CATEGORIES.find(t => t.key === activeTab)?.label || "Resource"}`
+                        : activeTab === "overview"
+                          ? "Add Academic Resource Item"
+                          : `Add New ${CATEGORIES.find(t => t.key === activeTab)?.label || "Resource"}`}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                      {CATEGORIES.find(t => t.key === activeTab)?.blurb || "Configure topics, subtopics & learning resources"}
+                    </p>
+                  </div>
+                </div>
                 <button onClick={() => setShowResourceModal(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
-                  <FiXIcon className="text-xl" />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
+              <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Board *</label>
+                    <select
+                      required
+                      value={resourceForm.board || "State Board"}
+                      onChange={e => setResourceForm({ ...resourceForm, board: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm font-semibold"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.shortLabel}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select
@@ -2499,7 +2658,12 @@ export default function SuperadminAcademicsPage() {
                       value={resourceForm.class}
                       onChange={e => {
                         const newClass = e.target.value;
-                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass) || String(s.class) === `Class ${newClass}`) : subjects;
+                        const cleanNew = String(newClass).replace(/^Class\s+/i, '').trim();
+                        const filtered = newClass ? subjects.filter(s => {
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanNew || String(s.class) === newClass || String(s.class) === `Class ${cleanNew}`;
+                        }) : subjects;
                         const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
                         setResourceForm({
                           ...resourceForm,
@@ -2507,7 +2671,7 @@ export default function SuperadminAcademicsPage() {
                           subjectId: isStillValid ? resourceForm.subjectId : ""
                         });
                       }}
-                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm"
                     >
                       <option value="">Select Class</option>
                       {classes.length > 0 ? (
@@ -2522,15 +2686,22 @@ export default function SuperadminAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
-                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs sm:text-sm">
                       <option value="" disabled>Select subject</option>
-                      {Array.from(
-                        new Map(
-                          subjects
-                            .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class) || String(s.class) === `Class ${resourceForm.class}`)
-                            .map(s => [s.name, s])
-                        ).values()
-                      ).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {(() => {
+                        const cleanClass = String(resourceForm.class || "").replace(/^Class\s+/i, '').trim();
+                        let filtered = subjects.filter(s => {
+                          if (!cleanClass) return true;
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanClass || String(s.class) === cleanClass || String(s.class) === `Class ${cleanClass}`;
+                        });
+                        if (filtered.length === 0 && subjects.length > 0) {
+                          filtered = subjects;
+                        }
+                        const unique = Array.from(new Map(filtered.map(s => [s.name.toLowerCase().trim(), s])).values());
+                        return unique.map(s => <option key={s.id} value={s.id}>{s.name}</option>);
+                      })()}
                     </select>
                   </div>
                 </div>
@@ -2546,6 +2717,45 @@ export default function SuperadminAcademicsPage() {
                     </select>
                   </div>
                 )}
+
+                {/* Resource Title Field */}
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                    {activeTab === "textbooks" ? "Book Title *" : activeTab === "notes" ? "Lesson Title *" : activeTab === "videos" ? "Video Title *" : activeTab === "digital" ? "Content Title *" : activeTab === "reference" ? "Reference Title *" : "Resource / Item Title *"}
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. 10th Standard Mathematics Guide"
+                    value={resourceForm.title}
+                    onChange={e => setResourceForm({ ...resourceForm, title: e.target.value, lessonTitle: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-xs sm:text-sm"
+                  />
+                </div>
+
+                {/* Common Fields: Topic Name & Subtopic RIGHT BELOW TITLE for ALL tabs */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Topic Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Algebra / Number Systems"
+                      value={resourceForm.topicName}
+                      onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subtopic</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Quadratic Equations"
+                      value={resourceForm.subtopic}
+                      onChange={e => setResourceForm({ ...resourceForm, subtopic: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                </div>
 
                 {/* Dynamic Fields Based on activeTab */}
                 {activeTab === "syllabus" && (
@@ -2565,15 +2775,9 @@ export default function SuperadminAcademicsPage() {
                         <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter Number</label>
-                        <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Topic Name</label>
-                        <input type="text" value={resourceForm.topicName} onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter Number</label>
+                      <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Learning Outcomes</label>
@@ -2586,10 +2790,6 @@ export default function SuperadminAcademicsPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Book Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
                         <select value={resourceForm.medium} onChange={e => setResourceForm({ ...resourceForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Medium</option>
@@ -2597,41 +2797,35 @@ export default function SuperadminAcademicsPage() {
                           <option value="English">English</option>
                         </select>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Version / Edition</label>
                         <input type="text" value={resourceForm.bookVersion} onChange={e => setResourceForm({ ...resourceForm, bookVersion: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
                         <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="SCERT / NCERT" />
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
-                      <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
+                        <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
+                      </div>
                     </div>
                   </>
                 )}
 
                 {activeTab === "materials" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Type</label>
-                        <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
-                          <option value="">Select Type</option>
-                          <option value="PDF">PDF</option>
-                          <option value="PPT">PPT</option>
-                          <option value="DOC">DOC</option>
-                          <option value="Worksheet">Worksheet</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Type</label>
+                      <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                        <option value="">Select Type</option>
+                        <option value="PDF">PDF</option>
+                        <option value="PPT">PPT</option>
+                        <option value="DOC">DOC</option>
+                        <option value="Worksheet">Worksheet</option>
+                      </select>
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
@@ -2644,30 +2838,18 @@ export default function SuperadminAcademicsPage() {
 
                 {activeTab === "notes" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Lesson Title *</label>
-                        <input required type="text" value={resourceForm.lessonTitle} onChange={e => setResourceForm({ ...resourceForm, lessonTitle: e.target.value, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
+                      <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                   </>
                 )}
 
                 {activeTab === "videos" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Video Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
+                      <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -2684,22 +2866,16 @@ export default function SuperadminAcademicsPage() {
 
                 {activeTab === "digital" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Type</label>
-                        <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
-                          <option value="">Select Type</option>
-                          <option value="PDF">PDF</option>
-                          <option value="Video">Video</option>
-                          <option value="Audio">Audio</option>
-                          <option value="Interactive">Interactive</option>
-                          <option value="Presentation">Presentation</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Type</label>
+                      <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                        <option value="">Select Type</option>
+                        <option value="PDF">PDF</option>
+                        <option value="Video">Video</option>
+                        <option value="Audio">Audio</option>
+                        <option value="Interactive">Interactive</option>
+                        <option value="Presentation">Presentation</option>
+                      </select>
                     </div>
                   </>
                 )}
@@ -2708,23 +2884,17 @@ export default function SuperadminAcademicsPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Reference Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Author</label>
                         <input type="text" value={resourceForm.author} onChange={e => setResourceForm({ ...resourceForm, author: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
                         <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ISBN (Optional)</label>
-                        <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ISBN (Optional)</label>
+                      <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                     </div>
                   </>
                 )}
@@ -2843,7 +3013,7 @@ export default function SuperadminAcademicsPage() {
       {/* ══ STRUCTURE SETUP SINGLE-FIELD POPUP MODAL ══════════════ */}
       <AnimatePresence>
         {structureModal.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex items-start sm:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2855,12 +3025,12 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative z-10 overflow-hidden text-left flex flex-col max-h-[85vh] font-sans"
             >
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-black">
-                    <FiPlusIcon size={18} />
+                  <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
@@ -2872,18 +3042,20 @@ export default function SuperadminAcademicsPage() {
                             ? "Add New Section"
                             : "Add New Subject"}
                     </h3>
-                    <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      {structureModal.type === "class" ? "Enter class name to register" : structureModal.type === "section" ? "Enter section name to register" : "Enter subject name to register"}
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
                   className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <FiXIcon size={18} />
+                  <FiXIcon className="text-lg" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveStructure} className="space-y-5">
+              <form onSubmit={handleSaveStructure} className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                     {structureModal.type === "class" ? "Class Name" : structureModal.type === "section" ? "Section Name" : "Subject Name"}
@@ -2942,16 +3114,47 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative z-10 overflow-hidden text-left flex flex-col max-h-[85vh] font-sans"
             >
-              <h3 className="font-extrabold text-xl text-slate-800 dark:text-slate-100 text-center mb-6">
-                {chapterModal.editId ? "Edit Chapter" : "Add Chapter"}
-              </h3>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                    <FiPlusIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100 leading-tight">
+                      {chapterModal.editId ? "Edit Chapter" : "Add New Chapter"}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Term-wise unit maps with lesson tracking</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setChapterModal({ isOpen: false, editId: null })}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <FiXIcon className="text-lg" />
+                </button>
+              </div>
 
-              <form onSubmit={handleSaveChapter} className="space-y-4">
-                {/* Combined Row for Unit No. & Chapter Title */}
+              <form onSubmit={handleSaveChapter} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                {/* School Board & Combined Row for Unit No. & Chapter Title */}
                 <div className="grid grid-cols-12 gap-3">
-                  <div className="col-span-4">
+                  <div className="col-span-12 sm:col-span-4">
+                    <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                      SCHOOL BOARD
+                    </label>
+                    <select
+                      value={chapterForm.board || "State Board"}
+                      onChange={e => setChapterForm({ ...chapterForm, board: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    >
+                      {SCHOOL_BOARDS.filter(b => b.id !== "All").map(b => (
+                        <option key={b.id} value={b.id}>{b.shortLabel}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-span-4 sm:col-span-3">
                     <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
                       UNIT NO.
                     </label>
@@ -2975,7 +3178,7 @@ export default function SuperadminAcademicsPage() {
                     />
                   </div>
 
-                  <div className="col-span-8">
+                  <div className="col-span-8 sm:col-span-5">
                     <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
                       CHAPTER TITLE / UNIT NAME
                     </label>
@@ -3075,9 +3278,24 @@ export default function SuperadminAcademicsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans max-h-[85vh] flex flex-col justify-between"
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl relative z-10 overflow-hidden text-left font-sans max-h-[85vh] flex flex-col justify-between"
             >
-              <div>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-[#121824] shrink-0 z-20">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0">🤖</span>
+                  <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+                    AI OCR Parsed Syllabus Units
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setOcrPreviewModal({ isOpen: false, units: [] })}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <FiXIcon className="text-lg" />
+                </button>
+              </div>
+
+              <div className="p-6 flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-between">
                 {/* Top Banner (Matching user screenshot) */}
                 <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
                   <span className="text-2xl shrink-0">🤖</span>

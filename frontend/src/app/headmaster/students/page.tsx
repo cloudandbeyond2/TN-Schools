@@ -2626,7 +2626,12 @@ export default function StudentsMonitoringPage() {
                     /* ── REGULAR ADD / EDIT STUDENT MANUAL FORM ── */
                     <form onSubmit={handleManualSubmit} className="space-y-4 [&_label]:text-slate-600 [&_label]:dark:text-slate-400 [&_h4]:text-slate-700 [&_h4]:dark:text-slate-300 [&_.border-b]:border-slate-200 [&_.border-b]:dark:border-slate-800">
                       <fieldset disabled={isViewMode}>
-                        <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xs font-bold text-blue-600 uppercase tracking-wider">Manual Entry</div>
+                          <div className="text-[10px] text-slate-500 font-semibold">
+                            Fields marked with <span className="text-red-500 font-bold ml-0.5">*</span> are required
+                          </div>
+                        </div>
 
                         {/* Personal Details */}
                         <div className="pt-1 pb-2 border-b border-slate-200">
@@ -2634,7 +2639,9 @@ export default function StudentsMonitoringPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="col-span-2">
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Full Name <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
                               placeholder="e.g. Senthil Kumar"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -2729,8 +2736,7 @@ export default function StudentsMonitoringPage() {
                           </div>
                           <div>
                             <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                              Roll Number
-                              <span className="ml-1 text-red-550 font-normal">*</span>
+                              Roll Number <span className="text-red-500 font-bold ml-0.5">*</span>
                             </label>
                             <input type="text" id="manual-roll-number" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
                               placeholder="e.g. HM10101"
@@ -2751,7 +2757,9 @@ export default function StudentsMonitoringPage() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Class <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
                               <option value="">Select Class</option>
                               <option value="Class 6">Class 6</option>
@@ -2778,7 +2786,9 @@ export default function StudentsMonitoringPage() {
                           </div>
                           {(newClass.includes("11") || newClass.includes("12")) && (
                             <div className="col-span-2">
-                              <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
+                              <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                                HSC Group (DGE code) <span className="text-red-500 font-bold ml-0.5">*</span>
+                              </label>
                               <select id="manual-hsc-group" value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className={`w-full bg-blue-50 border rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white transition-colors ${groupError ? "border-red-500 focus:border-red-500 bg-red-50/50 text-red-900" : "border-blue-200 focus:border-blue-500"}`}>
                                 <option value="">Select Group</option>
                                 {Object.keys(streamLabels).map((stream) => (
@@ -2846,7 +2856,9 @@ export default function StudentsMonitoringPage() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Primary Contact Name <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
                               placeholder="e.g. Ramasamy A."
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -2859,8 +2871,7 @@ export default function StudentsMonitoringPage() {
                           </div>
                           <div>
                             <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                              Phone Number
-                              <span className="ml-1 text-red-550 font-normal">*</span>
+                              Phone Number <span className="text-red-500 font-bold ml-0.5">*</span>
                             </label>
                             <input type="text" id="manual-phone-number" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
                               placeholder="e.g. 9876543210"
@@ -2889,19 +2900,25 @@ export default function StudentsMonitoringPage() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              City <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
                               placeholder="e.g. Coimbatore"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">District</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              District <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <input type="text" required value={newDistrict} onChange={(e) => setNewDistrict(e.target.value)}
                               placeholder="e.g. Coimbatore"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              State <span className="text-red-500 font-bold ml-0.5">*</span>
+                            </label>
                             <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
                               placeholder="e.g. Tamil Nadu"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />

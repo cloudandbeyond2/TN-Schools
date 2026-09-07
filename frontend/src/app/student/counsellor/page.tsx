@@ -4,9 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
+import "./counsellor.css";
 const Icon = (name: string) => {
-  const Comp = ({ size = 24, className = "" }: { size?: number; className?: string }) => (
-    <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />
+  const Comp = ({ size = 24, className = "", style }: { size?: number; className?: string; style?: React.CSSProperties }) => (
+    <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }} />
   );
   Comp.displayName = "Icon";
   return Comp;
@@ -261,14 +263,23 @@ export default function CounsellorPage() {
   const [deletedMsgIds, setDeletedMsgIds] = useState<string[]>([]);
   const [deletedBookIds, setDeletedBookIds] = useState<string[]>([]);
 
+  const { data: session } = useSession();
+  const activeUser = session?.user as any;
+  const currentStudentName = activeUser?.name || activeUser?.studentName || "Student";
+  const currentStudentId = activeUser?.id || activeUser?.studentId;
+  const currentSchoolId = activeUser?.schoolId;
+  const currentClass = activeUser?.class || "10";
+  const currentSection = activeUser?.section || "A";
+
   useEffect(() => {
     const fetchHistory = async () => {
+      if (!currentStudentId) return;
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const studentQuery = `?studentId=${encodeURIComponent(currentStudentId)}&schoolId=${encodeURIComponent(currentSchoolId || "")}`;
         const [mRes, bRes, sRes] = await Promise.all([
-          fetch(`${apiUrl}/api/counsellor/messages`),
-          fetch(`${apiUrl}/api/counsellor/bookings`),
-          fetch(`${apiUrl}/api/counsellor/slots?schoolId=default`)
+          apiFetch(`/api/counsellor/messages${studentQuery}`),
+          apiFetch(`/api/counsellor/bookings${studentQuery}`),
+          apiFetch(`/api/counsellor/slots?schoolId=${encodeURIComponent(currentSchoolId || "default")}`)
         ]);
         const mData = await mRes.json();
         const bData = await bRes.json();
@@ -276,9 +287,13 @@ export default function CounsellorPage() {
 
         if (mData.success && Array.isArray(mData.data)) {
           setHistoryMessages(mData.data.filter((m: any) => !deletedMsgIds.includes(String(m._id))));
+        } else {
+          setHistoryMessages([]);
         }
         if (bData.success && Array.isArray(bData.data)) {
           setHistoryBookings(bData.data.filter((b: any) => !deletedBookIds.includes(String(b._id))));
+        } else {
+          setHistoryBookings([]);
         }
         if (sData.success && Array.isArray(sData.data)) {
           setSessionSlots(sData.data);
@@ -286,9 +301,9 @@ export default function CounsellorPage() {
       } catch (e) {}
     };
     fetchHistory();
-    const interval = setInterval(fetchHistory, 3000);
+    const interval = setInterval(fetchHistory, 4000);
     return () => clearInterval(interval);
-  }, [deletedMsgIds, deletedBookIds]);
+  }, [currentStudentId, currentSchoolId, deletedMsgIds, deletedBookIds]);
 
   const L = t[lang];
 
@@ -304,8 +319,7 @@ export default function CounsellorPage() {
   useEffect(() => {
     const fetchSlots = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${apiUrl}/api/counsellor/slots?schoolId=default`);
+        const res = await apiFetch(`/api/counsellor/slots?schoolId=${encodeURIComponent(currentSchoolId || "default")}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           setSessionSlots(data.data);
@@ -321,20 +335,12 @@ export default function CounsellorPage() {
         }
       } catch (err) {
         console.error("Error fetching slots", err);
-        setSessionSlots([
-          { _id: "slot-mon-10", dayEn: "Monday", dayTa: "திங்கள்", time: "10:00 AM", isBooked: false },
-          { _id: "slot-wed-11", dayEn: "Wednesday", dayTa: "புதன்", time: "11:00 AM", isBooked: true },
-          { _id: "slot-fri-1030", dayEn: "Friday", dayTa: "வெள்ளி", time: "10:30 AM", isBooked: false },
-          { _id: "slot-mon-2", dayEn: "Monday", dayTa: "திங்கள்", time: "2:00 PM", isBooked: false },
-          { _id: "slot-wed-3", dayEn: "Wednesday", dayTa: "புதன்", time: "3:00 PM", isBooked: false },
-          { _id: "slot-fri-130", dayEn: "Friday", dayTa: "வெள்ளி", time: "1:30 PM", isBooked: false }
-        ]);
       } finally {
         setIsLoadingSlots(false);
       }
     };
     fetchSlots();
-  }, []);
+  }, [currentSchoolId]);
 
   const [isSubmittingMsg, setIsSubmittingMsg] = useState(false);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
@@ -343,8 +349,7 @@ export default function CounsellorPage() {
     setDeletedMsgIds(prev => [...prev, String(id)]);
     setHistoryMessages(prev => prev.filter(m => String(m._id) !== String(id)));
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${apiUrl}/api/counsellor/messages/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/counsellor/messages/${id}`, { method: "DELETE" });
     } catch (err) {}
   };
 
@@ -352,28 +357,19 @@ export default function CounsellorPage() {
     setDeletedBookIds(prev => [...prev, String(id)]);
     setHistoryBookings(prev => prev.filter(b => String(b._id) !== String(id)));
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${apiUrl}/api/counsellor/bookings/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/counsellor/bookings/${id}`, { method: "DELETE" });
     } catch (err) {}
   };
-
-  const { data: session } = useSession();
-  const activeUser = session?.user as any;
-  const currentStudentName = activeUser?.name || activeUser?.studentName || "Rathna";
-  const currentStudentId = activeUser?.id || activeUser?.studentId || "95acafcf-990f-49aa-8c21-68a164a57a2e";
-  const currentClass = activeUser?.class || "12";
-  const currentSection = activeUser?.section || "B";
 
   const handleSubmitMessage = async () => {
     setIsSubmittingMsg(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const noteContent = feedbackText.trim()
         ? feedbackText.trim()
         : `Student requested support on topic: ${selectedTopic || "Personal & Emotional"}`;
 
       try {
-        await fetch(`${apiUrl}/api/counsellor/message`, {
+        await apiFetch(`/api/counsellor/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -381,6 +377,7 @@ export default function CounsellorPage() {
             studentName: currentStudentName,
             className: currentClass,
             section: currentSection,
+            schoolId: currentSchoolId,
             mood: selectedMood || "Okay",
             topic: selectedTopic || "Personal & Emotional",
             feedbackText: noteContent,
@@ -402,12 +399,11 @@ export default function CounsellorPage() {
     if (!selectedSlot) return;
     setIsSubmittingBooking(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const slotObj = sessionSlots.find(s => s._id === selectedSlot || s.id === selectedSlot);
       const slotText = slotObj ? `${slotObj.dayEn || "Monday"} · ${slotObj.time || "10:00 AM"}` : "Monday · 10:00 AM";
 
       try {
-        await fetch(`${apiUrl}/api/counsellor/booking`, {
+        await apiFetch(`/api/counsellor/booking`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -415,6 +411,7 @@ export default function CounsellorPage() {
             studentName: currentStudentName,
             className: currentClass,
             section: currentSection,
+            schoolId: currentSchoolId,
             slotId: selectedSlot,
             slot: slotText,
             topic: "General 1-on-1 Session",
@@ -856,128 +853,198 @@ export default function CounsellorPage() {
           TAB 3: Helplines
       ══════════════════════════════════════════════════ */}
       {activeTab === "helpline" && (
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* 1098 Hero Emergency Banner */}
+          <div className="helpline-hero-banner relative rounded-3xl overflow-hidden shadow-2xl border border-red-500/30 bg-gradient-to-br from-red-600 via-rose-600 to-pink-700 text-white p-6 sm:p-8" style={{ color: "#ffffff" }}>
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
-          <div className="rounded-3xl overflow-hidden shadow-2xl border-2 border-red-200 dark:border-red-800">
-            <div className="bg-red-500 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 p-6">
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <div className="w-20 h-20 bg-white/20 border-2 border-white/30 rounded-2xl flex items-center justify-center shrink-0 shadow-xl">
-                  <Phone size={40} className="text-white" />
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 rounded-2xl bg-white/20 animate-ping opacity-30" />
+                  <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-xl">
+                    <Phone size={38} className="text-white animate-bounce" style={{ color: "#ffffff" }} />
+                  </div>
                 </div>
-                <div className="text-white">
-                  <div className="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">{L.tnGov}</div>
-                  <div className="text-5xl font-black leading-none mb-1 text-white">1098</div>
-                  <div className="text-sm font-bold opacity-90">{L.tnHelpline}</div>
-                  <div className="text-xs font-semibold mt-0.5 opacity-80">{L.tnHelplineSub}</div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="helpline-badge-gov text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-white/40 shadow-sm" style={{ color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.25)" }}>
+                      {L.tnGov}
+                    </span>
+                    <span className="helpline-badge-active text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-emerald-300/40 flex items-center gap-1 shadow-sm" style={{ color: "#ffffff", backgroundColor: "rgba(16, 185, 129, 0.35)" }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" /> 24/7 Active
+                    </span>
+                  </div>
+                  <div className="text-5xl font-black tracking-tight text-white leading-none my-1" style={{ color: "#ffffff" }}>
+                    1098
+                  </div>
+                  <div className="text-sm font-bold text-white/90" style={{ color: "#ffffff" }}>
+                    {L.tnHelpline} · <span className="text-white/90 font-medium" style={{ color: "#ffffff" }}>Free & Confidential</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-lg">🇬🇧</span>
-                  <span className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-wider">English Instructions</span>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { icon: Phone, text: <><strong>Dial 1098</strong> from any phone — it is free of cost, 24 hours a day, 7 days a week.</> },
-                    { icon: Shield, text: <>For <strong>children and students</strong> who face abuse, danger, neglect, or any difficult situation.</> },
-                    { icon: UserX, text: <><strong>You can remain anonymous.</strong> You do not need to give your name or any personal details.</> },
-                    { icon: HeartPulse, text: <><strong>Trained counsellors</strong> will listen without judgment and arrange immediate help.</> },
-                    { icon: AlertTriangle, text: <>Use it for: <strong>physical abuse, sexual abuse, child labour, bullying, missing child</strong>.</> },
-                    { icon: Building, text: <>Operated by: <strong>Tamil Nadu Dept. of Social Defence</strong>, Ministry of Women & Child Development.</> },
-                  ].map((item, i) => {
-                    const HIcon = item.icon;
-                    return (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0 mt-0.5">
-                          <HIcon size={12} className="text-red-500" />
-                        </div>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{item.text}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg hover:shadow-red-500/30 active:scale-95">
-                  <Phone size={14} /> Call 1098 Now — It&apos;s Free
-                </a>
-              </div>
-
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-lg">🇮🇳</span>
-                  <span className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-wider">தமிழ் வழிமுறைகள்</span>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { icon: Phone, text: <><strong>1098 என்று அழைக்கவும்</strong> — இது இலவசமானது, 24 மணி நேரமும், 7 நாட்களும் கிடைக்கும்.</> },
-                    { icon: Shield, text: <>குழந்தைகளுக்கு உதவ: <strong>துஷ்பிரயோகம், ஆபத்து</strong>, அல்லது கஷ்டமான சூழல்களில் பயன்படுத்தவும்.</> },
-                    { icon: UserX, text: <><strong>உங்கள் பெயரை சொல்ல தேவையில்லை</strong> — அனாமதேயமாக பேசலாம்.</> },
-                    { icon: HeartPulse, text: <>பயிற்சி பெற்ற ஆலோசகர்கள் உங்களுக்குக் கேட்டு <strong>உடனடி உதவி</strong> ஏற்பாடு செய்வார்கள்.</> },
-                    { icon: AlertTriangle, text: <>பயன்படுத்துக: <strong>உடல்/பாலியல் துஷ்பிரயோகம், குழந்தை தொழிலாளர்</strong>, காணாமல் போன குழந்தை.</> },
-                    { icon: Building, text: <><strong>தமிழ்நாடு சமூக பாதுகாப்பு துறை</strong>, மகளிர் மற்றும் குழந்தை மேம்பாட்டு அமைச்சகம்.</> },
-                  ].map((item, i) => {
-                    const HIcon = item.icon;
-                    return (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0 mt-0.5">
-                          <HIcon size={12} className="text-red-500" />
-                        </div>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{item.text}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg hover:shadow-red-500/30 active:scale-95">
-                  <Phone size={14} /> 1098 — இப்போதே அழைக்கவும்
+              <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row gap-3">
+                <a
+                  href="tel:1098"
+                  className="helpline-call-btn px-6 py-4 bg-white text-red-600 hover:bg-red-50 text-sm font-black rounded-2xl transition-all shadow-xl hover:shadow-2xl active:scale-95 flex items-center justify-center gap-2 group cursor-pointer"
+                >
+                  <Phone size={18} className="group-hover:rotate-12 transition-transform" />
+                  <span>{lang === "ta" ? "1098 — இப்போதே அழைக்கவும்" : "Call 1098 Now — It's Free"}</span>
                 </a>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-                <Phone size={18} className="text-blue-600 dark:text-blue-400" />
+          {/* Bilingual Guidance Grid */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <ShieldCheck className="text-red-500" size={20} />
+                  {lang === "ta" ? "1098 அவசர உதவி எண் பயன்பாட்டு வழிகாட்டி" : "How 1098 Helpline Protects You"}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {lang === "ta" ? "குழந்தைகள் மற்றும் மாணவர்களுக்கான தமிழ்நாடு அரசின் பாதுகாப்பான சேவை" : "Official emergency guidance for students under Govt of Tamil Nadu Social Defence Dept."}
+                </p>
               </div>
-              <h2 className="text-base font-black text-black dark:text-white">{L.otherHelplines}</h2>
+              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+                <button
+                  onClick={() => setLang("en")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${lang === "en" ? "bg-white dark:bg-slate-900 text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+                >
+                  🇬🇧 English
+                </button>
+                <button
+                  onClick={() => setLang("ta")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${lang === "ta" ? "bg-white dark:bg-slate-900 text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+                >
+                  🇮🇳 தமிழ்
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { number: "181", name: { en: "Women Helpline", ta: "பெண்கள் உதவி எண்" }, icon: ShieldCheck, gradient: "from-pink-500 to-rose-500" },
-                { number: "100", name: { en: "Police Emergency", ta: "காவல்துறை அவசரம்" }, icon: Shield, gradient: "from-blue-500 to-indigo-500" },
-                { number: "104", name: { en: "Health Helpline", ta: "சுகாதார உதவி எண்" }, icon: Heart, gradient: "from-red-500 to-pink-500" },
-                { number: "1800-599-0019", name: { en: "iCall (Free)", ta: "iCall (இலவசம்)" }, icon: MessageCircle, gradient: "from-violet-500 to-purple-500" },
-              ].map((h, idx) => {
-                const HIcon = h.icon;
+                {
+                  icon: Phone,
+                  title: lang === "ta" ? "இலவச 24/7 சேவை" : "100% Free & 24/7",
+                  desc: lang === "ta" ? "எந்த மொபைல் அல்லது லேண்ட்லைனில் இருந்தும் கட்டணமின்றி 24 மணி நேரமும் அழைக்கலாம்." : "Dial 1098 from any mobile or landline without any charge, 24 hours a day, 7 days a week.",
+                  color: "text-red-500 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20"
+                },
+                {
+                  icon: Shield,
+                  title: lang === "ta" ? "மாணவர் பாதுகாப்பு" : "For Children & Students",
+                  desc: lang === "ta" ? "துஷ்பிரயோகம், ஆபத்து, புறக்கணிப்பு அல்லது மன அழுத்தத்தில் இருக்கும் குழந்தைகளுக்கு உதவ." : "Dedicated to students facing abuse, danger, neglect, bullying, or difficult life situations.",
+                  color: "text-blue-500 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20"
+                },
+                {
+                  icon: UserX,
+                  title: lang === "ta" ? "முழுமையான அனாமதேயம்" : "100% Confidential",
+                  desc: lang === "ta" ? "உங்கள் பெயரைச் சொல்லத் தேவையில்லை. உங்கள் அடையாளம் முழுமையாகப் பாதுகாக்கப்படும்." : "You can remain fully anonymous. No need to share your name or personal credentials.",
+                  color: "text-purple-500 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20"
+                },
+                {
+                  icon: HeartPulse,
+                  title: lang === "ta" ? "பயிற்சி பெற்ற ஆலோசகர்கள்" : "Compassionate Support",
+                  desc: lang === "ta" ? "பயிற்சி பெற்ற ஆலோசகர்கள் உங்கள் உணர்வுகளைக் கேட்டு உடனடி பாதுகாப்பை ஏற்படுத்துவர்." : "Trained professional counsellors listen without judgment and organize immediate safety & help.",
+                  color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
+                },
+                {
+                  icon: AlertTriangle,
+                  title: lang === "ta" ? "உடனடி நடவடிக்கை" : "Urgent Protection",
+                  desc: lang === "ta" ? "உடல்/பாலியல் துஷ்பிரயோகம், குழந்தை தொழிலாளர், காணாமல் போன குழந்தைகளுக்காகப் பயன்படுத்தலாம்." : "Use for physical abuse, sexual abuse, bullying, child labour, or missing child emergencies.",
+                  color: "text-amber-500 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20"
+                },
+                {
+                  icon: Building,
+                  title: lang === "ta" ? "அரசு அங்கீகாரம்" : "Govt of Tamil Nadu Dept",
+                  desc: lang === "ta" ? "தமிழ்நாடு சமூக பாதுகாப்பு துறை மற்றும் மகளிர் குழந்தை மேம்பாட்டு அமைச்சகத்தின் அதிகாரப்பூர்வ சேவை." : "Operated by Tamil Nadu Dept. of Social Defence & Ministry of Women & Child Development.",
+                  color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20"
+                }
+              ].map((item, i) => {
+                const HIcon = item.icon;
                 return (
-                  <a key={idx} href={`tel:${h.number}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:shadow-md hover:scale-[1.01] transition-all group bg-white dark:bg-slate-950">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${h.gradient} flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform`}>
-                      <HIcon size={20} className="text-white" />
+                  <div key={i} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-950 hover:shadow-md transition-all">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${item.color}`}>
+                        <HIcon size={18} />
+                      </div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">{item.title}</h4>
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-black text-black dark:text-white">{h.number}</div>
-                      <div className="text-xs font-bold text-slate-600 dark:text-slate-400">{h.name[lang]}</div>
-                    </div>
-                    <ArrowRight size={12} className="text-slate-300 ml-auto shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                  </a>
-                )
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                      {item.desc}
+                    </p>
+                  </div>
+                );
               })}
             </div>
           </div>
 
-          <div className="rounded-3xl p-6 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/10 border border-pink-200 dark:border-pink-800">
+          {/* Other Emergency & Support Helplines */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                <Phone size={20} className="text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">{L.otherHelplines}</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Direct 24/7 government & emergency contact numbers</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { number: "181", name: { en: "Women Helpline", ta: "பெண்கள் உதவி எண்" }, icon: ShieldCheck, gradient: "from-pink-500 to-rose-500", desc: "24/7 Women & Girls Safety" },
+                { number: "100", name: { en: "Police Emergency", ta: "காவல்துறை அவசரம்" }, icon: Shield, gradient: "from-blue-500 to-indigo-500", desc: "Immediate Police Response" },
+                { number: "104", name: { en: "Health & Medical", ta: "சுகாதார உதவி எண்" }, icon: Heart, gradient: "from-red-500 to-pink-500", desc: "TN Health Guidance" },
+                { number: "14417", name: { en: "TN Student Helpline", ta: "மாணவர் வழிகாட்டி" }, icon: GraduationCap, gradient: "from-emerald-500 to-teal-500", desc: "Education & Career Help" },
+                { number: "1800-599-0019", name: { en: "Tele-MANAS Mental Health", ta: "iCall / Tele-MANAS" }, icon: MessageCircle, gradient: "from-violet-500 to-purple-500", desc: "Free Psychological Support" },
+              ].map((h, idx) => {
+                const HIcon = h.icon;
+                return (
+                  <a
+                    key={idx}
+                    href={`tel:${h.number}`}
+                    className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md hover:-translate-y-0.5 transition-all group bg-slate-50/50 dark:bg-slate-950/50"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${h.gradient} flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform`}>
+                      <HIcon size={20} className="text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-base font-black text-slate-900 dark:text-white leading-tight">{h.number}</div>
+                      <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{h.name[lang]}</div>
+                      <div className="text-[10px] text-slate-400 font-medium truncate">{h.desc}</div>
+                    </div>
+                    <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <ArrowRight size={14} className="text-slate-400 group-hover:text-white transition-colors" />
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* POCSO Legal Protection Card */}
+          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-purple-500/10 border border-pink-500/20 backdrop-blur-sm">
             <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center shrink-0">
                 <Scale size={24} className="text-pink-600 dark:text-pink-400" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-pink-700 dark:text-pink-400 mb-2">{L.pocsoTitle}</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
+                <h3 className="text-base font-black text-pink-700 dark:text-pink-300 mb-2">{L.pocsoTitle}</h3>
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium mb-3">
                   {L.pocsoDesc}
                 </p>
+                <div className="flex flex-wrap gap-2">
+                  <a href="tel:1098" className="px-4 py-2.5 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-md">
+                    <Phone size={14} className="!text-white" />
+                    <span style={{ color: "#ffffff" }}>Call 1098</span>
+                  </a>
+                  <a href="tel:1517" className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-md border border-indigo-500">
+                    <Shield size={14} className="!text-white" />
+                    <span style={{ color: "#ffffff" }}>Dial 1517 POCSO</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

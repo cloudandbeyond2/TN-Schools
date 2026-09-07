@@ -219,6 +219,18 @@ export default function ManageDeosPage() {
     return 0;
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, sortField, sortOrder, itemsPerPage]);
+
+  const totalPages = Math.ceil(sortedDeos.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedDeos.length);
+  const paginatedDeos = sortedDeos.slice(startIndex, endIndex);
+
   const activeDistrictsCount = new Set(deos.map((d) => d.district).filter(Boolean)).size;
 
   return (
@@ -396,7 +408,7 @@ export default function ManageDeosPage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedDeos.map((d) => (
+                {paginatedDeos.map((d) => (
                   <tr key={d.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-white text-xs">{d.name}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{d.email || "N/A"}</td>
@@ -429,6 +441,74 @@ export default function ManageDeosPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs">
+              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                <span>Show</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg px-2 py-1 focus:outline-none font-bold"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span>entries per page</span>
+                <span className="text-slate-400 font-medium ml-2">
+                  (Showing {sortedDeos.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sortedDeos.length} DEOs)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 font-bold">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer"
+                >
+                  ‹ Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                  .reduce<(number | string)[]>((acc, page, idx, src) => {
+                    if (idx > 0 && typeof src[idx - 1] === "number" && (page as number) - (src[idx - 1] as number) > 1) {
+                      acc.push("...");
+                    }
+                    acc.push(page);
+                    return acc;
+                  }, [])
+                  .map((item, index) =>
+                    typeof item === "number" ? (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item)}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          currentPage === item
+                            ? "bg-purple-600 text-white shadow-sm"
+                            : "border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ) : (
+                      <span key={`ellipsis-${index}`} className="px-1 text-slate-400">
+                        ...
+                      </span>
+                    )
+                  )}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer"
+                >
+                  Next ›
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

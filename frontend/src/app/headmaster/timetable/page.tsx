@@ -1009,7 +1009,7 @@ export default function HeadmasterTimetablePage() {
                     onChange={(e) => setSlotForm(prev => ({ ...prev, class: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                   >
-                    {["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
+                    {["6", "7", "8", "9", "10", "11", "12"].map(cls => (
                       <option key={cls} value={cls}>Class {cls}</option>
                     ))}
                   </select>

@@ -82,14 +82,14 @@ export default function EventsPage() {
       if (json.success && json.data) {
         const mapped: SchoolEvent[] = json.data.map((b: CulturalEventBackend) => {
           let category: SchoolEvent["category"] = "General";
-          let coordinator = "Mrs. Sumathi Devi (Math)";
+          let coordinator = "N/A";
           
           try {
             const meta = JSON.parse(b.location);
             if (meta.category) category = meta.category;
             if (meta.coordinator) coordinator = meta.coordinator;
           } catch {
-            coordinator = b.location || "Mrs. Sumathi Devi (Math)";
+            coordinator = b.location || "N/A";
           }
 
           // Format Date nicely
@@ -138,13 +138,6 @@ export default function EventsPage() {
       setLoading(false);
     }
   }, [schoolId]);
-
-  useEffect(() => {
-    if (staffList.length > 0 && selectedCoordinators.length === 0) {
-      const first = staffList[0];
-      setSelectedCoordinators([`${first.name} (${first.subject})`]);
-    }
-  }, [staffList, selectedCoordinators.length]);
 
   useEffect(() => {
     fetchData();
@@ -454,7 +447,7 @@ export default function EventsPage() {
 
           <form onSubmit={handleAddEvent} className="space-y-4">
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">
                 <i className="fi fi-rr-text text-blue-500 text-xs" /> Event Title
               </label>
               <input
@@ -469,7 +462,7 @@ export default function EventsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">
                   <i className="fi fi-rr-apps text-blue-500 text-xs" /> Category
                 </label>
                 <select
@@ -484,7 +477,7 @@ export default function EventsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">
                   <i className="fi fi-rr-calendar text-blue-500 text-xs" /> Date
                 </label>
                 <input
@@ -498,7 +491,7 @@ export default function EventsPage() {
             </div>
 
             <div className="relative" ref={dropdownRef}>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">
                 <i className="fi fi-rr-user text-blue-500 text-xs" /> Assign Coordinator Staff
               </label>
               <div
@@ -555,24 +548,8 @@ export default function EventsPage() {
                     );
                   })}
                   {staffList.length === 0 && (
-                    <div
-                      onClick={() => {
-                        const defaultVal = "Mrs. Sumathi Devi (Math)";
-                        if (selectedCoordinators.includes(defaultVal)) {
-                          setSelectedCoordinators(selectedCoordinators.filter((c) => c !== defaultVal));
-                        } else {
-                          setSelectedCoordinators([...selectedCoordinators, defaultVal]);
-                        }
-                      }}
-                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-900 text-xs text-slate-200 cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCoordinators.includes("Mrs. Sumathi Devi (Math)")}
-                        onChange={() => {}}
-                        className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 focus:ring-offset-0 pointer-events-none w-3.5 h-3.5"
-                      />
-                      <span>Mrs. Sumathi Devi (Math)</span>
+                    <div className="px-2.5 py-2 text-xs text-slate-400 italic">
+                      No staff members found in staff directory.
                     </div>
                   )}
                 </div>
@@ -580,7 +557,7 @@ export default function EventsPage() {
             </div>
 
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">
                 <i className="fi fi-rr-document-text text-blue-500 text-xs" /> Brief Description
               </label>
               <textarea

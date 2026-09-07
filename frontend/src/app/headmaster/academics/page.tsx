@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -12,13 +12,26 @@ import {
   FiSearch as FiSearchIcon,
   FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
-  FiExternalLink as FiExternalLinkIcon
+  FiExternalLink as FiExternalLinkIcon,
+  FiChevronLeft as FiChevronLeftIcon,
+  FiChevronRight as FiChevronRightIcon
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
+import { getSession } from "next-auth/react";
 import Swal from "sweetalert2";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/superadmin/academics`;
+
+const authFetch = async (url: string, init: RequestInit = {}) => {
+  const session = await getSession();
+  const token = (session?.user as any)?.backendToken as string | undefined;
+  const headers = new Headers(init?.headers);
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return fetch(url, { ...init, headers });
+};
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph helper
@@ -38,10 +51,19 @@ const SYLLABUS_CLASSES = [
   { id: "12", name: "Class 12", badge: "HSC" },
 ];
 
+const SCHOOL_BOARDS = [
+  { id: "State Board", label: "Tamil Nadu State Board (Government / Samacheer)", shortLabel: "State Board (Govt)", icon: "bank", badge: "TN State Board" },
+  { id: "CBSE", label: "CBSE (Central Board of Secondary Education - NCERT)", shortLabel: "CBSE (NCERT)", icon: "graduation-cap", badge: "CBSE Board" },
+  { id: "ICSE", label: "ICSE (CISCE Board)", shortLabel: "ICSE", icon: "book", badge: "ICSE" },
+  { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
+  { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
+];
+
 const getSubjectIcon = (name: string) => {
   if (!name) return "book-alt";
   const n = name.toLowerCase();
   if (n.includes("tamil")) return "scroll";
+  if (n.includes("hindi")) return "book-open-cover";
   if (n.includes("english")) return "comment-user";
   if (n.includes("math")) return "ruler-combined";
   if (n.includes("science") && !n.includes("social")) return "microscope";
@@ -49,8 +71,8 @@ const getSubjectIcon = (name: string) => {
   if (n.includes("physics")) return "bolt";
   if (n.includes("chemistry") || n.includes("chem")) return "flask";
   if (n.includes("biology") || n.includes("bio")) return "dna";
-  if (n.includes("computer")) return "computer";
-  if (n.includes("commerce") || n.includes("account")) return "briefcase";
+  if (n.includes("computer") || n.includes("it") || n.includes("information tech") || n.includes("ai")) return "computer";
+  if (n.includes("commerce") || n.includes("account") || n.includes("business")) return "briefcase";
   if (n.includes("economic")) return "stats";
   return "book-alt";
 };
@@ -72,6 +94,7 @@ interface Subject {
   subjectCode?: string;
   medium?: string;
   description?: string;
+  board?: string;
   status?: string;
 }
 
@@ -107,6 +130,7 @@ interface Resource {
   contentType?: string;
   author?: string;
   isbn?: string;
+  board?: string;
   status?: string;
   attachmentType?: string;
   subject?: Subject;
@@ -125,25 +149,19 @@ interface SectionItem {
 }
 
 const CATEGORIES = [
-  { key: "overview", label: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
-  // { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
-  { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
-  { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
-  { key: "textbooks", label: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
-  { key: "materials", label: "Study Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
-  { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
-  { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
-  { key: "digital", label: "Digital Content", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
-  { key: "reference", label: "Reference Materials", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
+  { key: "overview", label: "Overview", shortLabel: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
+  // { key: "structure", label: "Class & Structure Setup", shortLabel: "Structure", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
+  { key: "subjects", label: "Class Subjects", shortLabel: "Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
+  { key: "syllabus", label: "Syllabus", shortLabel: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
+  { key: "textbooks", label: "Textbooks", shortLabel: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
+  { key: "materials", label: "Study Materials", shortLabel: "Materials", icon: "document", gradient: "linear-gradient(135deg, #3b82f6, #0284c7)", blurb: "Question banks, model papers & worksheets" },
+  { key: "notes", label: "Teacher Notes", shortLabel: "Notes", icon: "notebook", gradient: "linear-gradient(135deg, #ec4899, #e11d48)", blurb: "Class guides and revision notes shared by teachers" },
+  { key: "videos", label: "Video Lessons", shortLabel: "Videos", icon: "play-alt", gradient: "linear-gradient(135deg, #ef4444, #ea580c)", blurb: "Recorded lecture videos & tutorial lessons" },
+  { key: "digital", label: "Digital Content", shortLabel: "Digital", icon: "computer", gradient: "linear-gradient(135deg, #a855f7, #6366f1)", blurb: "Interactive labs, audio files & simulator links" },
+  { key: "reference", label: "Reference Materials", shortLabel: "Reference", icon: "books", gradient: "linear-gradient(135deg, #06b6d4, #0891b2)", blurb: "Reference handbooks, board rules & glossaries" },
 ];
 
 const RESOURCE_TYPES = ["PDF", "DOC", "Video", "Audio", "Interactive", "eBook", "Link"];
-
-const ALL_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
 
 const TYPE_ICONS: Record<string, string> = {
   PDF: "document",
@@ -176,6 +194,47 @@ export default function HeadmasterAcademicsPage() {
   const [sections, setSections] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Tabs horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [resources, subjects]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [activeTab]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Structure Popup Modal States
   const [structureModal, setStructureModal] = useState<{
@@ -212,6 +271,7 @@ export default function HeadmasterAcademicsPage() {
   };
 
   // Search & Filter
+  const [selectedBoard, setSelectedBoard] = useState<string>("State Board");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterClass, setFilterClass] = useState("");
@@ -246,7 +306,8 @@ export default function HeadmasterAcademicsPage() {
     unitNo: "1",
     subunitNo: "1.1",
     title: "",
-    subtopics: ""
+    subtopics: "",
+    board: "State Board"
   });
 
   const [subchaptersList, setSubchaptersList] = useState<Array<{ no: string; title: string }>>([
@@ -262,7 +323,8 @@ export default function HeadmasterAcademicsPage() {
       unitNo: nextUnit,
       subunitNo: `${nextUnit}.1`,
       title: "",
-      subtopics: ""
+      subtopics: "",
+      board: selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList([
       { no: `${nextUnit}.1`, title: "" }
@@ -289,7 +351,8 @@ export default function HeadmasterAcademicsPage() {
       unitNo: uNo,
       subunitNo: ch.meta?.match(/\d+\.\d+/)?.[0] || `${uNo}.1`,
       title: ch.chapter || ch.title || "",
-      subtopics: desc
+      subtopics: desc,
+      board: ch.board || selectedBoard === "All" ? "State Board" : selectedBoard
     });
     setSubchaptersList(parsedList);
     setChapterModal({ isOpen: true, editId: ch.id });
@@ -388,6 +451,7 @@ export default function HeadmasterAcademicsPage() {
             description: item.subtopics.join(" • ") || item.title,
             meta: "AI OCR Parsed • Auto Extracted",
             status: "Active",
+            board: selectedBoard === "All" ? "State Board" : selectedBoard,
             schoolId: userSchoolId || undefined
           })
         });
@@ -440,6 +504,7 @@ export default function HeadmasterAcademicsPage() {
         description: formattedSubtopics || chapterForm.title.trim(),
         meta: `Subunit ${chapterForm.subunitNo || `${chapterForm.unitNo}.1`} • Active`,
         status: "Active",
+        board: chapterForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         schoolId: userSchoolId || undefined
       };
 
@@ -479,7 +544,13 @@ export default function HeadmasterAcademicsPage() {
     if (classes.length > 0) {
       return classes.map(c => {
         const cleanVal = String(c.name).replace(/^Class\s+/i, '').trim();
-        const badgeStr = parseInt(cleanVal) >= 11 ? "HSC" : "SSLC";
+        const num = parseInt(cleanVal, 10);
+        let badgeStr = "SSLC";
+        if (selectedBoard === "CBSE") {
+          badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+        } else {
+          badgeStr = num >= 11 ? "HSC" : "SSLC";
+        }
         return {
           id: cleanVal,
           name: c.name.startsWith("Class") ? c.name : `Class ${c.name}`,
@@ -487,8 +558,15 @@ export default function HeadmasterAcademicsPage() {
         };
       });
     }
-    return SYLLABUS_CLASSES;
-  }, [classes]);
+    return SYLLABUS_CLASSES.map(sc => {
+      const num = parseInt(sc.id, 10);
+      let badgeStr = sc.badge;
+      if (selectedBoard === "CBSE") {
+        badgeStr = num >= 11 ? "AISSCE" : num >= 9 ? "AISSE" : "Middle";
+      }
+      return { ...sc, badge: badgeStr };
+    });
+  }, [classes, selectedBoard]);
 
   const syllabusSubjectsForClass = useMemo(() => {
     const cleanSyllabusClass = String(syllabusClass).replace(/^Class\s+/i, '').trim();
@@ -496,7 +574,9 @@ export default function HeadmasterAcademicsPage() {
     const dbSubs = subjects.filter(s => {
       if (!s.class) return false;
       const cVal = String(s.class).replace(/^Class\s+/i, '').trim();
-      return cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchClass = cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+      const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
+      return matchClass && matchBoard;
     });
 
     const namesFromDb = Array.from(new Set(dbSubs.map(s => s.name).filter(Boolean)));
@@ -513,25 +593,8 @@ export default function HeadmasterAcademicsPage() {
       });
     }
 
-    const defaultCore = parseInt(cleanSyllabusClass) >= 11
-      ? [
-        "Tamil", "English",
-        "Physics", "Chemistry", "Biology", "Mathematics",
-        "Computer Science",
-        "Commerce", "Accountancy", "Economics", "Computer Applications",
-        "Business Mathematics",
-        "History", "Geography", "Political Science",
-        "Basic Electrical", "Agriculture Science", "Office Management"
-      ]
-      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
-
-    return defaultCore.map(name => ({
-      id: name,
-      name: name,
-      icon: getSubjectIcon(name),
-      color: "#6366f1"
-    }));
-  }, [subjects, syllabusClass]);
+    return [];
+  }, [subjects, syllabusClass, selectedBoard]);
 
   useEffect(() => {
     if (syllabusSubjectsForClass.length > 0) {
@@ -550,6 +613,8 @@ export default function HeadmasterAcademicsPage() {
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
 
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
+
       const resSub = subjects.find(s => s.id === res.subjectId);
       const subName = resSub?.name || res.title || "";
       const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
@@ -560,7 +625,7 @@ export default function HeadmasterAcademicsPage() {
           (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
         : true;
 
-      return matchClass && matchSubject && matchSearch;
+      return matchClass && matchBoard && matchSubject && matchSearch;
     });
 
     return list.sort((a, b) => {
@@ -571,17 +636,18 @@ export default function HeadmasterAcademicsPage() {
       };
       return extractNum(a) - extractNum(b);
     });
-  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery, selectedBoard]);
 
   const getSubjectStats = (subName: string) => {
     const items = resources.filter(res => {
       const isSyllabus = res.category === "syllabus";
       const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
       const matchClass = !resClass || resClass === syllabusClass;
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const resSub = subjects.find(s => s.id === res.subjectId);
       const sName = resSub?.name || "";
       const matchSub = sName.toLowerCase() === subName.toLowerCase() || res.title.toLowerCase().includes(subName.toLowerCase());
-      return isSyllabus && matchClass && matchSub;
+      return isSyllabus && matchClass && matchBoard && matchSub;
     });
 
     const total = items.length;
@@ -596,7 +662,7 @@ export default function HeadmasterAcademicsPage() {
 
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
-    subjectCode: "", medium: "", description: "", status: "Active"
+    subjectCode: "", medium: "", description: "", board: "State Board", status: "Active"
   });
 
   const [resourceForm, setResourceForm] = useState({
@@ -604,7 +670,8 @@ export default function HeadmasterAcademicsPage() {
     class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
     learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
     coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "", status: "Active", attachmentType: "Link"
+    youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "", author: "", isbn: "",
+    board: "State Board", status: "Active", attachmentType: "Link"
   });
 
   useEffect(() => {
@@ -612,11 +679,12 @@ export default function HeadmasterAcademicsPage() {
     fetchResources();
     fetchClasses();
     fetchSections();
-  }, []);
+  }, [selectedBoard]);
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/classes${boardQuery}`);
       if (res.ok) {
         const data = await res.json();
         // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
@@ -634,7 +702,8 @@ export default function HeadmasterAcademicsPage() {
 
   const fetchSections = async () => {
     try {
-      const res = await fetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/sections${boardQuery}`);
       if (res.ok) setSections(await res.json());
     } catch (err) {
       console.error(err);
@@ -645,7 +714,8 @@ export default function HeadmasterAcademicsPage() {
     setLoading(true);
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
-      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -658,7 +728,8 @@ export default function HeadmasterAcademicsPage() {
     setLoading(true);
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
-      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -678,11 +749,23 @@ export default function HeadmasterAcademicsPage() {
       const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
       const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
       const method = isEdit ? "PUT" : "POST";
+      const boardToSave = selectedBoard === "All" ? "State Board" : selectedBoard;
 
-      const res = await fetch(endpoint, {
+      const payload: any = {
+        name: structureInput.trim(),
+        board: boardToSave,
+      };
+
+      if (structureModal.type === "subject") {
+        payload.color = "#6366f1";
+        payload.icon = getSubjectIcon(structureInput.trim());
+        payload.status = "Active";
+      }
+
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: structureInput.trim() }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -692,7 +775,7 @@ export default function HeadmasterAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Updated!" : "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" (${boardToSave}) ${isEdit ? "updated" : "added"} successfully!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -725,7 +808,7 @@ export default function HeadmasterAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
         fetchClasses();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -744,7 +827,7 @@ export default function HeadmasterAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
         fetchSections();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -768,7 +851,7 @@ export default function HeadmasterAcademicsPage() {
       };
 
       try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -802,7 +885,7 @@ export default function HeadmasterAcademicsPage() {
             color: matchingSub?.color || subjectForm.color || "#6366f1",
             icon: matchingSub?.icon || subjectForm.icon || "📚"
           };
-          const res = await fetch(`${API_BASE}/subjects`, {
+          const res = await authFetch(`${API_BASE}/subjects`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -833,7 +916,8 @@ export default function HeadmasterAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      await authFetch(`${API_BASE}/subjects/${id}?deleteAllNamed=true${boardQuery}`, { method: "DELETE" });
       fetchSubjects();
       fetchResources();
     } catch (err) {
@@ -856,6 +940,7 @@ export default function HeadmasterAcademicsPage() {
         subjectCode: sub.subjectCode || "",
         medium: sub.medium || "",
         description: sub.description || "",
+        board: sub.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: sub.status || "Active"
       });
     } else {
@@ -863,7 +948,18 @@ export default function HeadmasterAcademicsPage() {
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
       setSubjectSearchQuery("");
-      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
+      setSubjectForm({
+        name: "",
+        color: "#6366f1",
+        icon: "📚",
+        class: filterClass || "",
+        section: filterSection || "",
+        subjectCode: "",
+        medium: "",
+        description: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active"
+      });
     }
     setError("");
     setShowSubjectModal(true);
@@ -881,9 +977,10 @@ export default function HeadmasterAcademicsPage() {
         ...resourceForm,
         schoolId: userSchoolId || undefined,
         category: activeTab === "overview" ? (resourceForm.contentType || "materials") : activeTab,
-        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
+        title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
+        board: resourceForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -912,7 +1009,7 @@ export default function HeadmasterAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
+      await authFetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
       fetchResources();
     } catch (err) {
       console.error(err);
@@ -934,6 +1031,7 @@ export default function HeadmasterAcademicsPage() {
         lessonTitle: res.lessonTitle || "", youtubeUrl: res.youtubeUrl || "",
         videoDuration: res.videoDuration || "", thumbnail: res.thumbnail || "",
         contentType: res.contentType || "", author: res.author || "", isbn: res.isbn || "",
+        board: res.board || (selectedBoard === "All" ? "State Board" : selectedBoard),
         status: res.status || "Active",
         attachmentType: res.attachmentType || "Link"
       });
@@ -944,7 +1042,9 @@ export default function HeadmasterAcademicsPage() {
         class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
-        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "", status: "Active", attachmentType: "Link"
+        youtubeUrl: "", videoDuration: "", thumbnail: "", contentType: "materials", author: "", isbn: "",
+        board: selectedBoard === "All" ? "State Board" : selectedBoard,
+        status: "Active", attachmentType: "Link"
       });
     }
     setError("");
@@ -1011,9 +1111,10 @@ export default function HeadmasterAcademicsPage() {
   // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return matchClass && matchSection;
+      return hasClass && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
@@ -1035,7 +1136,10 @@ export default function HeadmasterAcademicsPage() {
   }, [subjects, resources, filterClass, filterSection]);
 
   const railSubjects = useMemo(() => {
-    const classFiltered = subjects.filter(s => filterClass ? s.class === String(filterClass) : true);
+    const classFiltered = subjects.filter(s => {
+      const hasClass = Boolean(s.class) && s.class !== "ALL";
+      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+    });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
       const found = subjects.find(s => s.name === name);
@@ -1172,25 +1276,56 @@ export default function HeadmasterAcademicsPage() {
       <div className="space-y-6">
 
         {/* ── Hero Banner ─────────────────────────────────── */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+        <div className="hero-band relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-left">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center" style={{ color: "#ffffff" }}>
-                  <Fi name="graduation-cap" className="text-xl" style={{ color: "#ffffff" }} />
+                  <Fi name={selectedBoard === "CBSE" ? "graduation-cap" : "bank"} className="text-xl text-white" style={{ color: "#ffffff" }} />
                 </span>
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-                  {filterClass ? (lang === "தமிழ்" ? `வகுப்பு ${filterClass}` : `Class ${filterClass}`) : (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes")} · Tamil Nadu State Board
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/20" style={{ color: "#ffffff" }}>
+                  {filterClass ? (lang === "தமிழ்" ? `வகுப்பு ${filterClass}` : `Class ${filterClass}`) : (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes")}
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white border border-white/25" style={{ color: "#ffffff" }}>
+                  {selectedBoard === "CBSE" ? "CBSE (NCERT)" : selectedBoard === "ICSE" ? "ICSE (CISCE)" : selectedBoard === "Matriculation" ? "Matriculation" : selectedBoard === "All" ? "All School Boards" : "Tamil Nadu State Board"}
                 </span>
               </div>
               <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
                 {lang === "தமிழ்" ? "கல்வி & பாடங்கள் மையம்" : "Academics & Subjects Hub"}
               </div>
-              <p className="text-sm max-w-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                {lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், பாடப்புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும். ஆசிரியர் பதிவேற்றங்கள் மற்றும் பாடத்திட்ட சீரமைப்பை நிர்வகிக்கவும்." : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
+              <p className="text-sm max-w-xl leading-relaxed mb-4" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
+                {selectedBoard === "CBSE" 
+                  ? (lang === "தமிழ்" ? "CBSE பாடத்திட்டம், NCERT பாடப்புத்தகங்கள், AISSE/AISSCE மாதிரித் தேர்வுகள் மற்றும் ஆசிரியர் குறிப்புகளை நிர்வகிக்கவும்." : "Manage CBSE curriculum, NCERT textbooks, AISSE/AISSCE sample question papers, marking schemes & lesson notes.")
+                  : (lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், சமச்சீர் கல்வி புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும்." : "Review class subjects, term plans, Samacheer Kalvi textbooks, learning notes, mock-tests and educational media.")}
               </p>
+
+              {/* Board Selector Pills & Dropdown */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 mr-1 text-white" style={{ color: "#ffffff" }}>
+                  <Fi name="settings-sliders" className="text-xs text-white" style={{ color: "#ffffff" }} />
+                  <span style={{ color: "#ffffff" }}>Board:</span>
+                </span>
+                {SCHOOL_BOARDS.map(b => {
+                  const isActive = selectedBoard === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setSelectedBoard(b.id)}
+                      style={isActive ? { color: "#000000", backgroundColor: "#ffffff" } : { color: "#ffffff", backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer select-none ${isActive
+                        ? "hero-board-active !text-black !bg-white shadow-lg scale-105"
+                        : "hover:bg-white/30 border border-white/25 !text-white"
+                        }`}
+                    >
+                      <Fi name={b.icon} className={`text-xs ${isActive ? "!text-black" : "!text-white"}`} style={isActive ? { color: "#000000" } : { color: "#ffffff" }} />
+                      <span className={isActive ? "!text-black font-black" : "!text-white"} style={isActive ? { color: "#000000" } : { color: "#ffffff" }}>{b.shortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Stats count boxes */}
@@ -1221,117 +1356,155 @@ export default function HeadmasterAcademicsPage() {
           </div>
         </div>
 
-        {/* ── Subject Filter Rail ─────────────────────────── */}
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none scroll-smooth">
-          <button
-            onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
-              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
-              }`}
-          >
-            <Fi name="apps" className="text-sm" /> All Subjects
-          </button>
-          {railSubjects.map((s) => {
-            const active = selectedSubject === s.name;
-            return (
+        {/* ── Category Tabs with Arrow Navigation ────────── */}
+        <div className="relative flex items-center group">
+          {/* Left Arrow Mark */}
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1.5 pr-4 bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-l-2xl pointer-events-none">
               <button
-                key={s.name}
-                onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
-                  }`}
-                style={
-                  active
-                    ? { backgroundColor: s.color, borderColor: s.color }
-                    : { borderColor: `${s.color}55` }
-                }
+                onClick={() => scrollTabs("left")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll left"
+                title="Previous tabs"
               >
-                <Fi name={getFlaticonForSubject(s.icon, s.name)} className="text-sm" /> {s.name}
+                <FiChevronLeftIcon className="text-sm" />
               </button>
-            );
-          })}
-        </div>
+            </div>
+          )}
 
-        {/* ── Category Tabs ───────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
-          {CATEGORIES.map((c) => {
-            const active = activeTab === c.key;
-            const count = (c.key === "overview") ? null : countByCategory(c.key);
+          {/* Scrollable Tabs */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkScroll}
+            className="w-full bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex items-center gap-1 overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth shadow-sm"
+          >
+            {CATEGORIES.map((c) => {
+              const active = activeTab === c.key;
+              const count = (c.key === "overview") ? null : countByCategory(c.key);
 
             // Inline localization mapping
             const getCategoryLabel = (key: string, l: string) => {
-              const map: Record<string, string> = {
-                overview: l === "தமிழ்" ? "மேலோட்டம்" : "Overview",
-                structure: l === "தமிழ்" ? "வகுப்பு அமைப்பு" : "Class & Structure Setup",
-                subjects: l === "தமிழ்" ? "வகுப்புப் பாடங்கள்" : "Class Subjects",
-                syllabus: l === "தமிழ்" ? "பாடத்திட்டம்" : "Syllabus",
-                textbooks: l === "தமிழ்" ? "பாடப்புத்தகங்கள்" : "Textbooks",
-                materials: l === "தமிழ்" ? "ஆய்வுப் பொருட்கள்" : "Study Materials",
-                notes: l === "தமிழ்" ? "ஆசிரியர் குறிப்புகள்" : "Teacher Notes",
-                videos: l === "தமிழ்" ? "வீடியோ பாடங்கள்" : "Video Lessons",
-                digital: l === "தமிழ்" ? "டிஜிட்டல் உள்ளடக்கம்" : "Digital Content",
-                reference: l === "தமிழ்" ? "குறிப்புப் பொருட்கள்" : "Reference Materials"
-              };
-              return map[key] || key;
+              if (l === "தமிழ்") {
+                const mapTa: Record<string, string> = {
+                  overview: "மேலோட்டம்",
+                  structure: "அமைப்பு",
+                  subjects: "பாடங்கள்",
+                  syllabus: "பாடத்திட்டம்",
+                  textbooks: "புத்தகங்கள்",
+                  materials: "பொருட்கள்",
+                  notes: "குறிப்புகள்",
+                  videos: "வீடியோக்கள்",
+                  digital: "டிஜிட்டல்",
+                  reference: "குறிப்பு"
+                };
+                return mapTa[key] || key;
+              }
+              return c.label;
             };
 
-            return (
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setActiveTab(c.key)}
+                  className={`shrink-0 flex-1 min-w-max flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer text-center select-none whitespace-nowrap ${active
+                    ? `text-white shadow-md shadow-indigo-500/20 scale-[1.02]`
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                    }`}
+                  style={active ? { background: c.gradient } : undefined}
+                  title={c.label}
+                >
+                  <Fi name={c.icon} className="text-xs shrink-0" />
+                  <span className="whitespace-nowrap">{getCategoryLabel(c.key, lang)}</span>
+                  {count !== null && (
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${active ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Arrow Mark */}
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1.5 pl-4 bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-r-2xl pointer-events-none">
               <button
-                key={c.key}
-                onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
-                  ? `text-white shadow-md`
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-                style={active ? { background: c.gradient } : undefined}
+                onClick={() => scrollTabs("right")}
+                type="button"
+                className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                aria-label="Scroll right"
+                title="Next tabs"
               >
-                <Fi name={c.icon} className="text-sm" />
-                {getCategoryLabel(c.key, lang)}
-                {count !== null && (
-                  <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                      }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <FiChevronRightIcon className="text-sm" />
               </button>
-            );
-          })}
+            </div>
+          )}
         </div>
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
         {activeTab !== "syllabus" && (
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
-            {/* Left search */}
-            <div className="relative w-full md:flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <FiSearchIcon className="text-sm" />
-              </span>
-              <input
-                type="text"
-                placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
-              />
-              {searchQuery && (
+          <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm space-y-3">
+            {/* Top Row: Search Input & Primary Add Action */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                  <FiSearchIcon className="text-sm" />
+                </span>
+                <input
+                  type="text"
+                  placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-700 dark:text-slate-200 transition-all placeholder:text-slate-400"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <FiXIcon className="text-xs" />
+                  </button>
+                )}
+              </div>
+
+              {activeTab !== "overview" && activeTab !== "structure" && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
+                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:shadow-lg active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
-                  <FiXIcon className="text-sm" />
+                  <FiPlusIcon className="text-sm" />
+                  <span>Add {CATEGORIES.find(c => c.key === activeTab)?.label}</span>
                 </button>
               )}
             </div>
 
-            {/* Filters & Add Action */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Bottom Row: Filter Dropdowns & Clear Button */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+                <FiFilterIcon className="text-xs" /> Filter:
+              </span>
+
+              {/* Subject Filter */}
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+              >
+                <option value="All">All Subjects</option>
+                {railSubjects.map(s => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+
               {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Approved</option>
@@ -1343,7 +1516,7 @@ export default function HeadmasterAcademicsPage() {
               <select
                 value={filterClass}
                 onChange={(e) => setFilterClass(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="">All Classes</option>
                 {classes.length > 0 ? (
@@ -1362,7 +1535,7 @@ export default function HeadmasterAcademicsPage() {
               <select
                 value={filterSection}
                 onChange={(e) => setFilterSection(e.target.value)}
-                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
               >
                 <option value="">All Sections</option>
                 {sections.length > 0 ? (
@@ -1387,21 +1560,10 @@ export default function HeadmasterAcademicsPage() {
                     setSelectedSubject("All");
                     setSearchQuery("");
                   }}
-                  className="p-2 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                  className="px-2.5 py-1.5 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex items-center gap-1"
                   title="Clear Filters"
                 >
-                  Clear
-                </button>
-              )}
-
-              {/* Add Subject/Resource Button */}
-              {activeTab !== "overview" && activeTab !== "structure" && (
-                <button
-                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0"
-                >
-                  <FiPlusIcon className="text-sm" />
-                  Add {CATEGORIES.find(c => c.key === activeTab)?.label}
+                  <FiXIcon className="text-xs" /> Clear
                 </button>
               )}
             </div>
@@ -2024,14 +2186,14 @@ export default function HeadmasterAcademicsPage() {
                             key={sub.name}
                             onClick={() => setSelectedSyllabusSubject(sub.name)}
                             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                                ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                               }`}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-xl shrink-0">{sub.icon}</span>
                               <div>
-                                <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                                <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                                   {sub.name}
                                 </h4>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
@@ -2417,7 +2579,7 @@ export default function HeadmasterAcademicsPage() {
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                  <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
@@ -2429,6 +2591,16 @@ export default function HeadmasterAcademicsPage() {
                       ) : (
                         [...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)
                       )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select value={subjectForm.board || "State Board"} onChange={e => setSubjectForm({ ...subjectForm, board: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                      <option value="State Board">State Board (Govt)</option>
+                      <option value="CBSE">CBSE (NCERT)</option>
+                      <option value="ICSE">ICSE</option>
+                      <option value="Matriculation">Matriculation</option>
+                      <option value="All">All Boards</option>
                     </select>
                   </div>
                 </div>
@@ -2628,7 +2800,7 @@ export default function HeadmasterAcademicsPage() {
               <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select
@@ -2636,15 +2808,20 @@ export default function HeadmasterAcademicsPage() {
                       value={resourceForm.class}
                       onChange={e => {
                         const newClass = e.target.value;
-                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass) || String(s.class) === `Class ${newClass}`) : subjects;
+                        const cleanNew = String(newClass).replace(/^Class\s+/i, '').trim();
+                        const filtered = newClass ? subjects.filter(s => {
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanNew || String(s.class) === newClass || String(s.class) === `Class ${cleanNew}`;
+                        }) : subjects;
                         const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
                         setResourceForm({
                           ...resourceForm,
                           class: newClass,
-                          subjectId: isStillValid ? resourceForm.subjectId : ""
+                          subjectId: isStillValid ? resourceForm.subjectId : (filtered.length > 0 ? filtered[0].id : "")
                         });
                       }}
-                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold"
                     >
                       <option value="">Select Class</option>
                       {classes.length > 0 ? (
@@ -2659,15 +2836,32 @@ export default function HeadmasterAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
-                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold">
                       <option value="" disabled>Select subject</option>
-                      {Array.from(
-                        new Map(
-                          subjects
-                            .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class) || String(s.class) === `Class ${resourceForm.class}`)
-                            .map(s => [s.name, s])
-                        ).values()
-                      ).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {(() => {
+                        const cleanClass = String(resourceForm.class || "").replace(/^Class\s+/i, '').trim();
+                        let filtered = subjects.filter(s => {
+                          if (!cleanClass) return true;
+                          if (!s.class || s.class === "All" || s.class === "General") return true;
+                          const sCls = String(s.class).replace(/^Class\s+/i, '').trim();
+                          return sCls === cleanClass || String(s.class) === cleanClass || String(s.class) === `Class ${cleanClass}`;
+                        });
+                        if (filtered.length === 0 && subjects.length > 0) {
+                          filtered = subjects;
+                        }
+                        const unique = Array.from(new Map(filtered.map(s => [s.name.toLowerCase().trim(), s])).values());
+                        return unique.map(s => <option key={s.id} value={s.id}>{s.name}</option>);
+                      })()}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">School Board *</label>
+                    <select value={resourceForm.board || "State Board"} onChange={e => setResourceForm({ ...resourceForm, board: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none text-xs font-semibold">
+                      <option value="State Board">State Board (Govt)</option>
+                      <option value="CBSE">CBSE (NCERT)</option>
+                      <option value="ICSE">ICSE</option>
+                      <option value="Matriculation">Matriculation</option>
+                      <option value="All">All Boards</option>
                     </select>
                   </div>
                 </div>
@@ -2993,7 +3187,9 @@ export default function HeadmasterAcademicsPage() {
                             ? "Add New Section"
                             : "Add New Subject"}
                     </h3>
-                    <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
+                    <p className="text-xs text-slate-400">
+                      {structureModal.type === "class" ? "Enter class name to register" : structureModal.type === "section" ? "Enter section name to register" : "Enter subject name to register"}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -3110,6 +3306,23 @@ export default function HeadmasterAcademicsPage() {
                       className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                    SCHOOL BOARD / CURRICULUM
+                  </label>
+                  <select
+                    value={chapterForm.board || "State Board"}
+                    onChange={(e) => setChapterForm({ ...chapterForm, board: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  >
+                    <option value="State Board">State Board (Government / Samacheer)</option>
+                    <option value="CBSE">CBSE (NCERT Curriculum)</option>
+                    <option value="ICSE">ICSE Board</option>
+                    <option value="Matriculation">Matriculation</option>
+                    <option value="All">All Boards</option>
+                  </select>
                 </div>
 
                 <div>

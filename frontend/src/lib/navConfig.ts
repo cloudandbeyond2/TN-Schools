@@ -110,7 +110,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Dashboard", href: "/parent", icon: "Home" },
       { label: "Child Performance", href: "/parent/performance", icon: "Activity" },
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
-      { label: "Homework Status", href: "/parent/homework", icon: "Edit3" },
+      { label: "Homework Status", href: "/parent/homework", icon: "BookMarked" },
       { label: "Notifications", href: "/parent/notifications", icon: "Bell" },
       { label: "Child Health Report", href: "/parent/health", icon: "HeartPulse" },
       { label: "Leave Reports", href: "/parent/leave", icon: "FileText" },
@@ -150,10 +150,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      { label: "Homework", href: "/student/homework", icon: "BookMarked" },
       { label: "Exams & Assessments", href: "#", icon: "" },
-      { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
-      { label: "Mock Tests", href: "/student/mock-tests", icon: "Edit3" },
+      { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
+      { label: "Mock Tests", href: "/student/mock-tests", icon: "Target" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
@@ -231,13 +231,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      { label: "Homework", href: "/student/homework", icon: "BookMarked" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
-      { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
+      { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "FileCheck" },
       { label: "Exam Results", href: "/student/high-school/model-exams", icon: "ClipboardCheck" },
       { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
-      { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "Assessments", href: "/student/assessments", icon: "CheckSquare" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
@@ -414,8 +414,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "📝 HOMEWORK & EXAMS", href: "#", icon: "" },
 
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
-      { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "Homework", href: "/student/homework", icon: "BookMarked" },
+      { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "ClipboardCheck" },
@@ -458,7 +458,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "Award" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
-      // { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+      { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ===================== SUPPORT =====================
@@ -506,7 +506,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "fi fi-rr-calendar" },
       { label: "Exam Schedule", href: "/teacher/exams", icon: "fi fi-rr-document-signed" },
       { label: "Manage Mock Tests", href: "/teacher/mock-tests", icon: "fi fi-rr-list-check" },
-      { label: "Science Labs", href: "/teacher/labs", icon: "fi fi-rr-flask" },
+      // { label: "Science Labs", href: "/teacher/labs", icon: "fi fi-rr-flask" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "fi fi-rr-stats" },
 
       // Academics & Guidance
@@ -541,29 +541,33 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
 
+      // Class Teacher Responsibilities
+      { label: "---", href: "#", icon: "" },
+      { label: "Class Teacher", href: "#", icon: "" },
+      { label: "Daily Attendance", href: "/teacher/attendance", icon: "fi fi-rr-calendar" },
+      { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
+      { label: "Scholarship Details", href: "/teacher/scholarships", icon: "fi fi-rr-graduation-cap" },
+      { label: "Leave Requests", href: "/teacher/leave", icon: "fi fi-rr-document" },
+      { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "fi fi-rr-shield" },
+
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
-      { label: "Student Profiles", href: "/teacher/student-profiles", icon: "fi fi-rr-user" },
       { label: "Personal Counsellor", href: "/teacher/counsellor", icon: "fi fi-rr-heart" },
       { label: "Parent Communication", href: "/teacher/communication", icon: "fi fi-rr-comment" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "fi fi-rr-folder" },
       { label: "Student Status", href: "/teacher/student-status", icon: "fi fi-rr-stats" },
       { label: "Student Progress", href: "/teacher/progress", icon: "fi fi-rr-chart-histogram" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "fi fi-rr-pencil" },
-      { label: "Scholarship Details", href: "/teacher/scholarships", icon: "fi fi-rr-graduation-cap" },
       { label: "Social Activities Review", href: "/teacher/social-activities", icon: "fi fi-rr-heart" },
       { label: "Student Analytics", href: "/teacher/analytics", icon: "fi fi-rr-stats" },
-      { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "fi fi-rr-shield" },
       // { label: "Parent Management", href: "/teacher/parents", icon: "Users" },
       { label: "Sports & Athletics", href: "/teacher/sports", icon: "fi fi-rr-running" },
 
       // Resources & Admin
       { label: "Resources & Admin", href: "#", icon: "" },
       // { label: "AI Material Hub", href: "/teacher/material-hub", icon: "✨" },
-      { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
-      { label: "Daily Attendance", href: "/teacher/attendance", icon: "fi fi-rr-calendar" },
+      // { label: "Add Materials", href: "/teacher/add-materials", icon: "fi fi-rr-document" },
       { label: "Announcements", href: "/teacher/announcements", icon: "fi fi-rr-megaphone" },
-      { label: "Leave Requests", href: "/teacher/leave", icon: "fi fi-rr-document" },
       { label: "Club Events", href: "/teacher/events", icon: "fi fi-rr-calendar" },
 
       // Interactive Modules & Centers
@@ -571,7 +575,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "fi fi-rr-palette" },
       // { label: "Science Fact", href: "/teacher/science-fact", icon: "fi fi-rr-bulb" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "fi fi-rr-calculator" },
-      { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
+      // { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "fi fi-rr-flask" },
       { label: "Chemistry Lab", href: "/teacher/chemistry-lab", icon: "fi fi-rr-flask" },
       { label: "Zoology Centre", href: "/teacher/zoology-centre", icon: "fi fi-rr-bug" },
@@ -593,7 +597,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Dashboard", href: "/parent", icon: "Home" },
       { label: "Child Performance", href: "/parent/performance", icon: "Activity" },
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
-      { label: "Homework Status", href: "/parent/homework", icon: "Edit3" },
+      { label: "Homework Status", href: "/parent/homework", icon: "BookMarked" },
       { label: "Notifications", href: "/parent/notifications", icon: "Bell" },
       { label: "Child Health Report", href: "/parent/health", icon: "HeartPulse" },
       { label: "Leave Reports", href: "/parent/leave", icon: "FileText" },
@@ -644,7 +648,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Extra Curricular & Info", href: "#", icon: "" },
       { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "fi fi-rr-globe" },
-      { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-party-horn" },
+      { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-calendar-star" },
       { label: "Celebrations", href: "/headmaster/celebrations", icon: "fi fi-rr-party-horn" },
       { label: "Media Gallery", href: "/headmaster/gallery", icon: "fi fi-rr-picture" },
       { label: "Rewards & Honors", href: "/headmaster/rewards", icon: "fi fi-rr-trophy" },

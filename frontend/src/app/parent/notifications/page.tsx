@@ -7,7 +7,7 @@ import { getApiBase } from "@/lib/useParentChildren";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bell, Calendar, BarChart2, FileText, Users, GraduationCap, Megaphone, 
-  RefreshCw, RotateCcw, X, Search, ChevronDown, Check, Trash2, 
+  RefreshCw, RotateCcw, X, Search, ChevronDown, ChevronLeft, ChevronRight, Check, Trash2, 
   ArrowUpDown, SlidersHorizontal, Sliders, CheckSquare, Clock, Filter, Eye, AlertCircle,
   Trophy
 } from "lucide-react";
@@ -95,6 +95,47 @@ export default function NotificationsPage() {
 
   // Active Notification Detail Modal
   const [activeNotification, setActiveNotification] = useState<Notification | null>(null);
+
+  // Categories horizontal scroll navigation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 6);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(checkScroll, 150);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [notifications]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [filterCategory]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsContainerRef.current;
+    if (el) {
+      const scrollAmount = Math.max(el.clientWidth * 0.55, 240);
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+      setTimeout(checkScroll, 350);
+    }
+  };
 
   // Keep references to active delete timeouts
   const deleteTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
@@ -621,36 +662,73 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          {/* Categories Strip with more spacing */}
-          <div className="flex gap-3.5 mt-8 overflow-x-auto whitespace-nowrap scroll-smooth pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {CATEGORIES.map(cat => {
-              const count = cat.id === "ALL"
-                ? notifications.length
-                : notifications.filter(n => matchNotifType(n.type, cat.id)).length;
-              
-              if (cat.id !== "ALL" && count === 0) return null;
-
-              const isSelected = filterCategory === cat.id;
-              const IconComponent = cat.icon;
-
-              return (
+          {/* Categories Strip with Scroll Navigation Arrows */}
+          <div className="relative flex items-center group mt-8">
+            {/* Left Arrow Mark */}
+            {canScrollLeft && (
+              <div className="absolute left-0 inset-y-0 z-20 flex items-center pl-1 pr-4 bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-l-xl pointer-events-none">
                 <button
-                  key={cat.id}
-                  onClick={() => setFilterCategory(cat.id)}
-                  className={`text-[10px] px-5 py-3 rounded-xl font-bold border transition-all flex items-center gap-2.5 shrink-0 ${
-                    isSelected
-                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 shadow-sm scale-105"
-                      : "bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700"
-                  }`}
+                  onClick={() => scrollTabs("left")}
+                  type="button"
+                  className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  aria-label="Scroll left"
+                  title="Previous categories"
                 >
-                  <IconComponent className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-500" : "text-slate-400"}`} />
-                  <span>{cat.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold transition-colors ${
-                    isSelected ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                  }`}>{count}</span>
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-              );
-            })}
+              </div>
+            )}
+
+            {/* Scrollable Categories */}
+            <div
+              ref={tabsContainerRef}
+              onScroll={checkScroll}
+              className="w-full flex gap-3.5 overflow-x-auto whitespace-nowrap scroll-smooth pb-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {CATEGORIES.map(cat => {
+                const count = cat.id === "ALL"
+                  ? notifications.length
+                  : notifications.filter(n => matchNotifType(n.type, cat.id)).length;
+                
+                if (cat.id !== "ALL" && count === 0) return null;
+
+                const isSelected = filterCategory === cat.id;
+                const IconComponent = cat.icon;
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFilterCategory(cat.id)}
+                    className={`text-[10px] px-5 py-3 rounded-xl font-bold border transition-all flex items-center gap-2.5 shrink-0 select-none cursor-pointer ${
+                      isSelected
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 shadow-sm scale-105"
+                        : "bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700"
+                    }`}
+                  >
+                    <IconComponent className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-500" : "text-slate-400"}`} />
+                    <span>{cat.label}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold transition-colors ${
+                      isSelected ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                    }`}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Arrow Mark */}
+            {canScrollRight && (
+              <div className="absolute right-0 inset-y-0 z-20 flex items-center pr-1 pl-4 bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent rounded-r-xl pointer-events-none">
+                <button
+                  onClick={() => scrollTabs("right")}
+                  type="button"
+                  className="pointer-events-auto h-7 w-7 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  aria-label="Scroll right"
+                  title="Next categories"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

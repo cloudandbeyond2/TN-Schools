@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
-import { AiSkillConfig, PlatformSetting } from '../models/mongo';
+import { AiSkillConfig, PlatformSetting, AiTopicUsage } from '../models/mongo';
 import { authenticate } from '../middleware/auth.middleware';
-import { callGemini } from './ai.routes';
+import { callGemini, callGeminiWithUsage } from './ai.routes';
 import {
   AI_SKILLS,
   SKILL_BY_KEY,
@@ -33,6 +33,8 @@ export interface EffectiveSkill {
   classMax: number;
   model: string;
   maxTokens: number;
+  tokensUsed: number;
+  totalGenerations: number;
   promptOverride?: string;
   packOverrides: Record<string, string>;
   updatedBy?: string;
@@ -53,6 +55,8 @@ function merge(def: AiSkillDef, doc: any): EffectiveSkill {
     classMax: Number.isFinite(doc?.classMax) ? doc.classMax : def.defaultClassRange[1],
     model: doc?.modelId || def.defaultModel,
     maxTokens: Number.isFinite(doc?.maxTokens) ? doc.maxTokens : def.defaultMaxTokens,
+    tokensUsed: Number.isFinite(doc?.tokensUsed) ? doc.tokensUsed : 0,
+    totalGenerations: Number.isFinite(doc?.totalGenerations) ? doc.totalGenerations : 0,
     promptOverride: doc?.promptOverride || undefined,
     packOverrides: packOverridesToObject(doc?.packOverrides),
     updatedBy: doc?.updatedBy,
@@ -212,7 +216,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       packDirective: skill.packOverrides[pack],
     });
 
-    const raw = await callGemini(
+    const { data: raw, usage } = await callGeminiWithUsage(
       prompt,
       true,
       SCHEMAS[skill.def.outputKind],
@@ -224,6 +228,38 @@ router.post('/generate', async (req: Request, res: Response) => {
     );
     // Free-text icon fields can come back as names the font does not ship.
     const payload = sanitizePayload(skill.def.outputKind, raw);
+
+    // Record per-topic token audit and aggregate into AiSkillConfig asynchronously
+    AiTopicUsage.create({
+      skillKey: skill.def.key,
+      topic: ctx.topic,
+      subject: ctx.subject,
+      className: ctx.className,
+      section: section || undefined,
+      unit: ctx.unit || unit || undefined,
+      promptTokens: usage.promptTokens,
+      completionTokens: usage.candidatesTokens,
+      tokensUsed: usage.totalTokens,
+      modelId: skill.model,
+      userId: req.user?.id,
+      userName: req.user?.name,
+      schoolId: req.user?.schoolId,
+    }).catch((e: any) => console.error('Failed to log topic token usage:', e));
+
+    AiSkillConfig.updateOne(
+      { key: skill.def.key },
+      {
+        $inc: { tokensUsed: usage.totalTokens, totalGenerations: 1 },
+        $setOnInsert: {
+          isEnabled: skill.isEnabled,
+          classMin: skill.classMin,
+          classMax: skill.classMax,
+          modelId: skill.model,
+          maxTokens: skill.maxTokens,
+        },
+      },
+      { upsert: true }
+    ).catch((e: any) => console.error('Failed to increment skill token count:', e));
 
     res.json({
       success: true,
@@ -238,6 +274,11 @@ router.post('/generate', async (req: Request, res: Response) => {
         topic: ctx.topic,
         language: ctx.language,
         model: skill.model,
+        tokensUsed: {
+          promptTokens: usage.promptTokens,
+          completionTokens: usage.candidatesTokens,
+          totalTokens: usage.totalTokens,
+        },
         payload,
       },
     });
@@ -328,11 +369,15 @@ router.post('/content', async (req: Request, res: Response) => {
   try {
     const {
       skillKey, outputKind, subjectPack, subject, className, section, topic,
-      title, language, payload, schoolId, teacherId, classRoomId, unit,
+      title, language, payload, schoolId, teacherId, classRoomId, unit, tokensUsed,
     } = req.body || {};
 
     if (!skillKey || !payload) {
       return res.status(400).json({ success: false, error: 'skillKey and payload are required' });
+    }
+
+    if (tokensUsed && typeof payload === 'object') {
+      payload._tokensUsed = tokensUsed;
     }
 
     const def = SKILL_BY_KEY[skillKey];

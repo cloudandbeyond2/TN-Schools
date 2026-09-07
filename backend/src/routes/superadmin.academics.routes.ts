@@ -45,13 +45,14 @@ router.post("/upload", requireMinRole("HEADMASTER"), (req: Request, res: Respons
   }
 });
 
-// Ensure AcademicClass and AcademicSection tables exist in PostgreSQL
+// Ensure AcademicClass and AcademicSection tables exist in PostgreSQL and seed defaults if empty
 async function ensureAcademicTablesExist() {
   try {
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "AcademicClass" (
         "id" TEXT PRIMARY KEY,
         "name" TEXT UNIQUE NOT NULL,
+        "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -61,13 +62,31 @@ async function ensureAcademicTablesExist() {
       CREATE TABLE IF NOT EXISTS "AcademicSection" (
         "id" TEXT PRIMARY KEY,
         "name" TEXT UNIQUE NOT NULL,
+        "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicClass" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSection" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+    
+    // Ensure default classes exist
+    const classCount = await prisma.academicClass.count();
+    if (classCount === 0) {
+      const defaultClasses = Array.from({ length: 12 }, (_, i) => ({
+        id: randomUUID(),
+        name: `Class ${i + 1}`,
+        board: "State Board",
+        status: "Active",
+      }));
+      await prisma.academicClass.createMany({ data: defaultClasses });
+    }
+
   } catch (e) {
     console.error("Error creating academic tables/columns:", e);
   }
@@ -77,17 +96,35 @@ async function ensureAcademicTablesExist() {
 router.get("/classes", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
+    const { board } = req.query;
     let classes: any[] = [];
     try {
       if ((prisma as any).academicClass) {
+        const where: any = {};
+        if (board && String(board).trim() && String(board).trim() !== "All") {
+          where.OR = [
+            { board: String(board).trim() },
+            { board: "All" },
+            { board: null },
+            { board: "" },
+          ];
+        }
         classes = await (prisma as any).academicClass.findMany({
+          where,
           orderBy: { name: "asc" },
         });
       } else {
         throw new Error("academicClass model not loaded");
       }
     } catch {
-      classes = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicClass" ORDER BY "name" ASC`);
+      if (board && String(board).trim() && String(board).trim() !== "All") {
+        classes = await prisma.$queryRawUnsafe(
+          `SELECT "id", "name", "status", "board" FROM "AcademicClass" WHERE "board" = $1 OR "board" = 'All' OR "board" IS NULL ORDER BY "name" ASC`,
+          String(board).trim()
+        );
+      } else {
+        classes = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status", "board" FROM "AcademicClass" ORDER BY "name" ASC`);
+      }
     }
     res.json(classes);
   } catch (error: any) {
@@ -99,11 +136,12 @@ router.get("/classes", async (req: Request, res: Response) => {
 router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Class name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : "State Board";
     const id = randomUUID();
 
     let result: any = null;
@@ -111,19 +149,20 @@ router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: 
       if ((prisma as any).academicClass) {
         result = await (prisma as any).academicClass.upsert({
           where: { name: cleanName },
-          update: { updatedAt: new Date() },
-          create: { id, name: cleanName, status: "Active" },
+          update: { board: cleanBoard, updatedAt: new Date() },
+          create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
         throw new Error("academicClass model not loaded");
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicClass" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicClass" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
         id,
-        cleanName
+        cleanName,
+        cleanBoard
       );
-      result = { id, name: cleanName, status: "Active" };
+      result = { id, name: cleanName, board: cleanBoard, status: "Active" };
     }
     res.status(201).json(result);
   } catch (error: any) {
@@ -156,17 +195,18 @@ router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, re
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Class name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : undefined;
     let result: any = null;
     try {
       if ((prisma as any).academicClass) {
         result = await (prisma as any).academicClass.update({
           where: { id },
-          data: { name: cleanName, updatedAt: new Date() }
+          data: { name: cleanName, ...(cleanBoard ? { board: cleanBoard } : {}), updatedAt: new Date() }
         });
       } else {
         throw new Error("academicClass model not loaded");
@@ -186,17 +226,35 @@ router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, re
 router.get("/sections", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
+    const { board } = req.query;
     let sections: any[] = [];
     try {
       if ((prisma as any).academicSection) {
+        const where: any = {};
+        if (board && String(board).trim() && String(board).trim() !== "All") {
+          where.OR = [
+            { board: String(board).trim() },
+            { board: "All" },
+            { board: null },
+            { board: "" },
+          ];
+        }
         sections = await (prisma as any).academicSection.findMany({
+          where,
           orderBy: { name: "asc" },
         });
       } else {
         throw new Error("academicSection model not loaded");
       }
     } catch {
-      sections = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicSection" ORDER BY "name" ASC`);
+      if (board && String(board).trim() && String(board).trim() !== "All") {
+        sections = await prisma.$queryRawUnsafe(
+          `SELECT "id", "name", "status", "board" FROM "AcademicSection" WHERE "board" = $1 OR "board" = 'All' OR "board" IS NULL ORDER BY "name" ASC`,
+          String(board).trim()
+        );
+      } else {
+        sections = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status", "board" FROM "AcademicSection" ORDER BY "name" ASC`);
+      }
     }
     res.json(sections);
   } catch (error: any) {
@@ -208,11 +266,12 @@ router.get("/sections", async (req: Request, res: Response) => {
 router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Section name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : "State Board";
     const id = randomUUID();
 
     let result: any = null;
@@ -220,19 +279,20 @@ router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res:
       if ((prisma as any).academicSection) {
         result = await (prisma as any).academicSection.upsert({
           where: { name: cleanName },
-          update: { updatedAt: new Date() },
-          create: { id, name: cleanName, status: "Active" },
+          update: { board: cleanBoard, updatedAt: new Date() },
+          create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
         throw new Error("academicSection model not loaded");
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicSection" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicSection" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
         id,
-        cleanName
+        cleanName,
+        cleanBoard
       );
-      result = { id, name: cleanName, status: "Active" };
+      result = { id, name: cleanName, board: cleanBoard, status: "Active" };
     }
     res.status(201).json(result);
   } catch (error: any) {
@@ -265,17 +325,18 @@ router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, r
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, board } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "Section name is required" });
     }
     const cleanName = String(name).trim();
+    const cleanBoard = board && String(board).trim() !== "All" ? String(board).trim() : undefined;
     let result: any = null;
     try {
       if ((prisma as any).academicSection) {
         result = await (prisma as any).academicSection.update({
           where: { id },
-          data: { name: cleanName, updatedAt: new Date() }
+          data: { name: cleanName, ...(cleanBoard ? { board: cleanBoard } : {}), updatedAt: new Date() }
         });
       } else {
         throw new Error("academicSection model not loaded");
@@ -297,10 +358,10 @@ router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, r
 router.get("/subjects", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { class: className, status, schoolId } = req.query;
+    const { class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
-    const where: any = {};
+    const andConditions: any[] = [];
 
     if (className) {
       const clsStr = String(className).trim();
@@ -316,30 +377,42 @@ router.get("/subjects", async (req: Request, res: Response) => {
         numMatch ? `CLASS ${numMatch}` : "",
       ])).filter(Boolean);
 
-      // Only return subjects that exactly match the requested class.
-      // Do NOT include null/empty class rows — those are unassigned subjects
-      // that should only appear in the headmaster's "all subjects" view.
-      where.OR = classVariants.map(c => ({ class: c }));
+      andConditions.push({
+        OR: classVariants.map(c => ({ class: c }))
+      });
     }
 
     if (status) {
       const st = String(status).trim();
-      where.status = {
-        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
-      };
+      andConditions.push({
+        status: {
+          in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+        }
+      });
     }
 
     if (targetSchoolId) {
-      where.AND = [
-        {
-          OR: [
-            { schoolId: targetSchoolId },
-            { schoolId: null },
-            { schoolId: "" }
-          ]
-        }
-      ];
+      andConditions.push({
+        OR: [
+          { schoolId: targetSchoolId },
+          { schoolId: null },
+          { schoolId: "" }
+        ]
+      });
     }
+
+    if (board && String(board).trim() && String(board).trim() !== "All") {
+      andConditions.push({
+        OR: [
+          { board: String(board).trim() },
+          { board: "All" },
+          { board: null },
+          { board: "" }
+        ]
+      });
+    }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const subjects = await prisma.academicSubject.findMany({
       where,
@@ -356,18 +429,20 @@ router.get("/subjects", async (req: Request, res: Response) => {
 router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId, board } = req.body;
     if (!name || !String(name).trim()) return res.status(400).json({ error: "Name is required" });
 
     const cleanName = String(name).trim();
     const cleanClass = className ? String(className).trim() : null;
     const targetSchoolId = schoolId || req.user?.schoolId || null;
+    const cleanBoard = board ? String(board).trim() : "State Board";
 
-    // Check if subject with this exact name and class already exists
+    // Check if subject with this exact name, class and board already exists
     const existing = await prisma.academicSubject.findFirst({
       where: {
         name: cleanName,
         class: cleanClass,
+        board: cleanBoard,
       },
     });
 
@@ -383,6 +458,7 @@ router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res:
           medium: medium || existing.medium,
           description: description || existing.description,
           status: status || existing.status,
+          board: cleanBoard,
           schoolId: targetSchoolId || (existing as any).schoolId,
         } as any,
       });
@@ -400,6 +476,7 @@ router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res:
         subjectCode,
         medium,
         description,
+        board: cleanBoard,
         schoolId: targetSchoolId,
         status: status || "Active",
       } as any,
@@ -416,13 +493,14 @@ router.put("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, r
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId, board } = req.body;
     const targetSchoolId = schoolId || req.user?.schoolId || undefined;
 
     const subject = await prisma.academicSubject.update({
       where: { id },
       data: { 
         name, color, icon, class: className, section, subjectCode, medium, description, status,
+        ...(board !== undefined ? { board: String(board).trim() } : {}),
         ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
       },
     });
@@ -438,9 +516,21 @@ router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
-    await prisma.academicSubject.delete({
-      where: { id },
-    });
+    const { deleteAllNamed, board } = req.query;
+
+    const target = await prisma.academicSubject.findUnique({ where: { id } });
+    if (target && deleteAllNamed === "true") {
+      await prisma.academicSubject.deleteMany({
+        where: {
+          name: target.name,
+          ...(board && board !== "All" ? { board: String(board).trim() } : target.board ? { board: target.board } : {}),
+        },
+      });
+    } else {
+      await prisma.academicSubject.delete({
+        where: { id },
+      });
+    }
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting subject:", error);
@@ -454,17 +544,23 @@ router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request
 router.get("/resources", async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
-    const { category, subjectId, class: className, status, schoolId } = req.query;
+    const { category, subjectId, class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
-    const where: any = {};
+    const andConditions: any[] = [];
+
     if (category) {
       const catStr = String(category).trim();
-      where.category = {
-        in: Array.from(new Set([catStr, catStr.toLowerCase(), catStr.toUpperCase()]))
-      };
+      andConditions.push({
+        category: {
+          in: Array.from(new Set([catStr, catStr.toLowerCase(), catStr.toUpperCase()]))
+        }
+      });
     }
-    if (subjectId) where.subjectId = String(subjectId);
+
+    if (subjectId) {
+      andConditions.push({ subjectId: String(subjectId) });
+    }
 
     if (className) {
       const clsStr = String(className).trim();
@@ -484,27 +580,40 @@ router.get("/resources", async (req: Request, res: Response) => {
       if (numMatch) {
         orConditions.push({ class: { contains: numMatch, mode: "insensitive" } });
       }
-      where.OR = orConditions;
+      andConditions.push({ OR: orConditions });
     }
 
     if (status) {
       const st = String(status).trim();
-      where.status = {
-        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
-      };
+      andConditions.push({
+        status: {
+          in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+        }
+      });
     }
 
     if (targetSchoolId) {
-      where.AND = [
-        {
-          OR: [
-            { schoolId: targetSchoolId },
-            { schoolId: null },
-            { schoolId: "" }
-          ]
-        }
-      ];
+      andConditions.push({
+        OR: [
+          { schoolId: targetSchoolId },
+          { schoolId: null },
+          { schoolId: "" }
+        ]
+      });
     }
+
+    if (board && String(board).trim() && String(board).trim() !== "All") {
+      andConditions.push({
+        OR: [
+          { board: String(board).trim() },
+          { board: "All" },
+          { board: null },
+          { board: "" }
+        ]
+      });
+    }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const resources = await prisma.academicResource.findMany({
       where,
@@ -526,7 +635,7 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId, board
     } = req.body;
     
     if (!title || !subjectId || !category || !type) {
@@ -534,13 +643,38 @@ router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: R
     }
 
     const targetSchoolId = schoolId || req.user?.schoolId || null;
+    const cleanBoard = board ? String(board).trim() : "State Board";
+
+    let finalSubjectId = subjectId;
+    const existingSubject = await prisma.academicSubject.findUnique({ where: { id: subjectId } });
+    if (!existingSubject) {
+      const byName = await prisma.academicSubject.findFirst({
+        where: {
+          name: { equals: String(subjectId).trim(), mode: "insensitive" },
+        },
+      });
+      if (byName) {
+        finalSubjectId = byName.id;
+      } else {
+        const createdSub = await prisma.academicSubject.create({
+          data: {
+            name: String(subjectId).trim(),
+            class: className ? String(className).trim() : null,
+            board: cleanBoard,
+            status: "Active",
+          },
+        });
+        finalSubjectId = createdSub.id;
+      }
+    }
 
     const resource = await prisma.academicResource.create({
       data: {
-        title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
+        title, subjectId: finalSubjectId, category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        board: cleanBoard,
         schoolId: targetSchoolId
       } as any,
       include: { subject: true },
@@ -561,18 +695,45 @@ router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId, board
     } = req.body;
 
     const targetSchoolId = schoolId || req.user?.schoolId || undefined;
+    const cleanBoard = board !== undefined ? String(board).trim() : undefined;
+
+    let finalSubjectId = subjectId;
+    if (subjectId) {
+      const existingSubject = await prisma.academicSubject.findUnique({ where: { id: subjectId } });
+      if (!existingSubject) {
+        const byName = await prisma.academicSubject.findFirst({
+          where: {
+            name: { equals: String(subjectId).trim(), mode: "insensitive" },
+          },
+        });
+        if (byName) {
+          finalSubjectId = byName.id;
+        } else {
+          const createdSub = await prisma.academicSubject.create({
+            data: {
+              name: String(subjectId).trim(),
+              class: className ? String(className).trim() : null,
+              board: cleanBoard || "State Board",
+              status: "Active",
+            },
+          });
+          finalSubjectId = createdSub.id;
+        }
+      }
+    }
 
     const resource = await prisma.academicResource.update({
       where: { id },
       data: {
-        title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
+        title, ...(finalSubjectId ? { subjectId: finalSubjectId } : {}), category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
         chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        ...(cleanBoard !== undefined ? { board: cleanBoard } : {}),
         ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
       },
       include: { subject: true },

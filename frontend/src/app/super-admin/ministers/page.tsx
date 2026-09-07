@@ -193,7 +193,7 @@ export default function ManageMinistersPage() {
             />
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
             >
               + Add Minister
             </button>
@@ -264,9 +264,10 @@ export default function ManageMinistersPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-3xl p-6 space-y-5 relative bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                🏛️ {editingId ? "Edit Minister" : "Add Cabinet Minister"}
-              </h3>
+              <div className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                <span>🏛️</span>
+                <span className="text-slate-800 dark:text-white">{editingId ? "Edit Minister" : "Add Cabinet Minister"}</span>
+              </div>
               <button onClick={handleModalClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">
                 ✕ Close
               </button>
@@ -333,7 +334,7 @@ export default function ManageMinistersPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2 cursor-pointer"
               >
                 {submitting ? "Processing..." : editingId ? "Save Changes" : "Add Minister"}
               </button>

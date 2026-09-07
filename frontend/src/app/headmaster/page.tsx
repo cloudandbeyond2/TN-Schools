@@ -430,34 +430,6 @@ export default function HeadmasterDashboard() {
         )}
       </div>
 
-      {/* School Sports & Health Widget */}
-      <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <i className="fi fi-rr-trophy text-lg text-amber-500 dark:text-amber-400" /> School Sports & Health
-          </h2>
-          <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded-lg">Ground: Good</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">450</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Participants</div>
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-amber-600 dark:text-amber-400">12</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Gold Medals</div>
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-blue-600 dark:text-blue-400">85%</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Avg Fitness</div>
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800/50 p-2 sm:p-4 rounded-xl text-center border border-slate-200 dark:border-slate-700">
-             <div className="text-lg sm:text-2xl font-black text-red-600 dark:text-red-400">2</div>
-             <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mt-1">Equip Alerts</div>
-          </div>
-        </div>
-      </div>
-
       {/* Quick Links */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 fade-in-4">
         {[

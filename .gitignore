@@ -16,13 +16,12 @@ backend/node_modules/.prisma/
 .env
 .env.local
 .env.production
-.env*.local
+.env*.local                                                     
 frontend/.env.local
 
 # Runtime artifacts — user uploads and generated files
 backend/store/
-backend/uploads/
-uploads/
+
 
 # Logs
 *.log
@@ -60,3 +59,7 @@ backend/public/audio_cache/*.mp3
 backend/scripts/test-tts.js
 backend/scripts/test-api-tts.js
 backend/scripts/generate-voice-samples.js
+
+# Runtime Data Persistence Files
+*scheme_allocations.json
+

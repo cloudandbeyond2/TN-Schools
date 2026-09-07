@@ -1,0 +1,36 @@
+/* Separate CSS for Student Counsellor Page — High-specificity white text rules to override global CSS */
+
+.helpline-hero-banner,
+.helpline-hero-banner *,
+.helpline-hero-banner div,
+.helpline-hero-banner span,
+.helpline-hero-banner h1,
+.helpline-hero-banner h2,
+.helpline-hero-banner h3,
+.helpline-hero-banner p {
+  color: #ffffff !important;
+}
+
+/* Call button text inside 1098 banner should remain distinct red for high readability */
+.helpline-hero-banner a.helpline-call-btn,
+.helpline-hero-banner a.helpline-call-btn * {
+  color: #dc2626 !important;
+}
+
+.helpline-hero-banner a.helpline-call-btn:hover,
+.helpline-hero-banner a.helpline-call-btn:hover * {
+  color: #b91c1c !important;
+}
+
+/* Badge background and border contrast fixes */
+.helpline-badge-gov {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.helpline-badge-active {
+  background-color: rgba(16, 185, 129, 0.3) !important;
+  border-color: rgba(52, 211, 153, 0.5) !important;
+  color: #ffffff !important;
+}

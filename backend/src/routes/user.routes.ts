@@ -96,7 +96,7 @@ router.get('/', requireMinRole('HEADMASTER'), async (req: Request, res: Response
 // POST /api/users - Create a new user
 router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
-    const { name, email, mobile, role, password, schoolId, district, block } = req.body;
+    const { name, email, mobile, role, password, schoolId, district, block, emisId } = req.body;
     if (!name || !email || !role || !password) {
       return res.status(400).json({ success: false, error: 'Name, email, role, and password are required' });
     }
@@ -135,6 +135,7 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
         schoolId: schoolId || null,
         district: district || null,
         block: block || null,
+        emisId: emisId || null,
       },
       select: SAFE_USER_SELECT,
     });
@@ -150,7 +151,7 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
 router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, mobile, password, schoolId, district, block, assignedRegion, isActive } = req.body;
+    const { name, email, mobile, password, schoolId, district, block, assignedRegion, isActive, emisId } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
@@ -190,6 +191,7 @@ router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) =>
         block: block !== undefined ? (block || null) : undefined,
         assignedRegion: assignedRegion !== undefined ? (assignedRegion || null) : undefined,
         isActive: isActive !== undefined ? isActive : undefined,
+        emisId: emisId !== undefined ? (emisId || null) : undefined,
       },
       select: SAFE_USER_SELECT,
     });

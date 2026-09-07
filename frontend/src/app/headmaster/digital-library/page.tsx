@@ -15,6 +15,29 @@ const CATEGORIES = [
   "Competitive examination resources"
 ];
 const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
+const SUBJECTS = [
+  "Mathematics",
+  "Science",
+  "Social Science",
+  "Tamil",
+  "English",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Botany",
+  "Zoology",
+  "Computer Science",
+  "Computer Applications",
+  "Accountancy",
+  "Commerce",
+  "Economics",
+  "History",
+  "Geography",
+  "Political Science",
+  "Business Mathematics",
+  "Ethics & Indian Culture",
+  "General / Other"
+];
 
 export default function HeadmasterDigitalLibraryPage() {
   const { lang } = usePortalLanguage();
@@ -266,8 +289,24 @@ export default function HeadmasterDigitalLibraryPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Subject *</label>
-                  <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700" />
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {lang === "தமிழ்" ? "பாடம் *" : "Subject *"}
+                  </label>
+                  <select
+                    required
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  >
+                    <option value="" disabled>
+                      {lang === "தமிழ்" ? "பாடத்தைத் தேர்ந்தெடுக்கவும்" : "Select Subject"}
+                    </option>
+                    {SUBJECTS.map((subj) => (
+                      <option key={subj} value={subj}>
+                        {subj}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image/Video)</label>
