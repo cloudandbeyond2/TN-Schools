@@ -68,6 +68,7 @@ import counsellorRoutes from './routes/counsellor.routes';
 import mockTestsRoutes from './routes/mock-tests.routes';
 import announcementRoutes from './routes/announcement.routes';
 import materialsRoutes from './routes/materials.routes';
+import supportRoutes from './routes/support.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -297,6 +298,7 @@ app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/deo', deoRoutes);
 app.use('/api/counsellor', counsellorRoutes);
 app.use('/api/mock-tests', mockTestsRoutes);
+app.use('/api/support', supportRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

@@ -1655,7 +1655,7 @@ export default function PortalLayout({
                     <span>{t.settings}</span>
                   </Link>
                   <Link
-                    href="#"
+                    href="/support"
                     onClick={() => setIsProfileOpen(false)}
                     scroll={false}
                     className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"

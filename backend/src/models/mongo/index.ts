@@ -883,3 +883,33 @@ const LearningMaterialSchema = new Schema<ILearningMaterial>({
 
 export const LearningMaterial = mongoose.models.LearningMaterial || mongoose.model<ILearningMaterial>('LearningMaterial', LearningMaterialSchema);
 
+
+// ─── Help & Support Requests ──────────────────────────────────
+// Submitted from the /support page. POST is role-aware (captures the
+// logged-in user when a token is present); listing/updating is admin-only.
+
+export interface ISupportRequest extends Document {
+  name: string;
+  contact?: string;            // email or mobile the user wants a reply on
+  category: string;
+  message: string;
+  userId?: string;             // captured from the auth token when present
+  role?: string;               // reporter's role at submission time
+  schoolId?: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SupportRequestSchema = new Schema<ISupportRequest>({
+  name:     { type: String, required: true },
+  contact:  { type: String },
+  category: { type: String, default: 'Other' },
+  message:  { type: String, required: true },
+  userId:   { type: String, index: true },
+  role:     { type: String },
+  schoolId: { type: String, index: true },
+  status:   { type: String, enum: ['open', 'in_progress', 'resolved', 'closed'], default: 'open' },
+}, { timestamps: true });
+
+export const SupportRequest = mongoose.models.SupportRequest || mongoose.model<ISupportRequest>('SupportRequest', SupportRequestSchema);
