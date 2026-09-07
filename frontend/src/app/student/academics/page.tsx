@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { HS_GROUP_LABELS } from "@/data/hsGroups";
+import { HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
 import { FiChevronLeft as FiChevronLeftIcon, FiChevronRight as FiChevronRightIcon } from "react-icons/fi";
 
 /* ────────────────────────────────────────────────────────────
@@ -330,10 +330,16 @@ export default function AcademicsHubPage() {
     }
   }, [classNum, studentId, status, selectedBoard]);
 
-  // Return database-fetched subjects for this student's class
+  // Return database-fetched subjects for this student's class (filtered by stream/group for Classes 11 & 12)
   const subjects = useMemo<SubjectInfo[]>(() => {
+    if (isHigherSecondary && studentGroup) {
+      const allowedHs = getGroupSubjectsForClass(classNum, studentGroup);
+      const allowedSet = new Set(allowedHs.map((s) => s.name.toLowerCase()));
+      const filtered = dbSubjects.filter((s) => allowedSet.has(s.name.toLowerCase()));
+      if (filtered.length > 0) return filtered;
+    }
     return dbSubjects;
-  }, [dbSubjects]);
+  }, [dbSubjects, isHigherSecondary, studentGroup, classNum]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -1049,7 +1055,7 @@ export default function AcademicsHubPage() {
 
       {/* ══ SYLLABUS TAB ═════════════════════════════════ */}
       {activeTab === "syllabus" && (() => {
-        const activeSubName = selectedSubject === "All" ? (subjects[0]?.name || "Accountancy") : selectedSubject;
+        const activeSubName = selectedSubject === "All" ? (subjects[0]?.name || "Tamil") : selectedSubject;
         const currentSubjectInfo = subjects.find(s => s.name.toLowerCase() === activeSubName.toLowerCase()) || subjects[0];
         const activeChapters = syllabusData[activeSubName] || [];
 

@@ -361,7 +361,7 @@ router.get("/subjects", async (req: Request, res: Response) => {
     const { class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
-    const where: any = {};
+    const andConditions: any[] = [];
 
     if (className) {
       const clsStr = String(className).trim();
@@ -377,26 +377,22 @@ router.get("/subjects", async (req: Request, res: Response) => {
         numMatch ? `CLASS ${numMatch}` : "",
       ])).filter(Boolean);
 
-      // Return subjects matching the requested class as well as general/master subjects
-      where.OR = [
-        ...classVariants.map(c => ({ class: c })),
-        { class: null },
-        { class: "" },
-        { class: "All" },
-        { class: "General" }
-      ];
+      andConditions.push({
+        OR: classVariants.map(c => ({ class: c }))
+      });
     }
 
     if (status) {
       const st = String(status).trim();
-      where.status = {
-        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
-      };
+      andConditions.push({
+        status: {
+          in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+        }
+      });
     }
 
     if (targetSchoolId) {
-      where.AND = where.AND || [];
-      where.AND.push({
+      andConditions.push({
         OR: [
           { schoolId: targetSchoolId },
           { schoolId: null },
@@ -406,8 +402,7 @@ router.get("/subjects", async (req: Request, res: Response) => {
     }
 
     if (board && String(board).trim() && String(board).trim() !== "All") {
-      where.AND = where.AND || [];
-      where.AND.push({
+      andConditions.push({
         OR: [
           { board: String(board).trim() },
           { board: "All" },
@@ -416,6 +411,8 @@ router.get("/subjects", async (req: Request, res: Response) => {
         ]
       });
     }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const subjects = await prisma.academicSubject.findMany({
       where,
@@ -550,14 +547,20 @@ router.get("/resources", async (req: Request, res: Response) => {
     const { category, subjectId, class: className, status, schoolId, board } = req.query;
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
-    const where: any = {};
+    const andConditions: any[] = [];
+
     if (category) {
       const catStr = String(category).trim();
-      where.category = {
-        in: Array.from(new Set([catStr, catStr.toLowerCase(), catStr.toUpperCase()]))
-      };
+      andConditions.push({
+        category: {
+          in: Array.from(new Set([catStr, catStr.toLowerCase(), catStr.toUpperCase()]))
+        }
+      });
     }
-    if (subjectId) where.subjectId = String(subjectId);
+
+    if (subjectId) {
+      andConditions.push({ subjectId: String(subjectId) });
+    }
 
     if (className) {
       const clsStr = String(className).trim();
@@ -577,19 +580,20 @@ router.get("/resources", async (req: Request, res: Response) => {
       if (numMatch) {
         orConditions.push({ class: { contains: numMatch, mode: "insensitive" } });
       }
-      where.OR = orConditions;
+      andConditions.push({ OR: orConditions });
     }
 
     if (status) {
       const st = String(status).trim();
-      where.status = {
-        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
-      };
+      andConditions.push({
+        status: {
+          in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+        }
+      });
     }
 
     if (targetSchoolId) {
-      where.AND = where.AND || [];
-      where.AND.push({
+      andConditions.push({
         OR: [
           { schoolId: targetSchoolId },
           { schoolId: null },
@@ -599,8 +603,7 @@ router.get("/resources", async (req: Request, res: Response) => {
     }
 
     if (board && String(board).trim() && String(board).trim() !== "All") {
-      where.AND = where.AND || [];
-      where.AND.push({
+      andConditions.push({
         OR: [
           { board: String(board).trim() },
           { board: "All" },
@@ -609,6 +612,8 @@ router.get("/resources", async (req: Request, res: Response) => {
         ]
       });
     }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const resources = await prisma.academicResource.findMany({
       where,
