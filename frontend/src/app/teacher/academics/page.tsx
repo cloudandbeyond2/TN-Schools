@@ -286,10 +286,21 @@ export default function AcademicsHubPage() {
 
         // Default fallback classes if none returned
         if (teacherClassesList.length === 0) {
+          const userObj = session?.user as any;
+          const assignedClass = userObj?.class ? String(userObj.class).replace(/^Class\s*/i, "").trim() : "6";
+          const assignedSection = (userObj?.section || "A").trim().toUpperCase();
+          const assignedSubject = userObj?.subject || "Science";
+
           teacherClassesList = [
-            { id: "c11a", className: "11", section: "A", subject: "Physics", roomNumber: "Room 10", schedule: "Mon (P1), Fri (P1)", totalStudents: 22 },
-            { id: "c11b", className: "11", section: "B", subject: "Mathematics", roomNumber: "Room 12", schedule: "Mon (P2), Wed (P1)", totalStudents: 20 },
-            { id: "c12a", className: "12", section: "A", subject: "Mathematics", roomNumber: "Room 02", schedule: "Mon (P3), Tue (P1)", totalStudents: 22 },
+            {
+              id: "c-teacher-1",
+              className: assignedClass,
+              section: assignedSection,
+              subject: assignedSubject,
+              roomNumber: "Room 10",
+              schedule: "Mon - Fri (P1, P2)",
+              totalStudents: 35
+            }
           ];
         }
         setAssignedClasses(teacherClassesList);
@@ -395,7 +406,19 @@ export default function AcademicsHubPage() {
       else if (catLower.includes("reference") || catLower.includes("paper")) category = "reference";
       else if (catLower.includes("syllabus")) category = "syllabus";
 
-      const type: Resource["type"] = r.type || (category === "videos" ? "Video" : "PDF");
+      const isVideo =
+        category === "videos" ||
+        (r.url && (
+          r.url.includes(".mp4") ||
+          r.url.includes(".webm") ||
+          r.url.includes(".mov") ||
+          r.url.includes(".mkv") ||
+          r.url.includes("youtube.com") ||
+          r.url.includes("youtu.be")
+        )) ||
+        (r.type && String(r.type).toLowerCase() === "video");
+
+      const type: Resource["type"] = isVideo ? "Video" : (r.type === "Video" ? "Video" : (r.type || (category === "textbooks" ? "eBook" : "PDF")));
 
       allResources.push({
         id: r.id || `db-${Math.random()}`,
@@ -404,11 +427,11 @@ export default function AcademicsHubPage() {
         subjectId: r.subjectId,
         category,
         type,
-        meta: r.meta || (type === "Video" ? "30 mins Video" : "PDF Document"),
+        meta: r.meta || (isVideo ? "30 mins Video" : "PDF Document"),
         description: r.description || "Official curriculum resource provided for TN State Board academics.",
         addedBy: r.addedBy || teacherName,
         date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "Recently",
-        progress: type === "Video" ? (r.progress !== undefined ? r.progress : 45) : undefined,
+        progress: isVideo ? (r.progress !== undefined ? r.progress : 45) : undefined,
         isNew: r.isNew || false,
         popular: r.popular || true,
         url: r.url || r.youtubeUrl || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
@@ -589,7 +612,49 @@ export default function AcademicsHubPage() {
       alert("No download link available for this resource.");
       return;
     }
+
+    const isVideo =
+      resource.category === "videos" ||
+      resource.type === "Video" ||
+      (resource.url && (
+        resource.url.includes(".mp4") ||
+        resource.url.includes(".webm") ||
+        resource.url.includes(".mov") ||
+        resource.url.includes(".mkv") ||
+        resource.url.includes("youtube.com") ||
+        resource.url.includes("youtu.be")
+      ));
+
+    // For YouTube / external streaming links, open directly
+    if (resource.url.includes("youtube.com") || resource.url.includes("youtu.be")) {
+      window.open(resource.url, "_blank");
+      return;
+    }
+
     const downloadUrl = getFileUrl(resource.url);
+
+    // Determine clean filename and proper extension
+    const cleanTitle = `${resource.subject ? `${resource.subject}_` : ""}${resource.title}`
+      .replace(/[^a-zA-Z0-9_\-\s]/g, "")
+      .trim()
+      .replace(/\s+/g, "_");
+
+    let ext = isVideo ? "mp4" : "pdf";
+    try {
+      const urlPath = resource.url.split("?")[0];
+      const matchExt = urlPath.match(/\.([a-zA-Z0-9]{2,5})$/);
+      if (matchExt && matchExt[1]) {
+        const detectedExt = matchExt[1].toLowerCase();
+        if (isVideo && (detectedExt === "pdf" || detectedExt === "txt" || detectedExt === "htm" || detectedExt === "html")) {
+          ext = "mp4";
+        } else {
+          ext = detectedExt;
+        }
+      }
+    } catch { }
+
+    const filename = `${cleanTitle}.${ext}`;
+
     try {
       const response = await fetch(downloadUrl);
       if (!response.ok) throw new Error("Network response error");
@@ -597,15 +662,20 @@ export default function AcademicsHubPage() {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      let filename = `${resource.subject}_${resource.title}`.replace(/[^a-zA-Z0-9_\-]/g, "_");
-      filename += resource.type === "Video" ? ".mp4" : ".pdf";
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch {
-      window.open(downloadUrl, "_blank");
+      // Fallback for CORS or direct navigation
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.target = "_blank";
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -1358,15 +1428,15 @@ export default function AcademicsHubPage() {
                     setSelectedClass(fullClassName);
                   }}
                   className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isSelected
-                      ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
-                      : "glass border border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
+                    ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
+                    : "glass border border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
                     }`}
                 >
                   <span>{fullClassName}</span>
                   <span
                     className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${isSelected
-                        ? "bg-white/20 text-white"
-                        : "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
+                      ? "bg-white/20 text-white"
+                      : "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
                       }`}
                   >
                     {cls.subject}
@@ -1402,8 +1472,8 @@ export default function AcademicsHubPage() {
                         setSelectedSubject(sub.name);
                       }}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                          ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
-                          : "glass border-[var(--border)] border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
+                        ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                        : "glass border-[var(--border)] border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -1632,157 +1702,171 @@ export default function AcademicsHubPage() {
       )}
 
       {/* ══ PREVIEW MODAL (Interactive Video Player & PDF Document Viewer) ══ */}
-      {previewResource && (
-        <div
-          className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={() => setPreviewResource(null)}
-        >
+      {previewResource && (() => {
+        const isVideo =
+          previewResource.type === "Video" ||
+          previewResource.category === "videos" ||
+          (previewResource.url && (
+            previewResource.url.includes(".mp4") ||
+            previewResource.url.includes(".webm") ||
+            previewResource.url.includes(".mov") ||
+            previewResource.url.includes(".mkv") ||
+            previewResource.url.includes("youtube.com") ||
+            previewResource.url.includes("youtu.be")
+          ));
+        const displayType = isVideo ? "Video" : (previewResource.type || "PDF");
+
+        return (
           <div
-            className="w-full max-w-4xl bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setPreviewResource(null)}
           >
-            {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between shrink-0 bg-[var(--bg-card)]">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <SubjectBadge name={previewResource.subject} classNameTag={previewResource.class} />
-                <h3 className="text-base font-black text-[var(--text-heading)] truncate">
-                  {previewResource.title}
-                </h3>
-                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[previewResource.type]}`}>
-                  {previewResource.type}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {previewResource.url && (
-                  <button
-                    onClick={() => window.open(getFileUrl(previewResource.url || ""), "_blank")}
-                    className="p-1.5 rounded-lg hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-indigo-500 transition-colors"
-                    title="Open in new tab"
-                  >
-                    <Fi name="arrow-up-right-from-square" className="text-sm" />
-                  </button>
-                )}
-                <button
-                  onClick={() => setPreviewResource(null)}
-                  className="p-1.5 rounded-full hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors"
-                >
-                  <Fi name="cross-small" className="text-xl" />
-                </button>
-              </div>
-            </div>
-
-            {/* Viewer Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
-              {previewResource.type === "Video" || previewResource.category === "videos" ? (
-                <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-lg border border-[var(--border)] relative">
-                  {previewResource.url && (previewResource.url.includes("youtube.com") || previewResource.url.includes("youtu.be") || previewResource.url.includes("youtube")) ? (
-                    <iframe
-                      src={getYouTubeEmbedUrl(previewResource.url)}
-                      className="w-full h-full border-0 animate-in fade-in"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={previewResource.title}
-                    />
-                  ) : previewResource.url ? (
-                    <video
-                      src={getFileUrl(previewResource.url)}
-                      controls
-                      autoPlay
-                      className="w-full h-full object-contain animate-in fade-in"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <iframe
-                      src="https://www.youtube.com/embed/d7n7DdB-bHY"
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                      title={previewResource.title}
-                    />
-                  )}
+            <div
+              className="w-full max-w-4xl bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between shrink-0 bg-[var(--bg-card)]">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <SubjectBadge name={previewResource.subject} classNameTag={previewResource.class} />
+                  <h3 className="text-base font-black text-[var(--text-heading)] truncate">
+                    {previewResource.title}
+                  </h3>
+                  <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[displayType] || TYPE_COLORS["PDF"]}`}>
+                    {displayType}
+                  </span>
                 </div>
-              ) : (
-                /* PDF / Document / eBook viewer */
-                <div className="w-full h-[55vh] rounded-2xl overflow-hidden shadow-inner border border-[var(--border)] bg-slate-100 dark:bg-slate-900 flex flex-col">
-                  {previewResource.url ? (
-                    <iframe
-                      src={getFileUrl(previewResource.url)}
-                      className="w-full h-full border-0"
-                      title={previewResource.title}
-                    />
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                      <Fi name="document" className="text-4xl text-indigo-500 mb-2" />
-                      <h4 className="text-sm font-black text-[var(--text-heading)] mb-1">
-                        {previewResource.title}
-                      </h4>
-                      <p className="text-xs text-[var(--text-muted)] max-w-md mb-3">
-                        {previewResource.description || "PDF file viewer."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {previewResource.description && (
-                <p className="text-xs text-[var(--text-main)] leading-relaxed bg-[var(--bg-card-hover)] p-3 rounded-xl border border-[var(--border)]">
-                  {previewResource.description}
-                </p>
-              )}
-
-              {/* Action Buttons Footer */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--border)]">
-                <span className="text-[11px] font-semibold text-[var(--text-muted)]">
-                  Format: <strong className="text-[var(--text-heading)]">{previewResource.type}</strong>
-                  {previewResource.addedBy && ` · Added by ${previewResource.addedBy}`}
-                </span>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const isVideo = previewResource.category === "videos" || previewResource.type === "Video";
-                      setActiveMedia({
-                        type: isVideo ? "video" : "pdf",
-                        url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
-                        title: previewResource.title,
-                      });
-                    }}
-                    className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-all active:scale-95"
-                  >
-                    <Fi name={previewResource.type === "Video" || previewResource.category === "videos" ? "play" : "eye"} className="text-xs" />
-                    {previewResource.type === "Video" || previewResource.category === "videos" ? "Theater Mode Player" : "Full Screen PDF View"}
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setTeacherAIModal({
-                        isOpen: true,
-                        resource: previewResource,
-                        syllabusUnit: null,
-                        option: "lesson-plan",
-                        responseText: "",
-                        isGenerating: false,
-                      })
-                    }
-                    className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 transition-all active:scale-95"
-                  >
-                    <Fi name="sparkles" className="text-xs" /> AI Lesson Assistant
-                  </button>
-
+                <div className="flex items-center gap-1.5 shrink-0">
                   {previewResource.url && (
                     <button
-                      onClick={() => handleDownload(previewResource)}
-                      className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] transition-all active:scale-95"
+                      onClick={() => window.open(getFileUrl(previewResource.url || ""), "_blank")}
+                      className="p-1.5 rounded-lg hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-indigo-500 transition-colors"
+                      title="Open in new tab"
                     >
-                      <Fi name="download" className="text-xs" /> Download
+                      <Fi name="arrow-up-right-from-square" className="text-sm" />
                     </button>
                   )}
+                  <button
+                    onClick={() => setPreviewResource(null)}
+                    className="p-1.5 rounded-full hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors"
+                  >
+                    <Fi name="cross-small" className="text-xl" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Viewer Body */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+                {isVideo ? (
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-lg border border-[var(--border)] relative">
+                    {previewResource.url && (previewResource.url.includes("youtube.com") || previewResource.url.includes("youtu.be") || previewResource.url.includes("youtube")) ? (
+                      <iframe
+                        src={getYouTubeEmbedUrl(previewResource.url)}
+                        className="w-full h-full border-0 animate-in fade-in"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={previewResource.title}
+                      />
+                    ) : previewResource.url ? (
+                      <video
+                        src={getFileUrl(previewResource.url)}
+                        controls
+                        autoPlay
+                        className="w-full h-full object-contain animate-in fade-in"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <iframe
+                        src="https://www.youtube.com/embed/d7n7DdB-bHY"
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                        title={previewResource.title}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  /* PDF / Document / eBook viewer */
+                  <div className="w-full h-[55vh] rounded-2xl overflow-hidden shadow-inner border border-[var(--border)] bg-slate-100 dark:bg-slate-900 flex flex-col">
+                    {previewResource.url ? (
+                      <iframe
+                        src={getFileUrl(previewResource.url)}
+                        className="w-full h-full border-0"
+                        title={previewResource.title}
+                      />
+                    ) : (
+                      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                        <Fi name="document" className="text-4xl text-indigo-500 mb-2" />
+                        <h4 className="text-sm font-black text-[var(--text-heading)] mb-1">
+                          {previewResource.title}
+                        </h4>
+                        <p className="text-xs text-[var(--text-muted)] max-w-md mb-3">
+                          {previewResource.description || "PDF file viewer."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {previewResource.description && (
+                  <p className="text-xs text-[var(--text-main)] leading-relaxed bg-[var(--bg-card-hover)] p-3 rounded-xl border border-[var(--border)]">
+                    {previewResource.description}
+                  </p>
+                )}
+
+                {/* Action Buttons Footer */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--border)]">
+                  <span className="text-[11px] font-semibold text-[var(--text-muted)]">
+                    Format: <strong className="text-[var(--text-heading)]">{displayType}</strong>
+                    {previewResource.addedBy && ` · Added by ${previewResource.addedBy}`}
+                  </span>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setActiveMedia({
+                          type: isVideo ? "video" : "pdf",
+                          url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
+                          title: previewResource.title,
+                        });
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-all active:scale-95"
+                    >
+                      <Fi name={isVideo ? "play" : "eye"} className="text-xs" />
+                      {isVideo ? "Theater Mode Player" : "Full Screen PDF View"}
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setTeacherAIModal({
+                          isOpen: true,
+                          resource: previewResource,
+                          syllabusUnit: null,
+                          option: "lesson-plan",
+                          responseText: "",
+                          isGenerating: false,
+                        })
+                      }
+                      className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 transition-all active:scale-95"
+                    >
+                      <Fi name="sparkles" className="text-xs" /> AI Lesson Assistant
+                    </button>
+
+                    {previewResource.url && (
+                      <button
+                        onClick={() => handleDownload(previewResource)}
+                        className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] transition-all active:scale-95"
+                      >
+                        <Fi name="download" className="text-xs" /> Download
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ───── Full Screen Media Preview Modal (Video Player & PDF Viewer Popup) ───── */}
       {activeMedia && (

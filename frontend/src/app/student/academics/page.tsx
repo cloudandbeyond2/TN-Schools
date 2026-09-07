@@ -300,13 +300,27 @@ export default function AcademicsHubPage() {
               seenResourceKeys.add(key);
               const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
               const catLower = (res.category || "").toLowerCase();
+              const isVideo =
+                catLower === "videos" ||
+                (res.url && (
+                  res.url.includes(".mp4") ||
+                  res.url.includes(".webm") ||
+                  res.url.includes(".mov") ||
+                  res.url.includes(".mkv") ||
+                  res.url.includes("youtube.com") ||
+                  res.url.includes("youtu.be")
+                )) ||
+                (res.type && String(res.type).toLowerCase() === "video");
+
+              const resType = isVideo ? "Video" : (res.type === "Video" ? "Video" : (res.type || (catLower === "textbooks" ? "eBook" : "PDF")));
+
               fetchedResources.push({
                 id: res.id,
                 title: res.title,
                 subject: subName,
                 category: catLower as any,
-                type: res.type as any,
-                meta: res.meta || "N/A",
+                type: resType as any,
+                meta: res.meta || (isVideo ? "30 mins Video" : "PDF Document"),
                 description: res.description || "",
                 url: res.url,
                 addedBy: res.addedBy || "Admin",
@@ -328,7 +342,7 @@ export default function AcademicsHubPage() {
     if (classNum && classNum > 0 && status === "authenticated") {
       fetchData();
     }
-  }, [classNum, studentId, status, selectedBoard]);
+  }, [studentClass, classNum, status, studentSchoolId, selectedBoard]);
 
   // Return database-fetched subjects for this student's class (filtered by stream/group for Classes 11 & 12)
   const subjects = useMemo<SubjectInfo[]>(() => {
@@ -402,8 +416,49 @@ export default function AcademicsHubPage() {
       alert(lang === "தமிழ்" ? "இந்த வளத்திற்கு பதிவிறக்க இணைப்பு இல்லை." : "No download URL available for this resource.");
       return;
     }
+
+    const isVideo =
+      resource.category === "videos" ||
+      resource.type === "Video" ||
+      (resource.url && (
+        resource.url.includes(".mp4") ||
+        resource.url.includes(".webm") ||
+        resource.url.includes(".mov") ||
+        resource.url.includes(".mkv") ||
+        resource.url.includes("youtube.com") ||
+        resource.url.includes("youtu.be")
+      ));
+
+    // For YouTube / external streaming links, open directly
+    if (resource.url.includes("youtube.com") || resource.url.includes("youtu.be")) {
+      window.open(resource.url, "_blank");
+      return;
+    }
+
     const downloadUrl = getFileUrl(resource.url);
-    
+
+    // Determine clean filename and proper extension
+    const cleanTitle = `${resource.subject ? `${resource.subject}_` : ""}${resource.title}`
+      .replace(/[^a-zA-Z0-9_\-\s]/g, "")
+      .trim()
+      .replace(/\s+/g, "_");
+
+    let ext = isVideo ? "mp4" : "pdf";
+    try {
+      const urlPath = resource.url.split("?")[0];
+      const matchExt = urlPath.match(/\.([a-zA-Z0-9]{2,5})$/);
+      if (matchExt && matchExt[1]) {
+        const detectedExt = matchExt[1].toLowerCase();
+        if (isVideo && (detectedExt === "pdf" || detectedExt === "txt" || detectedExt === "htm" || detectedExt === "html")) {
+          ext = "mp4";
+        } else {
+          ext = detectedExt;
+        }
+      }
+    } catch { }
+
+    const filename = `${cleanTitle}.${ext}`;
+
     try {
       const response = await fetch(downloadUrl);
       if (!response.ok) throw new Error("Network response was not ok");
@@ -412,28 +467,17 @@ export default function AcademicsHubPage() {
       
       const link = document.createElement("a");
       link.href = blobUrl;
-      
-      let filename = resource.title;
-      if (resource.url.includes(".")) {
-        const ext = resource.url.split(".").pop();
-        if (ext && ext.length < 5) {
-          filename += `.${ext}`;
-        }
-      } else {
-        filename += resource.type === "Video" ? ".mp4" : ".pdf";
-      }
-      
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      console.error("Direct blob download failed, falling back to open tab", err);
+      console.error("Direct blob download failed, falling back to direct link", err);
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.target = "_blank";
-      link.download = resource.title;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1285,85 +1329,100 @@ export default function AcademicsHubPage() {
               </div>
             )}
 
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <SubjectBadge name={previewResource.subject} />
-                <span
-                  className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border ${TYPE_COLORS[previewResource.type]}`}
-                >
-                  {previewResource.type}
-                </span>
-                <span className="text-[10px] font-semibold text-[var(--text-muted)] flex items-center gap-1">
-                  <Fi name="clock" className="text-[10px]" /> {previewResource.meta}
-                </span>
-              </div>
-              <h2 className="text-lg font-black text-[var(--text-heading)] mb-2">
-                {previewResource.title}
-              </h2>
-              <p className="text-sm text-[var(--text-main)] leading-relaxed mb-4">
-                {previewResource.description}
-              </p>
-              {previewResource.addedBy && (
-                <p className="text-xs text-[var(--text-muted)] mb-4">
-                  {lang === "தமிழ்" ? "பகிர்ந்தவர்" : "Shared by"} <span className="font-bold">{previewResource.addedBy}</span> ·{" "}
-                  {previewResource.date}
-                </p>
-              )}
+            {(() => {
+              const isVideo =
+                previewResource.category === "videos" ||
+                previewResource.type === "Video" ||
+                (previewResource.url && (
+                  previewResource.url.includes(".mp4") ||
+                  previewResource.url.includes(".webm") ||
+                  previewResource.url.includes(".mov") ||
+                  previewResource.url.includes("youtube.com") ||
+                  previewResource.url.includes("youtu.be")
+                ));
+              const displayType = isVideo ? "Video" : (previewResource.type || "PDF");
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    const isVideo = previewResource.category === "videos" || previewResource.type === "Video";
-                    setActiveMedia({
-                      type: isVideo ? "video" : "pdf",
-                      url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
-                      title: previewResource.title,
-                    });
-                  }}
-                  className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all"
-                  style={{
-                    background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color}, ${subjectTheme(previewResource.subject).color}cc)`,
-                    color: "#fff",
-                  }}
-                >
-                  {previewResource.category === "videos" ? (
-                    <>
-                      <Fi name="play" className="text-sm" />
-                      {(previewResource.progress || 0) > 0 && previewResource.progress !== 100
-                        ? (lang === "தமிழ்" ? `${previewResource.progress}% இல் தொடர்க` : `Resume at ${previewResource.progress}%`)
-                        : (lang === "தமிழ்" ? "பாடத்தை இயக்கு" : "Play lesson")}
-                    </>
-                  ) : (
-                    <>
-                      <Fi name="eye" className="text-sm" /> {lang === "தமிழ்" ? "முழுப்பார்வையில் திற" : "Open full view"}
-                    </>
+              return (
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <SubjectBadge name={previewResource.subject} />
+                    <span
+                      className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border ${TYPE_COLORS[displayType] || TYPE_COLORS["PDF"]}`}
+                    >
+                      {displayType}
+                    </span>
+                    <span className="text-[10px] font-semibold text-[var(--text-muted)] flex items-center gap-1">
+                      <Fi name="clock" className="text-[10px]" /> {isVideo ? (previewResource.meta?.includes("min") ? previewResource.meta : "Video Lesson") : previewResource.meta}
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black text-[var(--text-heading)] mb-2">
+                    {previewResource.title}
+                  </h2>
+                  <p className="text-sm text-[var(--text-main)] leading-relaxed mb-4">
+                    {previewResource.description}
+                  </p>
+                  {previewResource.addedBy && (
+                    <p className="text-xs text-[var(--text-muted)] mb-4">
+                      {lang === "தமிழ்" ? "பகிர்ந்தவர்" : "Shared by"} <span className="font-bold">{previewResource.addedBy}</span> ·{" "}
+                      {previewResource.date}
+                    </p>
                   )}
-                </button>
-                <button
-                  onClick={() => toggleBookmark(previewResource.id)}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border transition-all active:scale-95 ${
-                    bookmarks.includes(previewResource.id)
-                      ? "bg-amber-500/10 border-amber-500/40 text-amber-500"
-                      : "border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
-                  }`}
-                >
-                  <Fi name="bookmark" className="text-sm" />
-                  {bookmarks.includes(previewResource.id) ? (lang === "தமிழ்" ? "சேமிக்கப்பட்டது" : "Saved") : (lang === "தமிழ்" ? "சேமி" : "Save")}
-                </button>
-                <button 
-                  onClick={() => handleDownload(previewResource)}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
-                >
-                  <Fi name="download" className="text-sm" /> {lang === "தமிழ்" ? "பதிவிறக்கு" : "Download"}
-                </button>
-                <Link
-                  href={`/student/ai-tutor?subject=${encodeURIComponent(previewResource.subject)}&question=${encodeURIComponent(`Can you explain the concepts and key details covered in the lesson "${previewResource.title}" under ${previewResource.subject}?`)}`}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
-                >
-                  <Fi name="comment-alt" className="text-sm" /> {lang === "தமிழ்" ? "AI ஆசிரியரிடம் கேள்" : "Ask AI Tutor"}
-                </Link>
-              </div>
-            </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setActiveMedia({
+                          type: isVideo ? "video" : "pdf",
+                          url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
+                          title: previewResource.title,
+                        });
+                      }}
+                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all"
+                      style={{
+                        background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color}, ${subjectTheme(previewResource.subject).color}cc)`,
+                        color: "#fff",
+                      }}
+                    >
+                      {isVideo ? (
+                        <>
+                          <Fi name="play" className="text-sm" />
+                          {(previewResource.progress || 0) > 0 && previewResource.progress !== 100
+                            ? (lang === "தமிழ்" ? `${previewResource.progress}% இல் தொடர்க` : `Resume at ${previewResource.progress}%`)
+                            : (lang === "தமிழ்" ? "பாடத்தை இயக்கு" : "Play lesson")}
+                        </>
+                      ) : (
+                        <>
+                          <Fi name="eye" className="text-sm" /> {lang === "தமிழ்" ? "முழுப்பார்வையில் திற" : "Open full view"}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => toggleBookmark(previewResource.id)}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border transition-all active:scale-95 ${
+                        bookmarks.includes(previewResource.id)
+                          ? "bg-amber-500/10 border-amber-500/40 text-amber-500"
+                          : "border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
+                      }`}
+                    >
+                      <Fi name="bookmark" className="text-sm" />
+                      {bookmarks.includes(previewResource.id) ? (lang === "தமிழ்" ? "சேமிக்கப்பட்டது" : "Saved") : (lang === "தமிழ்" ? "சேமி" : "Save")}
+                    </button>
+                    <button 
+                      onClick={() => handleDownload(previewResource)}
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
+                    >
+                      <Fi name="download" className="text-sm" /> {lang === "தமிழ்" ? "பதிவிறக்கு" : "Download"}
+                    </button>
+                    <Link
+                      href={`/student/ai-tutor?subject=${encodeURIComponent(previewResource.subject)}&question=${encodeURIComponent(`Can you explain the concepts and key details covered in the lesson "${previewResource.title}" under ${previewResource.subject}?`)}`}
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
+                    >
+                      <Fi name="comment-alt" className="text-sm" /> {lang === "தமிழ்" ? "AI ஆசிரியரிடம் கேள்" : "Ask AI Tutor"}
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

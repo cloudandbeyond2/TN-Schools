@@ -38,10 +38,50 @@ export default function ScholarshipsPage() {
   const fetchScholarships = async () => {
     try {
       setLoading(true);
+      const user = session?.user as any;
+      const teacherId = user?.id;
+
+      // 1. Fetch teacher assigned classes
+      let teacherClasses: { className: string; section?: string }[] = [];
+      if (schoolId && teacherId) {
+        try {
+          const tcRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+          const tcJson = await tcRes.json();
+          if (tcJson.success && Array.isArray(tcJson.data) && tcJson.data.length > 0) {
+            teacherClasses = tcJson.data.map((c: any) => ({
+              className: String(c.className || c.grade || "").replace(/^Class\s*/i, "").trim(),
+              section: (c.section || "").trim().toUpperCase(),
+            }));
+          }
+        } catch {}
+      }
+
+      // Fallback from session user metadata if available
+      if (teacherClasses.length === 0 && user?.class) {
+        teacherClasses = [{
+          className: String(user.class).replace(/^Class\s*/i, "").trim(),
+          section: (user.section || "A").trim().toUpperCase(),
+        }];
+      }
+
       const res = await fetch(`${API_URL}/api/teacher/scholarships${schoolId ? `?schoolId=${schoolId}` : ""}`);
       const data = await res.json();
       if (data.success && data.data) {
-        const mapped: ScholarshipRecord[] = data.data.map((item: any) => {
+        // Filter records strictly to teacher assigned classes
+        const filteredData = data.data.filter((item: any) => {
+          if (teacherClasses.length === 0) return true;
+          const stClass = String(item.student?.class || "").replace(/^Class\s*/i, "").trim().toLowerCase();
+          const stSec = String(item.student?.section || "").trim().toUpperCase();
+
+          return teacherClasses.some((tc) => {
+            const tcClass = tc.className.toLowerCase();
+            const classMatch = stClass === tcClass || stClass.includes(tcClass) || tcClass.includes(stClass);
+            const secMatch = !tc.section || !stSec || tc.section === stSec;
+            return classMatch && secMatch;
+          });
+        });
+
+        const mapped: ScholarshipRecord[] = filteredData.map((item: any) => {
           let statusText: ScholarshipRecord["status"] = "Pending";
           if (item.status === "APPROVED") statusText = "Approved";
           else if (item.status === "PENDING") statusText = "Needs Verification";
@@ -50,8 +90,8 @@ export default function ScholarshipsPage() {
 
           return {
             id: item.id,
-            name: item.student?.user?.name || "Student Name",
-            class: `${item.student?.class || "10"}${item.student?.section || "A"}`,
+            name: item.student?.user?.name || item.student?.name || "Student Name",
+            class: `Class ${item.student?.class || "6"}${item.student?.section ? `-${item.student.section}` : ""}`,
             scheme: item.scheme,
             amount: item.amount,
             status: statusText,
@@ -83,7 +123,7 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     fetchScholarships();
-  }, [schoolId, API_URL]);
+  }, [schoolId, session, API_URL]);
 
   const handleVerify = async (id: string) => {
     setVerifyingId(id);

@@ -1224,11 +1224,15 @@ export default function PETeacherSportsPage() {
     }
   }
 
-  // 3. Check whether logged-in teacher has Physical Education specialty
+  const [teacherAssignedClasses, setTeacherAssignedClasses] = useState<{ className: string; section?: string }[]>([]);
+
+  // 3. Check whether logged-in teacher has Physical Education specialty and fetch assigned classes
   useEffect(() => {
     async function checkTeacherProfile() {
       if (status !== "authenticated" || !session?.user) return;
-      const userId = (session.user as any).id;
+      const user = session.user as any;
+      const userId = user?.id;
+      const schId = user?.schoolId || schoolId;
       if (!userId) return;
 
       try {
@@ -1249,9 +1253,37 @@ export default function PETeacherSportsPage() {
         console.error("Error checking teacher profile:", err);
         setIsPE(false);
       }
+
+      // Fetch teacher assigned classes
+      if (schId && userId) {
+        try {
+          const res = await fetch(`${API_BASE}/api/classes?schoolId=${schId}&teacherId=${userId}`);
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            const list = json.data.map((c: any) => ({
+              className: String(c.className || c.grade || "").replace(/^Class\s*/i, "").trim(),
+              section: (c.section || "").trim().toUpperCase(),
+            }));
+            setTeacherAssignedClasses(list);
+            if (list.length > 0) {
+              setSection(getSectionFromClass(list[0].className));
+            }
+            return;
+          }
+        } catch {}
+      }
+
+      if (user?.class) {
+        const cls = String(user.class).replace(/^Class\s*/i, "").trim();
+        setTeacherAssignedClasses([{
+          className: cls,
+          section: (user.section || "A").trim().toUpperCase(),
+        }]);
+        setSection(getSectionFromClass(cls));
+      }
     }
     checkTeacherProfile();
-  }, [session, status]);
+  }, [session, status, schoolId]);
 
   useEffect(() => {
     if (activeTab === "roster") {
@@ -1379,12 +1411,32 @@ export default function PETeacherSportsPage() {
     }
   };
 
-  // Filter roster based on query
-  const filteredRoster = roster.filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.className.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.rollNumber.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter roster based on query and teacher assigned classes
+  const filteredRoster = roster.filter((s) => {
+    const matchesQuery =
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.className.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.rollNumber.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesQuery) return false;
+
+    // If teacher is not a physical education specialist, strictly filter roster to teacher's assigned classes/sections
+    if (!isPE && teacherAssignedClasses.length > 0) {
+      const sCls = String(s.className || "").replace(/^Class\s*/i, "").toLowerCase();
+      const sClassOnly = sCls.replace(/[^0-9]/g, "");
+      const sSecOnly = sCls.replace(/[^a-z]/g, "").toUpperCase();
+
+      return teacherAssignedClasses.some((tc) => {
+        const tcClass = tc.className.toLowerCase();
+        const tcSec = (tc.section || "").toUpperCase();
+        const classMatch = sClassOnly === tcClass || sCls.includes(tcClass);
+        const secMatch = !tcSec || !sSecOnly || sSecOnly === tcSec;
+        return classMatch && secMatch;
+      });
+    }
+
+    return true;
+  });
 
   // Reset pagination on filter or tab change
   useEffect(() => {
