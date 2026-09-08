@@ -135,12 +135,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
-      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -167,7 +168,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
       // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       // { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
       // { label: "---", href: "#", icon: "" },
@@ -184,12 +184,17 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
 
+      // ── Other Activities ──────────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Other Activities", href: "#", icon: "" },
+      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
+
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "School & Career", href: "#", icon: "" },
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       // { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
-      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
@@ -216,12 +221,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -254,7 +260,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       // Maths Formulas (/student/maths-formulas) is Class-6 Samacheer data only — not shown for 9-10.
       // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
       // { label: "---", href: "#", icon: "" },
@@ -271,6 +276,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
       // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+
+      // ── Other Activities ──────────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Other Activities", href: "#", icon: "" },
+      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -393,12 +404,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "📚 ACADEMICS", href: "#", icon: "" },
 
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Academic Progress", href: "/student/progress", icon: "BarChart2" },
       // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -430,7 +442,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
       // { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "PencilRuler" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "Languages" },
 
       // ===================== LABS & PRACTICALS =====================
       { label: "---", href: "#", icon: "" },
@@ -448,6 +459,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Music4" },
       { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
+
+      // ===================== OTHER ACTIVITIES =====================
+      { label: "---", href: "#", icon: "" },
+      { label: "Other Activities", href: "#", icon: "" },
+      { label: "Language Coaching", href: "/student/language-coaching", icon: "Languages" },
+      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
 
       // ===================== CAREER & SCHOOL =====================
       { label: "---", href: "#", icon: "" },

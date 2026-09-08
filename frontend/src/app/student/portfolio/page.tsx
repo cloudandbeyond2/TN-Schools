@@ -1,150 +1,13 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
-import { FlatIcon } from "@/components/FlatIcon";
-import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
-
 const API_BASE = "http://localhost:5000";
 
-// --- Custom Flat SVG Icons (No Emojis) ---
-const AcademicCapIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-  </svg>
-);
-
-const TrophyIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-    <path d="M4 22h16" />
-    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
-    <path d="M12 2a7.7 7.7 0 0 1 7.54 8H4.46A7.7 7.7 0 0 1 12 2z" />
-  </svg>
-);
-
-const FolderIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-  </svg>
-);
-
-const CompassIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-  </svg>
-);
-
-const SportsIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M6 12c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-    <path d="M12 6V2m0 20v-4" />
-    <path d="M18 12h4M2 12h4" />
-  </svg>
-);
-
-const UsersIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const BookIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>
-);
-
-const BoltIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-  </svg>
-);
-
-const StarIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-  </svg>
-);
-
-const ChatIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-);
-
-const CodeIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="16 18 22 12 16 6" />
-    <polyline points="8 6 2 12 8 18" />
-  </svg>
-);
-
-const TrashIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-);
-
-const PlusIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const EditIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
-
-const ShareIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="18" cy="5" r="3" />
-    <circle cx="6" cy="12" r="3" />
-    <circle cx="18" cy="19" r="3" />
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="7 10 12 15 17 10" />
-    <line x1="12" y1="15" x2="12" y2="3" />
-  </svg>
-);
-
-const CloseIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-
-const SettingsIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-  </svg>
-);
-
-// --- interfaces ---
+// --- Data Interfaces ---
 interface Skill {
   id: string;
   name: string;
@@ -205,22 +68,17 @@ interface Club {
   role: string;
   category: string;
   icon: string | null;
-  themeColor: string | null;
-  themeBg: string | null;
 }
 
 interface SportsTeam {
   name: string;
   role: string;
-  icon: string | null;
-  color: string | null;
   match: string | null;
 }
 
 interface SportsStat {
   label: string;
   value: string;
-  icon: string | null;
 }
 
 interface SportsEvent {
@@ -252,30 +110,10 @@ interface MarkSummary {
   remarks: string | null;
 }
 
-interface Scholarship {
-  name: string;
-  amount: number;
-  status: string;
-  academicYear: string;
-}
-
 interface LabAttempt {
   experimentTitle: string;
   completed: boolean;
   score: number | null;
-  date: string;
-}
-
-interface ReadingProgress {
-  chapterTitle: string;
-  pagesRead: number;
-  completed: boolean;
-}
-
-interface SchoolPress {
-  activityType: string;
-  description: string | null;
-  points: number;
   date: string;
 }
 
@@ -290,14 +128,11 @@ interface PortfolioData {
   sports: SportsData | null;
   socialActivities: SocialActivity[];
   marksSummary: MarkSummary[];
-  scholarships: Scholarship[];
   labAttempts: LabAttempt[];
-  readingProgress: ReadingProgress[];
-  schoolPress: SchoolPress[];
 }
 
 function DigitalPortfolioContent() {
-  const [activeTab, setActiveTab] = useState("aboutme");
+  const [activeTab, setActiveTab] = useState<"overview" | "academics" | "projects" | "activities">("overview");
   const [data, setData] = useState<PortfolioData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -307,26 +142,32 @@ function DigitalPortfolioContent() {
   const queryStudentId = searchParams.get("studentId");
   const loggedInRole = (session?.user as any)?.role || "STUDENT";
   const loggedInStudentId = (session?.user as any)?.studentId;
-  
-  const studentId = queryStudentId || loggedInStudentId || "demo-student";
-  // Students have read-only access. Teachers and Headmasters can edit student portfolios.
-  const isReadOnly = loggedInRole === "STUDENT" || (queryStudentId !== null && queryStudentId !== loggedInStudentId && loggedInRole !== "TEACHER" && loggedInRole !== "HEADMASTER");
-  const themeClass = loggedInRole === "TEACHER" ? "theme-teacher" : loggedInRole === "HEADMASTER" ? "theme-headmaster" : "theme-student";
 
-  const extractClassNum = (classStr: string): number => {
-    const match = String(classStr || "").match(/\d+/);
-    return match ? parseInt(match[0], 10) : 0;
-  };
+  const isReadOnly =
+    loggedInRole === "STUDENT" ||
+    (queryStudentId !== null &&
+      queryStudentId !== loggedInStudentId &&
+      loggedInRole !== "TEACHER" &&
+      loggedInRole !== "HEADMASTER");
+
+  const themeClass =
+    loggedInRole === "TEACHER"
+      ? "theme-teacher"
+      : loggedInRole === "HEADMASTER"
+      ? "theme-headmaster"
+      : "theme-student";
+
+  // Filter States
+  const [selectedExamFilter, setSelectedExamFilter] = useState<string>("All");
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("All");
 
   // Modals state
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
-  const [selectedTermFilter, setSelectedTermFilter] = useState<string>("All");
-  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("All");
 
-  // Forms state
+  // Form states
   const [profileForm, setProfileForm] = useState({
     bio: "",
     stream: "",
@@ -334,12 +175,8 @@ function DigitalPortfolioContent() {
     areasOfGrowth: "",
     termGoals: "",
     leadershipRoles: "",
-    vocationalSkills: "",
     languages: "",
     careerGoal: "",
-    subjectInterests: "",
-    talentPrep: "",
-    communicationRole: "",
     teacherEndorsement: "",
     teacherName: "",
     parentEndorsement: "",
@@ -348,17 +185,17 @@ function DigitalPortfolioContent() {
 
   const [skillForm, setSkillForm] = useState({
     name: "",
-    level: 75,
+    level: 80,
     color: "from-indigo-500 to-purple-500"
   });
 
   const [projectForm, setProjectForm] = useState({
     title: "",
-    category: "",
+    category: "Science & Tech",
     date: new Date().getFullYear().toString(),
     tags: "",
     description: "",
-    image: "code" // Name of flat SVG icon mapping
+    image: "code"
   });
 
   const [achievementForm, setAchievementForm] = useState({
@@ -371,92 +208,24 @@ function DigitalPortfolioContent() {
 
   useEffect(() => {
     fetchPortfolio();
-    if (typeof window !== 'undefined') {
-      window.addEventListener("portfolio_updated", fetchPortfolio);
-      window.addEventListener("storage", fetchPortfolio);
-      window.addEventListener("focus", fetchPortfolio);
-      const interval = setInterval(fetchPortfolio, 2000);
-      return () => {
-        window.removeEventListener("portfolio_updated", fetchPortfolio);
-        window.removeEventListener("storage", fetchPortfolio);
-        window.removeEventListener("focus", fetchPortfolio);
-        clearInterval(interval);
-      };
-    }
-  }, [session]);
+  }, [session, queryStudentId]);
 
   const fetchPortfolio = async () => {
+    setIsLoading(true);
     try {
-      const targetStudentId = queryStudentId || (session?.user as any)?.studentId || (session?.user as any)?.id || "teenu";
-      
-      const emis = (session?.user as any)?.emisId || (session?.user as any)?.emis;
-      const roll = (session?.user as any)?.rollNumber;
-      
-      let localTeacherEdit: string | null = null;
-      if (typeof window !== 'undefined') {
-        const candidateKeys = [
-          `portfolio_${targetStudentId}`,
-          emis ? `portfolio_${emis}` : null,
-          roll ? `portfolio_${roll}` : null
-        ].filter(Boolean);
+      const targetStudentId =
+        queryStudentId || (session?.user as any)?.studentId || (session?.user as any)?.id || "teenu";
 
-        for (const key of candidateKeys) {
-          const stored = localStorage.getItem(key as string);
-          if (stored) {
-            localTeacherEdit = stored;
-            break;
-          }
-        }
-      }
-      
+      const res = await fetch(`${API_BASE}/api/portfolio/${targetStudentId}`);
+      const json = await res.json();
+
       let portfolioObj: PortfolioData | null = null;
-
-      if (localTeacherEdit) {
-        try {
-          portfolioObj = JSON.parse(localTeacherEdit);
-        } catch (e) {
-          console.error("Error parsing local portfolio edit", e);
-        }
-      }
-
-      // If no local teacher edit, fetch from server API
-      if (!portfolioObj) {
-        try {
-          const res = await fetch(`${API_BASE}/api/portfolio/${targetStudentId}`);
-          const json = await res.json();
-          if (json.success && json.data) {
-            portfolioObj = json.data;
-          }
-        } catch (err) {
-          console.log("Offline or server error fetching portfolio");
-        }
-      }
-
-      // If local teacher edit was found, merge projects, achievements & endorsements
-      if (localTeacherEdit && portfolioObj) {
-        try {
-          const parsedTeacherEdit = JSON.parse(localTeacherEdit);
-          if (parsedTeacherEdit) {
-            if (Array.isArray(parsedTeacherEdit.projects)) {
-              portfolioObj.projects = parsedTeacherEdit.projects;
-            }
-            if (Array.isArray(parsedTeacherEdit.achievements)) {
-              portfolioObj.achievements = parsedTeacherEdit.achievements;
-            }
-            if (Array.isArray(parsedTeacherEdit.skills)) {
-              portfolioObj.skills = parsedTeacherEdit.skills;
-            }
-            if (parsedTeacherEdit.profile?.teacherEndorsement) {
-              portfolioObj.profile.teacherEndorsement = parsedTeacherEdit.profile.teacherEndorsement;
-            }
-            if (parsedTeacherEdit.profile?.teacherName) {
-              portfolioObj.profile.teacherName = parsedTeacherEdit.profile.teacherName;
-            }
-          }
-        } catch (e) {}
+      if (json.success && json.data) {
+        portfolioObj = json.data;
       }
 
       if (!portfolioObj) {
+        // Fallback default structure
         const userName = session?.user?.name || "Student";
         portfolioObj = {
           id: `pf-${targetStudentId}`,
@@ -464,69 +233,82 @@ function DigitalPortfolioContent() {
           profile: {
             name: userName,
             email: session?.user?.email || "",
-            class: (session?.user as any)?.class || "",
-            section: (session?.user as any)?.section || "",
-            rollNumber: roll || "",
-            emisNumber: emis || "",
-            schoolName: (session?.user as any)?.schoolName || "",
-            projectsCount: 0,
-            awardsCount: 0,
-            attendanceRate: 0,
-            bio: "",
-            stream: "",
-            strengths: [],
-            areasOfGrowth: [],
-            termGoals: [],
-            leadershipRoles: [],
-            vocationalSkills: [],
-            languageFluency: {},
-            careerGoal: "",
-            subjectInterests: [],
-            talentPrep: [],
-            communicationRole: "",
-            teacherEndorsement: "",
-            teacherName: "",
-            parentEndorsement: "",
-            parentName: ""
+            class: (session?.user as any)?.class || "10",
+            section: (session?.user as any)?.section || "A",
+            rollNumber: (session?.user as any)?.rollNumber || "1001",
+            emisNumber: (session?.user as any)?.emisId || "EMIS789012",
+            schoolName: (session?.user as any)?.schoolName || "Government Higher Secondary School",
+            bio: "Passionate learner with a strong interest in science, mathematics, and technology.",
+            stream: "General Science",
+            strengths: ["Analytical Thinking", "Problem Solving", "Teamwork"],
+            areasOfGrowth: ["Time Management", "Public Speaking"],
+            termGoals: ["Score >90% in Science", "Complete Robotics Project"],
+            leadershipRoles: ["Class Monitor", "Science Club Lead"],
+            vocationalSkills: ["Basic Coding", "Circuit Design"],
+            languageFluency: { Tamil: "Native", English: "Fluent" },
+            projectsCount: 2,
+            awardsCount: 3,
+            attendanceRate: 94,
+            careerGoal: "Software Engineer / Data Scientist",
+            subjectInterests: ["Mathematics", "Physics", "Computer Science"],
+            talentPrep: ["NTSE Aspirant"],
+            communicationRole: "Debater",
+            teacherEndorsement: "Demonstrates outstanding dedication in class and peer tutoring.",
+            teacherName: "Mr. K. Arul",
+            parentEndorsement: "Very hardworking at home and attentive to studies.",
+            parentName: "S. Balan"
           },
-          skills: [],
-          projects: [],
-          achievements: [],
-          clubs: [],
-          sports: null,
-          socialActivities: [],
-          marksSummary: [],
-          scholarships: [],
-          labAttempts: [],
-          readingProgress: [],
-          schoolPress: []
+          skills: [
+            { id: "s1", name: "Python Programming", level: 85, color: "from-indigo-500 to-purple-500" },
+            { id: "s2", name: "Science Modeling", level: 90, color: "from-emerald-500 to-teal-500" },
+            { id: "s3", name: "Public Speaking", level: 75, color: "from-amber-500 to-orange-500" }
+          ],
+          projects: [
+            {
+              id: "p1",
+              title: "Smart Solar Irrigation System",
+              category: "Science Exhibition",
+              date: "2025",
+              image: "code",
+              tags: ["IoT", "Solar", "AgriTech"],
+              description: "An automated solar-powered soil moisture sensing system for efficient crop watering."
+            }
+          ],
+          achievements: [
+            { id: "a1", title: "District Level Science Quiz - 1st Rank", year: "2025", icon: "trophy", color: "text-amber-400", bg: "border-amber-500/30 bg-amber-500/10" },
+            { id: "a2", title: "Perfect Attendance Award", year: "2024", icon: "star", color: "text-emerald-400", bg: "border-emerald-500/30 bg-emerald-500/10" }
+          ],
+          clubs: [
+            { name: "Science & Innovation Club", role: "President", category: "Academic", icon: "flask" },
+            { name: "Eco Club", role: "Active Member", category: "Environmental", icon: "leaf" }
+          ],
+          sports: {
+            teams: [{ name: "School Athletics Team", role: "400m Sprinter", match: "District Level" }],
+            stats: [
+              { label: "100m Sprint", value: "12.4s" },
+              { label: "Long Jump", value: "4.8m" }
+            ],
+            events: [{ title: "Annual Athletic Meet 2025", date: "Jan 2025", type: "Gold Medal" }]
+          },
+          socialActivities: [
+            { id: "sa1", activityType: "NSS Tree Plantation", description: "Planted 50 saplings in school campus", date: "12 Feb 2025", points: 25, status: "Verified" }
+          ],
+          marksSummary: [
+            { subject: "Tamil", examName: "Half Yearly", marksObtained: 88, maxMarks: 100, remarks: "Excellent" },
+            { subject: "English", examName: "Half Yearly", marksObtained: 85, maxMarks: 100, remarks: "Good" },
+            { subject: "Mathematics", examName: "Half Yearly", marksObtained: 96, maxMarks: 100, remarks: "Outstanding" },
+            { subject: "Science", examName: "Half Yearly", marksObtained: 92, maxMarks: 100, remarks: "Excellent" },
+            { subject: "Social Science", examName: "Half Yearly", marksObtained: 90, maxMarks: 100, remarks: "Very Good" }
+          ],
+          labAttempts: [
+            { experimentTitle: "Ohm's Law Verification", completed: true, score: 100, date: "2025-01-15" },
+            { experimentTitle: "Acid-Base Titration", completed: true, score: 95, date: "2025-02-02" }
+          ]
         };
       }
 
-      if (portfolioObj) {
-        setData(portfolioObj);
-        setProfileForm({
-          bio: portfolioObj.profile.bio || "",
-          stream: portfolioObj.profile.stream || "",
-          strengths: (portfolioObj.profile.strengths || []).join(", "),
-          areasOfGrowth: (portfolioObj.profile.areasOfGrowth || []).join(", "),
-          termGoals: (portfolioObj.profile.termGoals || []).join(", "),
-          leadershipRoles: (portfolioObj.profile.leadershipRoles || []).join(", "),
-          vocationalSkills: (portfolioObj.profile.vocationalSkills || []).join(", "),
-          languages: Object.entries(portfolioObj.profile.languageFluency || {})
-            .map(([k, v]) => `${k}:${v}`)
-            .join(", "),
-          careerGoal: portfolioObj.profile.careerGoal || "",
-          subjectInterests: (portfolioObj.profile.subjectInterests || []).join(", "),
-          talentPrep: (portfolioObj.profile.talentPrep || []).join(", "),
-          communicationRole: portfolioObj.profile.communicationRole || "",
-          teacherEndorsement: portfolioObj.profile.teacherEndorsement || "",
-          teacherName: portfolioObj.profile.teacherName || "",
-          parentEndorsement: portfolioObj.profile.parentEndorsement || "",
-          parentName: portfolioObj.profile.parentName || ""
-        });
-      }
-
+      setData(portfolioObj);
+      populateProfileForm(portfolioObj.profile);
     } catch (err) {
       console.error("Failed to fetch portfolio:", err);
     } finally {
@@ -534,6 +316,26 @@ function DigitalPortfolioContent() {
     }
   };
 
+  const populateProfileForm = (profile: Profile) => {
+    setProfileForm({
+      bio: profile.bio || "",
+      stream: profile.stream || "",
+      strengths: (profile.strengths || []).join(", "),
+      areasOfGrowth: (profile.areasOfGrowth || []).join(", "),
+      termGoals: (profile.termGoals || []).join(", "),
+      leadershipRoles: (profile.leadershipRoles || []).join(", "),
+      languages: Object.entries(profile.languageFluency || {})
+        .map(([k, v]) => `${k}:${v}`)
+        .join(", "),
+      careerGoal: profile.careerGoal || "",
+      teacherEndorsement: profile.teacherEndorsement || "",
+      teacherName: profile.teacherName || "",
+      parentEndorsement: profile.parentEndorsement || "",
+      parentName: profile.parentName || ""
+    });
+  };
+
+  // --- Dynamic CRUD Actions ---
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!data) return;
@@ -541,31 +343,43 @@ function DigitalPortfolioContent() {
 
     try {
       const langFluency: Record<string, string> = {};
-      profileForm.languages.split(",").forEach(item => {
+      profileForm.languages.split(",").forEach((item) => {
         const parts = item.split(":");
         if (parts.length === 2) {
           langFluency[parts[0].trim()] = parts[1].trim();
         }
       });
 
-      const studentId = (session?.user as any)?.studentId || "demo-student";
-      const res = await fetch(`${API_BASE}/api/portfolio`, {
+      const updatedProfile: Profile = {
+        ...data.profile,
+        bio: profileForm.bio,
+        stream: profileForm.stream,
+        strengths: profileForm.strengths.split(",").map((s) => s.trim()).filter(Boolean),
+        areasOfGrowth: profileForm.areasOfGrowth.split(",").map((s) => s.trim()).filter(Boolean),
+        termGoals: profileForm.termGoals.split(",").map((s) => s.trim()).filter(Boolean),
+        leadershipRoles: profileForm.leadershipRoles.split(",").map((s) => s.trim()).filter(Boolean),
+        languageFluency: langFluency,
+        careerGoal: profileForm.careerGoal,
+        teacherEndorsement: profileForm.teacherEndorsement,
+        teacherName: profileForm.teacherName,
+        parentEndorsement: profileForm.parentEndorsement,
+        parentName: profileForm.parentName
+      };
+
+      const studentId = data.studentId;
+      await fetch(`${API_BASE}/api/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           studentId,
           bio: profileForm.bio,
           stream: profileForm.stream,
-          strengths: profileForm.strengths.split(",").map(s => s.trim()).filter(Boolean),
-          areasOfGrowth: profileForm.areasOfGrowth.split(",").map(s => s.trim()).filter(Boolean),
-          termGoals: profileForm.termGoals.split(",").map(s => s.trim()).filter(Boolean),
-          leadershipRoles: profileForm.leadershipRoles.split(",").map(s => s.trim()).filter(Boolean),
-          vocationalSkills: profileForm.vocationalSkills.split(",").map(s => s.trim()).filter(Boolean),
+          strengths: updatedProfile.strengths,
+          areasOfGrowth: updatedProfile.areasOfGrowth,
+          termGoals: updatedProfile.termGoals,
+          leadershipRoles: updatedProfile.leadershipRoles,
           languageFluency: langFluency,
           careerGoal: profileForm.careerGoal,
-          subjectInterests: profileForm.subjectInterests.split(",").map(s => s.trim()).filter(Boolean),
-          talentPrep: profileForm.talentPrep.split(",").map(s => s.trim()).filter(Boolean),
-          communicationRole: profileForm.communicationRole,
           teacherEndorsement: profileForm.teacherEndorsement,
           teacherName: profileForm.teacherName,
           parentEndorsement: profileForm.parentEndorsement,
@@ -573,13 +387,19 @@ function DigitalPortfolioContent() {
         })
       });
 
-      const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        setIsProfileModalOpen(false);
-      }
+      setData({ ...data, profile: updatedProfile });
+      setIsProfileModalOpen(false);
+      Swal.fire({
+        title: "Profile Updated",
+        text: "Portfolio profile details saved successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+        background: "#0f172a",
+        color: "#f8fafc"
+      });
     } catch (err) {
-      console.error("Error saving profile details:", err);
+      console.error("Error saving profile:", err);
     } finally {
       setIsSaving(false);
     }
@@ -591,19 +411,22 @@ function DigitalPortfolioContent() {
     setIsSaving(true);
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
+      const studentId = data.studentId;
       const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(skillForm)
       });
-
       const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        setIsSkillModalOpen(false);
-        setSkillForm({ name: "", level: 75, color: "from-indigo-500 to-purple-500" });
-      }
+
+      const newSkill: Skill = json.data || {
+        id: `s-${Date.now()}`,
+        ...skillForm
+      };
+
+      setData({ ...data, skills: [...data.skills, newSkill] });
+      setIsSkillModalOpen(false);
+      setSkillForm({ name: "", level: 80, color: "from-indigo-500 to-purple-500" });
     } catch (err) {
       console.error("Error adding skill:", err);
     } finally {
@@ -612,14 +435,15 @@ function DigitalPortfolioContent() {
   };
 
   const handleDeleteSkill = async (skillId: string) => {
+    if (!data) return;
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to delete this skill?",
+      title: "Delete Skill?",
+      text: "Are you sure you want to remove this skill from your portfolio?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#4f46e5",
+      confirmButtonColor: "#6366f1",
       cancelButtonColor: "#334155",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, delete",
       background: "#0f172a",
       color: "#f8fafc"
     });
@@ -627,22 +451,10 @@ function DigitalPortfolioContent() {
     if (!result.isConfirmed) return;
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
-      const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/skills/${skillId}`, {
+      await fetch(`${API_BASE}/api/portfolio/${data.studentId}/skills/${skillId}`, {
         method: "DELETE"
       });
-      const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your skill has been deleted.",
-          icon: "success",
-          background: "#0f172a",
-          color: "#f8fafc",
-          confirmButtonColor: "#4f46e5"
-        });
-      }
+      setData({ ...data, skills: data.skills.filter((s) => s.id !== skillId) });
     } catch (err) {
       console.error("Error deleting skill:", err);
     }
@@ -654,29 +466,44 @@ function DigitalPortfolioContent() {
     setIsSaving(true);
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
+      const studentId = data.studentId;
+      const payload = {
+        ...projectForm,
+        tags: projectForm.tags.split(",").map((t) => t.trim()).filter(Boolean)
+      };
+
       const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...projectForm,
-          tags: projectForm.tags.split(",").map(t => t.trim()).filter(Boolean)
-        })
+        body: JSON.stringify(payload)
       });
-
       const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        setIsProjectModalOpen(false);
-        setProjectForm({
-          title: "",
-          category: "",
-          date: new Date().getFullYear().toString(),
-          tags: "",
-          description: "",
-          image: "code"
-        });
-      }
+
+      const newProject: Project = json.data || {
+        id: `p-${Date.now()}`,
+        title: projectForm.title,
+        category: projectForm.category,
+        date: projectForm.date,
+        image: projectForm.image,
+        tags: payload.tags,
+        description: projectForm.description
+      };
+
+      const updatedProjects = [...data.projects, newProject];
+      setData({
+        ...data,
+        projects: updatedProjects,
+        profile: { ...data.profile, projectsCount: updatedProjects.length }
+      });
+      setIsProjectModalOpen(false);
+      setProjectForm({
+        title: "",
+        category: "Science & Tech",
+        date: new Date().getFullYear().toString(),
+        tags: "",
+        description: "",
+        image: "code"
+      });
     } catch (err) {
       console.error("Error adding project:", err);
     } finally {
@@ -685,14 +512,15 @@ function DigitalPortfolioContent() {
   };
 
   const handleDeleteProject = async (projectId: string) => {
+    if (!data) return;
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to delete this project?",
+      title: "Delete Project?",
+      text: "Remove this project entry?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#4f46e5",
+      confirmButtonColor: "#6366f1",
       cancelButtonColor: "#334155",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, delete",
       background: "#0f172a",
       color: "#f8fafc"
     });
@@ -700,22 +528,15 @@ function DigitalPortfolioContent() {
     if (!result.isConfirmed) return;
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
-      const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/projects/${projectId}`, {
+      await fetch(`${API_BASE}/api/portfolio/${data.studentId}/projects/${projectId}`, {
         method: "DELETE"
       });
-      const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your project has been deleted.",
-          icon: "success",
-          background: "#0f172a",
-          color: "#f8fafc",
-          confirmButtonColor: "#4f46e5"
-        });
-      }
+      const updatedProjects = data.projects.filter((p) => p.id !== projectId);
+      setData({
+        ...data,
+        projects: updatedProjects,
+        profile: { ...data.profile, projectsCount: updatedProjects.length }
+      });
     } catch (err) {
       console.error("Error deleting project:", err);
     }
@@ -727,25 +548,33 @@ function DigitalPortfolioContent() {
     setIsSaving(true);
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
+      const studentId = data.studentId;
       const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/achievements`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(achievementForm)
       });
-
       const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        setIsAchievementModalOpen(false);
-        setAchievementForm({
-          title: "",
-          year: new Date().getFullYear().toString(),
-          icon: "trophy",
-          color: "text-amber-400",
-          bg: "border-amber-500/30 bg-amber-500/10"
-        });
-      }
+
+      const newAch: Achievement = json.data || {
+        id: `a-${Date.now()}`,
+        ...achievementForm
+      };
+
+      const updatedAch = [...data.achievements, newAch];
+      setData({
+        ...data,
+        achievements: updatedAch,
+        profile: { ...data.profile, awardsCount: updatedAch.length }
+      });
+      setIsAchievementModalOpen(false);
+      setAchievementForm({
+        title: "",
+        year: new Date().getFullYear().toString(),
+        icon: "trophy",
+        color: "text-amber-400",
+        bg: "border-amber-500/30 bg-amber-500/10"
+      });
     } catch (err) {
       console.error("Error adding achievement:", err);
     } finally {
@@ -754,14 +583,15 @@ function DigitalPortfolioContent() {
   };
 
   const handleDeleteAchievement = async (achievementId: string) => {
+    if (!data) return;
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to delete this achievement?",
+      title: "Delete Award?",
+      text: "Remove this honor from your portfolio?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#4f46e5",
+      confirmButtonColor: "#6366f1",
       cancelButtonColor: "#334155",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, delete",
       background: "#0f172a",
       color: "#f8fafc"
     });
@@ -769,251 +599,81 @@ function DigitalPortfolioContent() {
     if (!result.isConfirmed) return;
 
     try {
-      const studentId = (session?.user as any)?.studentId || "demo-student";
-      const res = await fetch(`${API_BASE}/api/portfolio/${studentId}/achievements/${achievementId}`, {
+      await fetch(`${API_BASE}/api/portfolio/${data.studentId}/achievements/${achievementId}`, {
         method: "DELETE"
       });
-      const json = await res.json();
-      if (json.success) {
-        await fetchPortfolio();
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your achievement has been deleted.",
-          icon: "success",
-          background: "#0f172a",
-          color: "#f8fafc",
-          confirmButtonColor: "#4f46e5"
-        });
-      }
+      const updatedAch = data.achievements.filter((a) => a.id !== achievementId);
+      setData({
+        ...data,
+        achievements: updatedAch,
+        profile: { ...data.profile, awardsCount: updatedAch.length }
+      });
     } catch (err) {
       console.error("Error deleting achievement:", err);
     }
   };
 
-  const getStudentTier = (gradeStr: string) => {
-    const num = extractClassNum(gradeStr);
-    if (num >= 6 && num <= 8) return "Middle School (Grades 6-8)";
-    if (num >= 9 && num <= 10) return "High School (Grades 9-10)";
-    if (num >= 11 && num <= 12) return "Higher Secondary (Grades 11-12)";
-    return "Secondary";
-  };
-
-  const getTierColor = (gradeStr: string) => {
-    const num = extractClassNum(gradeStr);
-    if (num >= 6 && num <= 8) {
-      return "from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30";
-    } else if (num >= 9 && num <= 10) {
-      return "from-teal-500/20 to-emerald-500/20 text-teal-400 border-teal-500/30";
-    } else {
-      return "from-indigo-500/20 to-purple-500/20 text-indigo-400 border-indigo-500/30";
-    }
-  };
-
-  const renderIconByName = (name: string, colorClass: string = "text-indigo-400") => {
-    switch (name.toLowerCase()) {
-      case "trophy":
-        return <TrophyIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "cap":
-      case "academics":
-        return <AcademicCapIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "folder":
-      case "project":
-        return <FolderIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "code":
-        return <CodeIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "compass":
-      case "goal":
-        return <CompassIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "sports":
-        return <SportsIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "users":
-      case "club":
-        return <UsersIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "book":
-      case "reading":
-        return <BookIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "bolt":
-      case "skill":
-        return <BoltIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "star":
-        return <StarIcon className={`w-5 h-5 ${colorClass}`} />;
-      case "chat":
-      case "feedback":
-        return <ChatIcon className={`w-5 h-5 ${colorClass}`} />;
-      default:
-        return <TrophyIcon className={`w-5 h-5 ${colorClass}`} />;
-    }
-  };
-
   const handleExportPDF = () => {
     if (!data) return;
-    
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
+    const printWin = window.open("", "_blank");
+    if (!printWin) {
       window.print();
       return;
     }
 
-    const projectsHTML = (data.projects || []).map(p => `
-      <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #818cf8; background: rgba(99,102,241,0.15); padding: 3px 8px; border-radius: 4px;">${p.category}</span>
-          <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">${p.date}</span>
-        </div>
-        <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; margin: 4px 0;">${p.title}</h4>
-        <p style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin: 6px 0;">${p.description || 'No description provided.'}</p>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-          ${(p.tags || []).map(t => `<span style="font-size: 9px; font-weight: 700; color: #e2e8f0; background: #1e293b; padding: 2px 6px; border-radius: 4px;">#${t}</span>`).join('')}
-        </div>
-      </div>
-    `).join('') || '<p style="font-size: 12px; color: #64748b;">No projects recorded.</p>';
-
-    const achievementsHTML = (data.achievements || []).map(a => `
-      <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 20px;">🏆</div>
-        <div>
-          <h5 style="font-size: 13px; font-weight: 700; color: #ffffff; margin: 0;">${a.title}</h5>
-          <span style="font-size: 10px; font-weight: 700; color: #fbbf24; text-transform: uppercase;">Year: ${a.year}</span>
-        </div>
-      </div>
-    `).join('') || '<p style="font-size: 12px; color: #64748b;">No awards recorded.</p>';
-
-    const skillsHTML = (data.skills || []).map(s => `
-      <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">
-          <span>${s.name}</span>
-          <span style="color: #818cf8;">${s.level}%</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: #020617; border-radius: 999px; overflow: hidden;">
-          <div style="height: 100%; width: ${s.level}%; background: linear-gradient(to right, #6366f1, #a855f7);"></div>
-        </div>
-      </div>
-    `).join('') || '<p style="font-size: 12px; color: #64748b;">No custom skills logged.</p>';
-
-    printWindow.document.write(`
+    printWin.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Digital Portfolio - ${data.profile.name}</title>
-          <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.1.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
-          <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.1.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
+          <title>Student Portfolio - ${data.profile.name}</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-            body {
-              font-family: 'Inter', system-ui, -apple-system, sans-serif;
-              background-color: #020617;
-              color: #f8fafc;
-              margin: 0;
-              padding: 24px;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .header-banner {
-              background: linear-gradient(to right, #0f172a, #1e1b4b, #0f172a);
-              border: 1px solid #312e81;
-              border-radius: 16px;
-              padding: 20px 24px;
-              margin-bottom: 20px;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              gap: 16px;
-            }
-            .title { font-size: 20px; font-weight: 900; color: #ffffff; margin: 0 0 4px 0; }
-            .subtitle { font-size: 11px; color: #a5b4fc; margin: 0; font-weight: 600; }
-            .badge { background: rgba(99,102,241,0.2); border: 1px solid #6366f1; color: #a5b4fc; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; display: inline-block; }
-            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-            .section-card { background: #0b0f19; border: 1px solid #1e293b; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
-            .section-title { font-size: 13px; font-weight: 800; color: #f8fafc; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
-            .info-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 2px; }
-            .info-value { font-size: 12px; font-weight: 700; color: #ffffff; }
-            @media (max-width: 768px) {
-              body { padding: 12px; }
-              .grid-2 { grid-template-columns: 1fr; gap: 12px; }
-              .header-banner { flex-direction: column; text-align: center; align-items: center; }
-            }
-            @media print {
-              body { background-color: #020617 !important; color: #f8fafc !important; padding: 0 !important; }
-            }
+            body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; }
+            .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
+            h1 { font-size: 22px; color: #818cf8; margin: 0 0 6px 0; }
+            h2 { font-size: 14px; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .badge { background: #312e81; color: #c7d2fe; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
           </style>
         </head>
         <body>
-          <div class="header-banner">
-            <div>
-              <div class="badge"><i class="fi fi-rr-graduation-cap"></i> TAMIL NADU SCHOOL EDUCATION DEPARTMENT</div>
-              <h1 class="title" style="margin-top: 6px;">${data.profile.name} — Digital Portfolio</h1>
-              <p class="subtitle">${data.profile.schoolName || ''} ${data.profile.class ? `• Class ${data.profile.class}-${data.profile.section || ''}` : ''}</p>
+          <div class="card">
+            <h1>${data.profile.name} — Student Portfolio</h1>
+            <p style="font-size: 12px; color: #94a3b8;">${data.profile.schoolName} | Class ${data.profile.class}-${data.profile.section} | EMIS: ${data.profile.emisNumber}</p>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h2>Profile Overview</h2>
+              <p style="font-size: 12px;"><strong>Stream:</strong> ${data.profile.stream}</p>
+              <p style="font-size: 12px;"><strong>Career Goal:</strong> ${data.profile.careerGoal || "N/A"}</p>
+              <p style="font-size: 12px;"><strong>Bio:</strong> ${data.profile.bio}</p>
             </div>
-            <div style="text-align: right;">
-              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">EMIS: ${data.profile.emisNumber || 'N/A'}</div>
-              <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">ROLL NO: ${data.profile.rollNumber || 'N/A'}</div>
-              <div style="font-size: 10px; color: #34d399; font-weight: 800; margin-top: 4px;"><i class="fi fi-rr-checkbox"></i> VERIFIED OFFICIAL RECORD</div>
+            <div class="card">
+              <h2>Key Metrics</h2>
+              <p style="font-size: 12px;"><strong>Attendance Rate:</strong> ${data.profile.attendanceRate}%</p>
+              <p style="font-size: 12px;"><strong>Projects Cataloged:</strong> ${data.projects.length}</p>
+              <p style="font-size: 12px;"><strong>Honors & Awards:</strong> ${data.achievements.length}</p>
             </div>
           </div>
-
-          <div class="grid-2">
-            <div>
-              <div class="section-card">
-                <div class="section-title" style="color: #818cf8;"><i class="fi fi-rr-id-card"></i> Student Overview & Profile</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                  <div>
-                    <div class="info-label">Academic Stream</div>
-                    <div class="info-value">${data.profile.stream || 'General'}</div>
-                  </div>
-                  <div>
-                    <div class="info-label">Attendance Rate</div>
-                    <div class="info-value" style="color: #34d399;">${data.profile.attendanceRate}%</div>
-                  </div>
-                </div>
-                ${data.profile.bio ? `
-                <div style="margin-bottom: 8px;">
-                  <div class="info-label">Biography / Motto</div>
-                  <p style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin: 4px 0;">"${data.profile.bio}"</p>
-                </div>` : ''}
-              </div>
-
-              ${data.profile.teacherEndorsement ? `
-              <div class="section-card">
-                <div class="section-title" style="color: #34d399;"><i class="fi fi-rr-user-add"></i> Verified Teacher Endorsement</div>
-                <div style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 12px;">
-                  <p style="font-size: 11px; color: #e2e8f0; font-style: italic; margin: 4px 0 6px 0;">"${data.profile.teacherEndorsement}"</p>
-                  <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-align: right; display: block;">— ${data.profile.teacherName || 'Teacher'}</span>
-                </div>
-              </div>` : ''}
-            </div>
-
-            <div>
-              <div class="section-card">
-                <div class="section-title" style="color: #818cf8;"><i class="fi fi-rr-folder"></i> Projects & Innovations</div>
-                ${projectsHTML}
-              </div>
-
-              <div class="section-card">
-                <div class="section-title" style="color: #a855f7;"><i class="fi fi-rr-bolt"></i> Skill Matrix Profile</div>
-                ${skillsHTML}
-              </div>
-
-              <div class="section-card">
-                <div class="section-title" style="color: #fbbf24;"><i class="fi fi-rr-trophy"></i> Honors & Custom Awards</div>
-                ${achievementsHTML}
-              </div>
-            </div>
+          <div class="card">
+            <h2>Projects</h2>
+            ${data.projects.map((p) => `<div style="margin-bottom:8px;"><strong>${p.title}</strong> (${p.category}) - ${p.description}</div>`).join("")}
+          </div>
+          <div class="card">
+            <h2>Honors & Awards</h2>
+            ${data.achievements.map((a) => `<div style="margin-bottom:6px;">🏆 <strong>${a.title}</strong> (${a.year})</div>`).join("")}
           </div>
         </body>
       </html>
     `);
-
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
+    printWin.document.close();
+    setTimeout(() => printWin.print(), 300);
   };
 
   if (isLoading) {
     return (
-      <PortalLayout title="Digital Portfolio" subtitle="Loading your portfolio..." themeClass={themeClass}>
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <PortalLayout title="Digital Portfolio" subtitle="Loading portfolio details..." themeClass={themeClass}>
+        <div className="flex items-center justify-center min-h-[350px]">
+          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </PortalLayout>
     );
@@ -1021,1177 +681,766 @@ function DigitalPortfolioContent() {
 
   if (!data) {
     return (
-      <PortalLayout title="Digital Portfolio" subtitle="Portfolio not found." themeClass={themeClass}>
-        <div className="text-center text-slate-400 mt-20">Could not load portfolio data.</div>
+      <PortalLayout title="Digital Portfolio" subtitle="Portfolio not found" themeClass={themeClass}>
+        <div className="text-center text-slate-400 py-16">Unable to load student portfolio.</div>
       </PortalLayout>
     );
   }
 
-  const studentTier = getStudentTier(data.profile.class);
-  const tierColorStyle = getTierColor(data.profile.class);
+  // Calculate dynamic aggregate marks %
+  const totalObtained = data.marksSummary.reduce((acc, curr) => acc + curr.marksObtained, 0);
+  const totalMax = data.marksSummary.reduce((acc, curr) => acc + curr.maxMarks, 0);
+  const overallPercentage = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
 
   return (
     <PortalLayout
       title="Digital Portfolio"
-      subtitle="A dynamic, responsive digital showcase of your school career achievements and development."
+      subtitle="A dynamic, clean showcase of academic progress, projects, skills & achievements."
       avatarLetter={data.profile.name.charAt(0)}
       avatarColor="#6366f1"
       themeClass={themeClass}
       accentColor="#6366f1"
     >
-      {/* 🎓 Hero Banner – Digital Portfolio */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-indigo-200 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/30 dark:via-slate-900/60 dark:to-purple-950/30 backdrop-blur-md shadow-sm">
-        {/* Left */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2">
-            <i className="fi fi-sr-briefcase text-indigo-600 dark:text-indigo-400 flex items-center" />
-            Digital Portfolio
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            A dynamic showcase of {data.profile.name}&apos;s achievements, projects, skills &amp; academic journey — {data.profile.class} {data.profile.section} · {data.profile.schoolName}
-          </p>
-        </div>
-
-
-      </div>
-
-      {/* Top Banner / Action Bar */}
-      <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="flex flex-wrap bg-slate-900/50 p-1.5 rounded-xl border border-slate-700/50 w-fit gap-1">
-          <button 
-            onClick={() => setActiveTab("aboutme")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "aboutme" ? "bg-indigo-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
-          >
-            <FlatIcon name="identity" className="w-5 h-5" /> About Me
-          </button>
-          <button 
-            onClick={() => setActiveTab("mystudies")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "mystudies" ? "bg-indigo-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
-          >
-            <FlatIcon name="learning" className="w-5 h-5" /> My Studies
-          </button>
-          <button 
-            onClick={() => setActiveTab("activities")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "activities" ? "bg-indigo-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
-          >
-            <FlatIcon name="experience" className="w-5 h-5" /> Activities
-          </button>
-          <button 
-            onClick={() => setActiveTab("myprojects")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "myprojects" ? "bg-indigo-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
-          >
-            <FlatIcon name="portfoliotab" className="w-5 h-5" /> My Projects
-          </button>
-          <button 
-            onClick={() => setActiveTab("myjourney")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${activeTab === "myjourney" ? "bg-indigo-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
-          >
-            <FlatIcon name="growth" className="w-5 h-5" /> My Journey
-          </button>
-        </div>
-
-        <div className="flex gap-3">
-          <button className="px-4 py-2 border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2">
-            <ShareIcon /> Share Portfolio
-          </button>
-          <button 
-            onClick={handleExportPDF}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold text-white transition-colors shadow-lg flex items-center gap-2"
-          >
-            <DownloadIcon /> Export PDF
-          </button>
-        </div>
-      </div>
-
-      {/* Main Responsive Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Panel: Profile Detail & SWOT Card */}
-        <div className="lg:col-span-1 space-y-6">
-          
-          {/* Main Dynamic Profile Card */}
-          <div className="glass rounded-3xl p-6 border border-slate-700/50 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full"></div>
-            
-            {/* Student Avatar - dynamic based on initials */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 border-4 border-slate-700 mx-auto overflow-hidden mb-4 relative z-10 flex items-center justify-center text-3xl font-black text-white">
+      {/* 🚀 Header & Student Hero Card */}
+      <div className="glass rounded-3xl p-6 border border-slate-700/60 bg-gradient-to-br from-indigo-950/40 via-slate-900/60 to-slate-950/80 mb-6 shadow-md">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          {/* Student Profile Identity */}
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 border-2 border-indigo-400/40 flex items-center justify-center text-3xl font-black text-white shadow-lg shrink-0">
               {data.profile.name.substring(0, 2).toUpperCase()}
             </div>
 
-            {/* Tier Badge */}
-            <div className={`mx-auto mb-3 px-3 py-1 rounded-full border text-[10px] uppercase font-black tracking-wider w-fit bg-gradient-to-r ${tierColorStyle}`}>
-              {studentTier}
-            </div>
-            
-            <h2 className="text-2xl font-black text-white mb-1 relative z-10">{data.profile.name}</h2>
-            <p className="text-xs text-indigo-400 font-bold mb-1 relative z-10">EMIS: {data.profile.emisNumber} • Roll: {data.profile.rollNumber}</p>
-            <p className="text-sm text-slate-300 font-medium mb-4 relative z-10">{data.profile.schoolName}</p>
-            <p className="text-xs text-slate-400 bg-slate-950/30 py-1.5 px-3 rounded-lg border border-slate-800/80 mb-4 inline-block font-bold">
-              Class {data.profile.class}-{data.profile.section} • {data.profile.stream}
-            </p>
-            
-            <p className="text-xs text-slate-300 leading-relaxed mb-6 relative z-10 text-center italic">
-              "{data.profile.bio}"
-            </p>
-
-            {/* Micro Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 relative z-10">
-              <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                <span className="block text-lg font-black text-white">{data.profile.projectsCount}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-500">Projects</span>
+            <div>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-white">{data.profile.name}</h1>
+                <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  Class {data.profile.class}-{data.profile.section}
+                </span>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  {data.profile.stream}
+                </span>
               </div>
-              <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                <span className="block text-lg font-black text-white">{data.profile.awardsCount}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-500">Awards</span>
-              </div>
-              <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                <span className="block text-lg font-black text-emerald-400">{data.profile.attendanceRate}%</span>
-                <span className="text-[9px] uppercase font-bold text-slate-500">Attendance</span>
+              <p className="text-xs text-slate-400 font-medium">{data.profile.schoolName}</p>
+              <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono mt-1">
+                <span>EMIS: <strong className="text-amber-400">{data.profile.emisNumber}</strong></span>
+                <span>•</span>
+                <span>Roll: <strong className="text-slate-200">{data.profile.rollNumber}</strong></span>
               </div>
             </div>
+          </div>
 
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             {!isReadOnly && (
-              <button 
+              <button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="mt-5 w-full py-2 bg-slate-800 hover:bg-slate-700/80 text-white rounded-xl text-xs font-bold transition-all border border-slate-700/60 flex items-center justify-center gap-1.5"
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5"
               >
-                <EditIcon className="w-3.5 h-3.5 text-slate-400" /> Customize Profile
+                <i className="fi fi-rr-edit text-indigo-400 text-xs flex items-center" /> Edit Profile
               </button>
             )}
+            <button
+              onClick={handleExportPDF}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+            >
+              <i className="fi fi-rr-download text-xs flex items-center" /> Export PDF
+            </button>
           </div>
+        </div>
 
-          {/* Attendance Tracking Circular Progress Ring */}
-          <div className="glass rounded-3xl p-6 border border-slate-700/50">
-            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-              <StarIcon className="w-4 h-4 text-emerald-400" /> Attendance Dedication
-            </h3>
-            
-            <div className="flex items-center gap-5">
-              <div className="relative w-20 h-20 shrink-0">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path className="text-slate-800" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="text-emerald-500 transition-all duration-1000" strokeDasharray={`${data.profile.attendanceRate}, 100`} strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center text-sm font-black text-white">
-                  {data.profile.attendanceRate}%
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-slate-300 font-bold">Excellent Commitment</p>
-                <p className="text-[10px] text-slate-400 mt-1">Maintaining attendance above 90% supports higher academic gains and demonstrates persistence.</p>
-              </div>
+        {/* 📊 Key Dynamic Metrics Bar (4 Key Stats) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
+          <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+              <i className="fi fi-rr-check-circle text-lg flex items-center" />
+            </div>
+            <div>
+              <span className="block text-base font-black text-white">{data.profile.attendanceRate}%</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance</span>
             </div>
           </div>
 
-          {/* SWOT Growth Mindset Section — only show if student has real data */}
-          {(data.profile.strengths.length > 0 || data.profile.areasOfGrowth.length > 0 || data.profile.termGoals.length > 0) && (
-            <div className="glass rounded-3xl p-6 border border-slate-700/50">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <CompassIcon className="w-4 h-4 text-rose-400" /> Growth &amp; SWOT
-                </h3>
-                {!isReadOnly && <button onClick={() => setIsProfileModalOpen(true)} className="text-[10px] text-indigo-400 hover:text-indigo-300 font-black uppercase">Edit</button>}
-              </div>
-
-              <div className="space-y-4">
-                {data.profile.strengths.length > 0 && (
-                  <div>
-                    <span className="text-[9px] uppercase tracking-wider text-emerald-400 font-bold block mb-1">My Strengths</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {data.profile.strengths.map((str, idx) => (
-                        <span key={idx} className="text-[10px] font-bold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{str}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {data.profile.areasOfGrowth.length > 0 && (
-                  <div>
-                    <span className="text-[9px] uppercase tracking-wider text-amber-400 font-bold block mb-1">Areas of Growth</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {data.profile.areasOfGrowth.map((gro, idx) => (
-                        <span key={idx} className="text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{gro}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {data.profile.termGoals.length > 0 && (
-                  <div>
-                    <span className="text-[9px] uppercase tracking-wider text-indigo-400 font-bold block mb-1">Active Term Goals</span>
-                    <ul className="text-xs text-slate-300 space-y-1 pl-4 list-disc">
-                      {data.profile.termGoals.map((goa, idx) => (
-                        <li key={idx}>{goa}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+          <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+              <i className="fi fi-rr-folder text-lg flex items-center" />
             </div>
-          )}
+            <div>
+              <span className="block text-base font-black text-white">{data.projects.length}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Projects</span>
+            </div>
+          </div>
 
+          <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+              <i className="fi fi-rr-trophy text-lg flex items-center" />
+            </div>
+            <div>
+              <span className="block text-base font-black text-white">{data.achievements.length}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Awards</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
+            <div className="p-2.5 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
+              <i className="fi fi-rr-graduation-cap text-lg flex items-center" />
+            </div>
+            <div>
+              <span className="block text-base font-black text-white">{overallPercentage}%</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Academic Score</span>
+            </div>
+          </div>
         </div>
-
-        {/* Right Panel: Dynamic Tab Details */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Profile & Goals Details Tab */}
-          {activeTab === "aboutme" && (
-            <div className="space-y-6">
-              
-              {/* Card 1: Personal Profile */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <CompassIcon className="w-5 h-5 text-indigo-400" /> Personal Profile
-                  </h3>
-                  <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                    Basic Student Information
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div className="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <span className="text-slate-400">Name:</span>
-                    <span className="font-bold text-white">{data.profile.name}</span>
-                  </div>
-                  <div className="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <span className="text-slate-400">EMIS ID:</span>
-                    <span className="font-mono font-bold text-amber-400">{data.profile.emisNumber}</span>
-                  </div>
-                  <div className="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <span className="text-slate-400">Roll Number:</span>
-                    <span className="font-mono font-bold text-slate-200">{data.profile.rollNumber}</span>
-                  </div>
-                  <div className="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <span className="text-slate-400">Class & Section:</span>
-                    <span className="font-bold text-teal-400">Class {data.profile.class}-{data.profile.section}</span>
-                  </div>
-                  <div className="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex justify-between items-center col-span-1 md:col-span-2">
-                    <span className="text-slate-400">School:</span>
-                    <span className="font-semibold text-slate-300">{data.profile.schoolName}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: Goals */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <StarIcon className="w-5 h-5 text-amber-400" /> Academic & Personal Goals
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  Current academic and personal development objectives set for this term:
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {data.profile.termGoals && data.profile.termGoals.length > 0 ? (
-                    data.profile.termGoals.map((goal, idx) => (
-                      <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
-                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
-                        <span className="text-xs font-bold text-slate-200">{goal}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-slate-500 italic md:col-span-2">No active term goals recorded.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 3: Aspirations */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <FolderIcon className="w-5 h-5 text-purple-400" /> Future Aspirations
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  Career goals and future achievements targeted by the student:
-                </p>
-
-                <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 p-4 rounded-2xl border border-purple-500/20 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <FlatIcon name="engineer" className="w-8 h-8 shrink-0" />
-                    <div>
-                      <span className="text-[10px] text-purple-400 uppercase font-black tracking-wider block">Target Career Path</span>
-                      <h4 className="text-sm font-black text-white">{data.profile.careerGoal || "Not specified"}</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 4: Endorsements */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                  <ChatIcon className="w-5 h-5 text-emerald-400" /> Verified Endorsements
-                </h3>
-                <div className="space-y-4">
-                  {data.profile.teacherEndorsement ? (
-                    <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800 space-y-2">
-                      <p className="text-xs text-slate-300 italic leading-relaxed">
-                        "{data.profile.teacherEndorsement}"
-                      </p>
-                      <div className="flex justify-between items-center text-[10px] text-emerald-400 font-bold uppercase pt-1">
-                        <span>— {data.profile.teacherName || "Teacher"}</span>
-                        <span className="bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">VERIFIED TEACHER</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic">No teacher endorsement recorded.</p>
-                  )}
-
-                  {data.profile.parentEndorsement && (
-                    <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800 space-y-2">
-                      <p className="text-xs text-slate-300 italic leading-relaxed">
-                        "{data.profile.parentEndorsement}"
-                      </p>
-                      <div className="flex justify-between items-center text-[10px] text-purple-400 font-bold uppercase pt-1">
-                        <span>— {data.profile.parentName || "Parent"}</span>
-                        <span className="bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">VERIFIED PARENT</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 5: Leadership & Responsibilities */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-lg">👥</span> Leadership & Responsibilities
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  Official leadership roles and positions held by the student in school:
-                </p>
-
-                <div className="space-y-2">
-                  {data.profile.leadershipRoles && data.profile.leadershipRoles.length > 0 ? (
-                    data.profile.leadershipRoles.map((role, idx) => (
-                      <div key={idx} className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
-                        <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center shrink-0">
-                          ★
-                        </span>
-                        <span className="text-xs font-bold text-slate-200">{role}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-slate-500 italic">No leadership roles recorded.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Card 6: Languages Known */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-lg">🌐</span> Languages Known
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  Languages known by student and fluency level:
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {(() => {
-                    let langList: string[] = [];
-                    const p = data.profile as any;
-                    if (typeof p.languageFluency === "object" && p.languageFluency && Object.keys(p.languageFluency).length > 0) {
-                      langList = Object.entries(p.languageFluency).map(([l, f]) => `${l} (${f})`);
-                    } else if (Array.isArray(p.languages) && p.languages.length > 0) {
-                      langList = p.languages;
-                    }
-                    if (langList.length === 0) {
-                      return <p className="text-xs text-slate-500 italic sm:col-span-2">No language details recorded.</p>;
-                    }
-                    return langList.map((langItem, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5 bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
-                        <span className="text-sm">🗣️</span>
-                        <span className="text-xs font-bold text-teal-300">{langItem}</span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* Academic & Lab Achievements Tab */}
-          {activeTab === "mystudies" && (() => {
-            const rawMarksList = data.marksSummary || [];
-
-            if (rawMarksList.length === 0) {
-              return (
-                <div className="glass rounded-3xl p-8 border border-slate-700/50 text-center text-slate-400 text-xs">
-                  No academic marks recorded.
-                </div>
-              );
-            }
-
-            const totalObtained = rawMarksList.reduce((acc, curr) => acc + curr.marksObtained, 0);
-            const totalMax = rawMarksList.reduce((acc, curr) => acc + curr.maxMarks, 0);
-            const overallPercentage = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
-
-            const sortedMarks = [...rawMarksList].sort((a, b) => (b.marksObtained / b.maxMarks) - (a.marksObtained / a.maxMarks));
-            const highestSub = sortedMarks[0];
-            const lowestSub = sortedMarks[sortedMarks.length - 1];
-
-            // Dynamically group averages by exam category
-            const examGroups: Record<string, { totalObtained: number; totalMax: number }> = {};
-            rawMarksList.forEach(mark => {
-              const name = mark.examName || "Exam";
-              if (!examGroups[name]) examGroups[name] = { totalObtained: 0, totalMax: 0 };
-              examGroups[name].totalObtained += mark.marksObtained;
-              examGroups[name].totalMax += mark.maxMarks;
-            });
-
-            const termCards = Object.entries(examGroups).map(([examName, stats]) => ({
-              term: examName,
-              pct: `${Math.round((stats.totalObtained / stats.totalMax) * 100)}%`,
-              label: `${examName} Average`,
-              color: "text-teal-400 border-teal-500/20 bg-teal-500/10"
-            }));
-
-            return (
-              <div className="space-y-6">
-                
-                {/* Exam Growth & Term Summary Cards */}
-                {termCards.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {termCards.slice(0, 3).map((termItem, idx) => (
-                      <div key={idx} className={`p-4 rounded-2xl border ${termItem.color} flex justify-between items-center`}>
-                        <div>
-                          <span className="text-[10px] font-extrabold uppercase opacity-80 block">{termItem.label}</span>
-                          <span className="text-xl font-black text-white">{termItem.pct}</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-300">{termItem.term}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Academic Marks Summary */}
-                <div className="glass rounded-3xl p-6 border border-slate-700/50 space-y-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <AcademicCapIcon className="w-5 h-5 text-indigo-400" /> Subject Performance & Marks Summary
-                      </h3>
-                      <p className="text-xs text-slate-400">Exam scores and mark records</p>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl shrink-0">
-                      <div className="text-center px-3">
-                        <span className="block text-[10px] text-amber-400 font-extrabold uppercase tracking-wide">Overall Academic Aggregate</span>
-                        <span className="text-2xl font-black text-amber-400">{overallPercentage}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {highestSub && lowestSub && (
-                    <div className="bg-slate-900/50 p-4.5 rounded-2xl border border-slate-800 space-y-3">
-                      <h4 className="text-xs font-extrabold text-amber-400 flex items-center gap-2">
-                        <StarIcon className="w-4 h-4 text-amber-400" /> Subject Performance Analysis
-                      </h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        <div className="bg-emerald-500/10 p-3.5 rounded-xl border border-emerald-500/20 flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] font-black uppercase text-emerald-400 block"> Highest Scoring Subject</span>
-                            <span className="font-bold text-white text-sm">{highestSub.subject} ({highestSub.examName})</span>
-                          </div>
-                          <span className="font-mono font-black text-emerald-400 text-base">{Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%</span>
-                        </div>
-
-                        <div className="bg-rose-500/10 p-3.5 rounded-xl border border-rose-500/20 flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] font-black uppercase text-rose-400 block"> Lowest Scoring Subject</span>
-                            <span className="font-bold text-white text-sm">{lowestSub.subject} ({lowestSub.examName})</span>
-                          </div>
-                          <span className="font-mono font-black text-rose-400 text-base">{Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Filter Controls Bar */}
-                  <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] font-extrabold text-amber-400 flex items-center gap-1.5 mr-1">
-                        Exam Category:
-                      </span>
-                      {[
-                        { label: `All Test Results (${rawMarksList.length})`, val: "All" },
-                        { label: "Quarterly Exam", val: "Quarterly" },
-                        { label: "Half Yearly Exam", val: "Half" },
-                        { label: "Annual Exam", val: "Annual" }
-                      ].map((tFilter, fIdx) => (
-                        <button
-                          key={fIdx}
-                          onClick={() => setSelectedTermFilter(tFilter.val)}
-                          className={`px-3 py-1.5 rounded-xl font-bold transition-all border ${
-                            selectedTermFilter === tFilter.val
-                              ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md"
-                              : "bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40"
-                          }`}
-                        >
-                          {tFilter.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-slate-400 shrink-0">Subject:</span>
-                      <select
-                        value={selectedSubjectFilter}
-                        onChange={(e) => setSelectedSubjectFilter(e.target.value)}
-                        className="bg-slate-950 text-teal-300 font-bold border border-slate-800 rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                      >
-                        <option value="All">All Subjects</option>
-                        {Array.from(new Set(rawMarksList.map(m => m.subject))).map((subj, sIdx) => (
-                          <option key={sIdx} value={subj}>{subj}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Filtered Marks Table */}
-                  {(() => {
-                    const filteredList = rawMarksList.filter(mark => {
-                      const matchesTerm = selectedTermFilter === "All" ||
-                        mark.examName.toLowerCase().includes(selectedTermFilter.toLowerCase()) ||
-                        mark.subject.toLowerCase().includes(selectedTermFilter.toLowerCase());
-                      const matchesSubject = selectedSubjectFilter === "All" || mark.subject.toLowerCase().includes(selectedSubjectFilter.toLowerCase());
-                      return matchesTerm && matchesSubject;
-                    });
-
-                    return (
-                      <div className="overflow-x-auto border border-slate-800 rounded-2xl">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-900/80 text-slate-400 text-[11px] font-extrabold uppercase border-b border-slate-800">
-                              <th className="py-3.5 px-4">Subject</th>
-                              <th className="py-3.5 px-4">Assessment Term</th>
-                              <th className="py-3.5 px-4 text-center">Score Percentage (%)</th>
-                              <th className="py-3.5 px-4">Remarks</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-800/40 text-xs">
-                            {filteredList.length > 0 ? (
-                              filteredList.map((mark, idx) => {
-                                const pct = Math.round((mark.marksObtained / mark.maxMarks) * 100);
-                                return (
-                                  <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
-                                    <td className="py-3.5 px-4 text-white font-bold">{mark.subject}</td>
-                                    <td className="py-3.5 px-4 text-slate-400 font-medium">{mark.examName}</td>
-                                    <td className="py-3.5 px-4 text-center">
-                                      <span className={`px-3 py-1 rounded-xl font-mono text-xs font-black ${
-                                        pct >= 90 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
-                                        pct >= 75 ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30" :
-                                        "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                                      }`}>
-                                        {pct}%
-                                      </span>
-                                    </td>
-                                    <td className="py-3.5 px-4 text-slate-300 italic">{mark.remarks || "—"}</td>
-                                  </tr>
-                                );
-                              })
-                            ) : (
-                              <tr>
-                                <td colSpan={4} className="py-8 text-center text-slate-500 text-xs italic">
-                                  No exam percentage records match the selected filter.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Science Lab & Practical Experiments */}
-                {extractClassNum(data.profile.class) > 8 && (() => {
-                  const labList = data.labAttempts || [];
-                  return (
-                    <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                      <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <BoltIcon className="w-5 h-5 text-emerald-400" /> Science Lab & Experiments
-                      </h3>
-                      {labList.length > 0 ? (
-                        <div className="space-y-3">
-                          {labList.map((la, idx) => (
-                            <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                              <div>
-                                <h4 className="text-xs font-bold text-white">{la.experimentTitle}</h4>
-                                <p className="text-[10px] text-slate-500 mt-0.5">Attempted on {new Date(la.date).toLocaleDateString()}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-xs font-bold text-emerald-400 block">{la.score !== null ? `${la.score}% Score` : "Completed"}</span>
-                                <span className="text-[9px] uppercase font-bold text-slate-500">{la.completed ? "Verified" : "Pending review"}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-slate-500 italic">No lab experiment records found.</p>
-                      )}
-                    </div>
-                  );
-                })()}
-
-              </div>
-            );
-          })()}
-
-          {/* Co-curricular & Experience Tab */}
-          {activeTab === "activities" && (
-            <div className="space-y-6">
-              
-              {/* 1. Physical Education (PT / PET) Performance & Fitness Card */}
-              {(() => {
-                const sportsData = data.sports;
-                const hasSports = sportsData && ((sportsData.teams && sportsData.teams.length > 0) || (sportsData.stats && sportsData.stats.length > 0) || (sportsData.events && sportsData.events.length > 0));
-
-                return (
-                  <div className="glass rounded-3xl p-6 border border-slate-700/50 space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                          <SportsIcon className="w-5 h-5 text-amber-400" />
-                          Physical Education (PT / PET) & Athletic Performance
-                        </h3>
-                        <p className="text-xs text-slate-400">
-                          Track performance and Physical Education Teacher (PET) evaluation
-                        </p>
-                      </div>
-                    </div>
-
-                    {!hasSports ? (
-                      <p className="text-xs text-slate-500 italic py-2">No physical education or sports records available.</p>
-                    ) : (
-                      <>
-                        {/* Dynamic Fitness Metrics */}
-                        {sportsData.stats && sportsData.stats.length > 0 && (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {sportsData.stats.map((fMetric, fIdx) => (
-                              <div key={fIdx} className="p-4 rounded-2xl border text-amber-400 border-amber-500/20 bg-amber-500/10 space-y-1">
-                                <span className="text-[10px] font-extrabold uppercase opacity-80 block">{fMetric.label}</span>
-                                <div className="flex justify-between items-baseline">
-                                  <span className="text-sm font-black text-white">{fMetric.value}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Represented Sports Teams & PT Events */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {sportsData.teams && sportsData.teams.length > 0 && (
-                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                              <span className="text-[11px] font-extrabold text-amber-400 uppercase block tracking-wider">🏆 Represented Sports Teams & Roles</span>
-                              <div className="space-y-2 text-xs">
-                                {sportsData.teams.map((tm, tIdx) => (
-                                  <div key={tIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
-                                    <div>
-                                      <span className="font-bold text-white block">{tm.name}</span>
-                                      <span className="text-[10px] text-slate-400">Role: {tm.role}</span>
-                                    </div>
-                                    {tm.match && <span className="text-[10px] font-black text-amber-400 uppercase bg-amber-500/10 px-2 py-0.5 rounded">{tm.match}</span>}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {sportsData.events && sportsData.events.length > 0 && (
-                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                              <span className="text-[11px] font-extrabold text-teal-400 uppercase block tracking-wider">🏅 PT Events & Athletic Records</span>
-                              <div className="space-y-2 text-xs">
-                                {sportsData.events.map((ev, eIdx) => (
-                                  <div key={eIdx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-850 flex justify-between items-center">
-                                    <div>
-                                      <span className="font-bold text-white block">{ev.title}</span>
-                                      <span className="text-[10px] text-slate-400">{ev.date}</span>
-                                    </div>
-                                    <span className="text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded">{ev.type}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Registered School Clubs */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <UsersIcon className="w-5 h-5 text-teal-400" /> Registered Clubs & Societies
-                </h3>
-                {data.clubs && data.clubs.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {data.clubs.map((club, idx) => (
-                      <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex items-start gap-3.5">
-                        <div className="p-3 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-xl text-2xl">
-                          {renderIconByName("club", "text-teal-400")}
-                        </div>
-                        <div>
-                          <span className="text-[9px] uppercase font-black tracking-widest text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{club.category}</span>
-                          <h4 className="text-sm font-bold text-white mt-1.5">{club.name}</h4>
-                          <p className="text-xs text-slate-400 mt-0.5">Assigned Role: <span className="text-indigo-400 font-bold">{club.role}</span></p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">No registered clubs.</p>
-                )}
-              </div>
-
-              {/* Social Community Services (NSS/NCC) */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                  <StarIcon className="w-5 h-5 text-emerald-400" /> Social & Community Services (NCC/NSS)
-                </h3>
-                {data.socialActivities && data.socialActivities.length > 0 ? (
-                  <div className="space-y-3">
-                    {data.socialActivities.map((act, idx) => (
-                      <div key={idx} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                        <div>
-                          <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                            {act.activityType}
-                          </span>
-                          <p className="text-xs font-bold text-white mt-1">{act.description}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{act.date}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-xs font-black text-amber-400 block">+{act.points} Pts</span>
-                          <span className="text-[9px] uppercase font-bold text-emerald-400">{act.status}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">No social activities logged.</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Projects & Achievements Tab */}
-          {activeTab === "myprojects" && (
-            <div className="space-y-6">
-              
-              {/* Projects showcase */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <FolderIcon className="w-5 h-5 text-indigo-400" /> Student Projects & Models
-                  </h3>
-                  {!isReadOnly && (
-                    <button 
-                      onClick={() => setIsProjectModalOpen(true)}
-                      className="py-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-                    >
-                      <PlusIcon /> Add Project
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  {data.projects.map((proj) => (
-                    <div key={proj.id} className="bg-slate-900/40 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-5 relative group">
-                      {!isReadOnly && (
-                        <button 
-                          onClick={() => handleDeleteProject(proj.id)}
-                          className="absolute top-4 right-4 p-1.5 bg-slate-950/60 text-slate-400 hover:text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-800"
-                          title="Delete Project"
-                        >
-                          <TrashIcon className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      
-                      <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700/50 shrink-0 flex items-center justify-center">
-                        {renderIconByName(proj.image, "text-indigo-400 w-7 h-7")}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-[9px] uppercase font-black tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{proj.category}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{proj.date}</span>
-                        </div>
-                        <h4 className="text-base font-bold text-white mb-2">{proj.title}</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed mb-3">{proj.description}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {proj.tags.map((tag, tIdx) => (
-                            <span key={tIdx} className="text-[9px] font-bold text-slate-300 bg-slate-850 px-2 py-0.5 rounded border border-slate-800">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {data.projects.length === 0 && (
-                    <p className="text-xs text-slate-500 text-center py-6">No custom projects cataloged. Click "Add Project" to add your work.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Skill Matrix */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <BoltIcon className="w-5 h-5 text-indigo-400" /> Skill Matrix Profile
-                  </h3>
-                  {!isReadOnly && (
-                    <button 
-                      onClick={() => setIsSkillModalOpen(true)}
-                      className="py-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-                    >
-                      <PlusIcon /> Add Skill
-                    </button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {data.skills.map((skill) => (
-                    <div key={skill.id} className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 relative group flex justify-between items-center">
-                      <div className="flex-1 mr-4">
-                        <div className="flex justify-between items-end mb-1.5">
-                          <span className="text-xs font-bold text-white">{skill.name}</span>
-                          <span className="text-[10px] text-slate-400 font-bold">{skill.level}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
-                          <div className={`h-full bg-gradient-to-r ${skill.color}`} style={{ width: `${skill.level}%` }}></div>
-                        </div>
-                      </div>
-                      {!isReadOnly && (
-                        <button 
-                          onClick={() => handleDeleteSkill(skill.id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-slate-950 border border-slate-850 rounded hover:text-rose-400 text-slate-400"
-                          title="Delete Skill"
-                        >
-                          <TrashIcon className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {data.skills.length === 0 && (
-                    <p className="col-span-2 text-xs text-slate-500 text-center py-4">No custom skills loaded. Click "Add Skill" to begin.</p>
-                  )}
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* Academic Timeline & Honors Tab */}
-          {activeTab === "myjourney" && (
-            <div className="space-y-6">
-              {/* Custom Honors & Achievements */}
-              <div className="glass rounded-3xl p-6 border border-slate-700/50">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <TrophyIcon className="w-5 h-5 text-yellow-400" /> Honors & Custom Awards
-                  </h3>
-                  {!isReadOnly && (
-                    <button 
-                      onClick={() => setIsAchievementModalOpen(true)}
-                      className="py-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-                    >
-                      <PlusIcon /> Add Achievement
-                    </button>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {data.achievements.map((ach) => (
-                    <div key={ach.id} className={`p-4 rounded-xl border flex items-center gap-4 relative group ${ach.bg}`}>
-                      {!isReadOnly && (
-                        <button 
-                          onClick={() => handleDeleteAchievement(ach.id)}
-                          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-slate-950 border border-slate-850 rounded-lg hover:text-rose-500 text-slate-400"
-                          title="Delete Achievement"
-                        >
-                          <TrashIcon className="w-3 h-3" />
-                        </button>
-                      )}
-
-                      <div className="p-2.5 bg-slate-950/40 rounded-xl border border-slate-800/40 shrink-0">
-                        {renderIconByName(ach.icon, ach.color)}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-white">{ach.title}</h4>
-                        <span className="text-[9px] font-black uppercase text-indigo-400 tracking-wider block mt-0.5">Year: {ach.year}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {data.achievements.length === 0 && (
-                    <p className="col-span-2 text-xs text-slate-500 text-center py-4">No custom achievements added. Click "Add Achievement" to begin.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="glass rounded-3xl p-6 border border-slate-700/50 space-y-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <BookIcon className="w-5 h-5 text-indigo-400" /> Academic & Portfolio Timeline
-              </h3>
-              
-              <div className="relative border-l border-slate-800 pl-6 ml-4 space-y-8">
-                
-                {/* Current Enrolled Class */}
-                <div className="relative">
-                  <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-indigo-500 ring-4 ring-slate-950"></div>
-                  {extractClassNum(data.profile.class) >= 6 && extractClassNum(data.profile.class) <= 8 ? (
-                    <>
-                      <h4 className="text-sm font-bold text-white">Currently Enrolled Middle School Student</h4>
-                      <span className="text-[10px] font-bold text-indigo-400 block mb-1">Grade {data.profile.class}-{data.profile.section} • Exploration Phase</span>
-                      <p className="text-xs text-slate-400">Actively enrolled at {data.profile.schoolName}. Engaged in foundational subjects, club activities, and reading programs.</p>
-                    </>
-                  ) : extractClassNum(data.profile.class) >= 9 && extractClassNum(data.profile.class) <= 10 ? (
-                    <>
-                      <h4 className="text-sm font-bold text-white">Currently Enrolled High School Student</h4>
-                      <span className="text-[10px] font-bold text-indigo-400 block mb-1">Grade {data.profile.class}-{data.profile.section} • {data.profile.stream === "General" ? "Science & Board Prep" : data.profile.stream}</span>
-                      <p className="text-xs text-slate-400">Actively enrolled at {data.profile.schoolName}. Engaged in core subjects, lab experiments, and board exam preparation.</p>
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-sm font-bold text-white">Currently Enrolled Higher Secondary Student</h4>
-                      <span className="text-[10px] font-bold text-indigo-400 block mb-1">Grade {data.profile.class}-{data.profile.section} • {data.profile.stream}</span>
-                      <p className="text-xs text-slate-400">Actively enrolled at {data.profile.schoolName}. Focused on advanced stream specialization, lab work, and college entrance preparations.</p>
-                    </>
-                  )}
-                </div>
-
-                {/* Projects timeline */}
-                {data.projects.map((proj, idx) => (
-                  <div key={idx} className="relative">
-                    <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-slate-950"></div>
-                    <h4 className="text-sm font-bold text-white">Project: {proj.title}</h4>
-                    <span className="text-[10px] font-bold text-emerald-400 block mb-1">{proj.date} • {proj.category}</span>
-                    <p className="text-xs text-slate-400">{proj.description}</p>
-                  </div>
-                ))}
-
-                {/* Achievements timeline */}
-                {data.achievements.map((ach, idx) => (
-                  <div key={idx} className="relative">
-                    <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-yellow-500 ring-4 ring-slate-950"></div>
-                    <h4 className="text-sm font-bold text-white">Honored: {ach.title}</h4>
-                    <span className="text-[10px] font-bold text-yellow-400 block mb-1">Academic Year {ach.year}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
-          )}
-
-        </div>
-
       </div>
 
-      {/* --- MODALS (CRUD) --- */}
-      
-      {/* 1. Customize Profile Modal */}
+      {/* 🧭 Modern Dynamic Navigation Tabs */}
+      <div className="flex bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 mb-6 gap-1 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "overview"
+              ? "bg-indigo-600 text-white shadow-md font-extrabold"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fi fi-rr-user text-sm flex items-center" /> Overview & Profile
+        </button>
+        <button
+          onClick={() => setActiveTab("academics")}
+          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "academics"
+              ? "bg-indigo-600 text-white shadow-md font-extrabold"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fi fi-rr-book-alt text-sm flex items-center" /> Academic Performance
+        </button>
+        <button
+          onClick={() => setActiveTab("projects")}
+          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "projects"
+              ? "bg-indigo-600 text-white shadow-md font-extrabold"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fi fi-rr-sparkles text-sm flex items-center" /> Projects & Skills
+        </button>
+        <button
+          onClick={() => setActiveTab("activities")}
+          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "activities"
+              ? "bg-indigo-600 text-white shadow-md font-extrabold"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fi fi-rr-award text-sm flex items-center" /> Honors & Activities
+        </button>
+      </div>
+
+      {/* 📄 TAB 1: OVERVIEW & PROFILE */}
+      {activeTab === "overview" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Bio & Goals */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Bio & Motto */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-user text-indigo-400 text-sm flex items-center" /> Biography & Motto
+              </h3>
+              <p className="text-xs text-slate-300 italic leading-relaxed bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                "{data.profile.bio || "No biography entered yet."}"
+              </p>
+            </div>
+
+            {/* Strengths & Areas of Growth */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-target text-emerald-400 text-sm flex items-center" /> Core Competencies & Growth Goals
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Strengths */}
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <span className="text-[11px] font-black uppercase text-emerald-400 tracking-wider block">Key Strengths</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.profile.strengths.length > 0 ? (
+                      data.profile.strengths.map((str, idx) => (
+                        <span key={idx} className="text-xs font-bold text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20">
+                          {str}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-500 italic">None specified.</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Growth Areas */}
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <span className="text-[11px] font-black uppercase text-amber-400 tracking-wider block">Areas of Growth</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.profile.areasOfGrowth.length > 0 ? (
+                      data.profile.areasOfGrowth.map((gro, idx) => (
+                        <span key={idx} className="text-xs font-bold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">
+                          {gro}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-500 italic">None specified.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Term Goals */}
+              {data.profile.termGoals.length > 0 && (
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <span className="text-[11px] font-black uppercase text-indigo-400 tracking-wider block">Active Term Objectives</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {data.profile.termGoals.map((goal, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-slate-200 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <i className="fi fi-rr-star text-amber-400 text-xs shrink-0 flex items-center" />
+                        <span>{goal}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Verified Endorsements */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-shield-check text-teal-400 text-sm flex items-center" /> Verified Endorsements
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Teacher Endorsement */}
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-teal-400">Teacher Feedback</span>
+                    <span className="text-[9px] font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">Verified</span>
+                  </div>
+                  <p className="text-xs text-slate-300 italic">"{data.profile.teacherEndorsement || "No teacher endorsement logged yet."}"</p>
+                  {data.profile.teacherName && (
+                    <span className="text-[11px] font-bold text-slate-400 block text-right">— {data.profile.teacherName}</span>
+                  )}
+                </div>
+
+                {/* Parent Endorsement */}
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-purple-400">Parent Feedback</span>
+                    <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Verified</span>
+                  </div>
+                  <p className="text-xs text-slate-300 italic">"{data.profile.parentEndorsement || "No parent endorsement logged yet."}"</p>
+                  {data.profile.parentName && (
+                    <span className="text-[11px] font-bold text-slate-400 block text-right">— {data.profile.parentName}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Aspirations & Details */}
+          <div className="space-y-6">
+            {/* Career Aspiration */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <span className="text-[10px] font-black uppercase text-indigo-400 tracking-wider block">Career Aspiration</span>
+              <h4 className="text-base font-black text-white flex items-center gap-2">
+                <i className="fi fi-rr-sparkles text-amber-400 text-sm flex items-center" /> {data.profile.careerGoal || "Not specified"}
+              </h4>
+            </div>
+
+            {/* Leadership Roles */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-users text-indigo-400 text-sm flex items-center" /> Leadership & Roles
+              </h3>
+              {data.profile.leadershipRoles.length > 0 ? (
+                <div className="space-y-2">
+                  {data.profile.leadershipRoles.map((role, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5 bg-slate-900/50 p-3 rounded-xl border border-slate-800 text-xs font-bold text-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                      <span>{role}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No leadership roles listed.</p>
+              )}
+            </div>
+
+            {/* Languages Known */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-comment-alt text-emerald-400 text-sm flex items-center" /> Languages Known
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(data.profile.languageFluency || {}).length > 0 ? (
+                  Object.entries(data.profile.languageFluency).map(([lang, val], idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-slate-900/50 p-3 rounded-xl border border-slate-800 text-xs">
+                      <span className="font-bold text-white">{lang}</span>
+                      <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{val}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No language data.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📊 TAB 2: ACADEMIC PERFORMANCE */}
+      {activeTab === "academics" && (
+        <div className="space-y-6">
+          {/* Subject Scores Table Card */}
+          <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <i className="fi fi-rr-graduation-cap text-indigo-400 text-lg flex items-center" /> Subject Marks & Assessment Summary
+                </h3>
+                <p className="text-xs text-slate-400">Exam scores and verified marks log</p>
+              </div>
+
+              {/* Overall Score Badge */}
+              <div className="bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-2xl flex items-center gap-3 shrink-0">
+                <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Overall Score</span>
+                <span className="text-xl font-black text-amber-400">{overallPercentage}%</span>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <i className="fi fi-rr-filter text-indigo-400 text-sm flex items-center" />
+                <span className="font-bold text-slate-400">Exam:</span>
+                <select
+                  value={selectedExamFilter}
+                  onChange={(e) => setSelectedExamFilter(e.target.value)}
+                  className="bg-slate-950 text-white font-bold border border-slate-800 rounded-xl px-3 py-1.5 text-xs focus:outline-none"
+                >
+                  <option value="All">All Exams</option>
+                  {Array.from(new Set(data.marksSummary.map((m) => m.examName))).map((ex, idx) => (
+                    <option key={idx} value={ex}>{ex}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-400">Subject:</span>
+                <select
+                  value={selectedSubjectFilter}
+                  onChange={(e) => setSelectedSubjectFilter(e.target.value)}
+                  className="bg-slate-950 text-indigo-300 font-bold border border-slate-800 rounded-xl px-3 py-1.5 text-xs focus:outline-none"
+                >
+                  <option value="All">All Subjects</option>
+                  {Array.from(new Set(data.marksSummary.map((m) => m.subject))).map((sub, idx) => (
+                    <option key={idx} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Marks Table */}
+            {(() => {
+              const filtered = data.marksSummary.filter((m) => {
+                const matchExam = selectedExamFilter === "All" || m.examName.toLowerCase().includes(selectedExamFilter.toLowerCase());
+                const matchSub = selectedSubjectFilter === "All" || m.subject.toLowerCase().includes(selectedSubjectFilter.toLowerCase());
+                return matchExam && matchSub;
+              });
+
+              return (
+                <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900/80 text-slate-400 text-[11px] font-extrabold uppercase border-b border-slate-800">
+                        <th className="py-3 px-4">Subject</th>
+                        <th className="py-3 px-4">Assessment</th>
+                        <th className="py-3 px-4 text-center">Score Scored</th>
+                        <th className="py-3 px-4">Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-xs">
+                      {filtered.length > 0 ? (
+                        filtered.map((m, idx) => {
+                          const pct = Math.round((m.marksObtained / m.maxMarks) * 100);
+                          return (
+                            <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
+                              <td className="py-3 px-4 font-bold text-white">{m.subject}</td>
+                              <td className="py-3 px-4 text-slate-400">{m.examName}</td>
+                              <td className="py-3 px-4 text-center">
+                                <span
+                                  className={`px-2.5 py-1 rounded-xl font-mono text-xs font-black ${
+                                    pct >= 90
+                                      ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                      : pct >= 75
+                                      ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30"
+                                      : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                                  }`}
+                                >
+                                  {m.marksObtained} / {m.maxMarks} ({pct}%)
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-slate-300 italic">{m.remarks || "—"}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="py-6 text-center text-slate-500 italic text-xs">
+                            No subject marks match the selected filter.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Science Lab Attempts (If any) */}
+          {data.labAttempts.length > 0 && (
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+              <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-flask text-emerald-400 text-lg flex items-center" /> Practical Lab Experiments
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {data.labAttempts.map((lab, idx) => (
+                  <div key={idx} className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{lab.experimentTitle}</h4>
+                      <span className="text-[10px] text-slate-500">{new Date(lab.date).toLocaleDateString()}</span>
+                    </div>
+                    <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20">
+                      {lab.score !== null ? `${lab.score}% Score` : "Completed"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 🚀 TAB 3: PROJECTS & SKILLS */}
+      {activeTab === "projects" && (
+        <div className="space-y-6">
+          {/* Student Projects Section */}
+          <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <i className="fi fi-rr-folder text-indigo-400 text-lg flex items-center" /> Student Projects & Models
+                </h3>
+                <p className="text-xs text-slate-400">Innovations, models, and practical work</p>
+              </div>
+
+              {!isReadOnly && (
+                <button
+                  onClick={() => setIsProjectModalOpen(true)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                >
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Project
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.projects.map((proj) => (
+                <div key={proj.id} className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800 relative group flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                        {proj.category}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold">{proj.date}</span>
+                    </div>
+                    <h4 className="text-sm font-black text-white">{proj.title}</h4>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{proj.description}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/60">
+                    <div className="flex flex-wrap gap-1">
+                      {proj.tags.map((tag, tIdx) => (
+                        <span key={tIdx} className="text-[9px] font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {!isReadOnly && (
+                      <button
+                        onClick={() => handleDeleteProject(proj.id)}
+                        className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete project"
+                      >
+                        <i className="fi fi-rr-trash text-sm flex items-center" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {data.projects.length === 0 && (
+                <p className="col-span-2 text-xs text-slate-500 text-center py-8 italic">
+                  No projects added yet. Click "Add Project" to showcase your work.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Skill Matrix Section */}
+          <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <i className="fi fi-rr-sparkles text-purple-400 text-lg flex items-center" /> Skill Matrix Profile
+                </h3>
+                <p className="text-xs text-slate-400">Technical and co-curricular competencies</p>
+              </div>
+
+              {!isReadOnly && (
+                <button
+                  onClick={() => setIsSkillModalOpen(true)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                >
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Skill
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.skills.map((sk) => (
+                <div key={sk.id} className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 relative group flex justify-between items-center">
+                  <div className="flex-1 mr-4 space-y-1.5">
+                    <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-white">{sk.name}</span>
+                      <span className="text-indigo-400 font-mono">{sk.level}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${sk.color}`} style={{ width: `${sk.level}%` }}></div>
+                    </div>
+                  </div>
+
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => handleDeleteSkill(sk.id)}
+                      className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Delete skill"
+                    >
+                      <i className="fi fi-rr-trash text-sm flex items-center" />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {data.skills.length === 0 && (
+                <p className="col-span-2 text-xs text-slate-500 text-center py-6 italic">
+                  No custom skills listed. Click "Add Skill" to add your skills.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🏆 TAB 4: HONORS & ACTIVITIES */}
+      {activeTab === "activities" && (
+        <div className="space-y-6">
+          {/* Honors & Awards */}
+          <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <i className="fi fi-rr-trophy text-amber-400 text-lg flex items-center" /> Honors & Awards
+                </h3>
+                <p className="text-xs text-slate-400">Recognitions, competition ranks, and accolades</p>
+              </div>
+
+              {!isReadOnly && (
+                <button
+                  onClick={() => setIsAchievementModalOpen(true)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                >
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Award
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.achievements.map((ach) => (
+                <div key={ach.id} className={`p-4 rounded-2xl border flex items-center justify-between relative group ${ach.bg}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800 text-amber-400">
+                      <i className="fi fi-rr-trophy text-lg flex items-center" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{ach.title}</h4>
+                      <span className="text-[10px] font-black uppercase text-amber-400 block mt-0.5">Year: {ach.year}</span>
+                    </div>
+                  </div>
+
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => handleDeleteAchievement(ach.id)}
+                      className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Delete award"
+                    >
+                      <i className="fi fi-rr-trash text-sm flex items-center" />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {data.achievements.length === 0 && (
+                <p className="col-span-2 text-xs text-slate-500 text-center py-6 italic">
+                  No honors recorded yet. Click "Add Award" to log your recognitions.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Registered Clubs & Sports */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Clubs */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-users text-teal-400 text-sm flex items-center" /> Registered Clubs
+              </h3>
+              {data.clubs.length > 0 ? (
+                <div className="space-y-2">
+                  {data.clubs.map((c, idx) => (
+                    <div key={idx} className="bg-slate-900/50 p-3 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
+                      <div>
+                        <h4 className="font-bold text-white">{c.name}</h4>
+                        <span className="text-[10px] text-slate-400">Role: {c.role}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{c.category}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No club memberships logged.</p>
+              )}
+            </div>
+
+            {/* Sports & PET */}
+            <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fi fi-rr-volleyball text-amber-400 text-sm flex items-center" /> Sports & Athletics
+              </h3>
+              {data.sports ? (
+                <div className="space-y-3">
+                  {data.sports.teams.map((t, idx) => (
+                    <div key={idx} className="bg-slate-900/50 p-3 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
+                      <div>
+                        <h4 className="font-bold text-white">{t.name}</h4>
+                        <span className="text-[10px] text-slate-400">Role: {t.role}</span>
+                      </div>
+                      {t.match && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{t.match}</span>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No athletic records logged.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- CRUD MODALS --- */}
+
+      {/* 1. Profile Modal */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="glass rounded-3xl border border-slate-700/60 max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Customize Profile Details</h3>
-              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-white"><CloseIcon /></button>
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Customize Profile Details</h3>
+              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-white">
+                <i className="fi fi-rr-cross text-sm flex items-center" />
+              </button>
             </div>
-            
+
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-400 font-bold mb-1">Biography / Motto</label>
-                <textarea 
+                <textarea
                   value={profileForm.bio}
-                  onChange={e => setProfileForm({ ...profileForm, bio: e.target.value })}
+                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 h-20"
-                  placeholder="Tell us about yourself..."
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Career / Academic Stream</label>
-                  <input 
+                  <label className="block text-slate-400 font-bold mb-1">Stream</label>
+                  <input
                     type="text"
                     value={profileForm.stream}
-                    onChange={e => setProfileForm({ ...profileForm, stream: e.target.value })}
+                    onChange={(e) => setProfileForm({ ...profileForm, stream: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="General, Science, Commerce, Arts..."
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Leadership Roles (comma separated)</label>
-                  <input 
+                  <label className="block text-slate-400 font-bold mb-1">Career Goal</label>
+                  <input
                     type="text"
-                    value={profileForm.leadershipRoles}
-                    onChange={e => setProfileForm({ ...profileForm, leadershipRoles: e.target.value })}
+                    value={profileForm.careerGoal}
+                    onChange={(e) => setProfileForm({ ...profileForm, careerGoal: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Class Monitor, SPL..."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Strengths (comma separated)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.strengths}
-                    onChange={e => setProfileForm({ ...profileForm, strengths: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Coding, Sports, Public Speaking..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Areas of Growth (comma separated)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.areasOfGrowth}
-                    onChange={e => setProfileForm({ ...profileForm, areasOfGrowth: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Time management, Handwriting..."
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Term Goals (comma separated)</label>
-                <input 
+                <label className="block text-slate-400 font-bold mb-1">Strengths (comma separated)</label>
+                <input
                   type="text"
-                  value={profileForm.termGoals}
-                  onChange={e => setProfileForm({ ...profileForm, termGoals: e.target.value })}
+                  value={profileForm.strengths}
+                  onChange={(e) => setProfileForm({ ...profileForm, strengths: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="Score 90% in Math, Complete Science project..."
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Vocational Skills (comma separated)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.vocationalSkills}
-                    onChange={e => setProfileForm({ ...profileForm, vocationalSkills: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Basic Electronics, Sewing, Coding..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Languages (e.g. Tamil:Native, English:Fluent)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.languages}
-                    onChange={e => setProfileForm({ ...profileForm, languages: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Tamil:Native, English:Fluent..."
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Areas of Growth (comma separated)</label>
+                <input
+                  type="text"
+                  value={profileForm.areasOfGrowth}
+                  onChange={(e) => setProfileForm({ ...profileForm, areasOfGrowth: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Career Goal (HSC focus)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.careerGoal}
-                    onChange={e => setProfileForm({ ...profileForm, careerGoal: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="e.g. Engineering (Computer Science & AI), Medical..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Debate / Speech Role</label>
-                  <input 
-                    type="text"
-                    value={profileForm.communicationRole}
-                    onChange={e => setProfileForm({ ...profileForm, communicationRole: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="e.g. Speaker / Lead, Member..."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Teacher Remarks</label>
-                  <textarea 
-                    value={profileForm.teacherEndorsement}
-                    onChange={e => setProfileForm({ ...profileForm, teacherEndorsement: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 h-16"
-                    placeholder="Enter teacher feedback remarks..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Teacher Name</label>
-                  <input 
-                    type="text"
-                    value={profileForm.teacherName}
-                    onChange={e => setProfileForm({ ...profileForm, teacherName: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="e.g. Mrs. Abirami"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Parent Remarks</label>
-                  <textarea 
-                    value={profileForm.parentEndorsement}
-                    onChange={e => setProfileForm({ ...profileForm, parentEndorsement: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 h-16"
-                    placeholder="Enter parent feedback remarks..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Parent Name</label>
-                  <input 
-                    type="text"
-                    value={profileForm.parentName}
-                    onChange={e => setProfileForm({ ...profileForm, parentName: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="e.g. Mr. Balasubramanian"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Subject Interests (Middle school, comma separated)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.subjectInterests}
-                    onChange={e => setProfileForm({ ...profileForm, subjectInterests: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Environmental Science, Math..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Talent Search / Entrance Prep (comma separated)</label>
-                  <input 
-                    type="text"
-                    value={profileForm.talentPrep}
-                    onChange={e => setProfileForm({ ...profileForm, talentPrep: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="NTSE Prep Active, JEE Mock Target Active..."
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Term Goals (comma separated)</label>
+                <input
+                  type="text"
+                  value={profileForm.termGoals}
+                  onChange={(e) => setProfileForm({ ...profileForm, termGoals: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsProfileModalOpen(false)}
                   className="px-4 py-2 border border-slate-800 hover:bg-slate-900 rounded-xl text-slate-400 font-bold"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl font-bold shadow-lg"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md"
                 >
                   {isSaving ? "Saving..." : "Save Details"}
                 </button>
@@ -2201,67 +1450,54 @@ function DigitalPortfolioContent() {
         </div>
       )}
 
-      {/* 2. Add Skill Modal */}
+      {/* 2. Skill Modal */}
       {isSkillModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="glass rounded-3xl border border-slate-700/60 max-w-sm w-full p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Add Portfolio Skill</h3>
-              <button onClick={() => setIsSkillModalOpen(false)} className="text-slate-400 hover:text-white"><CloseIcon /></button>
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Skill</h3>
+              <button onClick={() => setIsSkillModalOpen(false)} className="text-slate-400 hover:text-white">
+                <i className="fi fi-rr-cross text-sm flex items-center" />
+              </button>
             </div>
-            
+
             <form onSubmit={handleAddSkill} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-400 font-bold mb-1">Skill Name</label>
-                <input 
+                <input
                   type="text"
                   value={skillForm.name}
-                  onChange={e => setSkillForm({ ...skillForm, name: e.target.value })}
+                  onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. Python Programming, Painting"
+                  placeholder="e.g. Python Programming"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-slate-400 font-bold mb-1">Proficiency Level ({skillForm.level}%)</label>
-                <input 
+                <input
                   type="range"
                   min="10"
                   max="100"
                   value={skillForm.level}
-                  onChange={e => setSkillForm({ ...skillForm, level: parseInt(e.target.value) })}
+                  onChange={(e) => setSkillForm({ ...skillForm, level: parseInt(e.target.value) })}
                   className="w-full accent-indigo-500"
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">Theme Gradient Color</label>
-                <select 
-                  value={skillForm.color}
-                  onChange={e => setSkillForm({ ...skillForm, color: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="from-indigo-500 to-purple-500">Indigo to Purple</option>
-                  <option value="from-emerald-500 to-teal-500">Emerald to Teal</option>
-                  <option value="from-amber-500 to-orange-500">Amber to Orange</option>
-                  <option value="from-rose-500 to-pink-500">Rose to Pink</option>
-                  <option value="from-sky-500 to-blue-500">Sky to Blue</option>
-                </select>
-              </div>
-
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsSkillModalOpen(false)}
                   className="px-4 py-2 border border-slate-800 hover:bg-slate-900 rounded-xl text-slate-400 font-bold"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl font-bold shadow-lg"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md"
                 >
                   {isSaving ? "Adding..." : "Add Skill"}
                 </button>
@@ -2271,104 +1507,87 @@ function DigitalPortfolioContent() {
         </div>
       )}
 
-      {/* 3. Add Project Modal */}
+      {/* 3. Project Modal */}
       {isProjectModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="glass rounded-3xl border border-slate-700/60 max-w-md w-full p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Add Student Project</h3>
-              <button onClick={() => setIsProjectModalOpen(false)} className="text-slate-400 hover:text-white"><CloseIcon /></button>
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Student Project</h3>
+              <button onClick={() => setIsProjectModalOpen(false)} className="text-slate-400 hover:text-white">
+                <i className="fi fi-rr-cross text-sm flex items-center" />
+              </button>
             </div>
-            
+
             <form onSubmit={handleAddProject} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Project Title</label>
-                  <input 
-                    type="text"
-                    value={projectForm.title}
-                    onChange={e => setProjectForm({ ...projectForm, title: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="e.g. Science Model"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Category</label>
-                  <input 
-                    type="text"
-                    value={projectForm.category}
-                    onChange={e => setProjectForm({ ...projectForm, category: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="Science Exhibition, Coding..."
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Completion Year</label>
-                  <input 
-                    type="text"
-                    value={projectForm.date}
-                    onChange={e => setProjectForm({ ...projectForm, date: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Icon Representation</label>
-                  <select 
-                    value={projectForm.image}
-                    onChange={e => setProjectForm({ ...projectForm, image: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="code">Code Editor SVG</option>
-                    <option value="cap">Academic Cap SVG</option>
-                    <option value="trophy">Trophy SVG</option>
-                    <option value="folder">Folder SVG</option>
-                    <option value="sports">Ball SVG</option>
-                    <option value="book">Open Book SVG</option>
-                    <option value="bolt">Flash SVG</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Project Tags (comma separated)</label>
-                <input 
+                <label className="block text-slate-400 font-bold mb-1">Project Title</label>
+                <input
                   type="text"
-                  value={projectForm.tags}
-                  onChange={e => setProjectForm({ ...projectForm, tags: e.target.value })}
+                  value={projectForm.title}
+                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="Physics, Arduino, C++..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">Brief Description</label>
-                <textarea 
-                  value={projectForm.description}
-                  onChange={e => setProjectForm({ ...projectForm, description: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 h-20"
-                  placeholder="Explain what you built and how it functions..."
+                  placeholder="e.g. Solar Water Filter"
                   required
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">Category</label>
+                  <input
+                    type="text"
+                    value={projectForm.category}
+                    onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">Completion Year</label>
+                  <input
+                    type="text"
+                    value={projectForm.date}
+                    onChange={(e) => setProjectForm({ ...projectForm, date: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Description</label>
+                <textarea
+                  value={projectForm.description}
+                  onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 h-20"
+                  placeholder="Describe your project work..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Tags (comma separated)</label>
+                <input
+                  type="text"
+                  value={projectForm.tags}
+                  onChange={(e) => setProjectForm({ ...projectForm, tags: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
+                  placeholder="Physics, Innovation, IoT"
+                />
+              </div>
+
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsProjectModalOpen(false)}
                   className="px-4 py-2 border border-slate-800 hover:bg-slate-900 rounded-xl text-slate-400 font-bold"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl font-bold shadow-lg"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md"
                 >
                   {isSaving ? "Adding..." : "Add Project"}
                 </button>
@@ -2378,109 +1597,74 @@ function DigitalPortfolioContent() {
         </div>
       )}
 
-      {/* 4. Add Achievement Modal */}
+      {/* 4. Achievement Modal */}
       {isAchievementModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="glass rounded-3xl border border-slate-700/60 max-w-sm w-full p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Add Custom Honor / Award</h3>
-              <button onClick={() => setIsAchievementModalOpen(false)} className="text-slate-400 hover:text-white"><CloseIcon /></button>
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Honor / Award</h3>
+              <button onClick={() => setIsAchievementModalOpen(false)} className="text-slate-400 hover:text-white">
+                <i className="fi fi-rr-cross text-sm flex items-center" />
+              </button>
             </div>
-            
+
             <form onSubmit={handleAddAchievement} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-400 font-bold mb-1">Honor Title</label>
-                <input 
+                <input
                   type="text"
                   value={achievementForm.title}
-                  onChange={e => setAchievementForm({ ...achievementForm, title: e.target.value })}
+                  onChange={(e) => setAchievementForm({ ...achievementForm, title: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. 1st Place district Chess, Olympiad Gold"
+                  placeholder="e.g. District Science Exhibition - 1st Place"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Award Year</label>
-                  <input 
-                    type="text"
-                    value={achievementForm.year}
-                    onChange={e => setAchievementForm({ ...achievementForm, year: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Award Icon</label>
-                  <select 
-                    value={achievementForm.icon}
-                    onChange={e => setAchievementForm({ ...achievementForm, icon: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="trophy">Trophy</option>
-                    <option value="cap">Graduation Cap</option>
-                    <option value="star">Star Badge</option>
-                    <option value="bolt">Flash Bolt</option>
-                    <option value="sports">Athletics Ball</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Aesthetic Color Theme</label>
-                <select 
-                  value={achievementForm.color}
-                  onChange={e => {
-                    const val = e.target.value;
-                    let bgVal = "border-slate-500/30 bg-slate-500/10";
-                    if (val === "text-amber-400") bgVal = "border-amber-500/30 bg-amber-500/10";
-                    else if (val === "text-emerald-400") bgVal = "border-emerald-500/30 bg-emerald-500/10";
-                    else if (val === "text-indigo-400") bgVal = "border-indigo-500/30 bg-indigo-500/10";
-                    else if (val === "text-rose-400") bgVal = "border-rose-500/30 bg-rose-500/10";
-                    setAchievementForm({ ...achievementForm, color: val, bg: bgVal });
-                  }}
+                <label className="block text-slate-400 font-bold mb-1">Award Year</label>
+                <input
+                  type="text"
+                  value={achievementForm.year}
+                  onChange={(e) => setAchievementForm({ ...achievementForm, year: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="text-amber-400">Gold / Yellow Theme</option>
-                  <option value="text-indigo-400">Indigo / Purple Theme</option>
-                  <option value="text-emerald-400">Teal / Green Theme</option>
-                  <option value="text-rose-400">Rose / Red Theme</option>
-                </select>
+                  required
+                />
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsAchievementModalOpen(false)}
                   className="px-4 py-2 border border-slate-800 hover:bg-slate-900 rounded-xl text-slate-400 font-bold"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white rounded-xl font-bold shadow-lg"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md"
                 >
-                  {isSaving ? "Adding..." : "Add Honor"}
+                  {isSaving ? "Adding..." : "Add Award"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </PortalLayout>
   );
 }
 
 export default function DigitalPortfolioPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+          <div className="w-10 h-10 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+        </div>
+      }
+    >
       <DigitalPortfolioContent />
     </Suspense>
   );

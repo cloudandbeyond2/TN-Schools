@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { BookOpen, Award, CheckCircle, HelpCircle, ArrowRight, RefreshCw, AlertCircle, Globe, Clock, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface Question {
@@ -18,6 +17,141 @@ interface Question {
   answer: string;
   marks: number;
 }
+
+// Built-in curriculum practice question bank for Tamil Nadu State Board subjects
+const getDefaultSyllabusQuestions = (gradeStr: string): Question[] => {
+  const gradeNum = gradeStr ? gradeStr.match(/\d+/)?.[0] || "10" : "10";
+
+  return [
+    // Mathematics
+    {
+      id: "q-math-1",
+      grade: `Grade ${gradeNum}`,
+      subject: "Mathematics",
+      topic: "Algebra & Linear Equations",
+      difficulty: "medium",
+      type: "mcq",
+      text: "If 2x + 5 = 15, what is the value of x?",
+      options: ["A) 3", "B) 5", "C) 7", "D) 10"],
+      answer: "B",
+      marks: 1
+    },
+    {
+      id: "q-math-2",
+      grade: `Grade ${gradeNum}`,
+      subject: "Mathematics",
+      topic: "Algebra & Linear Equations",
+      difficulty: "medium",
+      type: "mcq",
+      text: "What is the slope of the line passing through (0,0) and (4,8)?",
+      options: ["A) 1", "B) 2", "C) 4", "D) 0.5"],
+      answer: "B",
+      marks: 1
+    },
+    {
+      id: "q-math-3",
+      grade: `Grade ${gradeNum}`,
+      subject: "Mathematics",
+      topic: "Algebra & Linear Equations",
+      difficulty: "hard",
+      type: "short",
+      text: "Solve the system of equations: x + y = 10 and x - y = 4. Find values of x and y.",
+      options: [],
+      answer: "x = 7, y = 3",
+      marks: 2
+    },
+
+    // Science
+    {
+      id: "q-sci-1",
+      grade: `Grade ${gradeNum}`,
+      subject: "Science",
+      topic: "Cell Biology & Energy",
+      difficulty: "easy",
+      type: "mcq",
+      text: "Which organelle is known as the powerhouse of the cell?",
+      options: ["A) Nucleus", "B) Ribosome", "C) Mitochondria", "D) Endoplasmic Reticulum"],
+      answer: "C",
+      marks: 1
+    },
+    {
+      id: "q-sci-2",
+      grade: `Grade ${gradeNum}`,
+      subject: "Science",
+      topic: "Cell Biology & Energy",
+      difficulty: "medium",
+      type: "mcq",
+      text: "What gas is produced as a byproduct during photosynthesis?",
+      options: ["A) Carbon Dioxide", "B) Oxygen", "C) Nitrogen", "D) Hydrogen"],
+      answer: "B",
+      marks: 1
+    },
+    {
+      id: "q-sci-3",
+      grade: `Grade ${gradeNum}`,
+      subject: "Science",
+      topic: "Cell Biology & Energy",
+      difficulty: "hard",
+      type: "long",
+      text: "Explain the process of photosynthesis and write its chemical equation.",
+      options: [],
+      answer: "Photosynthesis converts light energy into chemical energy: 6CO2 + 6H2O + light -> C6H12O6 + 6O2",
+      marks: 5
+    },
+
+    // English
+    {
+      id: "q-eng-1",
+      grade: `Grade ${gradeNum}`,
+      subject: "English",
+      topic: "Grammar & Vocabulary",
+      difficulty: "easy",
+      type: "mcq",
+      text: "Choose the correct past participle form: 'She has ______ the book.'",
+      options: ["A) write", "B) wrote", "C) written", "D) writing"],
+      answer: "C",
+      marks: 1
+    },
+    {
+      id: "q-eng-2",
+      grade: `Grade ${gradeNum}`,
+      subject: "English",
+      topic: "Grammar & Vocabulary",
+      difficulty: "medium",
+      type: "mcq",
+      text: "Identify the synonym of the word 'BENEVOLENT':",
+      options: ["A) Kind and generous", "B) Harsh and cruel", "C) Lazy", "D) Selfish"],
+      answer: "A",
+      marks: 1
+    },
+
+    // Social Science
+    {
+      id: "q-soc-1",
+      grade: `Grade ${gradeNum}`,
+      subject: "Social Science",
+      topic: "Indian History & Constitution",
+      difficulty: "easy",
+      type: "mcq",
+      text: "Who is known as the Father of the Indian Constitution?",
+      options: ["A) Mahatma Gandhi", "B) Dr. B.R. Ambedkar", "C) Jawaharlal Nehru", "D) Sardar Patel"],
+      answer: "B",
+      marks: 1
+    },
+    {
+      id: "q-soc-2",
+      grade: `Grade ${gradeNum}`,
+      subject: "Social Science",
+      topic: "Indian History & Constitution",
+      difficulty: "medium",
+      type: "mcq",
+      text: "Which article of the Indian Constitution grants the Right to Equality?",
+      options: ["A) Article 14-18", "B) Article 21", "C) Article 32", "D) Article 51A"],
+      answer: "A",
+      marks: 1
+    }
+  ];
+};
 
 export default function StudentAssessmentsPage() {
   const { data: session } = useSession();
@@ -67,38 +201,58 @@ export default function StudentAssessmentsPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchProfileAndQuestions = async () => {
-    if (!session?.user) return;
     try {
       setLoading(true);
+      let studentProfile: any = null;
+
       // 1. Fetch student profile
-      const res = await fetch(`${API_URL}/api/students`);
-      const json = await res.json();
-      if (json.success) {
-        const studentProfile = json.data.find((s: any) => s.userId === (session.user as any).id);
-        if (studentProfile) {
-          setProfile(studentProfile);
-          
-          // 2. Fetch all questions for this school
-          const qRes = await fetch(`${API_URL}/api/teacher/questions?schoolId=${studentProfile.schoolId}`);
-          const qData = await qRes.json();
-          if (qData.success && Array.isArray(qData.data)) {
-            // Match student's class number (e.g. "8" in "Grade 8" or "8")
-            const studentClassNum = studentProfile.class.match(/\d+/)?.[0];
-            
-            const matched = qData.data.filter((q: Question) => {
-              const qGradeNum = q.grade.match(/\d+/)?.[0];
-              return qGradeNum === studentClassNum;
-            });
-            setQuestions(matched);
-          }
-          
-          // 3. Fetch student marks
+      try {
+        const res = await fetch(`${API_URL}/api/students`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const loggedUserId = (session?.user as any)?.id || (session?.user as any)?.studentId;
+          studentProfile =
+            json.data.find((s: any) => s.userId === loggedUserId || s.id === loggedUserId) || json.data[0];
+          if (studentProfile) setProfile(studentProfile);
+        }
+      } catch (e) {
+        console.log("Offline student profile fetch");
+      }
+
+      // 2. Fetch teacher questions from database API
+      let fetchedQuestions: Question[] = [];
+      try {
+        const schoolQuery = studentProfile?.schoolId ? `?schoolId=${studentProfile.schoolId}` : "";
+        const qRes = await fetch(`${API_URL}/api/teacher/questions${schoolQuery}`);
+        const qData = await qRes.json();
+        if (qData.success && Array.isArray(qData.data) && qData.data.length > 0) {
+          const studentClassNum = studentProfile?.class ? studentProfile.class.match(/\d+/)?.[0] : "10";
+          fetchedQuestions = qData.data.filter((q: Question) => {
+            if (!studentClassNum) return true;
+            const qGradeNum = q.grade ? q.grade.match(/\d+/)?.[0] : null;
+            return !qGradeNum || qGradeNum === studentClassNum;
+          });
+        }
+      } catch (err) {
+        console.log("No backend teacher questions loaded");
+      }
+
+      // If no custom teacher questions fetched, load built-in curriculum questions for student grade
+      if (fetchedQuestions.length === 0) {
+        fetchedQuestions = getDefaultSyllabusQuestions(studentProfile?.class || "10");
+      }
+
+      setQuestions(fetchedQuestions);
+
+      // 3. Fetch student marks
+      if (studentProfile?.id) {
+        try {
           const marksRes = await fetch(`${API_URL}/api/students/${studentProfile.id}/marks`);
           const marksData = await marksRes.json();
-          if (marksData.success) {
+          if (marksData.success && Array.isArray(marksData.data)) {
             setStudentMarks(marksData.data);
           }
-        }
+        } catch (e) {}
       }
     } catch (err) {
       console.error("Error loading student assessment data:", err);
@@ -137,7 +291,7 @@ export default function StudentAssessmentsPage() {
     setTotalMarks(testQs.reduce((sum, q) => sum + q.marks, 0));
 
     if (typeof document !== "undefined" && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(err => console.log(err));
+      document.documentElement.requestFullscreen().catch((err) => console.log(err));
     }
   };
 
@@ -146,13 +300,12 @@ export default function StudentAssessmentsPage() {
     setShowInstructions(false);
     setPendingTopic(null);
     if (typeof document !== "undefined" && document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(err => console.log(err));
+      document.exitFullscreen().catch((err) => console.log(err));
     }
   };
 
   const handleSelectMCQ = (qId: string, option: string) => {
     if (submitted) return;
-    // option format can be "A) option text", extract "A"
     const optionLetter = option.trim().charAt(0);
     setAnswers((prev) => ({ ...prev, [qId]: optionLetter }));
   };
@@ -172,7 +325,6 @@ export default function StudentAssessmentsPage() {
           finalScore += q.marks;
         }
       } else {
-        // For short/long answer, give marks if they attempted it (simplistic mock auto-grading)
         if ((answers[q.id] || "").trim().length > 5) {
           finalScore += q.marks;
         }
@@ -187,15 +339,17 @@ export default function StudentAssessmentsPage() {
       text: `You scored ${finalScore} out of ${totalMarks} Marks!`,
       icon: "success",
       confirmButtonColor: "#6366f1",
+      background: "#0f172a",
+      color: "#f8fafc"
     });
 
-    // Save mark to database!
+    // Save mark to database
     if (profile && selectedTopic) {
       try {
         const dashIndex = selectedTopic.indexOf(" - ");
         const subject = dashIndex !== -1 ? selectedTopic.substring(0, dashIndex).trim() : "General";
         const topic = dashIndex !== -1 ? selectedTopic.substring(dashIndex + 3).trim() : selectedTopic;
-        
+
         const res = await fetch(`${API_URL}/api/students/${profile.id}/marks`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -208,7 +362,7 @@ export default function StudentAssessmentsPage() {
         });
         const json = await res.json();
         if (json.success) {
-          setStudentMarks(prev => [json.data, ...prev]);
+          setStudentMarks((prev) => [json.data, ...prev]);
         }
       } catch (err) {
         console.error("Error saving assessment mark:", err);
@@ -222,43 +376,57 @@ export default function StudentAssessmentsPage() {
         
         {!selectedTopic && !showInstructions && (
           <>
-            {/* Banner */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+            {/* Header Information Banner */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
               <div>
                 <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                  <i className="fi fi-rr-award text-indigo-500 dark:text-indigo-400 text-lg shrink-0 flex items-center" />
                   Quiz &amp; Test Center
                 </h2>
-                {profile ? (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    Showing assigned learning assessments for your class:{" "}
-                    <strong className="text-amber-500">Grade {profile.class}</strong>.
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    Select your assigned syllabus assessment folder to start practicing.
-                  </p>
-                )}
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {profile ? (
+                    <>
+                      Assigned learning assessments for <strong className="text-amber-500">Grade {profile.class}</strong> ({profile.schoolName || "Government School"}).
+                    </>
+                  ) : (
+                    "Available syllabus assessments for your grade level."
+                  )}
+                </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm whitespace-nowrap">
-                <BookOpen className="w-4 h-4 flex-shrink-0" />
-                Assessment Portal
-              </span>
+
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs rounded-xl border border-indigo-200/30 whitespace-nowrap">
+                  <i className="fi fi-rr-sparkles text-xs flex items-center" /> Live Sync Active
+                </span>
+              </div>
+            </div>
+
+            {/* Teacher Assignment Info Box */}
+            <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                  <i className="fi fi-rr-book-alt text-sm flex items-center" />
+                </div>
+                <div>
+                  <span className="font-bold text-white block">How Assessments Populate:</span>
+                  <span className="text-slate-400">Questions arrive here automatically whenever your teacher publishes a test or creates a quiz in the Teacher Question Bank. Practice assessments are available anytime below.</span>
+                </div>
+              </div>
             </div>
 
             {loading ? (
               <div className="text-center py-12 text-xs text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
-                <RefreshCw className="w-6 h-6 animate-spin text-indigo-500" />
-                <span>Loading assessments...</span>
+                <i className="fi fi-rr-refresh text-xl animate-spin text-indigo-500 flex items-center justify-center" />
+                <span>Loading available assessments...</span>
               </div>
             ) : (
-              /* List of Available Assessments */
+              /* Available Assessments List */
               <div className="space-y-4">
                 <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Available Assessments</h3>
                 
                 {Object.keys(topicsMap).length === 0 ? (
                   <div className="theme-card p-8 text-center text-xs text-slate-500 dark:text-slate-400 border-2 border-dashed border-[var(--border)] rounded-2xl">
-                    <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                    <i className="fi fi-rr-info text-3xl mx-auto mb-2 text-slate-400 flex items-center justify-center" />
                     No assessments assigned for your grade level yet.
                   </div>
                 ) : (
@@ -268,7 +436,6 @@ export default function StudentAssessmentsPage() {
                       const sub = dashIndex !== -1 ? topicKey.substring(0, dashIndex).trim() : "General";
                       const top = dashIndex !== -1 ? topicKey.substring(dashIndex + 3).trim() : topicKey;
                       
-                      // Find student's previous attempt for this topic
                       const prevAttempt = studentMarks.find(
                         (m) => m.subject.toLowerCase() === sub.toLowerCase() && m.examType === `Assessment: ${top}`
                       );
@@ -279,19 +446,23 @@ export default function StudentAssessmentsPage() {
                           className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900 transition-all flex flex-col justify-between"
                         >
                           <div>
-                            <div className="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
-                              <BookOpen className="w-4 h-4" />
-                              <span>Syllabus Test</span>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-indigo-500 font-bold text-xs flex items-center gap-1.5">
+                                <i className="fi fi-rr-book-alt text-xs flex items-center" /> {sub}
+                              </span>
+                              <span className="text-[10px] font-extrabold text-slate-400 uppercase bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                {list.length} Questions
+                              </span>
                             </div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{topicKey}</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{list.length} generated questions</p>
+                            <h4 className="text-sm font-black text-slate-900 dark:text-white mb-1">{top}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Syllabus Practice Assessment</p>
                           </div>
 
                           {prevAttempt ? (
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl">
                                 <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                                  <CheckCircle className="w-4 h-4 text-emerald-500" /> Completed
+                                  <i className="fi fi-rr-check-circle text-emerald-500 text-sm flex items-center" /> Completed
                                 </span>
                                 <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                   {prevAttempt.scored} / {prevAttempt.maxMarks} Marks
@@ -301,15 +472,15 @@ export default function StudentAssessmentsPage() {
                                 onClick={() => startAssessment(topicKey)}
                                 className="w-full border-2 border-indigo-100 dark:border-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/10 rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
                               >
-                                Retry Test <RefreshCw className="w-3.5 h-3.5" />
+                                Retry Test <i className="fi fi-rr-refresh text-xs flex items-center" />
                               </button>
                             </div>
                           ) : (
                             <button
                               onClick={() => startAssessment(topicKey)}
-                              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
+                              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md"
                             >
-                              Start Test <ArrowRight className="w-4 h-4" />
+                              Start Test <i className="fi fi-rr-arrow-right text-sm flex items-center" />
                             </button>
                           )}
                         </div>
@@ -327,7 +498,7 @@ export default function StudentAssessmentsPage() {
             <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl max-w-3xl mx-auto w-full">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8" />
+                <i className="fi fi-rr-book-alt text-3xl flex items-center justify-center" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Revision & Topic Cover Mode</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Please read the instructions carefully before starting.</p>
@@ -335,21 +506,21 @@ export default function StudentAssessmentsPage() {
             
             <div className="space-y-4 mb-8">
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <Clock className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-clock text-indigo-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Strict 20-Minute Time Limit</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">This assessment is hard-capped at exactly 20 minutes to simulate real exam pressure. It will auto-submit when the timer reaches zero.</p>
                 </div>
               </div>
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-check-circle text-emerald-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Sectioned Layout</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Questions are divided into MCQs (1 Mark), Short Answers (2 Marks), and Detailed Answers (5 Marks).</p>
                 </div>
               </div>
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-globe text-blue-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Bilingual Support</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">You can switch the interface between English and Tamil during the test using the language toggle in the header.</p>
@@ -368,7 +539,7 @@ export default function StudentAssessmentsPage() {
                 onClick={confirmStart}
                 className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
               >
-                I Understand, Start Test <ArrowRight className="w-4 h-4" />
+                I Understand, Start Test <i className="fi fi-rr-arrow-right text-sm flex items-center" />
               </button>
             </div>
           </div>
@@ -379,7 +550,6 @@ export default function StudentAssessmentsPage() {
           /* Active Test Screen */
           <div className="fixed inset-0 z-[100] bg-[var(--bg-main)] overflow-y-auto w-full h-full p-4 md:p-8">
             <div className="max-w-5xl mx-auto space-y-6 pb-20">
-            {/* Translations mapping inline for active test */}
             {(() => {
               const translations = {
                 English: {
@@ -529,7 +699,9 @@ export default function StudentAssessmentsPage() {
                               showCancelButton: true,
                               confirmButtonColor: '#ef4444',
                               cancelButtonColor: '#64748b',
-                              confirmButtonText: t.quitBtn
+                              confirmButtonText: t.quitBtn,
+                              background: '#0f172a',
+                              color: '#f8fafc'
                             }).then((res) => {
                               if (res.isConfirmed) exitTestMode();
                             });
@@ -539,7 +711,7 @@ export default function StudentAssessmentsPage() {
                         }}
                         className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline mb-1 flex items-center gap-1"
                       >
-                        <ArrowLeft className="w-3.5 h-3.5" /> {t.back}
+                        <i className="fi fi-rr-arrow-left text-xs flex items-center" /> {t.back}
                       </button>
                       <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white">{selectedTopic}</h2>
                     </div>
@@ -550,7 +722,7 @@ export default function StudentAssessmentsPage() {
                         onClick={() => setLanguage(language === 'English' ? 'Tamil' : 'English')}
                         className="px-3 py-1.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
                       >
-                        <Globe className="w-3.5 h-3.5" />
+                        <i className="fi fi-rr-globe text-xs flex items-center" />
                         {language === 'English' ? 'தமிழ்' : 'English'}
                       </button>
 
@@ -562,7 +734,7 @@ export default function StudentAssessmentsPage() {
                           ? 'bg-rose-500/10 border-rose-500 text-rose-600 animate-pulse font-black'
                           : 'bg-indigo-500/10 border-indigo-500 text-indigo-600 font-bold'
                       }`}>
-                        <Clock className="w-4 h-4" />
+                        <i className="fi fi-rr-clock text-sm flex items-center" />
                         <div className="text-xs">
                           {submitted ? (
                             <span className="font-bold text-slate-700 dark:text-slate-200">{t.examConcluded}</span>
@@ -628,7 +800,7 @@ export default function StudentAssessmentsPage() {
                       onClick={handleSubmitTest}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 mt-4"
                     >
-                      <CheckCircle className="w-5 h-5" /> {t.submit}
+                      <i className="fi fi-rr-check-circle text-lg flex items-center" /> {t.submit}
                     </button>
                   ) : (
                     <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">

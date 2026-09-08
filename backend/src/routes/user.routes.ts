@@ -3,7 +3,7 @@ import { prisma } from '../config/prisma';
 import { Role } from '@prisma/client';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { signAuthToken } from '../utils/jwt';
-import { requireMinRole } from '../middleware/auth.middleware';
+import { requireMinRole, authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -24,6 +24,18 @@ const SAFE_USER_SELECT = {
   createdAt: true,
   updatedAt: true,
 } as const;
+
+// GET /api/users/me - Verify current session & return user profile
+router.get('/me', authenticate, async (req: Request, res: Response) => {
+  try {
+    res.json({
+      success: true,
+      data: req.user,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
 
 // GET /api/users/count - Get total user count
 router.get('/count', requireMinRole('HEADMASTER'), async (req: Request, res: Response) => {

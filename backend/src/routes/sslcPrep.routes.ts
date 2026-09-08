@@ -18,8 +18,8 @@ const OVERSIGHT_ROLES: AppRole[] = ['HEADMASTER', 'BEO', 'DEO', 'COMMISSIONER', 
 
 const SSLC_SUBJECTS = ['Tamil', 'English', 'Mathematics', 'Science', 'Social Science'];
 
-const isStaffRole = (req: Request) => {
-  const user = getAuthUser(req);
+const isStaffRole = async (req: Request) => {
+  const user = await getAuthUser(req);
   return !!user && STAFF_ROLES.includes(user.role);
 };
 
@@ -101,7 +101,7 @@ router.get('/plans', async (req: Request, res: Response) => {
     if (schoolId) {
       filter.$or = [{ schoolId }, { schoolId: null }, { schoolId: { $exists: false } }];
     }
-    if (!(includeDrafts === 'true' && isStaffRole(req))) filter.published = true;
+    if (!(includeDrafts === 'true' && (await isStaffRole(req)))) filter.published = true;
     
     let plans = await SSLCPrepPlan.find(filter).sort({ subject: 1, createdAt: -1 });
 
@@ -213,7 +213,7 @@ router.get('/mock-tests/:id', async (req: Request, res: Response) => {
   try {
     const test = await SSLCMockTest.findById(req.params.id);
     if (!test) return res.status(404).json({ success: false, error: 'Test not found' });
-    res.json({ success: true, data: isStaffRole(req) ? test : sanitizeTestForStudent(test) });
+    res.json({ success: true, data: (await isStaffRole(req)) ? test : sanitizeTestForStudent(test) });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

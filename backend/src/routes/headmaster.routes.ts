@@ -563,9 +563,16 @@ router.get('/health/:rollNumber', async (req: Request, res: Response) => {
   try {
     const { rollNumber } = req.params;
     const student = await prisma.student.findFirst({
-      where: { rollNumber: { equals: rollNumber, mode: 'insensitive' } }
+      where: {
+        OR: [
+          { rollNumber: { equals: rollNumber, mode: 'insensitive' } },
+          { emisNumber: { equals: rollNumber, mode: 'insensitive' } },
+          { id: rollNumber },
+          { user: { name: { contains: rollNumber, mode: 'insensitive' } } }
+        ]
+      }
     });
-    if (!student) return res.status(404).json({ success: false, error: 'Student not found in core system.' });
+    if (!student) return res.json({ success: true, data: null });
 
     const health = await prisma.healthReport.findUnique({
       where: { studentId: student.id }

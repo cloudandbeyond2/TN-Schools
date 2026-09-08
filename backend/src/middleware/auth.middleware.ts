@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret, AuthTokenPayload } from '../utils/jwt';
+import { prisma } from '../config/prisma';
 
 // JWT-based auth guard middleware.
 // Usage:
@@ -9,7 +10,7 @@ import { getJwtSecret, AuthTokenPayload } from '../utils/jwt';
 //
 // Tokens are issued by POST /api/users/auth (see utils/jwt.ts) and must be
 // sent as "Authorization: Bearer <token>". Requests without a valid token
-// are rejected (fail closed). The legacy X-User-Role header is ignored.
+// or for deleted/deactivated accounts are rejected (fail closed).
 
 export type AppRole =
   | 'STUDENT' | 'PARENT' | 'PET' | 'TEACHER' | 'HEADMASTER'
@@ -52,11 +53,77 @@ export function hasPermission(userRole: AppRole, requiredRole: AppRole): boolean
 
 // Non-failing variant for public routes that merely vary behavior by role
 // (e.g. staff can see drafts). Returns null when no valid token is present.
-export function getAuthUser(req: Request): AuthUser | null {
-  return verifyRequest(req);
+export async function getAuthUser(req: Request): Promise<AuthUser | null> {
+  return await verifyRequestAsync(req);
 }
 
-function verifyRequest(req: Request): AuthUser | null {
+export async function verifyRequestAsync(req: Request): Promise<AuthUser | null> {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) return null;
+  try {
+    const payload = jwt.verify(header.slice(7), getJwtSecret()) as AuthTokenPayload;
+    if (!payload.sub || !payload.role) return null;
+
+    // Verify user existence and active status in PostgreSQL User table
+    const dbUser = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, isActive: true },
+    });
+
+    if (!dbUser) {
+      // Check headmasterStaff table if not found in User table
+      const staff = await prisma.headmasterStaff.findUnique({
+        where: { id: payload.sub },
+        select: { id: true },
+      });
+      if (staff) {
+        return {
+          id: payload.sub,
+          role: payload.role,
+          schoolId: payload.schoolId ?? null,
+          studentId: payload.studentId ?? null,
+          name: payload.name,
+        };
+      }
+
+      // Check headmasterParent table if not found in User table
+      const parent = await prisma.headmasterParent.findUnique({
+        where: { id: payload.sub },
+        select: { id: true },
+      });
+      if (parent) {
+        return {
+          id: payload.sub,
+          role: payload.role,
+          schoolId: payload.schoolId ?? null,
+          studentId: payload.studentId ?? null,
+          name: payload.name,
+        };
+      }
+
+      // User account was deleted
+      return null;
+    }
+
+    if (dbUser.isActive === false) {
+      // User account was deactivated
+      return null;
+    }
+
+    return {
+      id: payload.sub,
+      role: payload.role,
+      schoolId: payload.schoolId ?? null,
+      studentId: payload.studentId ?? null,
+      name: payload.name,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Synchronous fallback helper for legacy callers
+export function verifyRequest(req: Request): AuthUser | null {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
   try {
@@ -74,21 +141,21 @@ function verifyRequest(req: Request): AuthUser | null {
   }
 }
 
-// Requires a valid token from any logged-in user.
-export function authenticate(req: Request, res: Response, next: NextFunction) {
-  const user = verifyRequest(req);
+// Requires a valid token from any active logged-in user.
+export async function authenticate(req: Request, res: Response, next: NextFunction) {
+  const user = await verifyRequestAsync(req);
   if (!user) {
-    return res.status(401).json({ success: false, error: 'Authentication required.' });
+    return res.status(401).json({ success: false, error: 'Authentication required. Account may have been deleted or deactivated.' });
   }
   req.user = user;
   return next();
 }
 
 export function requireRole(allowedRoles: AppRole[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = verifyRequest(req);
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const user = await verifyRequestAsync(req);
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Authentication required.' });
+      return res.status(401).json({ success: false, error: 'Authentication required. Account may have been deleted or deactivated.' });
     }
     req.user = user;
     if (user.role === 'SUPERADMIN' || allowedRoles.includes(user.role)) return next();
@@ -100,10 +167,10 @@ export function requireRole(allowedRoles: AppRole[]) {
 }
 
 export function requireMinRole(minRole: AppRole) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = verifyRequest(req);
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const user = await verifyRequestAsync(req);
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Authentication required.' });
+      return res.status(401).json({ success: false, error: 'Authentication required. Account may have been deleted or deactivated.' });
     }
     req.user = user;
     if (hasPermission(user.role, minRole)) return next();
