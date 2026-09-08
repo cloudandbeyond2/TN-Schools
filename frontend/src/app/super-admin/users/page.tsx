@@ -84,6 +84,32 @@ export default function UserManagement() {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [form, setForm] = useState({ name:"", email:"", mobile:"", emisId:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"", assignedRegion:"" });
 
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isRoleVisible = (r: Role) => {
+    if (r === "BEO" && !portalVisibility.beo) return false;
+    if (r === "DEO" && !portalVisibility.deo) return false;
+    if (r === "COMMISSIONER" && !portalVisibility.commissioner) return false;
+    if (r === "MINISTER" && !portalVisibility.minister) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
   const fetchUsers = async () => {
     try {
       const res = await apiFetch("/api/users");
@@ -142,13 +168,24 @@ export default function UserManagement() {
   };
 
   useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+
     const loadAll = async () => {
       setLoading(true);
       await Promise.all([fetchUsers(), fetchCounts(), fetchSchools()]);
       setLoading(false);
     };
     loadAll();
+
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
   }, []);
+
+  const visibleRoles = ROLES.filter(isRoleVisible);
 
   const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -425,7 +462,7 @@ export default function UserManagement() {
 
       {/* Role Overview Cards */}
       <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 mb-6">
-        {ROLES.map((r) => (
+        {visibleRoles.map((r) => (
           <button key={r} onClick={() => setFilterRole(filterRole === r ? "ALL" : r)}
             className={`rounded-xl p-2 text-center border transition-all ${
               filterRole === r ? roleColors[r] + " ring-1 ring-offset-0" : "bg-slate-900/60 border-slate-800 hover:border-slate-600"
@@ -451,7 +488,7 @@ export default function UserManagement() {
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value as any)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
           <option value="ALL">All Roles</option>
-          {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {visibleRoles.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
@@ -712,7 +749,7 @@ export default function UserManagement() {
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Role</label>
                 <select value={form.role} onChange={(e) => handleRoleChange(e.target.value as Role)}
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
-                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {visibleRoles.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
 

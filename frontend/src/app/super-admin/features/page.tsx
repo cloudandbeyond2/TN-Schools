@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { apiFetch } from "@/lib/api";
 import { getDefaultFeatureCatalog, PORTAL_DISPLAY } from "@/lib/moduleCatalog";
 
 interface FeatureItem {
@@ -100,9 +101,47 @@ export default function FeatureToggles() {
     }
   };
 
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isPortalVisible = (p: string) => {
+    const key = p.toLowerCase();
+    if (key === "beo" && !portalVisibility.beo) return false;
+    if (key === "deo" && !portalVisibility.deo) return false;
+    if (key === "commissioner" && !portalVisibility.commissioner) return false;
+    if (key === "minister" && !portalVisibility.minister) return false;
+    if (key === "pet" && !portalVisibility.pet) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
+  }, []);
+
   const portalLabel = (f: FeatureItem) =>
     Object.entries(f.portals || {})
-      .filter(([, on]) => on)
+      .filter(([p, on]) => on && isPortalVisible(p))
       .map(([p]) => PORTAL_DISPLAY[p] || p)
       .join(", ") || "All";
 

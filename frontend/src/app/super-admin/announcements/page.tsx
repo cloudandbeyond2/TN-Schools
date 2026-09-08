@@ -44,6 +44,34 @@ export default function Announcements() {
   const [form, setForm] = useState({ title:"", body:"", priority:"info" as Priority, target:"All" as TargetPortal, expiresAt:"" });
   const [preview, setPreview] = useState<Announcement | null>(null);
 
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isPortalVisible = (p: TargetPortal) => {
+    const key = p.toLowerCase();
+    if (key === "beo" && !portalVisibility.beo) return false;
+    if (key === "deo" && !portalVisibility.deo) return false;
+    if (key === "commissioner" && !portalVisibility.commissioner) return false;
+    if (key === "minister" && !portalVisibility.minister) return false;
+    if (key === "pet" && !portalVisibility.pet) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
   const fetchAnnouncements = async () => {
     try {
       const res = await apiFetch("/api/announcements");
@@ -57,8 +85,17 @@ export default function Announcements() {
   };
 
   useEffect(() => {
+    fetchEffective();
     fetchAnnouncements();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
   }, []);
+
+  const visiblePortals = PORTALS.filter(isPortalVisible);
 
   const filtered = announcements.filter((a) => {
     const matchP = filterPriority === "All" || a.priority === filterPriority;
@@ -171,7 +208,7 @@ export default function Announcements() {
         </div>
         <select value={filterTarget} onChange={(e) => setFilterTarget(e.target.value as any)}
           className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-1 focus:outline-none focus:border-amber-500">
-          {PORTALS.map((p) => <option key={p}>{p}</option>)}
+          {visiblePortals.map((p) => <option key={p}>{p}</option>)}
         </select>
       </div>
 
@@ -250,7 +287,7 @@ export default function Announcements() {
                   <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Target Portal</label>
                   <select value={form.target} onChange={(e) => setForm((f) => ({ ...f, target: e.target.value as TargetPortal }))}
                     className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2 py-2 focus:outline-none focus:border-amber-500">
-                    {PORTALS.map((p) => <option key={p}>{p}</option>)}
+                    {visiblePortals.map((p) => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
