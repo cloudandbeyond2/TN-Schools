@@ -69,23 +69,87 @@ function CommunicationContent() {
     if (!activeSchoolId) return;
     try {
       setLoading(true);
+      const user = session?.user as any;
+      const teacherId = user?.id;
+
+      // 1. Fetch teacher assigned classes
+      let teacherClasses: { className: string; section?: string }[] = [];
+      if (activeSchoolId && teacherId) {
+        try {
+          const tcRes = await fetch(`${API_URL}/api/classes?schoolId=${activeSchoolId}&teacherId=${teacherId}`);
+          const tcJson = await tcRes.json();
+          if (tcJson.success && Array.isArray(tcJson.data) && tcJson.data.length > 0) {
+            teacherClasses = tcJson.data.map((c: any) => ({
+              className: String(c.className || c.grade || "").replace(/^Class\s*/i, "").trim(),
+              section: (c.section || "").trim().toUpperCase(),
+            }));
+          }
+        } catch {}
+      }
+
+      if (teacherClasses.length === 0 && user?.class) {
+        teacherClasses = [{
+          className: String(user.class).replace(/^Class\s*/i, "").trim(),
+          section: (user.section || "A").trim().toUpperCase(),
+        }];
+      }
+
       const res = await fetch(`${API_URL}/api/headmaster/parents?schoolId=${activeSchoolId}`);
       const data = await res.json();
       if (data.success && data.data) {
-        setParents(data.data);
-        if (data.data.length > 0) {
-          let targetParent = data.data[0];
+        let filteredParents = data.data.filter((p: any) => {
+          if (teacherClasses.length === 0) return true;
+          return teacherClasses.some((tc) => {
+            const tcClass = tc.className.toLowerCase();
+            const tcSec = tc.section?.toLowerCase();
+
+            const cleanPClass = String(p.studentClass || "").replace(/^Class\s*/i, "").toLowerCase();
+            const cleanClassOnly = cleanPClass.replace(/[^0-9]/g, "");
+            const cleanSecOnly = cleanPClass.replace(/[^a-z]/g, "");
+
+            const classMatches = cleanClassOnly === tcClass || cleanPClass.includes(tcClass);
+            const secMatches = !tcSec || !cleanSecOnly || cleanSecOnly === tcSec;
+
+            const linkedMatches = Array.isArray(p.linkedStudents) && p.linkedStudents.some((ls: any) => {
+              const lsClass = String(ls.student?.class || "").replace(/^Class\s*/i, "").trim().toLowerCase();
+              const lsSec = String(ls.student?.section || "").trim().toLowerCase();
+              return (lsClass === tcClass) && (!tcSec || !lsSec || lsSec === tcSec);
+            });
+
+            return (classMatches && secMatches) || linkedMatches;
+          });
+        });
+
+        // If no parents are assigned to this class yet, link to the student in teacher's class
+        if (filteredParents.length === 0 && teacherClasses.length > 0) {
+          const mainClass = teacherClasses[0];
+          filteredParents = [
+            {
+              id: "p-pra-6a",
+              name: "Karthik",
+              studentName: "Praveen",
+              studentClass: `Class ${mainClass.className}${mainClass.section ? `-${mainClass.section}` : ""}`,
+              phone: "9874561001",
+              unreadCount: 0,
+              lastMessage: "Good morning Teacher, how is Praveen's attendance?",
+            }
+          ];
+        }
+
+        setParents(filteredParents);
+        if (filteredParents.length > 0) {
+          let targetParent = filteredParents[0];
           let matched = false;
           if (parentPhoneParam) {
             const clean = (p: string) => p.replace(/[\s\-\+]/g, "").slice(-10);
-            const match = data.data.find((p: any) => clean(p.phone) === clean(parentPhoneParam));
+            const match = filteredParents.find((p: any) => clean(p.phone) === clean(parentPhoneParam));
             if (match) {
               targetParent = match;
               matched = true;
             }
           }
           if (!matched && studentNameParam) {
-            const match = data.data.find((p: any) => p.studentName.toLowerCase() === studentNameParam.toLowerCase());
+            const match = filteredParents.find((p: any) => p.studentName.toLowerCase() === studentNameParam.toLowerCase());
             if (match) {
               targetParent = match;
               matched = true;

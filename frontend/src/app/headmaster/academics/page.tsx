@@ -18,9 +18,20 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
+import { getSession } from "next-auth/react";
 import Swal from "sweetalert2";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/superadmin/academics`;
+
+const authFetch = async (url: string, init: RequestInit = {}) => {
+  const session = await getSession();
+  const token = (session?.user as any)?.backendToken as string | undefined;
+  const headers = new Headers(init?.headers);
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return fetch(url, { ...init, headers });
+};
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph helper
@@ -47,23 +58,6 @@ const SCHOOL_BOARDS = [
   { id: "Matriculation", label: "Matriculation Board", shortLabel: "Matriculation", icon: "diploma", badge: "Matric" },
   { id: "All", label: "All School Boards", shortLabel: "All Boards", icon: "apps", badge: "All" },
 ];
-
-const STATE_BOARD_SUBJECTS = [
-  "Tamil", "English", "Mathematics", "Science", "Social Science", "Physics", "Chemistry", "Biology",
-  "Computer Science", "Botany", "Zoology", "Commerce", "Accountancy", "Economics", "History",
-  "Geography", "Physical Education", "Environmental Science", "Moral Science", "General Knowledge"
-];
-
-const CBSE_SUBJECTS = [
-  "English Language & Literature", "English Core", "Hindi Course A", "Hindi Course B", "Hindi Core",
-  "Mathematics (Standard)", "Mathematics (Basic)", "Applied Mathematics", "Science", "Social Science",
-  "Physics", "Chemistry", "Biology", "Computer Science (083)", "Informatics Practices (065)",
-  "Information Technology (402)", "Artificial Intelligence (417)", "Accountancy (055)",
-  "Business Studies (054)", "Economics (030)", "History", "Political Science", "Geography",
-  "Psychology", "Sociology", "Physical Education", "Sanskrit", "General Knowledge"
-];
-
-const ALL_SUBJECTS = Array.from(new Set([...STATE_BOARD_SUBJECTS, ...CBSE_SUBJECTS]));
 
 const getSubjectIcon = (name: string) => {
   if (!name) return "book-alt";
@@ -599,45 +593,7 @@ export default function HeadmasterAcademicsPage() {
       });
     }
 
-    if (selectedBoard === "CBSE") {
-      const defaultCbseCore = parseInt(cleanSyllabusClass, 10) >= 11
-        ? [
-          "English Core",
-          "Physics", "Chemistry", "Biology", "Mathematics",
-          "Computer Science (083)", "Informatics Practices (065)",
-          "Accountancy (055)", "Business Studies (054)", "Economics (030)",
-          "History", "Political Science", "Geography", "Physical Education"
-        ]
-        : [
-          "English Language & Literature", "Hindi Course A",
-          "Mathematics", "Science", "Social Science", "Information Technology"
-        ];
-      return defaultCbseCore.map(name => ({
-        id: name,
-        name: name,
-        icon: getSubjectIcon(name),
-        color: "#6366f1"
-      }));
-    }
-
-    const defaultCore = parseInt(cleanSyllabusClass, 10) >= 11
-      ? [
-        "Tamil", "English",
-        "Physics", "Chemistry", "Biology", "Mathematics",
-        "Computer Science",
-        "Commerce", "Accountancy", "Economics", "Computer Applications",
-        "Business Mathematics",
-        "History", "Geography", "Political Science",
-        "Basic Electrical", "Agriculture Science", "Office Management"
-      ]
-      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
-
-    return defaultCore.map(name => ({
-      id: name,
-      name: name,
-      icon: getSubjectIcon(name),
-      color: "#6366f1"
-    }));
+    return [];
   }, [subjects, syllabusClass, selectedBoard]);
 
   useEffect(() => {
@@ -701,9 +657,8 @@ export default function HeadmasterAcademicsPage() {
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
-    const defaults = selectedBoard === "CBSE" ? CBSE_SUBJECTS : selectedBoard === "State Board" ? STATE_BOARD_SUBJECTS : ALL_SUBJECTS;
-    return Array.from(new Set([...dbNames, ...defaults, ...selectedSubjectNames])).filter(Boolean).sort();
-  }, [subjects, selectedSubjectNames, selectedBoard]);
+    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames]);
 
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
@@ -728,7 +683,8 @@ export default function HeadmasterAcademicsPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/classes${boardQuery}`);
       if (res.ok) {
         const data = await res.json();
         // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
@@ -746,7 +702,8 @@ export default function HeadmasterAcademicsPage() {
 
   const fetchSections = async () => {
     try {
-      const res = await fetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `?board=${encodeURIComponent(selectedBoard)}` : "";
+      const res = await authFetch(`${API_BASE}/sections${boardQuery}`);
       if (res.ok) setSections(await res.json());
     } catch (err) {
       console.error(err);
@@ -758,7 +715,7 @@ export default function HeadmasterAcademicsPage() {
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
       const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
-      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}${boardQuery}`);
+      const res = await authFetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -772,7 +729,7 @@ export default function HeadmasterAcademicsPage() {
     try {
       const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
       const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
-      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}${boardQuery}`);
+      const res = await authFetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}${boardQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -792,11 +749,23 @@ export default function HeadmasterAcademicsPage() {
       const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
       const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
       const method = isEdit ? "PUT" : "POST";
+      const boardToSave = selectedBoard === "All" ? "State Board" : selectedBoard;
 
-      const res = await fetch(endpoint, {
+      const payload: any = {
+        name: structureInput.trim(),
+        board: boardToSave,
+      };
+
+      if (structureModal.type === "subject") {
+        payload.color = "#6366f1";
+        payload.icon = getSubjectIcon(structureInput.trim());
+        payload.status = "Active";
+      }
+
+      const res = await authFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: structureInput.trim() }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -806,7 +775,7 @@ export default function HeadmasterAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Updated!" : "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" (${boardToSave}) ${isEdit ? "updated" : "added"} successfully!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -839,7 +808,7 @@ export default function HeadmasterAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
         fetchClasses();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -858,7 +827,7 @@ export default function HeadmasterAcademicsPage() {
     });
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
+        await authFetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
         fetchSections();
         Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
       } catch (err) {
@@ -882,7 +851,7 @@ export default function HeadmasterAcademicsPage() {
       };
 
       try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -916,7 +885,7 @@ export default function HeadmasterAcademicsPage() {
             color: matchingSub?.color || subjectForm.color || "#6366f1",
             icon: matchingSub?.icon || subjectForm.icon || "📚"
           };
-          const res = await fetch(`${API_BASE}/subjects`, {
+          const res = await authFetch(`${API_BASE}/subjects`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -947,7 +916,8 @@ export default function HeadmasterAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
+      const boardQuery = selectedBoard && selectedBoard !== "All" ? `&board=${encodeURIComponent(selectedBoard)}` : "";
+      await authFetch(`${API_BASE}/subjects/${id}?deleteAllNamed=true${boardQuery}`, { method: "DELETE" });
       fetchSubjects();
       fetchResources();
     } catch (err) {
@@ -1010,7 +980,7 @@ export default function HeadmasterAcademicsPage() {
         title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource",
         board: resourceForm.board || (selectedBoard === "All" ? "State Board" : selectedBoard)
       };
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -1039,7 +1009,7 @@ export default function HeadmasterAcademicsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await fetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
+      await authFetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
       fetchResources();
     } catch (err) {
       console.error(err);
@@ -1141,9 +1111,10 @@ export default function HeadmasterAcademicsPage() {
   // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return matchClass && matchSection;
+      return hasClass && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
@@ -1165,7 +1136,10 @@ export default function HeadmasterAcademicsPage() {
   }, [subjects, resources, filterClass, filterSection]);
 
   const railSubjects = useMemo(() => {
-    const classFiltered = subjects.filter(s => filterClass ? s.class === String(filterClass) : true);
+    const classFiltered = subjects.filter(s => {
+      const hasClass = Boolean(s.class) && s.class !== "ALL";
+      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+    });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
       const found = subjects.find(s => s.name === name);
@@ -2212,14 +2186,14 @@ export default function HeadmasterAcademicsPage() {
                             key={sub.name}
                             onClick={() => setSelectedSyllabusSubject(sub.name)}
                             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
-                                ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                                ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 border-l-[5px] !border-l-amber-500 dark:!border-l-amber-400 shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-[5px] border-l-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:border-l-amber-300 shadow-sm"
                               }`}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-xl shrink-0">{sub.icon}</span>
                               <div>
-                                <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                                <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                                   {sub.name}
                                 </h4>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
@@ -3213,7 +3187,9 @@ export default function HeadmasterAcademicsPage() {
                             ? "Add New Section"
                             : "Add New Subject"}
                     </h3>
-                    <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
+                    <p className="text-xs text-slate-400">
+                      {structureModal.type === "class" ? "Enter class name to register" : structureModal.type === "section" ? "Enter section name to register" : "Enter subject name to register"}
+                    </p>
                   </div>
                 </div>
                 <button

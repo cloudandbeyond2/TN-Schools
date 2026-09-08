@@ -108,7 +108,7 @@ export default function TeacherDigitalPortfolioPage() {
   const [selectedSection, setSelectedSection] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [onlyMyClasses, setOnlyMyClasses] = useState<boolean>(!isHeadmaster);
-  const [teacherAssignedClasses, setTeacherAssignedClasses] = useState<string[]>([]);
+  const [teacherAssignedClasses, setTeacherAssignedClasses] = useState<{ className: string; section?: string }[]>([]);
 
   const [loadingStudents, setLoadingStudents] = useState<boolean>(true);
   const [loadingPortfolio, setLoadingPortfolio] = useState<boolean>(false);
@@ -180,27 +180,29 @@ export default function TeacherDigitalPortfolioPage() {
           const res = await fetch(`${API_BASE}/api/classes?schoolId=${schoolId || ''}&teacherId=${teacherId}`);
           const json = await res.json();
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            const classNames = json.data
-              .map((c: any) => c.className || c.grade || String(c.name || ""))
-              .filter(Boolean);
-            const extractedNums = classNames
-              .map((cn: any) => String(cn).replace(/\D/g, ""))
-              .filter(Boolean);
-
-            if (extractedNums.length > 0) {
-              setTeacherAssignedClasses(Array.from(new Set(extractedNums)));
-              return;
-            }
+            const list = json.data.map((c: any) => ({
+              className: String(c.className || c.grade || "").replace(/^Class\s*/i, "").trim(),
+              section: (c.section || "").trim().toUpperCase(),
+            }));
+            setTeacherAssignedClasses(list);
+            return;
           }
         }
-        setTeacherAssignedClasses(["10", "11", "12"]);
+        const userObj = session?.user as any;
+        if (userObj?.class) {
+          setTeacherAssignedClasses([{
+            className: String(userObj.class).replace(/^Class\s*/i, "").trim(),
+            section: (userObj.section || "A").trim().toUpperCase(),
+          }]);
+          return;
+        }
+        setTeacherAssignedClasses([]);
       } catch (err) {
         console.error("Error fetching teacher classes:", err);
-        setTeacherAssignedClasses(["10", "11", "12"]);
       }
     };
     fetchTeacherClasses();
-  }, [schoolId, teacherId]);
+  }, [schoolId, teacherId, session]);
 
   // Fetch Students assigned to this teacher/school
   useEffect(() => {
@@ -235,9 +237,6 @@ export default function TeacherDigitalPortfolioPage() {
           });
 
           setStudents(list);
-          if (list.length > 0) {
-            setSelectedStudent(list[0]);
-          }
         }
       } catch (err) {
         console.error("Error loading students:", err);
@@ -251,7 +250,10 @@ export default function TeacherDigitalPortfolioPage() {
 
   // Fetch Portfolio when selected student changes
   useEffect(() => {
-    if (!selectedStudent) return;
+    if (!selectedStudent) {
+      setPortfolio(null);
+      return;
+    }
 
     const fetchPortfolio = async () => {
       try {
@@ -304,14 +306,14 @@ export default function TeacherDigitalPortfolioPage() {
         }
 
         if (!portData) {
-          // Default fallback portfolio if server is offline or empty
+          // Default fallback portfolio bound to selectedStudent
           portData = {
             id: `pf-${selectedStudent.id}`,
             studentId: selectedStudent.id,
             profile: {
               name: selectedStudent.name,
               email: `${selectedStudent.name.toLowerCase().replace(/\s+/g, '')}@holycross.edu.in`,
-              class: `${selectedStudent.class}-${selectedStudent.section}`,
+              class: `Class ${selectedStudent.class}-${selectedStudent.section}`,
               section: selectedStudent.section,
               stream: "Science Stream Explorer",
               rollNumber: selectedStudent.rollNumber || "HM100005",
@@ -331,7 +333,7 @@ export default function TeacherDigitalPortfolioPage() {
               teacherEndorsement: "Disciplined student with outstanding academic curiosity.",
               teacherName: teacherName,
               parentEndorsement: "Shows immense commitment to daily studies.",
-              parentName: "DevanDevi (Parent)"
+              parentName: "Parent & Guardian"
             },
             skills: [],
             projects: [],
@@ -341,6 +343,12 @@ export default function TeacherDigitalPortfolioPage() {
             ],
             socialActivities: []
           };
+        } else if (portData && portData.profile) {
+          portData.profile.name = selectedStudent.name;
+          portData.profile.class = `Class ${selectedStudent.class}-${selectedStudent.section}`;
+          portData.profile.section = selectedStudent.section;
+          portData.profile.rollNumber = selectedStudent.rollNumber;
+          portData.profile.emisNumber = selectedStudent.emis;
         }
 
         setPortfolio(portData);
@@ -353,7 +361,7 @@ export default function TeacherDigitalPortfolioPage() {
           teacherEndorsement: portData.profile?.teacherEndorsement || "",
           teacherName: portData.profile?.teacherName || session?.user?.name || teacherName,
           parentEndorsement: portData.profile?.parentEndorsement || "",
-          parentName: portData.profile?.parentName || "DevanDevi (Parent)",
+          parentName: portData.profile?.parentName || "Parent & Guardian",
           leadershipRoles: (portData.profile?.leadershipRoles || ["Class Representative", "Science Club Secretary"]).join(", "),
           languages: (typeof portData.profile?.languageFluency === "object" ? Object.entries(portData.profile.languageFluency).map(([l, f]) => `${l} (${f})`) : ["Tamil (Native)", "English (Fluent)"]).join(", ")
         });
@@ -695,11 +703,30 @@ export default function TeacherDigitalPortfolioPage() {
   };
 
   // Filtered student list
-  const effectiveAssignedClasses = teacherAssignedClasses.length > 0 ? teacherAssignedClasses : ["9", "10"];
   const baseStudentsList = !isHeadmaster
-    ? students.filter(s => effectiveAssignedClasses.includes(s.class))
+    ? (teacherAssignedClasses.length > 0
+      ? students.filter((s) => {
+          const sClass = String(s.class || "").replace(/^Class\s*/i, "").trim().toLowerCase();
+          const sSec = String(s.section || "").trim().toUpperCase();
+          return teacherAssignedClasses.some((tc) => {
+            const tcClass = tc.className.toLowerCase();
+            const classMatch = sClass === tcClass || sClass.includes(tcClass) || tcClass.includes(sClass);
+            const secMatch = !tc.section || sSec === tc.section;
+            return classMatch && secMatch;
+          });
+        })
+      : students)
     : (onlyMyClasses && teacherAssignedClasses.length > 0
-      ? students.filter(s => teacherAssignedClasses.includes(s.class))
+      ? students.filter((s) => {
+          const sClass = String(s.class || "").replace(/^Class\s*/i, "").trim().toLowerCase();
+          const sSec = String(s.section || "").trim().toUpperCase();
+          return teacherAssignedClasses.some((tc) => {
+            const tcClass = tc.className.toLowerCase();
+            const classMatch = sClass === tcClass || sClass.includes(tcClass) || tcClass.includes(sClass);
+            const secMatch = !tc.section || sSec === tc.section;
+            return classMatch && secMatch;
+          });
+        })
       : students);
 
   const classesList = ["All", ...Array.from(new Set(baseStudentsList.map(s => s.class).filter(Boolean)))].sort((a, b) => {
@@ -737,7 +764,7 @@ export default function TeacherDigitalPortfolioPage() {
     } else {
       setSelectedStudent(null);
     }
-  }, [selectedClass, selectedSection, searchQuery, onlyMyClasses, students.length]);
+  }, [filteredStudents, selectedStudent]);
 
   return (
     <PortalLayout>

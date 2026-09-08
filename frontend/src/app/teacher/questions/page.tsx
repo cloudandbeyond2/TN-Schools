@@ -40,6 +40,7 @@ export default function QuestionGeneratorPage() {
   const [mcqCount, setMcqCount] = useState(3);
   const [shortCount, setShortCount] = useState(2);
   const [longCount, setLongCount] = useState(1);
+  const [bankFilter, setBankFilter] = useState<"MY_CLASSES" | "ALL">("MY_CLASSES");
 
   // Fetch PostgreSQL classes created for this teacher/school on /teacher/classes page
   useEffect(() => {
@@ -54,15 +55,8 @@ export default function QuestionGeneratorPage() {
         let data = await res.json();
 
         let classRooms: any[] = [];
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           classRooms = data.data;
-        } else {
-          // Fallback to all school classes if teacher-specific query is empty
-          const fallbackRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}`);
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData.success && Array.isArray(fallbackData.data) && fallbackData.data.length > 0) {
-            classRooms = fallbackData.data;
-          }
         }
 
         setTeacherClasses(classRooms);
@@ -910,22 +904,75 @@ export default function QuestionGeneratorPage() {
       ) : (
         /* Saved Bank Tab View */
         <div className="theme-card p-6 min-h-[400px]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Active Question Bank</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h2 className="text-base font-semibold text-[var(--text-heading)]"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Active Question Bank</h2>
+            
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBankFilter("MY_CLASSES")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  bankFilter === "MY_CLASSES"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "bg-[var(--bg-main)] text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
+                }`}
+              >
+                <span>🎓</span>
+                <span>My Assigned Classes ({gradeOptions.join(", ") || "Grade 9"})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBankFilter("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  bankFilter === "ALL"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "bg-[var(--bg-main)] text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
+                }`}
+              >
+                <span>🏫</span>
+                <span>All School Question Bank</span>
+              </button>
+            </div>
+          </div>
 
-          {loadingBank ? (
-            <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading bank repository...</div>
-          ) : dbQuestions.length === 0 ? (
-            <div className="text-center py-12 text-xs text-[var(--text-muted)]">No questions saved in bank database yet. Use the Generator tab to generate and save questions.</div>
-          ) : (
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {Object.entries(
-                dbQuestions.reduce((acc, q) => {
-                  const folderName = `${q.grade} - ${q.subject} - ${q.topic}`;
-                  if (!acc[folderName]) acc[folderName] = [];
-                  acc[folderName].push(q);
-                  return acc;
-                }, {} as Record<string, Question[]>)
-              ).map(([folderName, folderQuestions]) => (
+          {(() => {
+            const filteredDbQuestions = dbQuestions.filter((q) => {
+              if (bankFilter === "MY_CLASSES") {
+                if (gradeOptions.length === 0) return true;
+                const cleanQGrade = String(q.grade || "").replace(/\D/g, "");
+                return gradeOptions.some((g) => {
+                  const cleanG = g.replace(/\D/g, "");
+                  return cleanG === cleanQGrade || String(q.grade || "").toLowerCase().includes(g.toLowerCase());
+                });
+              }
+              return true;
+            });
+
+            if (loadingBank) {
+              return <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading bank repository...</div>;
+            }
+
+            if (filteredDbQuestions.length === 0) {
+              return (
+                <div className="text-center py-12 text-xs text-[var(--text-muted)]">
+                  {bankFilter === "MY_CLASSES"
+                    ? `No questions found for your assigned class (${gradeOptions.join(", ") || "Grade 9"}). Switch to "All School Question Bank" or use the Generator tab.`
+                    : "No questions saved in bank database yet."}
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                {Object.entries(
+                  filteredDbQuestions.reduce((acc, q) => {
+                    const folderName = `${q.grade} - ${q.subject} - ${q.topic}`;
+                    if (!acc[folderName]) acc[folderName] = [];
+                    acc[folderName].push(q);
+                    return acc;
+                  }, {} as Record<string, Question[]>)
+                ).map(([folderName, folderQuestions]) => (
                 <div key={folderName} className="border border-[var(--border)] rounded-xl bg-[var(--bg-main)] overflow-hidden">
                   <div
                     className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] cursor-pointer flex justify-between items-center transition-colors"
@@ -1002,7 +1049,8 @@ export default function QuestionGeneratorPage() {
                 </div>
               ))}
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
     </PortalLayout>
