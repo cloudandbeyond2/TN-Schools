@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
@@ -130,6 +130,11 @@ export default function ParentsPage() {
 
 
 
+  const [activeSubTab, setActiveSubTab] = useState<"meetings" | "officers" | "directory">("meetings");
+  const [parentClassFilter, setParentClassFilter] = useState("all");
+  const [parentDirectorySearch, setParentDirectorySearch] = useState("");
+  const [parentCurrentPage, setParentCurrentPage] = useState(1);
+  const [parentRowsPerPage, setParentRowsPerPage] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPtaModalOpen, setIsPtaModalOpen] = useState(false);
 
@@ -141,6 +146,98 @@ export default function ParentsPage() {
   const [newTerm, setNewTerm] = useState("2025-26");
   const [newPassword, setNewPassword] = useState("123456");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [studentSearchTerm, setStudentSearchTerm] = useState("");
+
+  const filteredStudents = useMemo(() => {
+    if (!studentSearchTerm.trim()) return students;
+    const term = studentSearchTerm.toLowerCase();
+    return students.filter(s =>
+      s.user?.name?.toLowerCase().includes(term) ||
+      (s.rollNumber && s.rollNumber.toLowerCase().includes(term)) ||
+      `class ${s.class}${s.section}`.toLowerCase().includes(term) ||
+      `${s.class}${s.section}`.toLowerCase().includes(term)
+    );
+  }, [students, studentSearchTerm]);
+
+  // Derived Parent Directory with Student & Login info
+  const parentDirectory = useMemo(() => {
+    const list: Array<{
+      id: string;
+      parentName: string;
+      phone: string;
+      email: string;
+      studentName: string;
+      studentClass: string;
+      rawClass: string;
+      password?: string;
+      isPTA: boolean;
+      ptaRole?: string;
+    }> = [];
+
+    students.forEach((s) => {
+      const pName = s.parentName || s.fatherName || s.motherName || `${s.user?.name || "Student"}'s Parent`;
+      const pPhone = s.parentMobile || s.phoneNumber || s.user?.mobile || "N/A";
+      const pEmail = s.parentEmail || s.user?.email || "N/A";
+      const ptaMatch = committee.find(c =>
+        (c.linkedStudents?.some(l => l.student.id === s.id)) ||
+        (c.phone && c.phone === pPhone && pPhone !== "N/A") ||
+        (c.studentName && c.studentName.toLowerCase() === s.user?.name?.toLowerCase())
+      );
+
+      list.push({
+        id: s.id,
+        parentName: pName,
+        phone: pPhone,
+        email: pEmail,
+        studentName: s.user?.name || "N/A",
+        studentClass: `Class ${s.class}${s.section ? `-${s.section}` : ""}`,
+        rawClass: String(s.class || "").replace(/^Class\s*/i, "").trim(),
+        password: "123456",
+        isPTA: !!ptaMatch,
+        ptaRole: ptaMatch?.role
+      });
+    });
+
+    return list;
+  }, [students, committee]);
+
+  const filteredParentDirectory = useMemo(() => {
+    return parentDirectory.filter(p => {
+      // Class filter (6 to 12)
+      let matchesClass = true;
+      if (parentClassFilter !== "all") {
+        const clsNum = String(p.rawClass).toLowerCase();
+        const targetCls = parentClassFilter.toLowerCase();
+        matchesClass = clsNum === targetCls || clsNum.includes(targetCls);
+      }
+
+      // Search filter (parentName, phone, email, studentName)
+      let matchesSearch = true;
+      if (parentDirectorySearch.trim()) {
+        const q = parentDirectorySearch.toLowerCase();
+        matchesSearch =
+          p.parentName.toLowerCase().includes(q) ||
+          p.phone.toLowerCase().includes(q) ||
+          p.email.toLowerCase().includes(q) ||
+          p.studentName.toLowerCase().includes(q) ||
+          p.studentClass.toLowerCase().includes(q);
+      }
+
+      return matchesClass && matchesSearch;
+    });
+  }, [parentDirectory, parentClassFilter, parentDirectorySearch]);
+
+  // Reset to Page 1 when filter or search changes
+  useEffect(() => {
+    setParentCurrentPage(1);
+  }, [parentClassFilter, parentDirectorySearch]);
+
+  const totalParentPages = Math.ceil(filteredParentDirectory.length / parentRowsPerPage) || 1;
+
+  const paginatedParentDirectory = useMemo(() => {
+    const start = (parentCurrentPage - 1) * parentRowsPerPage;
+    return filteredParentDirectory.slice(start, start + parentRowsPerPage);
+  }, [filteredParentDirectory, parentCurrentPage, parentRowsPerPage]);
 
   const handleStudentSelect = (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -614,20 +711,7 @@ export default function ParentsPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
-      {/* School Badge — locked to this headmaster's school */}
-      <div className="glass rounded-2xl p-4 border border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
-        <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Managed Institution</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Parent & PTA data is scoped to your assigned school only.</p>
-        </div>
-        <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
-          <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-          <span className="text-xs font-bold text-blue-300">
-            {schools.find((s) => s.id === mySchoolId)?.name || (mySchoolId ? "Your School" : "No school linked")}
-          </span>
-          <span className="ml-2 px-2 py-0.5 bg-blue-600/20 border border-blue-500/30 rounded-full text-[9px] font-bold text-blue-400 uppercase tracking-wider">Assigned</span>
-        </div>
-      </div>
+
 
       <div className="glass rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
         <div>
@@ -657,9 +741,35 @@ export default function ParentsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 mb-6">
-        {/* Scheduled PTA Meetings List & Scheduler (60% Portion) */}
-        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col lg:col-span-6">
+      {/* Sub-Tabs Navigation Toolbar */}
+      <div className="glass rounded-2xl p-4 border border-slate-800/60 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
+        {/* Sub-Tabs */}
+        <div className="flex bg-slate-100 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto overflow-x-auto">
+          {[
+            { id: "meetings", label: "PTA Meetings" },
+            { id: "officers", label: "PTA Core Officers" },
+            { id: "directory", label: "Parent Directory" }
+          ].map(subTab => {
+            const active = activeSubTab === subTab.id;
+            return (
+              <button
+                key={subTab.id}
+                onClick={() => setActiveSubTab(subTab.id as any)}
+                className={`flex-1 sm:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${active
+                  ? "bg-blue-600 text-white shadow-md font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+              >
+                {subTab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tab 1: PTA Meetings */}
+      {activeSubTab === "meetings" && (
+        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col mb-6 fade-in">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <h3 className="text-sm font-bold text-white">Scheduled PTA Meetings</h3>
@@ -667,13 +777,13 @@ export default function ParentsPage() {
             </div>
             <button
               onClick={() => setIsPtaModalOpen(true)}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap animate-pulse animate-duration-1000 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               Schedule PTA Meeting
             </button>
           </div>
-          <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
             {ptaMeetings.length === 0 && !isLoading ? (
               <div className="text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
                 No PTA meetings scheduled.
@@ -682,68 +792,68 @@ export default function ParentsPage() {
               ptaMeetings.map((m) => {
                 const expired = isExpiredMeeting(m);
                 return (
-                  <div key={m.id} className={`p-4 border rounded-xl text-slate-800 shadow-md transition-all duration-200 ${
+                  <div key={m.id} className={`p-5 border rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 ${
                     expired
-                      ? "border-amber-300 bg-amber-50/80 hover:bg-amber-50"
+                      ? "border-amber-200/80 bg-amber-50/90 dark:bg-amber-950/20 dark:border-amber-800/60"
                       : m.status === "Completed"
-                      ? "border-blue-200 bg-blue-50/60 hover:bg-blue-50"
-                      : "border-slate-200 bg-white/95 hover:bg-white"
+                      ? "border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90"
                   }`}>
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex flex-col min-w-0 flex-1">
-
-                        {/* Status badges */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border flex items-center gap-1 ${
-                            expired
-                              ? "bg-amber-100 text-amber-700 border-amber-300"
-                              : m.status === "Upcoming"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                              : m.status === "Completed"
-                              ? "bg-blue-50 text-blue-600 border-blue-200"
-                              : "bg-slate-100 text-slate-600 border-slate-200"
-                          }`}>
-                            {expired ? (
-                              <><svg className="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Expired</>
-                            ) : m.status === "Upcoming" ? (
-                              <><svg className="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Upcoming</>
-                            ) : m.status === "Completed" ? (
-                              <><svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Completed</>
-                            ) : (
-                              <><svg className="w-2.5 h-2.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>Cancelled</>
-                            )}
-                          </span>
-                          {expired && (
-                            <span className="text-[8px] font-bold text-amber-600 bg-amber-100/80 border border-amber-200 px-2 py-0.5 rounded">
-                              Meeting date has passed — mark as completed
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        {/* Header: Title + Status Badge */}
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                          <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-snug">
+                            {m.title}
+                          </h4>
+                          <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                            <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-full border flex items-center gap-1.5 ${
+                              expired
+                                ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
+                                : m.status === "Upcoming"
+                                ? "bg-emerald-100/90 text-emerald-800 border-emerald-300 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700"
+                                : m.status === "Completed"
+                                ? "bg-blue-100/90 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700"
+                                : "bg-slate-100 text-slate-600 border-slate-300"
+                            }`}>
+                              {expired ? (
+                                <><svg className="w-3 h-3 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Expired</>
+                              ) : m.status === "Upcoming" ? (
+                                <><svg className="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Upcoming</>
+                              ) : m.status === "Completed" ? (
+                                <><svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Completed</>
+                              ) : (
+                                "Cancelled"
+                              )}
                             </span>
-                          )}
+                          </div>
                         </div>
 
-                        <div className="font-extrabold text-slate-900 text-xs sm:text-sm mt-2 truncate">{m.title}</div>
-                        <div className="text-[10px] text-slate-500 font-bold mt-1 flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                          {fmtDate(m.meetingDate)}
-                        </div>
-                        <div className="text-[10px] text-blue-650 font-bold mt-0.5 flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          {m.venue}
-                        </div>
-
-                        {/* RSVP Summary */}
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-650 mt-2 bg-slate-100/80 p-2 rounded-xl w-full max-w-max border border-slate-200/50">
-                          <span className="text-emerald-700 flex items-center gap-1">
-                            <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                            Accepted: <strong className="font-black">{m.acceptCount || 0}</strong>
+                        {/* Date, Time & Venue Chips */}
+                        <div className="flex items-center gap-3 flex-wrap text-xs font-semibold mt-2.5">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
+                            <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            {fmtDate(m.meetingDate)}
                           </span>
-                          <span className="text-slate-400">|</span>
-                          <span className="text-rose-700 flex items-center gap-1">
-                            <svg className="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                            Declined: <strong className="font-black">{m.declineCount || 0}</strong>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
+                            <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            {m.venue}
+                          </span>
+                        </div>
+
+                        {/* RSVP Summary Pills */}
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                            Accepted: {m.acceptCount || 0}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+                            <svg className="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                            Declined: {m.declineCount || 0}
                             {(m.declineCount || 0) > 0 && (
                               <button
                                 onClick={() => showDeclineReasons(m)}
-                                className="text-[9px] text-blue-600 hover:text-blue-800 font-bold underline ml-1.5 cursor-pointer"
+                                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 font-bold underline ml-1 cursor-pointer"
                               >
                                 (View Reasons)
                               </button>
@@ -751,40 +861,53 @@ export default function ParentsPage() {
                           </span>
                         </div>
 
+                        {/* Description / Notice callout box */}
                         {m.description && (
-                          <p className="text-[11px] text-slate-600 mt-2 italic leading-relaxed break-words">{m.description}</p>
-                        )}
-                        {m.agenda && m.agenda.length > 0 && (
-                          <div className="mt-2.5 pt-2 border-t border-slate-200/50">
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Agenda:</span>
-                            <p className="text-[10px] text-slate-500 font-semibold">{m.agenda.join(" · ")}</p>
+                          <div className="mt-3 p-3 bg-blue-50/60 dark:bg-slate-950/50 border-l-4 border-blue-500 rounded-r-xl text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-1.5 uppercase text-[10px] tracking-wide">Notice:</span>
+                            {m.description}
                           </div>
                         )}
 
-                        {/* Mark as Completed — only for expired meetings */}
-                        {expired && (
-                          <button
-                            onClick={() => handleMarkCompleted(m.id, m.title)}
-                            className="mt-3 self-start px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Mark as Completed
-                          </button>
+                        {/* Agenda Points - Clean bulleted list */}
+                        {m.agenda && m.agenda.length > 0 && (
+                          <div className="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+                            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002-2V7a2 2 0 00-2-2h2m2 0h4m-4 0a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                              Agenda Points:
+                            </div>
+                            <ul className="space-y-1.5 pl-1">
+                              {m.agenda.map((point, idx) => (
+                                <li key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-semibold flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                                  <span>{point}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
                       </div>
 
-                      {/* Delete button */}
-                      <button
-                        onClick={() => setMeetingToDelete(m)}
-                        className="shrink-0 text-[9px] text-red-650 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Delete
-                      </button>
+                      {/* Action buttons (Top Right / Bottom Right) */}
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 pt-1">
+                        <button
+                          onClick={() => setMeetingToDelete(m)}
+                          className="text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 font-semibold border border-rose-200 dark:border-rose-900/50 px-2.5 py-1.5 rounded-xl bg-rose-50/50 dark:bg-rose-950/30 hover:bg-rose-100 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          Delete
+                        </button>
+
+                        {expired && (
+                          <button
+                            onClick={() => handleMarkCompleted(m.id, m.title)}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                            Mark Completed
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -792,24 +915,27 @@ export default function ParentsPage() {
             )}
           </div>
         </div>
+      )}
 
-        {/* PTA Core Committee Officers (40% Portion) */}
-        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col lg:col-span-4">
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 mb-4">
+      {/* Tab 2: PTA Core Officers */}
+      {activeSubTab === "officers" && (
+        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col mb-6 fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">PTA Core Officers</h3>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">PTA Core Officers</h3>
               {isLoading && <div className="w-3.5 h-3.5 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap self-start xl:self-auto"
+              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
             >
-              + Register PTA Officer
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+              Register PTA Officer
             </button>
           </div>
-          <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[550px] overflow-y-auto pr-1">
             {committee.length === 0 && !isLoading ? (
-              <div className="text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
+              <div className="col-span-full text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
                 No PTA committee officers found.
               </div>
             ) : (
@@ -817,30 +943,49 @@ export default function ParentsPage() {
                 const linkedNames = p.linkedStudents?.map(l => `${l.student.user.name} (Cls ${l.student.class})`).join(', ');
                 const displayWard = linkedNames ? linkedNames : (p.studentName !== "N/A" ? `${p.studentName} (${p.studentClass})` : "N/A");
 
+                const isValidTerm = p.term && (p.term.includes("-") || p.term.toLowerCase().includes("term") || /^\d{4}/.test(p.term));
+                const displayTerm = isValidTerm ? p.term : "2025-26";
+                let displayRelation = "Father";
+                if (!isValidTerm && p.term && p.term !== "N/A") {
+                  displayRelation = p.term;
+                } else if (p.role.toLowerCase().includes("mother")) {
+                  displayRelation = "Mother";
+                } else if (p.role.toLowerCase().includes("guardian")) {
+                  displayRelation = "Guardian";
+                }
+
                 return (
-                  <div key={p.id} className="p-3 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 group">
-                    <div className="flex justify-between items-start gap-1">
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 text-xs truncate">{p.name}</div>
-                        <div className="text-[10px] text-blue-600 font-bold mt-0.5 mb-1 truncate">{p.role}</div>
-                        <div className="text-[10px] text-slate-700 font-bold">{p.phone}</div>
-                        {p.email && <div className="text-[9px] text-slate-500 font-medium mt-0.5 break-all">{p.email}</div>}
+                  <div key={p.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 group flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start gap-1">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="font-extrabold text-slate-900 text-sm truncate">{p.name}</div>
+                          <div className="text-[10.5px] text-blue-600 font-bold mt-0.5 mb-1 truncate">{p.role}</div>
+                          <div className="text-[11px] text-slate-700 font-bold">{p.phone}</div>
+                          {p.email && <div className="text-[10px] text-slate-500 font-medium mt-0.5 break-all">{p.email}</div>}
+                        </div>
+                        <button
+                          onClick={() => setParentToDelete(p)}
+                          className="shrink-0 text-[10px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setParentToDelete(p)}
-                        className="shrink-0 text-[9px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-1.5 py-0.5 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-0.5"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Remove
-                      </button>
                     </div>
-                    <div className="border-t border-slate-100 mt-2 pt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500 font-semibold">
-                      <span>Ward: <span className="text-slate-800 font-bold">{displayWard}</span></span>
-                      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-                        <span>Pwd: <span className="text-blue-650 font-bold">{p.password || "123456"}</span></span>
-                        <span>Term: {p.term}</span>
+
+                    <div className="border-t border-slate-100 mt-3 pt-2 flex flex-col gap-1 text-[10px] text-slate-500 font-semibold">
+                      <div>
+                        <span>Student / Child: </span>
+                        <span className="text-slate-800 font-bold">{displayWard}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9.5px]">
+                        <span>Academic Term: <span className="text-indigo-600 font-bold">{displayTerm}</span></span>
+                        {displayRelation && (
+                          <span>Relation: <span className="text-slate-700 font-bold">{displayRelation}</span></span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -849,9 +994,172 @@ export default function ParentsPage() {
             )}
           </div>
         </div>
-      </div>
+      )}
 
+      {/* Tab 3: Parent Directory */}
+      {activeSubTab === "directory" && (
+        <div className="space-y-4 mb-6 fade-in font-sans">
+          {/* Search, Class Filter & Rows Per Page Bar */}
+          <div className="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800/60 flex flex-wrap items-center justify-between gap-4">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[240px]">
+              <input
+                type="text"
+                placeholder="🔍 Search parent name, phone, email, or student..."
+                value={parentDirectorySearch}
+                onChange={e => setParentDirectorySearch(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors shadow-sm"
+              />
+            </div>
 
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Class Filter (6th to 12th) */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Class:</span>
+                <select
+                  value={parentClassFilter}
+                  onChange={e => setParentClassFilter(e.target.value)}
+                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Classes</option>
+                  {["6", "7", "8", "9", "10", "11", "12"].map(cls => (
+                    <option key={cls} value={cls}>Class {cls}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Rows Per Page Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Show:</span>
+                <select
+                  value={parentRowsPerPage}
+                  onChange={e => {
+                    setParentRowsPerPage(Number(e.target.value));
+                    setParentCurrentPage(1);
+                  }}
+                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                >
+                  <option value={5}>5 / page</option>
+                  <option value={10}>10 / page</option>
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Parents Table */}
+          <div className="custom-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm bg-white dark:bg-slate-900/90">
+            {isLoading ? (
+              <div className="text-center py-16 flex flex-col items-center justify-center space-y-3">
+                <div className="w-8 h-8 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Loading Parent Directory...</span>
+              </div>
+            ) : filteredParentDirectory.length === 0 ? (
+              <div className="text-center py-16 text-slate-500 dark:text-slate-400 text-xs font-medium">
+                No matching parent records found in the directory.
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[10px]">
+                        <th className="p-4">Parent Name</th>
+                        <th className="p-4">Parent Of (Student & Class)</th>
+                        <th className="p-4">Phone Number</th>
+                        <th className="p-4">Email Address</th>
+                        <th className="p-4">Portal Password</th>
+                        <th className="p-4 text-center">PTA Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                      {paginatedParentDirectory.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                          <td className="p-4 font-bold text-slate-900 dark:text-white">
+                            <div>{p.parentName}</div>
+                          </td>
+                          <td className="p-4 font-semibold">
+                            <div className="text-blue-600 dark:text-blue-400 font-bold">{p.studentName}</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{p.studentClass}</div>
+                          </td>
+                          <td className="p-4 font-bold text-slate-800 dark:text-slate-200">{p.phone}</td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">{p.email}</td>
+                          <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">{p.password || "123456"}</td>
+                          <td className="p-4 text-center">
+                            {p.isPTA ? (
+                              <span className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 text-[10px] font-bold">
+                                {p.ptaRole || "PTA Officer"}
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-[10px] font-bold">
+                                General Parent
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Clear & Visible Pagination Controls Footer */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  <div>
+                    Showing <span className="font-bold text-slate-900 dark:text-white">{(parentCurrentPage - 1) * parentRowsPerPage + 1}</span> to{" "}
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      {Math.min(parentCurrentPage * parentRowsPerPage, filteredParentDirectory.length)}
+                    </span>{" "}
+                    of <span className="font-bold text-slate-900 dark:text-white">{filteredParentDirectory.length}</span> parent records
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={parentCurrentPage <= 1}
+                      onClick={() => setParentCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm"
+                    >
+                      ← Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalParentPages }, (_, i) => i + 1)
+                        .filter(page => page === 1 || page === totalParentPages || Math.abs(page - parentCurrentPage) <= 1)
+                        .map((page, idx, arr) => {
+                          const prevPage = arr[idx - 1];
+                          const showEllipsis = prevPage && page - prevPage > 1;
+                          return (
+                            <React.Fragment key={page}>
+                              {showEllipsis && <span className="px-1 text-slate-400 dark:text-slate-600 font-bold">...</span>}
+                              <button
+                                onClick={() => setParentCurrentPage(page)}
+                                className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                  parentCurrentPage === page
+                                    ? "bg-blue-600 text-white shadow-md font-black"
+                                    : "bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            </React.Fragment>
+                          );
+                        })}
+                    </div>
+
+                    <button
+                      disabled={parentCurrentPage >= totalParentPages}
+                      onClick={() => setParentCurrentPage(prev => Math.min(prev + 1, totalParentPages))}
+                      className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add Parent Modal */}
       {isModalOpen && (
@@ -872,17 +1180,26 @@ export default function ParentsPage() {
 
                 {/* Step 1: Select Student First */}
                 <div>
-                  <label className="block text-[10px] text-blue-400 mb-1 font-bold">1. Select Student / Ward (Auto-fills Parent Details)</label>
-                  <select
-                    value={selectedStudentId}
-                    onChange={e => handleStudentSelect(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
-                  >
-                    <option value="">-- Choose Student / Ward --</option>
-                    {students.map(s => (
-                      <option key={s.id} value={s.id}>{s.user.name} ({s.rollNumber || "No Roll"}) - Class {s.class}{s.section}</option>
-                    ))}
-                  </select>
+                  <label className="block text-[10px] text-blue-400 mb-1 font-bold">1. Select Student / Child (Auto-fills Parent Details)</label>
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      placeholder="🔍 Type student name, roll no, or class to filter..."
+                      value={studentSearchTerm}
+                      onChange={e => setStudentSearchTerm(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    />
+                    <select
+                      value={selectedStudentId}
+                      onChange={e => handleStudentSelect(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
+                    >
+                      <option value="">-- Choose Student / Ward ({filteredStudents.length} matching) --</option>
+                      {filteredStudents.map(s => (
+                        <option key={s.id} value={s.id}>{s.user?.name} ({s.rollNumber || "No Roll"}) - Class {s.class}{s.section}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
