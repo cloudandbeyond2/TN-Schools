@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import HomePage from '../app/page';
 
 // Mock next-auth/react
@@ -16,6 +17,27 @@ jest.mock('framer-motion', () => ({
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
+
+// Mock global.fetch for Node/Jest test environment
+beforeAll(() => {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      json: () =>
+        Promise.resolve({
+          success: true,
+          data: {
+            portalVisibility: {
+              beo: true,
+              deo: true,
+              commissioner: true,
+              minister: true,
+              pet: true,
+            },
+          },
+        }),
+    })
+  ) as any;
+});
 
 describe('HomePage', () => {
   it('renders the homepage with the main title', () => {
