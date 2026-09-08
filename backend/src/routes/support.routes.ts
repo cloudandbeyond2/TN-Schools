@@ -31,7 +31,7 @@ router.post('/', async (req: Request, res: Response) => {
     const cleanCategory =
       typeof category === 'string' && CATEGORIES.includes(category) ? category : 'Other';
 
-    const auth = getAuthUser(req);
+    const auth = await getAuthUser(req);
 
     const doc = await SupportRequest.create({
       name: name.trim().slice(0, 120),
