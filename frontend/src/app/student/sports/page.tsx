@@ -223,7 +223,7 @@ export default function StudentSportsPortal() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Student Gender Selection (Auto-detects from student session profile, editable)
-  const [selectedGender, setSelectedGender] = useState<StudentGender>("Female");
+  const [selectedGender, setSelectedGender] = useState<StudentGender>("Male");
   const [selectedClassLevel, setSelectedClassLevel] = useState<ClassLevel>("High School (Class 9-10)");
 
   // Navigation Tabs
@@ -434,20 +434,24 @@ export default function StudentSportsPortal() {
   async function fetchSportsData() {
     if (status === "loading") return;
     const targetStudentId = (session?.user as any)?.id || "demo-student";
+    const userSessGender = (session?.user as any)?.gender || (session?.user as any)?.sex;
 
     try {
       setIsLoading(true);
       const res = await fetch(`${API_BASE}/api/sports/${targetStudentId}`);
       const json = await res.json();
       if (json.success && json.data) {
-        // Auto-detect gender from logged in student user record!
-        const autoGender: StudentGender = (json.data.gender as any) || (session?.user as any)?.gender || selectedGender;
-        setSelectedGender(autoGender);
+        // Auto-detect gender from logged in student user record or backend!
+        const backendGender = json.data.gender;
+        const autoGender: StudentGender = (backendGender === "Female" || backendGender === "Male")
+          ? backendGender
+          : (userSessGender && String(userSessGender).toLowerCase() === "female" ? "Female" : selectedGender);
         
         const generated = generateStudentProfile(autoGender, selectedClassLevel);
         const initialData: StudentSportsData = {
           ...generated,
           ...json.data,
+          gender: autoGender,
           petFitness: json.data?.petFitness || generated.petFitness,
           // Enrich backend stats with icon metadata (backend doesn't store icon/softBg/iconColor)
           stats: enrichStatsWithIcons(json.data?.stats?.length ? json.data.stats : generated.stats),
@@ -462,7 +466,8 @@ export default function StudentSportsPortal() {
       setIsLoading(false);
     }
 
-    const generated = generateStudentProfile(selectedGender, selectedClassLevel);
+    const detectedGender: StudentGender = userSessGender && String(userSessGender).toLowerCase() === "female" ? "Female" : selectedGender;
+    const generated = generateStudentProfile(detectedGender, selectedClassLevel);
     setData(generated);
     setAwardsPageData(generated.awards || DEFAULT_AWARDS);
   }
@@ -650,13 +655,22 @@ export default function StudentSportsPortal() {
             <span>{currentData.teams?.length || 0} Teams</span>
           </div>
 
-          {/* Class badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm">
+          {/* Division & Age Group Badge */}
+          <button
+            onClick={() => {
+              const nextGender = selectedGender === "Female" ? "Male" : "Female";
+              setSelectedGender(nextGender);
+              const generated = generateStudentProfile(nextGender, selectedClassLevel);
+              setData(generated);
+            }}
+            title="Click to toggle Boys / Girls division view"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm transition-all cursor-pointer"
+          >
             <i className="fi fi-sr-shield flex items-center text-emerald-500" />
             <span>
               {selectedGender === "Female" ? dict.girlsDiv : dict.boysDiv} · {currentData.ageGroup}
             </span>
-          </div>
+          </button>
         </div>
       </div>
 
