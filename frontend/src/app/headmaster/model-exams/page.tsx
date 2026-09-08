@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import * as XLSX from "xlsx";
-import { Lock, Unlock, Plus, Download, Upload, Trash2, ChevronLeft, AlertTriangle, CheckCircle2, TrendingUp, Users, BookOpen, Award } from "lucide-react";
+import { Lock, Unlock, Plus, Download, Upload, Trash2, ChevronLeft, AlertTriangle, CheckCircle2, TrendingUp, Users, BookOpen, Award, Edit2, FileText } from "lucide-react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
@@ -317,7 +317,7 @@ export default function ModelExamsPage() {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`✅ "${newExamName}" created!`);
+        showToast(`"${newExamName}" created!`);
         setShowCreate(false);
         setNewExamName(""); setNewDate("");
         fetchExams();
@@ -346,7 +346,7 @@ export default function ModelExamsPage() {
       const json = await res.json();
       if (json.success) {
         setRows(prev => prev.map(r => ({ ...r, dirty: false })));
-        showToast(`✅ Saved ${json.saved} student marks!`);
+        showToast(`Saved ${json.saved} student marks!`);
       } else { showToast(json.error || "Failed.", "error"); }
     } catch { showToast("Server error.", "error"); }
     finally { setIsSaving(false); }
@@ -356,7 +356,7 @@ export default function ModelExamsPage() {
   const handleLock = async () => {
     if (!activeExam) return;
     setConfirmConfig({
-      title: "🔒 Lock Exam?",
+      title: "Lock Exam?",
       message: "Marks CANNOT be changed after locking. This is irreversible. Students and teachers will be notified of the results immediately.",
       confirmText: "Yes, Lock & Notify",
       confirmClass: "bg-red-600 hover:bg-red-700 text-white",
@@ -367,7 +367,7 @@ export default function ModelExamsPage() {
           const json = await res.json();
           if (json.success) {
             setActiveExam(prev => prev ? { ...prev, isLocked: true, lockedAt: json.data.lockedAt } : prev);
-            showToast("🔒 Exam locked successfully!");
+            showToast("Exam locked successfully!");
             fetchExams();
           } else { showToast(json.error || "Failed.", "error"); }
         } catch { showToast("Server error.", "error"); }
@@ -379,7 +379,7 @@ export default function ModelExamsPage() {
   // ── Delete exam ────────────────────────────────────────────────────────
   const handleDelete = async (exam: Exam) => {
     setConfirmConfig({
-      title: "🗑️ Delete Exam?",
+      title: "Delete Exam?",
       message: `Are you sure you want to delete "${exam.examName}"? This cannot be undone and all student marks for this exam will be deleted.`,
       confirmText: "Delete",
       confirmClass: "bg-red-600 hover:bg-red-700 text-white",
@@ -426,7 +426,7 @@ export default function ModelExamsPage() {
       
       const groupSuffix = activeExam.group ? `_${activeExam.group.replace(/\s+/g, '')}` : "";
       XLSX.writeFile(wb, `${activeExam.examName}_Class${activeExam.class}${activeExam.section}${groupSuffix}_template.xlsx`);
-      showToast("📥 Template downloaded with students pre-filled!");
+      showToast("Template downloaded with students pre-filled!");
     } catch { showToast("Download failed.", "error"); }
   };
 
@@ -483,7 +483,7 @@ export default function ModelExamsPage() {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`🎉 Saved ${json.saved} student marks!`);
+        showToast(`Saved ${json.saved} student marks!`);
         setShowBulkModal(false);
         setBulkPreview([]);
         openExam(activeExam);
@@ -573,7 +573,7 @@ export default function ModelExamsPage() {
                   </button>
                 )}
                 <button onClick={() => handleLock()} disabled={isLocking} className="flex items-center gap-1.5 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 text-xs font-bold rounded-xl transition-colors disabled:opacity-60">
-                  <Lock className="w-3.5 h-3.5" /> {isLocking ? "Locking…" : "🔒 Lock & Notify"}
+                  <Lock className="w-3.5 h-3.5" /> {isLocking ? "Locking…" : "Lock & Notify"}
                 </button>
               </div>
             )}
@@ -588,7 +588,10 @@ export default function ModelExamsPage() {
           {/* Marks Table */}
           <div className="glass rounded-2xl border border-slate-800 mb-6 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white">📋 Student Marks — Samacheer Kalvi</h2>
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-400" />
+                <span>Student Marks — Samacheer Kalvi</span>
+              </h2>
               <span className="text-xs text-slate-400">
                 {rows.length} students · Max 100 per subject · Pass: 35
               </span>
@@ -663,8 +666,9 @@ export default function ModelExamsPage() {
             {!activeExam.isLocked && rows.length > 0 && (
               <div className="px-5 py-3 border-t border-slate-800 flex items-center justify-between bg-slate-900/40">
                 <span className="text-xs text-slate-500">{dirtyCount > 0 ? `${dirtyCount} unsaved change${dirtyCount > 1 ? "s" : ""}` : "All saved"}</span>
-                <button onClick={handleSave} disabled={isSaving || dirtyCount === 0} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl disabled:opacity-40 transition-colors">
-                  {isSaving ? "Saving…" : "💾 Save All Marks"}
+                <button onClick={handleSave} disabled={isSaving || dirtyCount === 0} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl disabled:opacity-40 transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{isSaving ? "Saving…" : "Save All Marks"}</span>
                 </button>
               </div>
             )}
@@ -675,7 +679,10 @@ export default function ModelExamsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               {/* KPI cards */}
               <div className="glass rounded-2xl border border-slate-800 p-5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">📊 Quick Stats</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Quick Stats</span>
+                </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-400">Students Entered</span>
@@ -702,7 +709,10 @@ export default function ModelExamsPage() {
 
               {/* Subject averages */}
               <div className="glass rounded-2xl border border-slate-800 p-5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">📈 Subject Averages</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Subject Averages</span>
+                </h3>
                 <div className="space-y-3">
                   {analytics.subAvg.map(s => (
                     <div key={s.key}>
@@ -721,14 +731,17 @@ export default function ModelExamsPage() {
 
               {/* Toppers */}
               <div className="glass rounded-2xl border border-slate-800 p-5 flex flex-col">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">🏆 Top Performers</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Top Performers</span>
+                </h3>
                 <div className="space-y-3 flex-1">
                   {analytics.toppers.map((t, i) => {
                     const { total, pct, maxTotal } = calcLocal(t, isHsc);
                     return (
                       <div key={t.studentId} className="flex items-center gap-3">
-                        <div className="w-6 text-center shrink-0">
-                          {i === 0 ? <span className="text-lg">🥇</span> : i === 1 ? <span className="text-lg">🥈</span> : i === 2 ? <span className="text-lg">🥉</span> : <span className="text-[10px] font-black text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">#{i+1}</span>}
+                        <div className="w-6 text-center shrink-0 flex items-center justify-center">
+                          {i === 0 ? <Award className="w-4 h-4 text-amber-400" /> : i === 1 ? <Award className="w-4 h-4 text-slate-300" /> : i === 2 ? <Award className="w-4 h-4 text-amber-600" /> : <span className="text-[10px] font-black text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">#{i+1}</span>}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-white truncate">{t.studentName}</p>
@@ -787,12 +800,12 @@ export default function ModelExamsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[
                 { step: "1", title: "Create Exam", desc: "Click + New Exam, fill exam details & group (for 11th & 12th)" },
-                { step: "2", title: "Open Roster", desc: "Click 📝 Enter Marks on the exam card to load students" },
+                { step: "2", title: "Open Roster", desc: "Click Enter Marks on the exam card to load students" },
                 { step: "3", title: "Add Marks", desc: "Click subject cells, type marks (0-100), press Enter & Save" },
-                { step: "4", title: "Lock & Send", desc: "Click 🔒 Lock Exam to finalize and auto-notify students & teachers" }
+                { step: "4", title: "Lock & Send", desc: "Click Lock Exam to finalize and auto-notify students & teachers" }
               ].map((item, idx) => (
-                <div key={idx} className="flex gap-3 items-start relative group">
-                  <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                <div key={idx} className="flex gap-3 items-start relative">
+                  <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 font-extrabold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                     {item.step}
                   </div>
                   <div>
@@ -824,7 +837,10 @@ export default function ModelExamsPage() {
           {/* Exams List */}
           <div className="glass rounded-2xl border border-slate-800 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white">📋 Class {activeClass} — Exam Sessions</h2>
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-400" />
+                <span>Class {activeClass} — Exam Sessions</span>
+              </h2>
               {loadingExams && <span className="text-xs text-slate-500 animate-pulse">Loading…</span>}
             </div>
 
@@ -862,8 +878,8 @@ export default function ModelExamsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <button onClick={() => openExam(exam)} className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-xl transition-colors">
-                        {exam._count?.results ? "✏️ Edit Marks" : "📝 Enter Marks"}
+                      <button onClick={() => openExam(exam)} className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                        {exam._count?.results ? <><Edit2 className="w-3.5 h-3.5 text-blue-400" /> Edit Marks</> : <><FileText className="w-3.5 h-3.5 text-blue-400" /> Enter Marks</>}
                       </button>
                       {!exam.isLocked && (
                         <button onClick={() => handleDelete(exam)} className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl transition-colors opacity-0 group-hover:opacity-100">
@@ -883,7 +899,10 @@ export default function ModelExamsPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="glass rounded-2xl border border-slate-700 w-full max-w-md p-6 shadow-2xl fade-in">
-            <h2 className="text-base font-black text-white mb-5">📝 Create New Exam</h2>
+            <h2 className="text-base font-black text-white mb-5 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-blue-400" />
+              <span>Create New Exam</span>
+            </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Exam Name *</label>
@@ -949,7 +968,7 @@ export default function ModelExamsPage() {
               <button onClick={() => setShowCreate(false)} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-350 text-sm font-bold rounded-xl transition-colors">Cancel</button>
               <button onClick={handleCreate} disabled={creating || !newExamName.trim()}
                 className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
-                {creating ? "Creating…" : "✅ Create Exam"}
+                {creating ? "Creating…" : "Create Exam"}
               </button>
             </div>
             <p className="text-[10px] text-slate-600 text-center mt-3">
@@ -965,7 +984,10 @@ export default function ModelExamsPage() {
           <div className="glass rounded-2xl border border-slate-700 w-full max-w-4xl max-h-[85vh] flex flex-col p-6 shadow-2xl fade-in">
             <div className="flex items-center justify-between mb-4 flex-shrink-0">
               <div>
-                <h2 className="text-base font-black text-white">📊 Bulk Upload Preview</h2>
+                <h2 className="text-base font-black text-white flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-blue-400" />
+                  <span>Bulk Upload Preview</span>
+                </h2>
                 <p className="text-xs text-slate-400 mt-0.5">{bulkPreview.length} rows detected. Review before importing.</p>
               </div>
               <button onClick={() => { setShowBulkModal(false); setBulkPreview([]); }} className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition-colors">✕</button>
@@ -1005,7 +1027,7 @@ export default function ModelExamsPage() {
               <button onClick={() => { setShowBulkModal(false); setBulkPreview([]); }} className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-350 text-sm font-bold rounded-xl transition-colors">Cancel</button>
               <button onClick={handleBulkConfirm} disabled={isSaving}
                 className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
-                {isSaving ? "Importing…" : `✅ Confirm Import (${bulkPreview.length} rows)`}
+                {isSaving ? "Importing…" : `Confirm Import (${bulkPreview.length} rows)`}
               </button>
             </div>
           </div>
