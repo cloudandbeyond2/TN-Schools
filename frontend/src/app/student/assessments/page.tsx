@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { BookOpen, Award, CheckCircle, ArrowRight, RefreshCw, AlertCircle, Globe, Clock, ArrowLeft, Sparkles, Check } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface Question {
@@ -381,7 +380,7 @@ export default function StudentAssessmentsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
               <div>
                 <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                  <i className="fi fi-rr-award text-indigo-500 dark:text-indigo-400 text-lg shrink-0 flex items-center" />
                   Quiz &amp; Test Center
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -397,7 +396,7 @@ export default function StudentAssessmentsPage() {
 
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs rounded-xl border border-indigo-200/30 whitespace-nowrap">
-                  <Sparkles className="w-3.5 h-3.5" /> Live Sync Active
+                  <i className="fi fi-rr-sparkles text-xs flex items-center" /> Live Sync Active
                 </span>
               </div>
             </div>
@@ -406,7 +405,7 @@ export default function StudentAssessmentsPage() {
             <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                  <BookOpen className="w-4 h-4" />
+                  <i className="fi fi-rr-book-alt text-sm flex items-center" />
                 </div>
                 <div>
                   <span className="font-bold text-white block">How Assessments Populate:</span>
@@ -417,7 +416,7 @@ export default function StudentAssessmentsPage() {
 
             {loading ? (
               <div className="text-center py-12 text-xs text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
-                <RefreshCw className="w-6 h-6 animate-spin text-indigo-500" />
+                <i className="fi fi-rr-refresh text-xl animate-spin text-indigo-500 flex items-center justify-center" />
                 <span>Loading available assessments...</span>
               </div>
             ) : (
@@ -427,7 +426,7 @@ export default function StudentAssessmentsPage() {
                 
                 {Object.keys(topicsMap).length === 0 ? (
                   <div className="theme-card p-8 text-center text-xs text-slate-500 dark:text-slate-400 border-2 border-dashed border-[var(--border)] rounded-2xl">
-                    <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                    <i className="fi fi-rr-info text-3xl mx-auto mb-2 text-slate-400 flex items-center justify-center" />
                     No assessments assigned for your grade level yet.
                   </div>
                 ) : (
@@ -449,7 +448,7 @@ export default function StudentAssessmentsPage() {
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-indigo-500 font-bold text-xs flex items-center gap-1.5">
-                                <BookOpen className="w-3.5 h-3.5" /> {sub}
+                                <i className="fi fi-rr-book-alt text-xs flex items-center" /> {sub}
                               </span>
                               <span className="text-[10px] font-extrabold text-slate-400 uppercase bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
                                 {list.length} Questions
@@ -463,7 +462,7 @@ export default function StudentAssessmentsPage() {
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl">
                                 <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                                  <CheckCircle className="w-4 h-4 text-emerald-500" /> Completed
+                                  <i className="fi fi-rr-check-circle text-emerald-500 text-sm flex items-center" /> Completed
                                 </span>
                                 <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                   {prevAttempt.scored} / {prevAttempt.maxMarks} Marks
@@ -473,7 +472,7 @@ export default function StudentAssessmentsPage() {
                                 onClick={() => startAssessment(topicKey)}
                                 className="w-full border-2 border-indigo-100 dark:border-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/10 rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
                               >
-                                Retry Test <RefreshCw className="w-3.5 h-3.5" />
+                                Retry Test <i className="fi fi-rr-refresh text-xs flex items-center" />
                               </button>
                             </div>
                           ) : (
@@ -481,7 +480,7 @@ export default function StudentAssessmentsPage() {
                               onClick={() => startAssessment(topicKey)}
                               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md"
                             >
-                              Start Test <ArrowRight className="w-4 h-4" />
+                              Start Test <i className="fi fi-rr-arrow-right text-sm flex items-center" />
                             </button>
                           )}
                         </div>
@@ -499,7 +498,7 @@ export default function StudentAssessmentsPage() {
             <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl max-w-3xl mx-auto w-full">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8" />
+                <i className="fi fi-rr-book-alt text-3xl flex items-center justify-center" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Revision & Topic Cover Mode</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Please read the instructions carefully before starting.</p>
@@ -507,21 +506,21 @@ export default function StudentAssessmentsPage() {
             
             <div className="space-y-4 mb-8">
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <Clock className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-clock text-indigo-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Strict 20-Minute Time Limit</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">This assessment is hard-capped at exactly 20 minutes to simulate real exam pressure. It will auto-submit when the timer reaches zero.</p>
                 </div>
               </div>
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-check-circle text-emerald-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Sectioned Layout</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Questions are divided into MCQs (1 Mark), Short Answers (2 Marks), and Detailed Answers (5 Marks).</p>
                 </div>
               </div>
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
-                <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <i className="fi fi-rr-globe text-blue-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">Bilingual Support</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">You can switch the interface between English and Tamil during the test using the language toggle in the header.</p>
@@ -540,7 +539,7 @@ export default function StudentAssessmentsPage() {
                 onClick={confirmStart}
                 className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
               >
-                I Understand, Start Test <ArrowRight className="w-4 h-4" />
+                I Understand, Start Test <i className="fi fi-rr-arrow-right text-sm flex items-center" />
               </button>
             </div>
           </div>
@@ -712,7 +711,7 @@ export default function StudentAssessmentsPage() {
                         }}
                         className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline mb-1 flex items-center gap-1"
                       >
-                        <ArrowLeft className="w-3.5 h-3.5" /> {t.back}
+                        <i className="fi fi-rr-arrow-left text-xs flex items-center" /> {t.back}
                       </button>
                       <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white">{selectedTopic}</h2>
                     </div>
@@ -723,7 +722,7 @@ export default function StudentAssessmentsPage() {
                         onClick={() => setLanguage(language === 'English' ? 'Tamil' : 'English')}
                         className="px-3 py-1.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
                       >
-                        <Globe className="w-3.5 h-3.5" />
+                        <i className="fi fi-rr-globe text-xs flex items-center" />
                         {language === 'English' ? 'தமிழ்' : 'English'}
                       </button>
 
@@ -735,7 +734,7 @@ export default function StudentAssessmentsPage() {
                           ? 'bg-rose-500/10 border-rose-500 text-rose-600 animate-pulse font-black'
                           : 'bg-indigo-500/10 border-indigo-500 text-indigo-600 font-bold'
                       }`}>
-                        <Clock className="w-4 h-4" />
+                        <i className="fi fi-rr-clock text-sm flex items-center" />
                         <div className="text-xs">
                           {submitted ? (
                             <span className="font-bold text-slate-700 dark:text-slate-200">{t.examConcluded}</span>
@@ -801,7 +800,7 @@ export default function StudentAssessmentsPage() {
                       onClick={handleSubmitTest}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 mt-4"
                     >
-                      <CheckCircle className="w-5 h-5" /> {t.submit}
+                      <i className="fi fi-rr-check-circle text-lg flex items-center" /> {t.submit}
                     </button>
                   ) : (
                     <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
