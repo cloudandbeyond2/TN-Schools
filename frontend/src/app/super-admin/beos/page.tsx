@@ -276,6 +276,7 @@ export default function ManageBeosPage() {
             ✕
           </button>
         </div>
+      )}
       {/* Warning banner if BEO Portal is disabled in settings */}
       {isBeoDisabled && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between gap-4 flex-wrap">

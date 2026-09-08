@@ -48,6 +48,10 @@ export default function PortalSettings() {
   const { data: session } = useSession();
   const token = (session?.user as any)?.backendToken || (session as any)?.backendToken;
   const myId = (session?.user as any)?.id;
+  const authHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
