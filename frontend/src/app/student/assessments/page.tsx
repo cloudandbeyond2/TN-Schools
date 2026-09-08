@@ -258,7 +258,7 @@ export default function StudentAssessmentsPage() {
     } catch (err) {
       console.error("Error loading student assessment data:", err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
