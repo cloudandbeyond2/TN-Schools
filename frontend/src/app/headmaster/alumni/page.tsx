@@ -439,11 +439,23 @@ export default function AlumniPage() {
     setNewInitiativeCost("");
   };
 
-  // Add items to sub-form arrays (modal edits)
+  // Add/edit items to sub-form arrays (modal edits)
   const addAchievement = () => {
     if (!newAchievementInput.trim()) return;
     setFormAchievements(prev => [...prev, newAchievementInput.trim()]);
     setNewAchievementInput("");
+  };
+
+  const editAchievement = (index: number) => {
+    const item = formAchievements[index];
+    if (item) {
+      const currentVal = newAchievementInput.trim();
+      setFormAchievements(prev => {
+        const filtered = prev.filter((_, i) => i !== index);
+        return currentVal ? [...filtered, currentVal] : filtered;
+      });
+      setNewAchievementInput(item);
+    }
   };
 
   const removeAchievement = (index: number) => {
@@ -462,6 +474,27 @@ export default function AlumniPage() {
     setNewEngagementDate("");
   };
 
+  const editEngagement = (index: number) => {
+    const item = formEngagements[index];
+    if (item) {
+      const currentTopic = newEngagementTopic.trim();
+      const currentDate = newEngagementDate;
+      setFormEngagements(prev => {
+        const filtered = prev.filter((_, i) => i !== index);
+        return (currentTopic && currentDate) ? [...filtered, {
+          type: newEngagementType,
+          date: currentDate,
+          topic: currentTopic,
+          status: newEngagementStatus
+        }] : filtered;
+      });
+      setNewEngagementType(item.type);
+      setNewEngagementDate(item.date);
+      setNewEngagementTopic(item.topic);
+      setNewEngagementStatus(item.status);
+    }
+  };
+
   const removeEngagement = (index: number) => {
     setFormEngagements(prev => prev.filter((_, i) => i !== index));
   };
@@ -476,6 +509,25 @@ export default function AlumniPage() {
     }]);
     setNewInitiativeTitle("");
     setNewInitiativeCost("");
+  };
+
+  const editInitiative = (index: number) => {
+    const item = formInitiatives[index];
+    if (item) {
+      const currentTitle = newInitiativeTitle.trim();
+      const currentCost = parseFloat(newInitiativeCost) || 0;
+      setFormInitiatives(prev => {
+        const filtered = prev.filter((_, i) => i !== index);
+        return currentTitle ? [...filtered, {
+          title: currentTitle,
+          cost: currentCost,
+          status: newInitiativeStatus
+        }] : filtered;
+      });
+      setNewInitiativeTitle(item.title);
+      setNewInitiativeCost(item.cost ? String(item.cost) : "");
+      setNewInitiativeStatus(item.status);
+    }
   };
 
   const removeInitiative = (index: number) => {
@@ -552,20 +604,59 @@ export default function AlumniPage() {
     }
   };
 
-  // Open edit modal
+  // Open edit modal - Fetch & pre-fill all alumni details cleanly into inputs
   const openEditModal = (alumnus: ParsedAlumni) => {
     setEditingAlumnusId(alumnus.id!);
-    setFormName(alumnus.name);
-    setFormBatch(alumnus.batch);
-    setFormRole(alumnus.role);
-    setFormPhone(alumnus.phone);
-    setFormEmail(alumnus.email);
-    setFormLocation(alumnus.location);
-    setFormValue(alumnus.value === "N/A" ? "" : alumnus.value);
-    setFormContributionDetails(alumnus.contributionDetails);
-    setFormAchievements(alumnus.achievements);
-    setFormEngagements(alumnus.engagements);
-    setFormInitiatives(alumnus.initiatives);
+    setFormName(alumnus.name || "");
+    setFormBatch(alumnus.batch || "");
+    setFormRole(alumnus.role || "Alumni Member");
+    setFormPhone(alumnus.phone === "N/A" ? "" : (alumnus.phone || ""));
+    setFormEmail(alumnus.email === "N/A" ? "" : (alumnus.email || ""));
+    setFormLocation(alumnus.location === "N/A" ? "" : (alumnus.location || ""));
+    setFormValue(alumnus.value === "N/A" ? "" : (alumnus.value || ""));
+    setFormContributionDetails(alumnus.contributionDetails || "");
+    setPhoneError("");
+
+    // Pre-fill Achievements: first item into input box, remaining in formAchievements list
+    const achs = Array.isArray(alumnus.achievements) ? [...alumnus.achievements] : [];
+    if (achs.length > 0) {
+      setNewAchievementInput(achs[0]);
+      setFormAchievements(achs.slice(1));
+    } else {
+      setNewAchievementInput("");
+      setFormAchievements([]);
+    }
+
+    // Pre-fill Engagements: first item into input controls, remaining in formEngagements list
+    const engs = Array.isArray(alumnus.engagements) ? [...alumnus.engagements] : [];
+    if (engs.length > 0) {
+      setNewEngagementType(engs[0].type || "Guest Lecture");
+      setNewEngagementDate(engs[0].date || "");
+      setNewEngagementTopic(engs[0].topic || "");
+      setNewEngagementStatus(engs[0].status || "Scheduled");
+      setFormEngagements(engs.slice(1));
+    } else {
+      setNewEngagementType("Guest Lecture");
+      setNewEngagementDate("");
+      setNewEngagementTopic("");
+      setNewEngagementStatus("Scheduled");
+      setFormEngagements([]);
+    }
+
+    // Pre-fill Initiatives: first item into input controls, remaining in formInitiatives list
+    const inits = Array.isArray(alumnus.initiatives) ? [...alumnus.initiatives] : [];
+    if (inits.length > 0) {
+      setNewInitiativeTitle(inits[0].title || "");
+      setNewInitiativeCost(inits[0].cost ? String(inits[0].cost) : "");
+      setNewInitiativeStatus(inits[0].status || "Completed");
+      setFormInitiatives(inits.slice(1));
+    } else {
+      setNewInitiativeTitle("");
+      setNewInitiativeCost("");
+      setNewInitiativeStatus("Completed");
+      setFormInitiatives([]);
+    }
+
     setIsModalOpen(true);
   };
 
@@ -1179,8 +1270,21 @@ export default function AlumniPage() {
                       </p>
                     </div>
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-900 flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-900 dark:text-slate-350">{ach.name}</span>
-                      <span className="text-slate-400">Batch {ach.batch}</span>
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-slate-350">{ach.name}</span>
+                        <span className="text-slate-400 ml-1.5">Batch {ach.batch}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const found = alumni.find(a => a.id === ach.id);
+                          if (found) openEditModal(found);
+                        }}
+                        className="px-2 py-1 text-blue-500 hover:text-blue-700 hover:bg-blue-500/10 rounded-lg flex items-center gap-1 font-bold transition-colors"
+                        title="Edit Profile & Details"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1269,9 +1373,22 @@ export default function AlumniPage() {
 
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-250 leading-snug">{eng.event.topic}</h4>
                     
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-900 flex justify-between text-[10px] text-slate-500 font-semibold">
-                      <span>Speaker: {eng.name}</span>
-                      <span>Batch of {eng.batch}</span>
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-semibold">
+                      <div>
+                        <span>Speaker: {eng.name}</span>
+                        <span className="ml-2">Batch of {eng.batch}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const found = alumni.find(a => a.id === eng.id);
+                          if (found) openEditModal(found);
+                        }}
+                        className="px-2 py-1 text-blue-500 hover:text-blue-700 hover:bg-blue-500/10 rounded-lg flex items-center gap-1 font-bold transition-colors"
+                        title="Edit Profile & Details"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1388,11 +1505,24 @@ export default function AlumniPage() {
                           {init.project.cost > 0 ? `₹${init.project.cost.toLocaleString('en-IN')}` : "₹0"}
                         </span>
                       </div>
-                      <div className="w-20 bg-slate-150 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                        <div 
-                          className="bg-emerald-500 h-full rounded-full" 
-                          style={{ width: init.project.status === "Completed" ? "100%" : "40%" }}
-                        />
+                      <div className="flex items-center gap-3">
+                        <div className="w-20 bg-slate-150 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className="bg-emerald-500 h-full rounded-full" 
+                            style={{ width: init.project.status === "Completed" ? "100%" : "40%" }}
+                          />
+                        </div>
+                        <button
+                          onClick={() => {
+                            const found = alumni.find(a => a.id === init.id);
+                            if (found) openEditModal(found);
+                          }}
+                          className="px-2 py-1 text-blue-500 hover:text-blue-700 hover:bg-blue-500/10 rounded-lg flex items-center gap-1 font-bold transition-colors text-[10px]"
+                          title="Edit Profile & Details"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1659,9 +1789,14 @@ export default function AlumniPage() {
                     {formAchievements.map((ach, idx) => (
                       <li key={idx} className="flex justify-between items-center text-[11px] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300">
                         <span className="truncate max-w-[180px]">{ach}</span>
-                        <button type="button" onClick={() => removeAchievement(idx)} className="text-red-500 hover:text-red-700">
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          <button type="button" onClick={() => editAchievement(idx)} className="text-blue-500 hover:text-blue-700" title="Edit achievement">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => removeAchievement(idx)} className="text-red-500 hover:text-red-700" title="Remove achievement">
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1711,9 +1846,14 @@ export default function AlumniPage() {
                           <span className="font-bold text-violet-600 mr-1">[{ev.type}]</span>
                           <span>{ev.topic}</span>
                         </div>
-                        <button type="button" onClick={() => removeEngagement(idx)} className="text-red-500 hover:text-red-700 shrink-0 ml-1">
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          <button type="button" onClick={() => editEngagement(idx)} className="text-blue-500 hover:text-blue-700" title="Edit event">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => removeEngagement(idx)} className="text-red-500 hover:text-red-700" title="Remove event">
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1762,9 +1902,14 @@ export default function AlumniPage() {
                           <span className="font-bold text-amber-650 mr-1">{proj.title}</span>
                           <span>(₹{proj.cost})</span>
                         </div>
-                        <button type="button" onClick={() => removeInitiative(idx)} className="text-red-500 hover:text-red-700 shrink-0 ml-1">
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          <button type="button" onClick={() => editInitiative(idx)} className="text-blue-500 hover:text-blue-700" title="Edit project">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => removeInitiative(idx)} className="text-red-500 hover:text-red-700" title="Remove project">
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
