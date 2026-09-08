@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { getDefaultFeatureCatalog, PORTAL_DISPLAY } from "@/lib/moduleCatalog";
@@ -126,13 +127,19 @@ const getFlaticon = (key: string) => {
 
   return (
     <PortalLayout>
-      <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+      <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between flex-wrap gap-3">
         <p className="text-xs text-amber-300 flex items-start gap-2">
           <i className="fi fi-rr-wrench text-base mt-0.5"></i>
           <span>
             <strong>Feature Toggles</strong> — Enable or disable platform features per portal. Changes take effect immediately across all users.
           </span>
         </p>
+        <Link
+          href="/super-admin/settings#portal-visibility"
+          className="text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm"
+        >
+          <i className="fi fi-rr-browser text-amber-400"></i> Portal Visibility Controls
+        </Link>
       </div>
 
       {error && (

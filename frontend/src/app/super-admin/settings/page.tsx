@@ -8,6 +8,11 @@ interface Settings {
   allowDemoLogin: boolean;
   enableAiFeatures: boolean;
   enableNotifications: boolean;
+  enableBeoPortal: boolean;
+  enableDeoPortal: boolean;
+  enableCommissionerPortal: boolean;
+  enableMinisterPortal: boolean;
+  enablePetPortal: boolean;
   sessionTimeout: string;
   maxUploadSize: string;
   defaultLanguage: string;
@@ -29,6 +34,11 @@ const DEFAULT_SETTINGS: Settings = {
   allowDemoLogin: true,
   enableAiFeatures: true,
   enableNotifications: true,
+  enableBeoPortal: true,
+  enableDeoPortal: true,
+  enableCommissionerPortal: true,
+  enableMinisterPortal: true,
+  enablePetPortal: true,
   sessionTimeout: "30",
   maxUploadSize: "10",
   defaultLanguage: "English",
@@ -36,7 +46,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 export default function PortalSettings() {
   const { data: session } = useSession();
-  const token = (session?.user as any)?.backendToken;
+  const token = (session?.user as any)?.backendToken || (session as any)?.backendToken;
   const myId = (session?.user as any)?.id;
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -49,11 +59,6 @@ export default function PortalSettings() {
   const [newAdmin, setNewAdmin] = useState({ name: "", email: "", mobile: "", password: "" });
   const [pwModal, setPwModal] = useState<AdminUser | null>(null);
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "" });
-
-  const authHeaders = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
 
   const showToast = (kind: "ok" | "err", text: string) => {
     setToast({ kind, text });
@@ -74,7 +79,16 @@ export default function PortalSettings() {
         const adminsData = await adminsRes.json();
         if (cancelled) return;
         if (settingsData.success && settingsData.data) {
-          setSettings({ ...DEFAULT_SETTINGS, ...settingsData.data });
+          const d = settingsData.data;
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...d,
+            enableBeoPortal: d.enableBeoPortal !== undefined ? Boolean(d.enableBeoPortal) : true,
+            enableDeoPortal: d.enableDeoPortal !== undefined ? Boolean(d.enableDeoPortal) : true,
+            enableCommissionerPortal: d.enableCommissionerPortal !== undefined ? Boolean(d.enableCommissionerPortal) : true,
+            enableMinisterPortal: d.enableMinisterPortal !== undefined ? Boolean(d.enableMinisterPortal) : true,
+            enablePetPortal: d.enablePetPortal !== undefined ? Boolean(d.enablePetPortal) : true,
+          });
         }
         if (adminsData.success && Array.isArray(adminsData.data)) {
           setAdmins(adminsData.data);
@@ -92,26 +106,78 @@ export default function PortalSettings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const updateSetting = (key: keyof Settings, value: string | boolean) => {
+  const updateSetting = async (key: keyof Settings, value: string | boolean) => {
+    // 1. Optimistic update in UI
+    const previous = settings[key];
     setSettings((prev) => ({ ...prev, [key]: value }));
+
+    // 2. Auto-save immediately to backend
+    const currentToken = token || (session?.user as any)?.backendToken || (session as any)?.backendToken;
+    if (currentToken) {
+      try {
+        const res = await fetch(`${API_URL}/api/superadmin/settings`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({ [key]: value }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          const statusText = value === false ? "DISABLED (Hidden across Portal & Home Page)" : "ENABLED (Visible across Portal & Home Page)";
+          showToast("ok", `Auto-saved: ${String(key)} is now ${statusText}`);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("portalVisibilityChanged"));
+          }
+        } else {
+          // Rollback on error
+          setSettings((prev) => ({ ...prev, [key]: previous }));
+          showToast("err", data.error || "Failed to auto-save setting");
+        }
+      } catch {
+        setSettings((prev) => ({ ...prev, [key]: previous }));
+        showToast("err", "Failed to connect to backend to save setting");
+      }
+    }
   };
 
   const saveSettings = async () => {
+    const currentToken = token || (session?.user as any)?.backendToken || (session as any)?.backendToken;
+    if (!currentToken) {
+      showToast("err", "Missing authentication token. Please log in again.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`${API_URL}/api/superadmin/settings`, {
         method: "PUT",
-        headers: authHeaders,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
         body: JSON.stringify(settings),
       });
       const data = await res.json();
       if (data.success) {
-        showToast("ok", "Settings saved. Maintenance mode and AI toggles apply immediately.");
+        if (data.data) {
+          const d = data.data;
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...d,
+            enableBeoPortal: d.enableBeoPortal !== undefined ? Boolean(d.enableBeoPortal) : true,
+            enableDeoPortal: d.enableDeoPortal !== undefined ? Boolean(d.enableDeoPortal) : true,
+            enableCommissionerPortal: d.enableCommissionerPortal !== undefined ? Boolean(d.enableCommissionerPortal) : true,
+            enableMinisterPortal: d.enableMinisterPortal !== undefined ? Boolean(d.enableMinisterPortal) : true,
+            enablePetPortal: d.enablePetPortal !== undefined ? Boolean(d.enablePetPortal) : true,
+          });
+        }
+        showToast("ok", "All settings saved. Home Page reflects changes immediately.");
       } else {
         showToast("err", data.error || "Failed to save settings");
       }
     } catch {
-      showToast("err", "Failed to save settings");
+      showToast("err", "Failed to save settings. Check backend connection.");
     } finally {
       setSaving(false);
     }
@@ -284,6 +350,121 @@ export default function PortalSettings() {
                     <div className="text-[10px] text-slate-500 mt-0.5">{item.desc}</div>
                   </div>
                   <Toggle on={settings[item.key]} onClick={() => updateSetting(item.key, !settings[item.key])} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ═══════ Portal & Section Visibility (Home Page & Navigation) ═══════ */}
+          <div id="portal-visibility" className="glass rounded-2xl p-6 border border-amber-500/20 bg-gradient-to-b from-slate-900/80 to-slate-900/40">
+            <div className="mb-5 flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <i className="fi fi-rr-browser text-amber-400"></i> Portal & Section Visibility (Home Page & Navigation)
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Enable or disable portal sections. When disabled, the portal and its corresponding section, cards, and titles are automatically hidden from the Home Page.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Live Home Page Sync
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  key: "enableBeoPortal" as const,
+                  label: "Block Education Officer (BEO)",
+                  tier: "District Level",
+                  desc: "Block administration, school cluster visits, promotions, and MDM inspections.",
+                  icon: "fi-rr-bank",
+                  accent: "text-violet-400",
+                  bg: "bg-violet-500/10",
+                  border: "border-violet-500/20",
+                },
+                {
+                  key: "enableDeoPortal" as const,
+                  label: "District Education Officer (DEO)",
+                  tier: "District Level",
+                  desc: "District heatmaps, school rankings, dropout interventions, and resource distribution.",
+                  icon: "fi-rr-map",
+                  accent: "text-pink-400",
+                  bg: "bg-pink-500/10",
+                  border: "border-pink-500/20",
+                },
+                {
+                  key: "enableCommissionerPortal" as const,
+                  label: "Commissioner Portal",
+                  tier: "State Level",
+                  desc: "State directorate operations, policy monitoring, and district performance benchmarking.",
+                  icon: "fi-rr-scale",
+                  accent: "text-sky-400",
+                  bg: "bg-sky-500/10",
+                  border: "border-sky-500/20",
+                },
+                {
+                  key: "enableMinisterPortal" as const,
+                  label: "Minister Dashboard",
+                  tier: "State Level",
+                  desc: "Executive command center, statewide KPI monitoring, live telemetry, and AI forecasting.",
+                  icon: "fi-rr-flag",
+                  accent: "text-red-400",
+                  bg: "bg-red-500/10",
+                  border: "border-red-500/20",
+                },
+                {
+                  key: "enablePetPortal" as const,
+                  label: "PET Portal (Physical Education & Sports)",
+                  tier: "School Level",
+                  desc: "Physical education coaches, sports team rosters, fitness metrics, and sports equipment inventory.",
+                  icon: "fi-rr-trophy",
+                  accent: "text-amber-400",
+                  bg: "bg-amber-500/10",
+                  border: "border-amber-500/20",
+                },
+              ].map((item) => (
+                <div
+                  key={item.key}
+                  className={`flex flex-col justify-between rounded-xl p-4 border transition-all ${
+                    settings[item.key]
+                      ? "bg-slate-900/60 border-slate-700/80 shadow-sm"
+                      : "bg-slate-950/40 border-slate-800/60 opacity-75"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-lg ${item.bg} ${item.border} border flex items-center justify-center text-base ${item.accent}`}>
+                        <i className={`fi ${item.icon}`}></i>
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-2">
+                          {item.label}
+                        </div>
+                        <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
+                          {item.tier}
+                        </span>
+                      </div>
+                    </div>
+                    <Toggle on={settings[item.key]} onClick={() => updateSetting(item.key, !settings[item.key])} />
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                    {item.desc}
+                  </p>
+
+                  <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-500">Home Page Status:</span>
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded ${
+                        settings[item.key]
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                      }`}
+                    >
+                      {settings[item.key] ? "Visible on Home Page" : "Hidden from Home Page"}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

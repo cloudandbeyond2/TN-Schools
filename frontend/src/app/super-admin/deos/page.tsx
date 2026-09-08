@@ -71,14 +71,23 @@ export default function ManageDeosPage() {
   const [password, setPassword] = useState("");
   const [district, setDistrict] = useState("Coimbatore");
 
+  const [isDeoDisabled, setIsDeoDisabled] = useState(false);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchDeos = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/hierarchy/users?role=DEO`);
-      const data = await res.json();
+      const [resUsers, resFeatures] = await Promise.all([
+        fetch(`${API_URL}/api/hierarchy/users?role=DEO`),
+        fetch(`${API_URL}/api/features/effective`, { cache: "no-store" }),
+      ]);
+      const data = await resUsers.json();
       if (data.success) {
         setDeos(data.data);
+      }
+      const featData = await resFeatures.json();
+      if (featData.success && featData.data?.portalVisibility) {
+        setIsDeoDisabled(featData.data.portalVisibility.deo === false);
       }
     } catch (err) {
       console.error("Error fetching DEOs:", err);
@@ -261,6 +270,25 @@ export default function ManageDeosPage() {
         </div>
       )}
 
+      {/* Warning banner if DEO Portal is disabled in settings */}
+      {isDeoDisabled && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <div className="text-xs font-bold text-amber-200">DEO Portal is Currently Disabled</div>
+              <div className="text-[11px] text-amber-300/80 mt-0.5">The DEO portal, Home page section, and navigation links are hidden from user portals. You can manage DEO accounts here or re-enable the portal anytime.</div>
+            </div>
+          </div>
+          <a
+            href="/super-admin/settings#portal-visibility"
+            className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold border border-amber-500/40 transition shrink-0"
+          >
+            Configure in Settings →
+          </a>
+        </div>
+      )}
+
       {/* Overview stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -275,8 +303,14 @@ export default function ManageDeosPage() {
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Portal Status</span>
-          <div className="text-2xl font-bold text-slate-800 dark:text-white">Active</div>
-          <span className="badge bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Operational</span>
+          <div className="text-2xl font-bold text-slate-800 dark:text-white">{isDeoDisabled ? "Disabled" : "Active"}</div>
+          <span className={`badge px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block ${
+            isDeoDisabled
+              ? "bg-amber-500/10 text-amber-500 dark:text-amber-400"
+              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
+          }`}>
+            {isDeoDisabled ? "Hidden from Portals" : "Operational"}
+          </span>
         </div>
       </div>
 

@@ -30,14 +30,23 @@ export default function ManageMinistersPage() {
   const [password, setPassword] = useState("");
   const [position, setPosition] = useState("");
 
+  const [isMinisterDisabled, setIsMinisterDisabled] = useState(false);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchMinisters = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users?role=MINISTER`);
-      const data = await res.json();
+      const [resUsers, resFeatures] = await Promise.all([
+        fetch(`${API_URL}/api/users?role=MINISTER`),
+        fetch(`${API_URL}/api/features/effective`, { cache: "no-store" }),
+      ]);
+      const data = await resUsers.json();
       if (data.success) {
         setMinisters(data.data);
+      }
+      const featData = await resFeatures.json();
+      if (featData.success && featData.data?.portalVisibility) {
+        setIsMinisterDisabled(featData.data.portalVisibility.minister === false);
       }
     } catch (err) {
       console.error(err);
@@ -157,6 +166,25 @@ export default function ManageMinistersPage() {
         </div>
       )}
 
+      {/* Warning banner if Minister Portal is disabled in settings */}
+      {isMinisterDisabled && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <div className="text-xs font-bold text-amber-200">Minister Portal is Currently Disabled</div>
+              <div className="text-[11px] text-amber-300/80 mt-0.5">The Minister portal, Home page section, and navigation links are hidden from general access. You can manage minister profiles here or re-enable the portal anytime.</div>
+            </div>
+          </div>
+          <a
+            href="/super-admin/settings#portal-visibility"
+            className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold border border-amber-500/40 transition shrink-0"
+          >
+            Configure in Settings →
+          </a>
+        </div>
+      )}
+
       {/* Overview stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -171,8 +199,10 @@ export default function ManageMinistersPage() {
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Portal Access</span>
-          <div className="text-2xl font-bold text-slate-800 dark:text-white">Granted</div>
-          <span className="badge badge-green mt-2">Operational</span>
+          <div className="text-2xl font-bold text-slate-800 dark:text-white">{isMinisterDisabled ? "Disabled" : "Granted"}</div>
+          <span className={`badge mt-2 ${isMinisterDisabled ? "bg-amber-500/10 text-amber-500 dark:text-amber-400 font-bold" : "badge-green"}`}>
+            {isMinisterDisabled ? "Hidden from Portals" : "Operational"}
+          </span>
         </div>
       </div>
 

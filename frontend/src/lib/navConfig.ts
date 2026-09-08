@@ -802,6 +802,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Audit & Config", href: "#", icon: "" },
       { label: "System Logs", href: "/super-admin/logs", icon: "FileText" },
       { label: "Portal Settings", href: "/super-admin/settings", icon: "Settings" },
+      { label: "Portal Visibility Control", href: "/super-admin/settings#portal-visibility", icon: "Sliders" },
     ],
   },
 };

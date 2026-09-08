@@ -41,6 +41,39 @@ router.get('/effective', async (_req: Request, res: Response) => {
     const disabledFeatureKeys: string[] = [];
     const aiGloballyOff = settings ? settings.enableAiFeatures === false : false;
 
+    // Portal-level master switches
+    const portalVisibility = {
+      beo: settings ? settings.enableBeoPortal !== false : true,
+      deo: settings ? settings.enableDeoPortal !== false : true,
+      commissioner: settings ? settings.enableCommissionerPortal !== false : true,
+      minister: settings ? settings.enableMinisterPortal !== false : true,
+      pet: settings ? settings.enablePetPortal !== false : true,
+    };
+
+    if (!portalVisibility.beo) {
+      disabledRoutes.add('/block-education-officer');
+      disabledRoutes.add('/super-admin/beos');
+      disabledRoutes.add('/district-education-officer/beos');
+    }
+    if (!portalVisibility.deo) {
+      disabledRoutes.add('/district-education-officer');
+      disabledRoutes.add('/super-admin/deos');
+      disabledRoutes.add('/commissioner/deos');
+    }
+    if (!portalVisibility.commissioner) {
+      disabledRoutes.add('/commissioner');
+      disabledRoutes.add('/super-admin/commissioners');
+      disabledRoutes.add('/minister/commissioners');
+    }
+    if (!portalVisibility.minister) {
+      disabledRoutes.add('/minister');
+      disabledRoutes.add('/super-admin/ministers');
+    }
+    if (!portalVisibility.pet) {
+      disabledRoutes.add('/pet');
+      disabledRoutes.add('/student/sports');
+    }
+
     for (const mod of modules) {
       const disabledByAiSwitch = aiGloballyOff && mod.category === 'AI & Learning';
       if (!mod.isEnabled || disabledByAiSwitch) {
@@ -64,6 +97,7 @@ router.get('/effective', async (_req: Request, res: Response) => {
       data: {
         disabledRoutes: Array.from(disabledRoutes),
         disabledFeatureKeys,
+        portalVisibility,
         maintenanceMode: settings ? settings.maintenanceMode === true : false,
       },
     });

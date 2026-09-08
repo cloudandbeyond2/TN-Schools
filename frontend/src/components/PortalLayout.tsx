@@ -875,21 +875,41 @@ export default function PortalLayout({
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    // Union of disabled ManagedPages and disabled feature modules, computed
-    // server-side. Fail-open on purpose: a config-DB outage must never lock
-    // out every portal.
-    fetch(`${apiUrl}/api/features/effective`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          if (Array.isArray(data.data.disabledRoutes)) {
-            setDisabledRoutes(new Set<string>(data.data.disabledRoutes));
+    const fetchEffective = () => {
+      fetch(`${apiUrl}/api/features/effective`, { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data) {
+            if (Array.isArray(data.data.disabledRoutes)) {
+              setDisabledRoutes(new Set<string>(data.data.disabledRoutes));
+            }
+            setMaintenanceMode(data.data.maintenanceMode === true);
           }
-          setMaintenanceMode(data.data.maintenanceMode === true);
-        }
-      })
-      .catch(() => { });
-  }, []);
+        })
+        .catch(() => { });
+    };
+
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
+  }, [pathname]);
+
+  // Helper to determine if a nav route is disabled
+  const isNavRouteDisabled = (href: string) => {
+    if (!href || href === "#" || href === "---") return false;
+    const cleanHref = href.split("#")[0];
+    if (disabledRoutes.has(cleanHref) || disabledRoutes.has(href)) return true;
+    for (const dr of disabledRoutes) {
+      if (dr && dr !== "/" && (cleanHref === dr || cleanHref.startsWith(dr + "/"))) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   // Redirect to sign-in page if not logged in
   useEffect(() => {
@@ -974,9 +994,14 @@ export default function PortalLayout({
 
   let filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
-      ? resolvedNavItems
+      ? resolvedNavItems.filter((item) => {
+          if (isNavRouteDisabled(item.href)) {
+            return false;
+          }
+          return true;
+        })
       : resolvedNavItems.filter((item) => {
-        if (item.href !== "#" && item.label !== "---" && disabledRoutes.has(item.href)) {
+        if (isNavRouteDisabled(item.href)) {
           return false;
         }
 

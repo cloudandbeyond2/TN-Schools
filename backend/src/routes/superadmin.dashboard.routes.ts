@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import mongoose from 'mongoose';
-import { FeatureModule, IntegrationConfig, ManagedPage } from '../models/mongo';
+import { FeatureModule, IntegrationConfig, ManagedPage, PlatformSetting } from '../models/mongo';
 import { requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -19,11 +19,12 @@ router.get('/stats', async (req: Request, res: Response) => {
       prisma.centralTopic.count(),
     ]);
 
-    // 2. Fetch MongoDB feature module counts
-    const [enabledModulesCount, totalModulesCount, pagesCount] = await Promise.all([
+    // 2. Fetch MongoDB feature module counts & platform settings
+    const [enabledModulesCount, totalModulesCount, pagesCount, settings] = await Promise.all([
       FeatureModule.countDocuments({ isEnabled: true }),
       FeatureModule.countDocuments(),
       ManagedPage.countDocuments(),
+      PlatformSetting.findOne({ key: 'global' }),
     ]);
 
     // 3. Fetch specific user roles counts for badges
@@ -31,25 +32,13 @@ router.get('/stats', async (req: Request, res: Response) => {
       prisma.user.count({ where: { role: 'HEADMASTER' as any } }),
       prisma.user.count({ where: { role: 'DEO' as any } }),
       prisma.user.count({ where: { role: 'BEO' as any } }),
-      prisma.centralContent.count(),
-      prisma.user.count({ where: { role: 'MINISTER' as any, isActive: true } }),
-      IntegrationConfig.countDocuments({ type: 'AI', isEnabled: true }),
+      prisma.studyMaterial.count(),
+      prisma.user.count({ where: { role: 'MINISTER' as any } }),
+      IntegrationConfig.countDocuments({ isActive: true }),
     ]);
 
-    // 4. Check AI API configuration status
-    let aiStatus = 'Online';
-    try {
-      const hasGeminiKey = !!process.env.GEMINI_API_KEY;
-      const hasMongoAiConfig = aiApisCount > 0;
-      if (hasGeminiKey || hasMongoAiConfig) {
-        aiStatus = 'Online';
-      }
-    } catch (e) {
-      console.warn('[Dashboard Stats] Error checking AI config status:', e);
-    }
-
-    // 5. Calculate dynamic process uptime string for system status subtext
-    const uptimeSeconds = process.uptime();
+    // 4. Calculate Uptime and AI Status
+    const uptimeSeconds = Math.floor(process.uptime());
     const days = Math.floor(uptimeSeconds / (3600 * 24));
     const hours = Math.floor((uptimeSeconds % (3600 * 24)) / 3600);
     const minutes = Math.floor((uptimeSeconds % 3600) / 60);
@@ -58,9 +47,36 @@ router.get('/stats', async (req: Request, res: Response) => {
     if (hours > 0 || days > 0) uptimeStr += `${hours}h `;
     uptimeStr += `${minutes}m`;
 
+    let aiStatus = 'Online';
+    try {
+      const hasGeminiKey = !!process.env.GEMINI_API_KEY;
+      const hasMongoAiConfig = aiApisCount > 0;
+      if (!hasGeminiKey && !hasMongoAiConfig) {
+        aiStatus = 'Config Needed';
+      }
+    } catch {
+      aiStatus = 'Online';
+    }
+
+    // 5. Portal visibility from settings
+    const portalVisibility = {
+      beo: settings ? (settings as any).enableBeoPortal !== false : true,
+      deo: settings ? (settings as any).enableDeoPortal !== false : true,
+      commissioner: settings ? (settings as any).enableCommissionerPortal !== false : true,
+      minister: settings ? (settings as any).enableMinisterPortal !== false : true,
+      pet: settings ? (settings as any).enablePetPortal !== false : true,
+    };
+
     // 6. Calculate Active Portals and roll up counts per role
-    let activePortals = '9 / 9';
-    let activePortalsSub = 'All online';
+    const totalPossiblePortals = 9;
+    let enabledPortalsCount = 9;
+    if (!portalVisibility.beo) enabledPortalsCount--;
+    if (!portalVisibility.deo) enabledPortalsCount--;
+    if (!portalVisibility.commissioner) enabledPortalsCount--;
+    if (!portalVisibility.minister) enabledPortalsCount--;
+
+    let activePortals = `${enabledPortalsCount} / ${totalPossiblePortals}`;
+    let activePortalsSub = enabledPortalsCount === 9 ? 'All online' : `${9 - enabledPortalsCount} portal(s) disabled`;
     const roles: Record<string, number> = {
       student: 0,
       teacher: 0,
@@ -78,11 +94,6 @@ router.get('/stats', async (req: Request, res: Response) => {
         by: ['role'],
         _count: { id: true },
       });
-      const activeRoles = rolesWithUsers.filter((g) => g._count.id > 0).length;
-      activePortals = `${activeRoles} / 9`;
-      if (activeRoles < 9) {
-        activePortalsSub = `${9 - activeRoles} portal(s) inactive`;
-      }
       rolesWithUsers.forEach((g) => {
         const r = String(g.role).toLowerCase();
         if (r in roles) roles[r] = g._count.id;

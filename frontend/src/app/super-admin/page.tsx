@@ -55,20 +55,47 @@ const recentActivity = [
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "people" | "academics" | "system" | "governance">("all");
   const [stats, setStats] = useState<any>(null);
+  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const loadData = async () => {
+    try {
+      const [resStats, resFeatures] = await Promise.all([
+        apiFetch("/api/superadmin/dashboard/stats"),
+        apiFetch("/api/features/effective"),
+      ]);
+      const jsonStats = await resStats.json();
+      if (jsonStats.success) {
+        setStats(jsonStats.data);
+      }
+      const jsonFeatures = await resFeatures.json();
+      if (jsonFeatures.success && jsonFeatures.data) {
+        if (Array.isArray(jsonFeatures.data.disabledRoutes)) {
+          setDisabledRoutes(new Set<string>(jsonFeatures.data.disabledRoutes));
+        }
+        if (jsonFeatures.data.portalVisibility) {
+          setPortalVisibility(jsonFeatures.data.portalVisibility);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
+  };
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await apiFetch("/api/superadmin/dashboard/stats");
-        const json = await res.json();
-        if (json.success) {
-          setStats(json.data);
-        }
-      } catch (err) {
-        console.error("Error fetching dashboard stats:", err);
-      }
-    }
-    fetchStats();
+    loadData();
+    window.addEventListener("portalVisibilityChanged", loadData);
+    window.addEventListener("focus", loadData);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", loadData);
+      window.removeEventListener("focus", loadData);
+    };
   }, []);
 
   const dynamicStats = systemStatsStatic.map((kpi) => {
@@ -95,73 +122,86 @@ export default function SuperAdminDashboard() {
     }
   });
 
-  const dynamicActions = quickActionsStatic.map((action) => {
-    if (!stats) return { ...action, badge: "..." };
-    let badge = action.badge;
-    switch (action.label) {
-      case "User Management":
-        badge = `${stats.totalUsers || "40"} users`;
-        break;
-      case "Role & Permissions":
-        badge = `9 roles`;
-        break;
-      case "School Management":
-        badge = `${stats.rawSchoolCount ? stats.rawSchoolCount.toLocaleString("en-IN") : "37,404"} schools`;
-        break;
-      case "Headmaster Mgmt":
-        badge = `${stats.hmCount ? stats.hmCount.toLocaleString("en-IN") : "37K+"} HMs`;
-        break;
-      case "Commissioner Mgmt":
-        badge = `${stats.activeMinisters || 1} active`;
-        break;
-      case "DEO Management":
-        badge = `${stats.deoCount ? stats.deoCount : "38"} DEOs`;
-        break;
-      case "BEO Management":
-        badge = `${stats.beoCount ? stats.beoCount : "413"} Blocks`;
-        break;
-      case "Material Library":
-        badge = `${stats.materialsCount ? stats.materialsCount.toLocaleString("en-IN") : "2.8K"} items`;
-        break;
-      case "Department Modules":
-        badge = `${stats.totalModules || 28} modules`;
-        break;
-      case "AI Integration":
-        badge = `${stats.aiApisCount || 3} APIs`;
-        break;
-      case "Feature Toggles":
-        badge = `${stats.enabledModules || 28} on / ${(stats.totalModules || 28) - (stats.enabledModules || 28)} off`;
-        break;
-      case "Page Management":
-        badge = `${stats.pagesCount || 12} pages`;
-        break;
-      case "Manage Ministers":
-        badge = `${stats.activeMinisters || 1} active`;
-        break;
-    }
-    return { ...action, badge };
-  });
+  const isActionDisabled = (href: string) => {
+    if (disabledRoutes.has(href)) return true;
+    if (href === "/super-admin/commissioners" && !portalVisibility.commissioner) return true;
+    if (href === "/super-admin/deos" && !portalVisibility.deo) return true;
+    if (href === "/super-admin/beos" && !portalVisibility.beo) return true;
+    if (href === "/super-admin/ministers" && !portalVisibility.minister) return true;
+    return false;
+  };
+
+  const dynamicActions = quickActionsStatic
+    .filter((action) => !isActionDisabled(action.href))
+    .map((action) => {
+      if (!stats) return { ...action, badge: "..." };
+      let badge = action.badge;
+      switch (action.label) {
+        case "User Management":
+          badge = `${stats.totalUsers || "40"} users`;
+          break;
+        case "Role & Permissions":
+          badge = `9 roles`;
+          break;
+        case "School Management":
+          badge = `${stats.rawSchoolCount ? stats.rawSchoolCount.toLocaleString("en-IN") : "37,404"} schools`;
+          break;
+        case "Headmaster Mgmt":
+          badge = `${stats.hmCount ? stats.hmCount.toLocaleString("en-IN") : "37K+"} HMs`;
+          break;
+        case "Commissioner Mgmt":
+          badge = `${stats.activeMinisters || 1} active`;
+          break;
+        case "DEO Management":
+          badge = `${stats.deoCount ? stats.deoCount : "38"} DEOs`;
+          break;
+        case "BEO Management":
+          badge = `${stats.beoCount ? stats.beoCount : "413"} Blocks`;
+          break;
+        case "Material Library":
+          badge = `${stats.materialsCount ? stats.materialsCount.toLocaleString("en-IN") : "2.8K"} items`;
+          break;
+        case "Department Modules":
+          badge = `${stats.totalModules || 28} modules`;
+          break;
+        case "AI Integration":
+          badge = `${stats.aiApisCount || 3} APIs`;
+          break;
+        case "Feature Toggles":
+          badge = `${stats.enabledModules || 28} on / ${(stats.totalModules || 28) - (stats.enabledModules || 28)} off`;
+          break;
+        case "Page Management":
+          badge = `${stats.pagesCount || 12} pages`;
+          break;
+        case "Manage Ministers":
+          badge = `${stats.activeMinisters || 1} active`;
+          break;
+      }
+      return { ...action, badge };
+    });
 
   const portalHealth = [
-    { name: "Student", key: "student" },
-    { name: "Teacher", key: "teacher" },
-    { name: "Parent", key: "parent" },
-    { name: "Headmaster", key: "headmaster" },
-    { name: "BEO", key: "beo" },
-    { name: "DEO", key: "deo" },
-    { name: "Commissioner", key: "commissioner" },
-    { name: "Minister", key: "minister" },
-    { name: "Super Admin", key: "superadmin" },
-  ].map((p) => {
-    const count = stats?.roles?.[p.key] || 0;
-    const load = stats?.portalLoads?.[p.key] || (count > 0 ? 10 : 0);
-    return {
-      name: p.name,
-      users: count > 0 ? count.toLocaleString("en-IN") : "0",
-      load,
-      isOnline: count > 0 || p.key === "superadmin",
-    };
-  });
+    { name: "Student", key: "student", enabled: true },
+    { name: "Teacher", key: "teacher", enabled: true },
+    { name: "Parent", key: "parent", enabled: true },
+    { name: "Headmaster", key: "headmaster", enabled: true },
+    { name: "BEO", key: "beo", enabled: portalVisibility.beo },
+    { name: "DEO", key: "deo", enabled: portalVisibility.deo },
+    { name: "Commissioner", key: "commissioner", enabled: portalVisibility.commissioner },
+    { name: "Minister", key: "minister", enabled: portalVisibility.minister },
+    { name: "Super Admin", key: "superadmin", enabled: true },
+  ]
+    .filter((p) => p.enabled)
+    .map((p) => {
+      const count = stats?.roles?.[p.key] || 0;
+      const load = stats?.portalLoads?.[p.key] || (count > 0 ? 10 : 0);
+      return {
+        name: p.name,
+        users: count > 0 ? count.toLocaleString("en-IN") : "0",
+        load,
+        isOnline: count > 0 || p.key === "superadmin",
+      };
+    });
 
   const filterMap: Record<string, string[]> = {
     all: dynamicActions.map((q) => q.href),
@@ -171,7 +211,7 @@ export default function SuperAdminDashboard() {
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };
 
-  const filteredActions = dynamicActions.filter((q) => filterMap[activeTab].includes(q.href));
+  const filteredActions = dynamicActions.filter((q) => filterMap[activeTab]?.includes(q.href));
 
   return (
     <PortalLayout>

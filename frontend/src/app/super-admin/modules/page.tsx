@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { getDefaultFeatureCatalog, MODULE_PORTALS, PORTAL_DISPLAY } from "@/lib/moduleCatalog";
@@ -181,7 +182,15 @@ export default function DepartmentModules() {
           <h1 className="text-xl font-bold text-white">🗓️ Department Module Management</h1>
           <p className="text-xs text-slate-400 mt-1">Control which modules are active for each portal. Click toggle cells to enable or disable per portal. Disabled modules are hidden from navigation and blocked for direct access.</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="text-xs font-bold bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-4 py-2 rounded-lg transition">+ Add Module</button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/super-admin/settings#portal-visibility"
+            className="text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm"
+          >
+            <i className="fi fi-rr-browser text-amber-400"></i> Portal Visibility Controls
+          </Link>
+          <button onClick={() => setShowModal(true)} className="text-xs font-bold bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-4 py-2 rounded-lg transition">+ Add Module</button>
+        </div>
       </div>
 
       {error && (

@@ -53,14 +53,23 @@ export default function ManageBeosPage() {
   const [district, setDistrict] = useState("Chennai");
   const [block, setBlock] = useState("");
 
+  const [isBeoDisabled, setIsBeoDisabled] = useState(false);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchBeos = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users?role=BEO`);
-      const data = await res.json();
+      const [resUsers, resFeatures] = await Promise.all([
+        fetch(`${API_URL}/api/users?role=BEO`),
+        fetch(`${API_URL}/api/features/effective`, { cache: "no-store" }),
+      ]);
+      const data = await resUsers.json();
       if (data.success) {
         setBeos(data.data);
+      }
+      const featData = await resFeatures.json();
+      if (featData.success && featData.data?.portalVisibility) {
+        setIsBeoDisabled(featData.data.portalVisibility.beo === false);
       }
     } catch (err) {
       console.error("Error fetching BEOs:", err);
@@ -266,6 +275,23 @@ export default function ManageBeosPage() {
           <button onClick={() => setToast(null)} className="text-white/80 hover:text-white text-sm font-bold ml-2 shrink-0">
             ✕
           </button>
+        </div>
+      {/* Warning banner if BEO Portal is disabled in settings */}
+      {isBeoDisabled && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <div className="text-xs font-bold text-amber-200">BEO Portal is Currently Disabled</div>
+              <div className="text-[11px] text-amber-300/80 mt-0.5">The BEO portal, Home page section, and navigation links are hidden from user portals. You can manage BEO accounts here or re-enable the portal anytime.</div>
+            </div>
+          </div>
+          <a
+            href="/super-admin/settings#portal-visibility"
+            className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold border border-amber-500/40 transition shrink-0"
+          >
+            Configure in Settings →
+          </a>
         </div>
       )}
 

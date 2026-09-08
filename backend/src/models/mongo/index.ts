@@ -743,6 +743,11 @@ export interface IPlatformSetting extends Document {
   allowDemoLogin: boolean;
   enableAiFeatures: boolean;
   enableNotifications: boolean;
+  enableBeoPortal: boolean;
+  enableDeoPortal: boolean;
+  enableCommissionerPortal: boolean;
+  enableMinisterPortal: boolean;
+  enablePetPortal: boolean;
   sessionTimeout: string;
   maxUploadSize: string;
   defaultLanguage: string;
@@ -752,15 +757,20 @@ export interface IPlatformSetting extends Document {
 }
 
 const PlatformSettingSchema = new Schema<IPlatformSetting>({
-  key:                 { type: String, required: true, unique: true, default: 'global' },
-  maintenanceMode:     { type: Boolean, default: false },
-  allowDemoLogin:      { type: Boolean, default: true },
-  enableAiFeatures:    { type: Boolean, default: true },
-  enableNotifications: { type: Boolean, default: true },
-  sessionTimeout:      { type: String, default: '30' },
-  maxUploadSize:       { type: String, default: '10' },
-  defaultLanguage:     { type: String, default: 'English' },
-  updatedBy:           { type: String },
+  key:                      { type: String, required: true, unique: true, default: 'global' },
+  maintenanceMode:          { type: Boolean, default: false },
+  allowDemoLogin:           { type: Boolean, default: true },
+  enableAiFeatures:         { type: Boolean, default: true },
+  enableNotifications:      { type: Boolean, default: true },
+  enableBeoPortal:          { type: Boolean, default: true },
+  enableDeoPortal:          { type: Boolean, default: true },
+  enableCommissionerPortal: { type: Boolean, default: true },
+  enableMinisterPortal:     { type: Boolean, default: true },
+  enablePetPortal:          { type: Boolean, default: true },
+  sessionTimeout:           { type: String, default: '30' },
+  maxUploadSize:            { type: String, default: '10' },
+  defaultLanguage:          { type: String, default: 'English' },
+  updatedBy:                { type: String },
 }, { timestamps: true });
 
 export const PlatformSetting = mongoose.models.PlatformSetting || mongoose.model<IPlatformSetting>('PlatformSetting', PlatformSettingSchema);
