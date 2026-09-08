@@ -217,6 +217,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       studentName: profile.student.user.name,
       className: `${profile.student.class}${profile.student.section || ''}`,
       rollNumber: profile.student.rollNumber || '',
+      gender: profile.student.gender || 'Male',
       teams: profile.teams,
       stats: profile.stats,
       events: profile.events,

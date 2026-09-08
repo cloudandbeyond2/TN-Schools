@@ -5,30 +5,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
-import {
-  User,
-  GraduationCap,
-  Award,
-  FolderKanban,
-  Sparkles,
-  BookOpen,
-  Trophy,
-  Users,
-  Dumbbell,
-  Plus,
-  Trash2,
-  Edit3,
-  Download,
-  X,
-  CheckCircle2,
-  Star,
-  Target,
-  FlaskConical,
-  MessageSquare,
-  ShieldCheck,
-  Filter
-} from "lucide-react";
-
 const API_BASE = "http://localhost:5000";
 
 // --- Data Interfaces ---
@@ -760,14 +736,14 @@ function DigitalPortfolioContent() {
                 onClick={() => setIsProfileModalOpen(true)}
                 className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5"
               >
-                <Edit3 className="w-3.5 h-3.5 text-indigo-400" /> Edit Profile
+                <i className="fi fi-rr-edit text-indigo-400 text-xs flex items-center" /> Edit Profile
               </button>
             )}
             <button
               onClick={handleExportPDF}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
             >
-              <Download className="w-3.5 h-3.5" /> Export PDF
+              <i className="fi fi-rr-download text-xs flex items-center" /> Export PDF
             </button>
           </div>
         </div>
@@ -776,7 +752,7 @@ function DigitalPortfolioContent() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
           <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
             <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5" />
+              <i className="fi fi-rr-check-circle text-lg flex items-center" />
             </div>
             <div>
               <span className="block text-base font-black text-white">{data.profile.attendanceRate}%</span>
@@ -786,7 +762,7 @@ function DigitalPortfolioContent() {
 
           <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
             <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-              <FolderKanban className="w-5 h-5" />
+              <i className="fi fi-rr-folder text-lg flex items-center" />
             </div>
             <div>
               <span className="block text-base font-black text-white">{data.projects.length}</span>
@@ -796,7 +772,7 @@ function DigitalPortfolioContent() {
 
           <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
             <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-              <Trophy className="w-5 h-5" />
+              <i className="fi fi-rr-trophy text-lg flex items-center" />
             </div>
             <div>
               <span className="block text-base font-black text-white">{data.achievements.length}</span>
@@ -806,7 +782,7 @@ function DigitalPortfolioContent() {
 
           <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80 flex items-center gap-3">
             <div className="p-2.5 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
-              <GraduationCap className="w-5 h-5" />
+              <i className="fi fi-rr-graduation-cap text-lg flex items-center" />
             </div>
             <div>
               <span className="block text-base font-black text-white">{overallPercentage}%</span>
@@ -826,7 +802,7 @@ function DigitalPortfolioContent() {
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          <User className="w-4 h-4" /> Overview & Profile
+          <i className="fi fi-rr-user text-sm flex items-center" /> Overview & Profile
         </button>
         <button
           onClick={() => setActiveTab("academics")}
@@ -836,7 +812,7 @@ function DigitalPortfolioContent() {
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          <BookOpen className="w-4 h-4" /> Academic Performance
+          <i className="fi fi-rr-book-alt text-sm flex items-center" /> Academic Performance
         </button>
         <button
           onClick={() => setActiveTab("projects")}
@@ -846,7 +822,7 @@ function DigitalPortfolioContent() {
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          <Sparkles className="w-4 h-4" /> Projects & Skills
+          <i className="fi fi-rr-sparkles text-sm flex items-center" /> Projects & Skills
         </button>
         <button
           onClick={() => setActiveTab("activities")}
@@ -856,7 +832,7 @@ function DigitalPortfolioContent() {
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          <Award className="w-4 h-4" /> Honors & Activities
+          <i className="fi fi-rr-award text-sm flex items-center" /> Honors & Activities
         </button>
       </div>
 
@@ -868,7 +844,7 @@ function DigitalPortfolioContent() {
             {/* Bio & Motto */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <User className="w-4 h-4 text-indigo-400" /> Biography & Motto
+                <i className="fi fi-rr-user text-indigo-400 text-sm flex items-center" /> Biography & Motto
               </h3>
               <p className="text-xs text-slate-300 italic leading-relaxed bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
                 "{data.profile.bio || "No biography entered yet."}"
@@ -878,7 +854,7 @@ function DigitalPortfolioContent() {
             {/* Strengths & Areas of Growth */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Target className="w-4 h-4 text-emerald-400" /> Core Competencies & Growth Goals
+                <i className="fi fi-rr-target text-emerald-400 text-sm flex items-center" /> Core Competencies & Growth Goals
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -922,7 +898,7 @@ function DigitalPortfolioContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {data.profile.termGoals.map((goal, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs text-slate-200 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                        <Star className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <i className="fi fi-rr-star text-amber-400 text-xs shrink-0 flex items-center" />
                         <span>{goal}</span>
                       </div>
                     ))}
@@ -934,7 +910,7 @@ function DigitalPortfolioContent() {
             {/* Verified Endorsements */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-teal-400" /> Verified Endorsements
+                <i className="fi fi-rr-shield-check text-teal-400 text-sm flex items-center" /> Verified Endorsements
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -971,14 +947,14 @@ function DigitalPortfolioContent() {
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <span className="text-[10px] font-black uppercase text-indigo-400 tracking-wider block">Career Aspiration</span>
               <h4 className="text-base font-black text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" /> {data.profile.careerGoal || "Not specified"}
+                <i className="fi fi-rr-sparkles text-amber-400 text-sm flex items-center" /> {data.profile.careerGoal || "Not specified"}
               </h4>
             </div>
 
             {/* Leadership Roles */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Users className="w-4 h-4 text-indigo-400" /> Leadership & Roles
+                <i className="fi fi-rr-users text-indigo-400 text-sm flex items-center" /> Leadership & Roles
               </h3>
               {data.profile.leadershipRoles.length > 0 ? (
                 <div className="space-y-2">
@@ -997,7 +973,7 @@ function DigitalPortfolioContent() {
             {/* Languages Known */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-emerald-400" /> Languages Known
+                <i className="fi fi-rr-comment-alt text-emerald-400 text-sm flex items-center" /> Languages Known
               </h3>
               <div className="space-y-2">
                 {Object.entries(data.profile.languageFluency || {}).length > 0 ? (
@@ -1024,7 +1000,7 @@ function DigitalPortfolioContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-indigo-400" /> Subject Marks & Assessment Summary
+                  <i className="fi fi-rr-graduation-cap text-indigo-400 text-lg flex items-center" /> Subject Marks & Assessment Summary
                 </h3>
                 <p className="text-xs text-slate-400">Exam scores and verified marks log</p>
               </div>
@@ -1039,7 +1015,7 @@ function DigitalPortfolioContent() {
             {/* Filter Bar */}
             <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-indigo-400" />
+                <i className="fi fi-rr-filter text-indigo-400 text-sm flex items-center" />
                 <span className="font-bold text-slate-400">Exam:</span>
                 <select
                   value={selectedExamFilter}
@@ -1130,7 +1106,7 @@ function DigitalPortfolioContent() {
           {data.labAttempts.length > 0 && (
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
               <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <FlaskConical className="w-5 h-5 text-emerald-400" /> Practical Lab Experiments
+                <i className="fi fi-rr-flask text-emerald-400 text-lg flex items-center" /> Practical Lab Experiments
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1159,7 +1135,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <FolderKanban className="w-5 h-5 text-indigo-400" /> Student Projects & Models
+                  <i className="fi fi-rr-folder text-indigo-400 text-lg flex items-center" /> Student Projects & Models
                 </h3>
                 <p className="text-xs text-slate-400">Innovations, models, and practical work</p>
               </div>
@@ -1169,7 +1145,7 @@ function DigitalPortfolioContent() {
                   onClick={() => setIsProjectModalOpen(true)}
                   className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Project
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Project
                 </button>
               )}
             </div>
@@ -1203,7 +1179,7 @@ function DigitalPortfolioContent() {
                         className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Delete project"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <i className="fi fi-rr-trash text-sm flex items-center" />
                       </button>
                     )}
                   </div>
@@ -1223,7 +1199,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-400" /> Skill Matrix Profile
+                  <i className="fi fi-rr-sparkles text-purple-400 text-lg flex items-center" /> Skill Matrix Profile
                 </h3>
                 <p className="text-xs text-slate-400">Technical and co-curricular competencies</p>
               </div>
@@ -1233,7 +1209,7 @@ function DigitalPortfolioContent() {
                   onClick={() => setIsSkillModalOpen(true)}
                   className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Skill
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Skill
                 </button>
               )}
             </div>
@@ -1257,7 +1233,7 @@ function DigitalPortfolioContent() {
                       className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Delete skill"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <i className="fi fi-rr-trash text-sm flex items-center" />
                     </button>
                   )}
                 </div>
@@ -1281,7 +1257,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-400" /> Honors & Awards
+                  <i className="fi fi-rr-trophy text-amber-400 text-lg flex items-center" /> Honors & Awards
                 </h3>
                 <p className="text-xs text-slate-400">Recognitions, competition ranks, and accolades</p>
               </div>
@@ -1291,7 +1267,7 @@ function DigitalPortfolioContent() {
                   onClick={() => setIsAchievementModalOpen(true)}
                   className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Award
+                  <i className="fi fi-rr-plus text-xs flex items-center" /> Add Award
                 </button>
               )}
             </div>
@@ -1301,7 +1277,7 @@ function DigitalPortfolioContent() {
                 <div key={ach.id} className={`p-4 rounded-2xl border flex items-center justify-between relative group ${ach.bg}`}>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800 text-amber-400">
-                      <Trophy className="w-5 h-5" />
+                      <i className="fi fi-rr-trophy text-lg flex items-center" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-white">{ach.title}</h4>
@@ -1315,7 +1291,7 @@ function DigitalPortfolioContent() {
                       className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Delete award"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <i className="fi fi-rr-trash text-sm flex items-center" />
                     </button>
                   )}
                 </div>
@@ -1334,7 +1310,7 @@ function DigitalPortfolioContent() {
             {/* Clubs */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Users className="w-4 h-4 text-teal-400" /> Registered Clubs
+                <i className="fi fi-rr-users text-teal-400 text-sm flex items-center" /> Registered Clubs
               </h3>
               {data.clubs.length > 0 ? (
                 <div className="space-y-2">
@@ -1356,7 +1332,7 @@ function DigitalPortfolioContent() {
             {/* Sports & PET */}
             <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-amber-400" /> Sports & Athletics
+                <i className="fi fi-rr-volleyball text-amber-400 text-sm flex items-center" /> Sports & Athletics
               </h3>
               {data.sports ? (
                 <div className="space-y-3">
@@ -1387,7 +1363,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider">Customize Profile Details</h3>
               <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+                <i className="fi fi-rr-cross text-sm flex items-center" />
               </button>
             </div>
 
@@ -1481,7 +1457,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Skill</h3>
               <button onClick={() => setIsSkillModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+                <i className="fi fi-rr-cross text-sm flex items-center" />
               </button>
             </div>
 
@@ -1538,7 +1514,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Student Project</h3>
               <button onClick={() => setIsProjectModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+                <i className="fi fi-rr-cross text-sm flex items-center" />
               </button>
             </div>
 
@@ -1628,7 +1604,7 @@ function DigitalPortfolioContent() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-black text-white uppercase tracking-wider">Add Honor / Award</h3>
               <button onClick={() => setIsAchievementModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+                <i className="fi fi-rr-cross text-sm flex items-center" />
               </button>
             </div>
 

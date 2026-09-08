@@ -124,6 +124,7 @@ export default function StaffManagementPage() {
 
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
   const [performanceFilter, setPerformanceFilter] = useState("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [agencyFilter, setAgencyFilter] = useState("all");
@@ -1024,9 +1025,19 @@ export default function StaffManagementPage() {
       const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.emisId.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPerf = performanceFilter === "all" || s.performance === performanceFilter;
       const matchesSubj = subjectFilter === "all" || s.subject === subjectFilter;
-      return matchesSearch && matchesPerf && matchesSubj;
+
+      let matchesClass = true;
+      if (classFilter !== "all") {
+        const assignedCls = String(s.parsedMeta?.assignedClass || "").toLowerCase();
+        const workAlloc = String(s.parsedMeta?.workAllocation || "").toLowerCase();
+        const targetCls = classFilter.toLowerCase();
+        const regex = new RegExp(`(?:^|\\b|class\\s*)${targetCls}(?:st|nd|rd|th)?(?:\\b|\\s*[-a-z]|$)`, 'i');
+        matchesClass = regex.test(assignedCls) || regex.test(workAlloc) || assignedCls === targetCls;
+      }
+
+      return matchesSearch && matchesPerf && matchesSubj && matchesClass;
     });
-  }, [staffList, searchTerm, performanceFilter, subjectFilter]);
+  }, [staffList, searchTerm, performanceFilter, subjectFilter, classFilter]);
 
   const filteredNonTeachingStaff = useMemo(() => {
     return staffList.filter(s => {
@@ -1088,7 +1099,8 @@ export default function StaffManagementPage() {
 
   const totalPages = Math.ceil(activeDirectoryList.length / pageSize);
 
-  // Subject options
+  // Class & Subject options
+  const classList = ["6", "7", "8", "9", "10", "11", "12"];
   const subjectsList = ["Mathematics", "Science", "English", "Tamil", "Social Science", "Computer Science", "Physical Education"];
 
   return (
@@ -1262,6 +1274,23 @@ export default function StaffManagementPage() {
               />
             </div>
 
+            {/* Class filter (Teaching Only) */}
+            {directoryType === "teaching" && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-500">Class:</span>
+                <select
+                  value={classFilter}
+                  onChange={e => { setClassFilter(e.target.value); setCurrentPage(1); }}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Classes</option>
+                  {classList.map(cls => (
+                    <option key={cls} value={cls}>Class {cls}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Performance filter (Permanent Only) */}
             {directoryType !== "temporary" && (
               <div className="flex items-center gap-2">
@@ -1405,7 +1434,19 @@ export default function StaffManagementPage() {
                                 <span>Email: {s.email || "N/A"}</span>
                               </div>
                             </td>
-                            <td className="p-4 font-semibold text-slate-300">{s.subject}</td>
+                            <td className="p-4 font-semibold text-slate-300">
+                              <div>{s.subject}</div>
+                              {s.parsedMeta?.assignedClass && (
+                                <div className="text-[10px] font-normal mt-0.5 flex items-center gap-1">
+                                  <span className="px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded font-semibold text-blue-400">
+                                    Class {s.parsedMeta.assignedClass}{s.parsedMeta.assignedSection ? `-${s.parsedMeta.assignedSection}` : ''}
+                                  </span>
+                                  {s.parsedMeta.isClassTeacher && (
+                                    <span className="text-[9px] text-amber-400 font-bold">(Class Teacher)</span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
                             <td className="p-4 text-slate-400">{dateFormatted}</td>
                             <td className="p-4">
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.parsedMeta?.docAppointment

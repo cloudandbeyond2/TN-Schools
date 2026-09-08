@@ -104,6 +104,7 @@ const translations = {
       "Botany Centre": "தாவரவியல் மையம்",
       "Computer Education": "கணினி கல்வி",
       "Extracurricular & Wellbeing": "பாடத்திட்டம் அல்லாத & நல்வாழ்வு",
+      "Other Activities": "மற்ற நடவடிக்கைகள்",
       "Sports & Athletics": "விளையாட்டு & தடகள",
       "Extracurriculars": "பாடத்திட்டம் அல்லாதவை",
       "Celebrations": "கொண்டாட்டங்கள்",
