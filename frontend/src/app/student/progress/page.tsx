@@ -270,7 +270,7 @@ export default function StudentProgressPage() {
                   {lang === "தமிழ்" ? "மதிப்பெண் பதிவுகள்" : "Subjects Recorded"}
                 </span>
                 <div className="text-3xl font-black text-blue-500">{profile.subjects.length}</div>
-                <span className="text-[11px] text-[var(--text-muted)] font-medium block">Real PostgreSQL records</span>
+                <span className="text-[11px] text-[var(--text-muted)] font-medium block">Real records</span>
               </div>
             </div>
 
