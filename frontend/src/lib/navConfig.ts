@@ -135,12 +135,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
-      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -216,12 +217,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
@@ -393,12 +395,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "📚 ACADEMICS", href: "#", icon: "" },
 
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Academic Progress", href: "/student/progress", icon: "BarChart2" },
       // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
-      { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
