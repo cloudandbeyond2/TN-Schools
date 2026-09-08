@@ -333,8 +333,8 @@ export default function TemporaryStaffPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
-      {/* School Badge — locked to this headmaster's school */}
-      <div className="custom-card rounded-2xl p-4 border border-slate-200 dark:border-slate-800/80 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
+      {/* Managed Institution Banner */}
+      <div className="glass rounded-2xl p-4 border border-slate-800/60 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
           <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{lang === "தமிழ்" ? "தற்காலிக பணியாளர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Temporary staff data is scoped to your assigned school only."}</p>
@@ -350,20 +350,20 @@ export default function TemporaryStaffPage() {
 
       {/* Metric summaries */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 fade-in">
-        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
-          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "மொத்த ஒப்பந்த பணியாளர்கள்" : "Total Contract Staff"}</div>
-          <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{isLoading ? "—" : temps.length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span></div>
+        <div className="glass rounded-2xl p-6 border border-slate-800/60 shadow-sm">
+          <div className="text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "மொத்த ஒப்பந்த பணியாளர்கள்" : "Total Contract Staff"}</div>
+          <div className="text-3xl font-extrabold text-blue-400">{isLoading ? "—" : temps.length} <span className="text-xs font-semibold text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span></div>
         </div>
-        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
-          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிறுவன ஒப்பந்தம்" : "Agency Outsourced"}</div>
-          <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
+        <div className="glass rounded-2xl p-6 border border-slate-800/60 shadow-sm">
+          <div className="text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிறுவன ஒப்பந்தம்" : "Agency Outsourced"}</div>
+          <div className="text-3xl font-extrabold text-emerald-400">
+            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} <span className="text-xs font-semibold text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
           </div>
         </div>
-        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
-          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நேரடி ஒப்பந்தங்கள்" : "Direct Contracts"}</div>
-          <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
+        <div className="glass rounded-2xl p-6 border border-slate-800/60 shadow-sm">
+          <div className="text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நேரடி ஒப்பந்தங்கள்" : "Direct Contracts"}</div>
+          <div className="text-3xl font-extrabold text-amber-400">
+            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} <span className="text-xs font-semibold text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
           </div>
         </div>
       </div>
@@ -387,7 +387,7 @@ export default function TemporaryStaffPage() {
       )}
 
       {/* Directory Table */}
-      <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+      <div className="glass rounded-2xl p-6 border border-slate-800/60 shadow-sm">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold text-slate-800 dark:text-white flex items-center gap-2">

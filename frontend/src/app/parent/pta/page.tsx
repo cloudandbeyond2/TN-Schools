@@ -124,7 +124,7 @@ export default function ParentPtaManagementPage() {
         setRsvpStatus(prev => ({ ...prev, [meetingId]: status }));
         Swal.fire({
           icon: "success",
-          title: status === "Accept" ? "✅ Attendance Confirmed!" : "Response Recorded",
+          title: status === "Accept" ? "Attendance Confirmed!" : "Response Recorded",
           text: status === "Accept"
             ? "You have confirmed you will attend this meeting."
             : "You have marked that you cannot attend this meeting.",
@@ -451,7 +451,7 @@ export default function ParentPtaManagementPage() {
                         <div className="flex-1 min-w-0">
                           {/* Status badge + RSVP badge */}
                           <div className="flex items-center gap-2 flex-wrap mb-2">
-                            <span className={`px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border ${
+                            <span className={`px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border flex items-center gap-1 ${
                               expired
                                 ? "bg-amber-100 text-amber-700 dark:text-amber-400 border-amber-300/60"
                                 : m.status === "Upcoming"
@@ -460,16 +460,24 @@ export default function ParentPtaManagementPage() {
                                 ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
                                 : "bg-slate-500/10 text-slate-500 border-slate-500/20"
                             }`}>
-                              {expired ? "⏰ Expired" : m.status === "Upcoming" ? "📅 Upcoming" : m.status === "Completed" ? "✅ Completed" : "🚫 Cancelled"}
+                              {expired ? (
+                                <><i className="fi fi-rr-time-past text-xs shrink-0" /> Expired</>
+                              ) : m.status === "Upcoming" ? (
+                                <><i className="fi fi-rr-calendar text-xs shrink-0" /> Upcoming</>
+                              ) : m.status === "Completed" ? (
+                                <><i className="fi fi-rr-check-circle text-xs shrink-0" /> Completed</>
+                              ) : (
+                                <><i className="fi fi-rr-cross-circle text-xs shrink-0" /> Cancelled</>
+                              )}
                             </span>
                             {isUpcoming && myStatus === "Accept" && (
-                              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                                ✓ Attending
+                              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 flex items-center gap-1">
+                                <i className="fi fi-rr-check text-xs shrink-0" /> Attending
                               </span>
                             )}
                             {isUpcoming && myStatus === "Decline" && (
-                              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border bg-rose-500/10 text-rose-500 border-rose-500/25">
-                                ✕ Cannot Attend
+                              <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg border bg-rose-500/10 text-rose-500 border-rose-500/25 flex items-center gap-1">
+                                <i className="fi fi-rr-cross-small text-xs shrink-0" /> Cannot Attend
                               </span>
                             )}
                           </div>
@@ -520,23 +528,23 @@ export default function ParentPtaManagementPage() {
                           <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mr-1">Will you attend this meeting?</span>
                           <button
                             onClick={() => handleRsvp(m.id, "Accept")}
-                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all duration-200 border cursor-pointer ${
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all duration-200 border cursor-pointer flex items-center gap-1.5 ${
                               myStatus === "Accept"
                                 ? "bg-emerald-600 border-emerald-500 text-white shadow-sm"
                                 : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-900/20 hover:text-emerald-700"
                             }`}
                           >
-                            ✅ Yes, I will attend
+                            <i className="fi fi-rr-check-circle text-xs shrink-0" /> Yes, I will attend
                           </button>
                           <button
                             onClick={() => handleRsvp(m.id, "Decline")}
-                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all duration-200 border cursor-pointer ${
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all duration-200 border cursor-pointer flex items-center gap-1.5 ${
                               myStatus === "Decline"
                                 ? "bg-rose-600 border-rose-500 text-white shadow-sm"
                                 : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:border-rose-300 dark:hover:bg-rose-900/20 hover:text-rose-600"
                             }`}
                           >
-                            ❌ No, I cannot attend
+                            <i className="fi fi-rr-cross-circle text-xs shrink-0" /> No, I cannot attend
                           </button>
                         </div>
                       )}
