@@ -84,6 +84,32 @@ export default function RolePermissions() {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isRoleVisible = (r: Role) => {
+    if (r === "BEO" && !portalVisibility.beo) return false;
+    if (r === "DEO" && !portalVisibility.deo) return false;
+    if (r === "COMMISSIONER" && !portalVisibility.commissioner) return false;
+    if (r === "MINISTER" && !portalVisibility.minister) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("tn_role_permissions");
@@ -93,6 +119,10 @@ export default function RolePermissions() {
     } catch (e) {
       console.error("Error loading permissions from localStorage:", e);
     }
+
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
 
     const fetchCounts = async () => {
       try {
@@ -120,6 +150,10 @@ export default function RolePermissions() {
     };
 
     fetchCounts();
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
   }, []);
 
   const toggle = (role: Role, moduleId: string) => {
@@ -174,7 +208,8 @@ export default function RolePermissions() {
     return Object.values(matrix[role]).filter(Boolean).length;
   };
 
-  const totalActivePermissions = roles.reduce((sum, r) => sum + totalEnabledForRole(r), 0);
+  const visibleRoles = roles.filter(isRoleVisible);
+  const totalActivePermissions = visibleRoles.reduce((sum, r) => sum + totalEnabledForRole(r), 0);
 
   return (
     <PortalLayout>
@@ -225,7 +260,7 @@ export default function RolePermissions() {
         </div>
         <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block mb-1">Configured Roles</span>
-          <div className="text-xl font-bold text-white">{roles.length}</div>
+          <div className="text-xl font-bold text-white">{visibleRoles.length}</div>
           <span className="badge bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded text-[9px] font-bold mt-1 inline-block">Portal Scope Roles</span>
         </div>
         <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 shadow-sm">
@@ -242,7 +277,7 @@ export default function RolePermissions() {
 
       {/* Role Summary Cards with Dynamic User Counts */}
       <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 mb-6">
-        {roles.map((r) => (
+        {visibleRoles.map((r) => (
           <div key={r} className="bg-slate-900/60 border border-slate-800 rounded-xl p-2 text-center transition-all hover:border-slate-700">
             <div className="text-lg">{roleIcons[r]}</div>
             <div className="text-[9px] font-bold text-white mt-0.5">{r.replace("SUPERADMIN", "S.ADMIN")}</div>
@@ -292,7 +327,7 @@ export default function RolePermissions() {
               <tr>
                 <th className="w-48">Module</th>
                 <th className="w-24">Category</th>
-                {roles.map((r) => (
+                {visibleRoles.map((r) => (
                   <th key={r} className="text-center w-20">
                     <div className="text-base">{roleIcons[r]}</div>
                     <div className="text-[8px] font-bold text-slate-400 mt-0.5">{r.replace("SUPERADMIN", "SA")}</div>
@@ -303,7 +338,7 @@ export default function RolePermissions() {
             <tbody>
               {filteredModules.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-8 text-slate-400 text-xs">
+                  <td colSpan={visibleRoles.length + 2} className="text-center py-8 text-slate-400 text-xs">
                     No modules match the search or category filter.
                   </td>
                 </tr>
@@ -319,7 +354,7 @@ export default function RolePermissions() {
                     <td>
                       <span className="text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">{mod.category}</span>
                     </td>
-                    {roles.map((r) => {
+                    {visibleRoles.map((r) => {
                       const isOn = matrix[r] ? matrix[r][mod.id] : false;
                       const isLocked = r === "SUPERADMIN";
                       const cellKey = `${r}-${mod.id}`;

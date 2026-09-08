@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { apiFetch } from "@/lib/api";
 
 type SyncStatus = "synced" | "syncing" | "error" | "stale";
 
@@ -56,10 +57,44 @@ export default function DataFlowMonitor() {
   const [tick, setTick] = useState(0);
   const [selectedNode, setSelectedNode] = useState<PipelineNode | null>(null);
 
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isNodeVisible = (id: string) => {
+    if (id === "beo" && !portalVisibility.beo) return false;
+    if (id === "deo" && !portalVisibility.deo) return false;
+    if (id === "commissioner" && !portalVisibility.commissioner) return false;
+    if (id === "minister" && !portalVisibility.minister) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
   // Simulate live data ticking
   useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+
     const timer = setInterval(() => setTick((t) => t + 1), 3000);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
   }, []);
 
   useEffect(() => {
@@ -77,9 +112,12 @@ export default function DataFlowMonitor() {
     }, 2000);
   };
 
-  const totalRecords = nodeData.reduce((a, n) => a + n.recordsOut, 0);
-  const avgLatency = Math.round(nodeData.reduce((a, n) => a + n.latencyMs, 0) / nodeData.length);
-  const staleCount = nodeData.filter((n) => n.syncStatus === "stale" || n.syncStatus === "error").length;
+  const visibleNodes = nodeData.filter((n) => isNodeVisible(n.id));
+  const visibleFlows = flows.filter((f) => isNodeVisible(f.from) && isNodeVisible(f.to));
+
+  const totalRecords = visibleNodes.reduce((a, n) => a + n.recordsOut, 0);
+  const avgLatency = visibleNodes.length > 0 ? Math.round(visibleNodes.reduce((a, n) => a + n.latencyMs, 0) / visibleNodes.length) : 0;
+  const staleCount = visibleNodes.filter((n) => n.syncStatus === "stale" || n.syncStatus === "error").length;
 
   return (
     <PortalLayout>
@@ -92,7 +130,7 @@ export default function DataFlowMonitor() {
           <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full animate-pulse">
             ● LIVE
           </span>
-          <button onClick={() => nodeData.forEach((n) => triggerSync(n.id))}
+          <button onClick={() => visibleNodes.forEach((n) => triggerSync(n.id))}
             className="text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg transition">
             ↺ Sync All
           </button>
@@ -104,7 +142,7 @@ export default function DataFlowMonitor() {
         {[
           { label:"Total Records Flowing", value:fmt(totalRecords), icon:"📊", color:"text-blue-400" },
           { label:"Avg Latency", value:`${avgLatency}ms`, icon:"⚡", color:"text-cyan-400" },
-          { label:"Healthy Pipelines", value:`${nodes.length - staleCount}/${nodes.length}`, icon:"✅", color:"text-emerald-400" },
+          { label:"Healthy Pipelines", value:`${visibleNodes.length - staleCount}/${visibleNodes.length}`, icon:"✅", color:"text-emerald-400" },
           { label:"Issues", value:staleCount, icon:"⚠️", color:staleCount > 0 ? "text-amber-400" : "text-slate-500" },
         ].map((k) => (
           <div key={k.label} className="glass rounded-xl p-4 border border-slate-800">
@@ -121,11 +159,11 @@ export default function DataFlowMonitor() {
 
       {/* Pipeline Flow Diagram */}
       <div className="glass rounded-2xl p-6 mb-6 border border-slate-800">
-        <h2 className="text-sm font-bold text-white mb-6">📡 Data Pipeline — School → Minister</h2>
+        <h2 className="text-sm font-bold text-white mb-6">📡 Data Pipeline Hierarchy Flow</h2>
         <div className="flex items-start gap-0 overflow-x-auto pb-4">
-          {nodeData.map((node, idx) => {
+          {visibleNodes.map((node, idx) => {
             const sb = statusBadge[node.syncStatus];
-            const flow = flows[idx];
+            const flow = visibleFlows[idx];
             return (
               <div key={node.id} className="flex items-center shrink-0">
                 {/* Node */}
@@ -159,10 +197,10 @@ export default function DataFlowMonitor() {
                 </div>
 
                 {/* Arrow between nodes */}
-                {idx < nodeData.length - 1 && (
+                {idx < visibleNodes.length - 1 && (
                   <div className="flex flex-col items-center mx-2 shrink-0">
-                    <div className={`h-0.5 w-12 ${flows[idx].status === "synced" ? "bg-emerald-500" : flows[idx].status === "stale" ? "bg-amber-500" : "bg-red-500"}`} />
-                    <div className="text-[7px] text-slate-600 mt-0.5 max-w-[48px] text-center leading-tight">{flow?.label}</div>
+                    <div className={`h-0.5 w-12 ${visibleFlows[idx]?.status === "synced" ? "bg-emerald-500" : visibleFlows[idx]?.status === "stale" ? "bg-amber-500" : "bg-red-500"}`} />
+                    <div className="text-[7px] text-slate-600 mt-0.5 max-w-[48px] text-center leading-tight">{visibleFlows[idx]?.label}</div>
                   </div>
                 )}
               </div>
@@ -215,9 +253,9 @@ export default function DataFlowMonitor() {
               </tr>
             </thead>
             <tbody>
-              {flows.map((flow, i) => {
-                const fromNode = nodeData.find((n) => n.id === flow.from);
-                const toNode = nodeData.find((n) => n.id === flow.to);
+              {visibleFlows.map((flow, i) => {
+                const fromNode = visibleNodes.find((n) => n.id === flow.from);
+                const toNode = visibleNodes.find((n) => n.id === flow.to);
                 const sb = statusBadge[flow.status];
                 return (
                   <tr key={i}>

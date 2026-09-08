@@ -69,6 +69,24 @@ export default function SchoolManagement() {
   const [viewSchool, setViewSchool] = useState<School | null>(null);
   const [beoUsers, setBeoUsers] = useState<OfficialUser[]>([]);
   const [deoUsers, setDeoUsers] = useState<OfficialUser[]>([]);
+  
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
 
   const fetchSchools = async () => {
     try {
@@ -115,8 +133,15 @@ export default function SchoolManagement() {
   };
 
   useEffect(() => {
+    fetchEffective();
     fetchSchools();
     fetchOfficials();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
   }, []);
 
   // Reset pagination on filter or item count change
@@ -552,32 +577,38 @@ export default function SchoolManagement() {
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
               </div>
 
-              {/* ── BEO Assignment ── */}
-              <div className="col-span-2 border-t border-slate-700 pt-3">
-                <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <i className="fi fi-rr-user-gear"></i> Official Assignments
+              {/* ── Official Assignments ── */}
+              {(portalVisibility.beo || portalVisibility.deo) && (
+                <div className="col-span-2 border-t border-slate-700 pt-3">
+                  <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i className="fi fi-rr-user-gear"></i> Official Assignments
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign BEO</label>
-                <select value={form.beoId} onChange={(e) => setForm((f) => ({ ...f, beoId: e.target.value }))}
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
-                  <option value="">— None —</option>
-                  {beoUsers.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}{b.block ? ` (${b.block})` : ""}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign DEO</label>
-                <select value={form.deoId} onChange={(e) => setForm((f) => ({ ...f, deoId: e.target.value }))}
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-pink-500">
-                  <option value="">— None —</option>
-                  {deoUsers.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}{d.district ? ` (${d.district})` : ""}</option>
-                  ))}
-                </select>
-              </div>
+              )}
+              {portalVisibility.beo && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign BEO</label>
+                  <select value={form.beoId} onChange={(e) => setForm((f) => ({ ...f, beoId: e.target.value }))}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
+                    <option value="">— None —</option>
+                    {beoUsers.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}{b.block ? ` (${b.block})` : ""}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {portalVisibility.deo && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign DEO</label>
+                  <select value={form.deoId} onChange={(e) => setForm((f) => ({ ...f, deoId: e.target.value }))}
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-pink-500">
+                    <option value="">— None —</option>
+                    {deoUsers.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}{d.district ? ` (${d.district})` : ""}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowModal(false)} className="flex-1 text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 py-2 rounded-lg transition border border-slate-700 flex items-center justify-center gap-1">

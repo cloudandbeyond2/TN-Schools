@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { apiFetch } from "@/lib/api";
 import { getDefaultFeatureCatalog, MODULE_PORTALS, PORTAL_DISPLAY } from "@/lib/moduleCatalog";
 
 interface ModuleItem {
@@ -27,13 +28,20 @@ const portalColors: Record<string, string> = {
 const CATEGORY_OPTIONS = ["Academic", "AI & Learning", "Content", "Analytics", "Welfare", "Communication", "Finance", "Extracurricular", "Support"];
 
 export default function DepartmentModules() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [modules, setModules] = useState<ModuleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterCat, setFilterCat] = useState("All");
   const [filterPortal, setFilterPortal] = useState<string>("All");
   const [showModal, setShowModal] = useState(false);
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
   const [newMod, setNewMod] = useState({
     name: "", icon: "📌", description: "", category: "Academic", route: "",
     portals: Object.fromEntries(MODULE_PORTALS.map((p) => [p, false])) as Record<string, boolean>,
@@ -44,6 +52,36 @@ export default function DepartmentModules() {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
+
+  const isPortalVisible = (p: string) => {
+    const key = p.toLowerCase();
+    if (key === "beo" && !portalVisibility.beo) return false;
+    if (key === "deo" && !portalVisibility.deo) return false;
+    if (key === "commissioner" && !portalVisibility.commissioner) return false;
+    if (key === "minister" && !portalVisibility.minister) return false;
+    if (key === "pet" && !portalVisibility.pet) return false;
+    return true;
+  };
+
+  const fetchEffective = async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
+  }, []);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -167,13 +205,15 @@ export default function DepartmentModules() {
 
   const categories = Array.from(new Set(modules.map((m) => m.category).filter(Boolean))) as string[];
 
+  const visiblePortals = MODULE_PORTALS.filter(isPortalVisible);
+
   const filtered = modules.filter((m) => {
     const matchCat = filterCat === "All" || m.category === filterCat;
-    const matchPortal = filterPortal === "All" || m.portals?.[filterPortal];
+    const matchPortal = filterPortal === "All" || (isPortalVisible(filterPortal) && m.portals?.[filterPortal]);
     return matchCat && matchPortal;
   });
 
-  const enabledCount = (m: ModuleItem) => MODULE_PORTALS.filter((p) => m.portals?.[p]).length;
+  const enabledCount = (m: ModuleItem) => visiblePortals.filter((p) => m.portals?.[p]).length;
 
   return (
     <PortalLayout>
@@ -234,7 +274,7 @@ export default function DepartmentModules() {
         </div>
         <div className="flex gap-2 flex-wrap items-center sm:ml-4">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Portal:</span>
-          {["All", ...MODULE_PORTALS].map((p) => (
+          {["All", ...visiblePortals].map((p) => (
             <button key={p} onClick={() => setFilterPortal(p)}
               className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-all border ${
                 filterPortal === p 
@@ -272,7 +312,7 @@ export default function DepartmentModules() {
                   <p className="text-[9px] text-slate-400 dark:text-slate-600 font-mono mt-0.5">{mod.routes.join(", ")}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-[10px] font-bold text-slate-500">{enabledCount(mod)}/{MODULE_PORTALS.length} portals</div>
+                  <div className="text-[10px] font-bold text-slate-500">{enabledCount(mod)}/{visiblePortals.length} portals</div>
                   <button
                     type="button"
                     onClick={() => toggleMaster(mod)}
@@ -294,7 +334,7 @@ export default function DepartmentModules() {
 
               {/* Portal toggles */}
               <div className="flex flex-wrap gap-2">
-                {MODULE_PORTALS.map((portal) => {
+                {visiblePortals.map((portal) => {
                   const isOn = mod.portals?.[portal] === true;
                   const color = portalColors[portal] || "#6366f1";
                   return (
@@ -353,7 +393,7 @@ export default function DepartmentModules() {
               <div>
                 <label className="text-[10px] font-bold text-slate-400 block mb-2 uppercase">Enable for Portals</label>
                 <div className="flex flex-wrap gap-2">
-                  {MODULE_PORTALS.map((p) => (
+                  {visiblePortals.map((p) => (
                     <button key={p} onClick={() => setNewMod((f) => ({ ...f, portals: { ...f.portals, [p]: !f.portals[p] } }))}
                       className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition ${
                         newMod.portals[p] ? "text-white bg-fuchsia-600 border-fuchsia-500" : "text-slate-500 bg-slate-800 border-slate-700"
