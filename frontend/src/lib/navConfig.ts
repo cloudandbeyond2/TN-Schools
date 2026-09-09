@@ -136,6 +136,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
@@ -147,7 +148,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
-      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
+      
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
@@ -223,6 +224,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },      
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
@@ -233,7 +235,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
-      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
+      
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
