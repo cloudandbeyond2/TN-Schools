@@ -1859,7 +1859,20 @@ router.delete('/risk-alerts/:id', async (req: Request, res: Response) => {
 // GET /api/teacher/maths-formulas
 router.get('/maths-formulas', async (req: Request, res: Response) => {
   try {
+    const { publishedOnly, standard, term } = req.query;
+    const where: any = {};
+    if (publishedOnly === 'true' || publishedOnly === '1') {
+      where.isPublished = true;
+    }
+    if (standard && typeof standard === 'string') {
+      where.standard = standard;
+    }
+    if (term && typeof term === 'string' && term !== 'all') {
+      where.term = term;
+    }
+
     const formulas = await (prisma as any).mathsFormula.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
     res.json({ success: true, data: formulas });
@@ -1871,23 +1884,29 @@ router.get('/maths-formulas', async (req: Request, res: Response) => {
 // POST /api/teacher/maths-formulas
 router.post('/maths-formulas', async (req: Request, res: Response) => {
   try {
-    const { titleEn, titleTa, formula, category, categoryNameEn, categoryNameTa, standard, term, popular, bg, mnemonicPrompt, mnemonicText } = req.body;
-    const newFormula = await (prisma as any).mathsFormula.create({
-      data: {
-        titleEn,
-        titleTa,
-        formula,
-        category,
-        categoryNameEn,
-        categoryNameTa,
-        standard,
-        term,
-        popular: popular || false,
-        bg: bg || "from-blue-400 to-indigo-500",
-        mnemonicPrompt,
-        mnemonicText
-      }
-    });
+    const { titleEn, titleTa, formula, category, categoryNameEn, categoryNameTa, standard, term, popular, isPublished, bg, mnemonicPrompt, mnemonicText } = req.body;
+    const formulaData: any = {
+      titleEn,
+      titleTa,
+      formula,
+      category,
+      categoryNameEn,
+      categoryNameTa,
+      standard,
+      term,
+      popular: popular || false,
+      isPublished: isPublished !== undefined ? isPublished : true,
+      bg: bg || "from-blue-400 to-indigo-500",
+      mnemonicPrompt,
+      mnemonicText
+    };
+    let newFormula;
+    try {
+      newFormula = await (prisma as any).mathsFormula.create({ data: formulaData });
+    } catch (insertErr) {
+      delete formulaData.isPublished;
+      newFormula = await (prisma as any).mathsFormula.create({ data: formulaData });
+    }
     res.status(201).json({ success: true, data: newFormula });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -1908,6 +1927,42 @@ router.put('/maths-formulas/:id', async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/teacher/maths-formulas/:id/toggle-publish
+router.patch('/maths-formulas/:id/toggle-publish', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await (prisma as any).mathsFormula.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Formula not found' });
+    }
+    const updated = await (prisma as any).mathsFormula.update({
+      where: { id },
+      data: { isPublished: !existing.isPublished }
+    });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/maths-formulas/publish-bulk
+router.post('/maths-formulas/publish-bulk', async (req: Request, res: Response) => {
+  try {
+    const { standard, term, isPublished = true } = req.body;
+    const where: any = {};
+    if (standard) where.standard = String(standard);
+    if (term && term !== 'all') where.term = String(term);
+
+    const result = await (prisma as any).mathsFormula.updateMany({
+      where,
+      data: { isPublished: Boolean(isPublished) }
+    });
+    res.json({ success: true, count: result.count, isPublished: Boolean(isPublished) });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // DELETE /api/teacher/maths-formulas/:id
 router.delete('/maths-formulas/:id', async (req: Request, res: Response) => {
   try {
@@ -1918,6 +1973,95 @@ router.delete('/maths-formulas/:id', async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+const FORMULA_LIST_GEN_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    formulas: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          titleEn: { type: 'STRING' },
+          titleTa: { type: 'STRING' },
+          formula: { type: 'STRING' },
+          category: { type: 'STRING' },
+          categoryNameEn: { type: 'STRING' },
+          categoryNameTa: { type: 'STRING' },
+          mnemonicText: { type: 'STRING' },
+          mnemonicPrompt: { type: 'STRING' },
+          bg: { type: 'STRING' }
+        },
+        required: ['titleEn', 'titleTa', 'formula', 'category', 'categoryNameEn', 'categoryNameTa', 'mnemonicText', 'mnemonicPrompt']
+      }
+    }
+  },
+  required: ['formulas']
+};
+
+// POST /api/teacher/maths-formulas/generate-by-unit
+router.post('/maths-formulas/generate-by-unit', async (req: Request, res: Response) => {
+  try {
+    const { unitTitle, standard = "6", term = "1", extraContext = "", isPublished = true } = req.body;
+    if (!unitTitle || typeof unitTitle !== 'string') {
+      return res.status(400).json({ success: false, error: 'Unit title is required' });
+    }
+
+    const { callGemini } = require('./ai.routes');
+    const prompt = `You are a master Tamil Nadu State Board (Samacheer Kalvi) Mathematics Curriculum Specialist.
+Generate all standard mathematical formulas, theorems, definitions, and equations taught in the Mathematics unit titled "${unitTitle.trim()}" for Standard ${standard}, Term ${term}.
+${extraContext ? `Additional Context / Uploaded Text: ${extraContext}` : ''}
+
+For each formula, provide:
+1. titleEn: Concise title in English (e.g. "Area of a Circle", "Pythagoras Theorem").
+2. titleTa: Precise translation of title in Tamil (e.g. "வட்டத்தின் பரப்பளவு").
+3. formula: Clear mathematical notation formula string using clean math symbols (e.g. "A = ½ × h × (a + b)", "A = ½ d₁ d₂", "A = π r²", "a² + b² = c²"). Avoid raw LaTeX backslashes like \\frac or \\times.
+4. category: A short lowercase category slug (e.g. "measurements", "geometry", "algebra", "trigonometry", "numbers", "statistics").
+5. categoryNameEn: English category name (e.g. "Measurements", "Geometry", "Algebra").
+6. categoryNameTa: Tamil category name (e.g. "அளவைகள்", "வடிவியல்", "இயற்கணிதம்").
+7. mnemonicText: A fun, easy-to-remember memory trick for students to recall this formula.
+8. mnemonicPrompt: A visual prompt description for AI image generation (e.g., "A colorful circle with radius marked").
+9. bg: Tailwind CSS background gradient class (e.g., "from-emerald-400 to-teal-600", "from-blue-400 to-indigo-500", "from-purple-400 to-pink-500", "from-amber-400 to-orange-500").
+
+Return between 3 to 8 formulas for this unit.`;
+
+    const result = await callGemini(prompt, true, FORMULA_LIST_GEN_SCHEMA, 8096, 60000);
+    const generatedFormulas = result?.formulas || [];
+
+    const createdRecords = [];
+    for (const item of generatedFormulas) {
+      const formulaData: any = {
+        titleEn: item.titleEn,
+        titleTa: item.titleTa,
+        formula: item.formula,
+        category: item.category,
+        categoryNameEn: item.categoryNameEn,
+        categoryNameTa: item.categoryNameTa,
+        standard: String(standard),
+        term: String(term),
+        popular: false,
+        isPublished: Boolean(isPublished),
+        bg: item.bg || "from-blue-400 to-indigo-500",
+        mnemonicPrompt: item.mnemonicPrompt || "",
+        mnemonicText: item.mnemonicText || ""
+      };
+
+      let created;
+      try {
+        created = await (prisma as any).mathsFormula.create({ data: formulaData });
+      } catch (insertErr) {
+        delete formulaData.isPublished;
+        created = await (prisma as any).mathsFormula.create({ data: formulaData });
+      }
+      createdRecords.push(created);
+    }
+
+    res.status(201).json({ success: true, count: createdRecords.length, data: createdRecords });
+  } catch (err: any) {
+    console.error('Error generating unit formulas:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to generate formulas for unit' });
   }
 });
 
