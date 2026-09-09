@@ -145,7 +145,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       
@@ -232,7 +232,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       
@@ -415,7 +415,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
 
       // ===================== STUDY PLANNER =====================
       { label: "---", href: "#", icon: "" },
