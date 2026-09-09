@@ -635,14 +635,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Dashboard", href: "/headmaster", icon: "fi fi-rr-home" },
 
       { label: "People & Staff", href: "#", icon: "" },
-      { label: "Student Monitoring", href: "/headmaster/students", icon: "fi fi-rr-graduation-cap" },
-      { label: "Personal Counsellor", href: "/headmaster/counsellor", icon: "fi fi-rr-heart" },
-      { label: "Promotions", href: "/headmaster/promotions", icon: "fi fi-rr-stats" },
       { label: "Staff Management", href: "/headmaster/staff", icon: "fi fi-rr-user" },
       { label: "Class Teachers", href: "/headmaster/class-teacher", icon: "fi fi-rr-chalkboard-user" },
+      { label: "Student Monitoring", href: "/headmaster/students", icon: "fi fi-rr-graduation-cap" },
       { label: "Leave Requests", href: "/headmaster/leave", icon: "fi fi-rr-calendar" },
-      { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "fi fi-rr-users" },
+      { label: "Promotions", href: "/headmaster/promotions", icon: "fi fi-rr-stats" },
       { label: "Parents Details", href: "/headmaster/parents", icon: "fi fi-rr-users" },
+      { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "fi fi-rr-users" },
+      { label: "Personal Counsellor", href: "/headmaster/counsellor", icon: "fi fi-rr-heart" },
       { label: "School Alumni", href: "/headmaster/alumni", icon: "fi fi-rr-graduation-cap" },
 
       { label: "Academics & Records", href: "#", icon: "" },
