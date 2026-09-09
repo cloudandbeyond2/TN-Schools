@@ -14,6 +14,42 @@ const Fi = ({ name, className = "", style = {} }: { name: string; className?: st
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
+const getSubjectIcon = (name: string) => {
+  if (!name) return "book-alt";
+  const n = name.toLowerCase();
+  if (n.includes("tamil")) return "scroll";
+  if (n.includes("hindi")) return "book-open-cover";
+  if (n.includes("english")) return "comment-user";
+  if (n.includes("math")) return "ruler-combined";
+  if (n.includes("science") && !n.includes("social")) return "microscope";
+  if (n.includes("social")) return "globe";
+  if (n.includes("physics")) return "bolt";
+  if (n.includes("chemistry") || n.includes("chem")) return "flask";
+  if (n.includes("biology") || n.includes("bio")) return "dna";
+  if (n.includes("computer") || n.includes("it") || n.includes("ai")) return "computer";
+  return "book-alt";
+};
+
+const RenderIcon = ({ icon, name = "", className = "text-xl", style = {} }: { icon?: string; name?: string; className?: string; style?: React.CSSProperties }) => {
+  const iconStr = icon || (name ? getSubjectIcon(name) : "book-alt");
+  if (!iconStr) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+
+  const str = String(iconStr).trim();
+
+  if (str.startsWith("<svg")) {
+    return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style} dangerouslySetInnerHTML={{ __html: str }} />;
+  }
+
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+  }
+
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style}>{str}</span>;
+};
+
 /* ────────────────────────────────────────────────────────────
    Types
 ──────────────────────────────────────────────────────────── */
@@ -1477,7 +1513,7 @@ export default function AcademicsHubPage() {
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-xl shrink-0">{sub.icon}</span>
+                        <RenderIcon icon={sub.icon} name={sub.name} className="text-xl shrink-0" />
                         <div>
                           <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-[var(--text-heading)]"}`}>
                             {sub.name}
@@ -1500,7 +1536,7 @@ export default function AcademicsHubPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[var(--border)]">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{SUBJECT_THEMES[selectedSyllabusSubject]?.icon || "📐"}</span>
+                      <span className="text-2xl"><RenderIcon icon={syllabusSubjectsForClass.find((s: any) => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase())?.icon || SUBJECT_THEMES[selectedSyllabusSubject]?.icon} name={selectedSyllabusSubject} className="text-2xl" /></span>
                       <h3 className="text-lg font-black text-[var(--text-heading)]">
                         {selectedSyllabusSubject} — Class {syllabusClass}
                       </h3>

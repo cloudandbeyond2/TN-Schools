@@ -21,6 +21,17 @@ interface Topic {
   topicNumber: number;
 }
 
+const RenderIcon = ({ icon, name = "", className = "text-sm" }: { icon?: string | null; name?: string; className?: string }) => {
+  if (!icon) return null;
+  const str = String(icon).trim();
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} />;
+  }
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`}>{str}</span>;
+};
+
 interface Unit {
   id: string;
   name: string;
@@ -281,7 +292,7 @@ export default function TeacherSyllabusBoardPage() {
                     : undefined
                 }
               >
-                <span>{sub.icon || ""}</span> {sub.name}
+                <span><RenderIcon icon={sub.icon} name={sub.name} className="text-sm" /></span> {sub.name}
               </button>
             ))}
           </div>

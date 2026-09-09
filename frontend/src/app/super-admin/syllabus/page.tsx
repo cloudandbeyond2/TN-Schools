@@ -3,6 +3,20 @@
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 
+const RenderIcon = ({ icon, name = "", className = "text-base" }: { icon?: string | null; name?: string; className?: string }) => {
+  if (!icon) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} />;
+  const str = String(icon).trim();
+  if (str.startsWith("<")) {
+    return <span className={`inline-flex items-center justify-center leading-none ${className}`} dangerouslySetInnerHTML={{ __html: str }} />;
+  }
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} />;
+  }
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`}>{str}</span>;
+};
+
 interface Topic {
   id: string;
   name: string;
@@ -263,11 +277,7 @@ export default function SyllabusManagement() {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      {sub.icon && sub.icon.startsWith("<") ? (
-                        <span className="text-base flex items-center justify-center" dangerouslySetInnerHTML={{ __html: sub.icon }} />
-                      ) : (
-                        <span className="text-base flex items-center justify-center">{sub.icon || "📚"}</span>
-                      )}
+                      <RenderIcon icon={sub.icon} name={sub.name} className="text-base" />
                       <span className="text-xs font-semibold text-white">{sub.name}</span>
                     </div>
                     <div className="flex gap-3 text-[9px] text-slate-500 items-center">

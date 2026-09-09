@@ -41,6 +41,26 @@ const Fi = ({ name, className = "", style = {} }: { name: string; className?: st
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
+const RenderIcon = ({ icon, name = "", className = "text-xl", style = {} }: { icon?: string; name?: string; className?: string; style?: React.CSSProperties }) => {
+  const iconStr = icon || (name ? getSubjectIcon(name) : "book-alt");
+  if (!iconStr) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+
+  const str = String(iconStr).trim();
+
+  if (str.startsWith("<svg")) {
+    return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style} dangerouslySetInnerHTML={{ __html: str }} />;
+  }
+
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+  }
+
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style}>{str}</span>;
+};
+
 const SYLLABUS_CLASSES = [
   { id: "6", name: "Class 6", badge: "SSLC" },
   { id: "7", name: "Class 7", badge: "SSLC" },
@@ -1864,7 +1884,7 @@ export default function HeadmasterAcademicsPage() {
                                     color: "#fff"
                                   }}
                                 >
-                                  <Fi name={getFlaticonForSubject(sub.icon, sub.name)} className="text-base" />
+                                  <RenderIcon icon={sub.icon} name={sub.name} className="text-base" />
                                 </div>
                                 <div className="truncate">
                                   <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{sub.name}</h5>
@@ -2038,7 +2058,7 @@ export default function HeadmasterAcademicsPage() {
                             color: "#fff"
                           }}
                         >
-                          <Fi name={getFlaticonForSubject(sub.icon, sub.name)} className="text-lg" />
+                          <RenderIcon icon={sub.icon} name={sub.name} className="text-lg" />
                         </div>
 
                         {/* Status Label Badge */}
@@ -2191,7 +2211,7 @@ export default function HeadmasterAcademicsPage() {
                               }`}
                           >
                             <div className="flex items-center gap-3">
-                              <span className="text-xl shrink-0">{sub.icon}</span>
+                              <RenderIcon icon={sub.icon} name={sub.name} className="text-xl shrink-0" />
                               <div>
                                 <h4 className={`font-extrabold text-sm leading-snug ${isSelected ? "text-amber-950 dark:text-amber-100" : "text-slate-800 dark:text-slate-100"}`}>
                                   {sub.name}
@@ -2215,7 +2235,7 @@ export default function HeadmasterAcademicsPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl flex items-center justify-center">
-                              <Fi name={getSubjectIcon(selectedSyllabusSubject)} className="text-2xl" />
+                              <RenderIcon icon={syllabusSubjectsForClass.find(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase())?.icon || getSubjectIcon(selectedSyllabusSubject)} name={selectedSyllabusSubject} className="text-2xl" />
                             </span>
                             <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">
                               {selectedSyllabusSubject} — Class {syllabusClass}
@@ -2440,7 +2460,7 @@ export default function HeadmasterAcademicsPage() {
                               className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
                               style={{ backgroundColor: `${t.color}1a`, color: t.color }}
                             >
-                              {t.icon} {subName}
+                              <RenderIcon icon={t.icon} name={subName} className="text-xs" /> {subName}
                             </span>
 
                             {res.class && (
