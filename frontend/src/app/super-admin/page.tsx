@@ -55,7 +55,18 @@ const recentActivity = [
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "people" | "academics" | "system" | "governance">("all");
   const [stats, setStats] = useState<any>(null);
-  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
+  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = sessionStorage.getItem("portal_disabled_routes");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return new Set<string>(parsed);
+        }
+      } catch (e) {}
+    }
+    return new Set();
+  });
   const [portalVisibility, setPortalVisibility] = useState({
     beo: true,
     deo: true,
