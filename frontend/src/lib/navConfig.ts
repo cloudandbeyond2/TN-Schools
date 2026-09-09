@@ -535,15 +535,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-map" },
       { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "fi fi-rr-trophy" },
 
-      // Common Menu & Tools
-      { label: "Admin & Tools", href: "#", icon: "" },
-      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "fi fi-rr-apps" },
-      { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
-      { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
-      // { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
-      { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
-      { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
-      { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
+      
 
       // AI Content Studio — 20 subject-adaptive content skills. The hub holds
       // all of them; the six group entries open it pre-filtered.
@@ -557,6 +549,16 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Feedback & Rubric", href: "/teacher/ai-studio/feedback", icon: "fi fi-rr-comment-check" },
       { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
+
+      // Common Menu & Tools
+      { label: "Admin & Tools", href: "#", icon: "" },
+      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "fi fi-rr-apps" },
+      { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
+      { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
+      // { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
+      { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
+      { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
+      { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
 
       // Class Teacher Responsibilities
       { label: "---", href: "#", icon: "" },
