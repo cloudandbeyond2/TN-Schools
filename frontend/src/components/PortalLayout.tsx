@@ -526,6 +526,63 @@ const headerTranslations: Record<string, Record<string, { title: string; subtitl
   }
 };
 
+// Module-level caches to eliminate client navigation flicker
+let cachedDisabledRoutes: Set<string> | null = null;
+let cachedMaintenanceMode: boolean | null = null;
+let cachedCurrentLanguage: ("English" | "தமிழ்") | null = null;
+let cachedStudentGroup: StudentGroup | null = null;
+let cachedStudentLevel: string | null = null;
+let cachedTeacherProfile: {
+  subject: string;
+  assignedClass: string;
+  assignedSection?: string;
+  isClassTeacher: boolean;
+} | null = null;
+let cachedProxyAssignments: any[] | null = null;
+let cachedTeacherTimetableClasses: string[] | null = null;
+let cachedHasScienceProxyClass: boolean | null = null;
+let cachedNotificationsList: any[] | null = null;
+let cachedUnreadCount: number | null = null;
+
+const getInitialDisabledRoutes = (): Set<string> => {
+  if (cachedDisabledRoutes) return cachedDisabledRoutes;
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem("portal_disabled_routes");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          cachedDisabledRoutes = new Set<string>(parsed);
+          return cachedDisabledRoutes;
+        }
+      }
+    } catch (e) {}
+  }
+  return new Set();
+};
+
+const getInitialMaintenanceMode = (): boolean => {
+  if (cachedMaintenanceMode !== null) return cachedMaintenanceMode;
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem("portal_maintenance_mode");
+      if (stored !== null) {
+        cachedMaintenanceMode = stored === "true";
+        return cachedMaintenanceMode;
+      }
+    } catch (e) {}
+  }
+  return false;
+};
+
+const areSetsEqual = (setA: Set<string>, arrB: string[]): boolean => {
+  if (setA.size !== arrB.length) return false;
+  for (const item of arrB) {
+    if (!setA.has(item)) return false;
+  }
+  return true;
+};
+
 export default function PortalLayout({
   children,
   title,
@@ -544,32 +601,63 @@ export default function PortalLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<"English" | "தமிழ்">("English");
+  const [currentLanguage, setCurrentLanguage] = useState<"English" | "தமிழ்">(() => {
+    if (cachedCurrentLanguage) return cachedCurrentLanguage;
+    if (typeof window !== "undefined") {
+      const savedLang = localStorage.getItem("portal-language");
+      if (savedLang === "English" || savedLang === "தமிழ்") {
+        cachedCurrentLanguage = savedLang;
+        return savedLang;
+      }
+    }
+    return "English";
+  });
 
   useEffect(() => {
     const savedLang = localStorage.getItem("portal-language");
     if (savedLang === "English" || savedLang === "தமிழ்") {
+      cachedCurrentLanguage = savedLang;
       setCurrentLanguage(savedLang);
     }
   }, []);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [sidebarSearchQuery, setSidebarSearchQuery] = useState("");
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notificationsList, setNotificationsList] = useState<any[]>([]);
-  const [activeStudentLevel, setActiveStudentLevel] = useState("STUDENT_HIGHER");
-  const [studentGroup, setStudentGroup] = useState<StudentGroup>("Science");
+  const [unreadCount, setUnreadCount] = useState<number>(() => cachedUnreadCount ?? 0);
+  const [notificationsList, setNotificationsList] = useState<any[]>(() => cachedNotificationsList ?? []);
+  const [activeStudentLevel, setActiveStudentLevel] = useState<string>(() => {
+    if (cachedStudentLevel) return cachedStudentLevel;
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("studentLevel");
+      if (stored) {
+        cachedStudentLevel = stored;
+        return stored;
+      }
+    }
+    return "STUDENT_HIGHER";
+  });
+  const [studentGroup, setStudentGroup] = useState<StudentGroup>(() => {
+    if (cachedStudentGroup) return cachedStudentGroup;
+    if (typeof window !== "undefined") {
+      const g = localStorage.getItem("studentGroup");
+      if (g === "Science" || g === "Commerce" || g === "ComputerScience" || g === "Arts" || g === "Vocational") {
+        cachedStudentGroup = g as any;
+        return g as any;
+      }
+    }
+    return "Science";
+  });
   const [studentGroupCode, setStudentGroupCode] = useState<string>("");
-  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [hasScienceProxyClass, setHasScienceProxyClass] = useState(false);
-  const [proxyAssignments, setProxyAssignments] = useState<any[]>([]);
-  const [teacherTimetableClasses, setTeacherTimetableClasses] = useState<string[]>([]);
+  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(getInitialDisabledRoutes);
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(getInitialMaintenanceMode);
+  const [hasScienceProxyClass, setHasScienceProxyClass] = useState<boolean>(() => cachedHasScienceProxyClass ?? false);
+  const [proxyAssignments, setProxyAssignments] = useState<any[]>(() => cachedProxyAssignments ?? []);
+  const [teacherTimetableClasses, setTeacherTimetableClasses] = useState<string[]>(() => cachedTeacherTimetableClasses ?? []);
   const [teacherProfile, setTeacherProfile] = useState<{
     subject: string;
     assignedClass: string;
     assignedSection?: string;
     isClassTeacher: boolean;
-  } | null>(null);
+  } | null>(() => cachedTeacherProfile);
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -603,12 +691,14 @@ export default function PortalLayout({
                 if (!aSec) aSec = meta.assignedSection || "";
               } catch (e) {}
             }
-            setTeacherProfile({
+            const prof = {
               subject: json.data.subject || (session.user as any).subject || "General",
               assignedClass: aCls || (session.user as any).assignedClass || (session.user as any).class || "",
               assignedSection: aSec || (session.user as any).assignedSection || (session.user as any).section || "",
               isClassTeacher: isCT || !!(session.user as any).isClassTeacher || (session.user as any).workAllocation === "Class Teacher",
-            });
+            };
+            cachedTeacherProfile = prof;
+            setTeacherProfile(prof);
           }
         })
         .catch(() => {});
@@ -618,12 +708,14 @@ export default function PortalLayout({
         .then((res) => res.json())
         .then((json) => {
           if (json.success && Array.isArray(json.data)) {
-            setProxyAssignments(json.data);
             const scienceKeywords = ["science", "physics", "chemistry", "biology", "zoology", "botany"];
             const hasProxyScience = json.data.some((p: any) => {
               const subj = (p.timetable?.subject || p.subject || "").toLowerCase();
               return scienceKeywords.some((kw) => subj.includes(kw));
             });
+            cachedProxyAssignments = json.data;
+            cachedHasScienceProxyClass = hasProxyScience;
+            setProxyAssignments(json.data);
             setHasScienceProxyClass(hasProxyScience);
           }
         })
@@ -639,6 +731,7 @@ export default function PortalLayout({
         .then((json) => {
           if (json.success && Array.isArray(json.data)) {
             const classesFound: string[] = json.data.map((slot: any) => String(slot.className || slot.class || ""));
+            cachedTeacherTimetableClasses = classesFound;
             setTeacherTimetableClasses(classesFound);
           }
         })
@@ -744,8 +837,11 @@ export default function PortalLayout({
 
       const combined = [...announcementsList, ...mappedUserNotifs];
       if (combined.length > 0) {
+        cachedNotificationsList = combined;
+        const unread = combined.filter((n: any) => !n.read).length;
+        cachedUnreadCount = unread;
         setNotificationsList(combined);
-        setUnreadCount(combined.filter((n: any) => !n.read).length);
+        setUnreadCount(unread);
       }
     } catch (err) {
       console.error("Error fetching notifications", err);
@@ -820,6 +916,7 @@ export default function PortalLayout({
     const readGroup = () => {
       const g = localStorage.getItem("studentGroup");
       if (g === "Science" || g === "Commerce" || g === "ComputerScience" || g === "Arts" || g === "Vocational") {
+        cachedStudentGroup = g as any;
         setStudentGroup(g as any);
       }
     };
@@ -851,7 +948,9 @@ export default function PortalLayout({
               if (c.startsWith("27")) return "Commerce";
               return "Science"; // default fallback
             };
-            setStudentGroup(mapGroupCodeToStream(gCode));
+            const mappedGroup = mapGroupCodeToStream(gCode);
+            cachedStudentGroup = mappedGroup;
+            setStudentGroup(mappedGroup);
           }
         })
         .catch(err => console.error("Failed to load student group code:", err));
@@ -861,16 +960,22 @@ export default function PortalLayout({
   useEffect(() => {
     if (pathname.startsWith("/student/middle-school")) {
       localStorage.setItem("studentLevel", "STUDENT_MIDDLE");
+      cachedStudentLevel = "STUDENT_MIDDLE";
       setActiveStudentLevel("STUDENT_MIDDLE");
     } else if (pathname.startsWith("/student/high-school")) {
       localStorage.setItem("studentLevel", "STUDENT_HIGH");
+      cachedStudentLevel = "STUDENT_HIGH";
       setActiveStudentLevel("STUDENT_HIGH");
     } else if (pathname.startsWith("/student/higher-secondary")) {
       localStorage.setItem("studentLevel", "STUDENT_HIGHER");
+      cachedStudentLevel = "STUDENT_HIGHER";
       setActiveStudentLevel("STUDENT_HIGHER");
     } else if (pathname !== "/student") {
       const stored = localStorage.getItem("studentLevel");
-      if (stored) setActiveStudentLevel(stored);
+      if (stored) {
+        cachedStudentLevel = stored;
+        setActiveStudentLevel(stored);
+      }
     }
   }, [pathname]);
 
@@ -882,9 +987,30 @@ export default function PortalLayout({
         .then((data) => {
           if (data.success && data.data) {
             if (Array.isArray(data.data.disabledRoutes)) {
-              setDisabledRoutes(new Set<string>(data.data.disabledRoutes));
+              setDisabledRoutes((prev) => {
+                if (areSetsEqual(prev, data.data.disabledRoutes)) {
+                  return prev;
+                }
+                const newSet = new Set<string>(data.data.disabledRoutes);
+                cachedDisabledRoutes = newSet;
+                if (typeof window !== "undefined") {
+                  try {
+                    sessionStorage.setItem("portal_disabled_routes", JSON.stringify(data.data.disabledRoutes));
+                  } catch (e) {}
+                }
+                return newSet;
+              });
             }
-            setMaintenanceMode(data.data.maintenanceMode === true);
+            const isMaint = data.data.maintenanceMode === true;
+            if (cachedMaintenanceMode !== isMaint) {
+              cachedMaintenanceMode = isMaint;
+              if (typeof window !== "undefined") {
+                try {
+                  sessionStorage.setItem("portal_maintenance_mode", String(isMaint));
+                } catch (e) {}
+              }
+              setMaintenanceMode(isMaint);
+            }
           }
         })
         .catch(() => { });
@@ -1563,6 +1689,7 @@ export default function PortalLayout({
                 <div className="absolute right-0 mt-2 w-32 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
                   <button
                     onClick={() => {
+                      cachedCurrentLanguage = "English";
                       setCurrentLanguage("English");
                       localStorage.setItem("portal-language", "English");
                       window.dispatchEvent(new Event("portal-language-change"));
@@ -1574,6 +1701,7 @@ export default function PortalLayout({
                   </button>
                   <button
                     onClick={() => {
+                      cachedCurrentLanguage = "தமிழ்";
                       setCurrentLanguage("தமிழ்");
                       localStorage.setItem("portal-language", "தமிழ்");
                       window.dispatchEvent(new Event("portal-language-change"));

@@ -899,7 +899,7 @@ export default function ModelExamsPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="glass rounded-2xl border border-slate-700 w-full max-w-md p-6 shadow-2xl fade-in">
-            <h2 className="text-base font-black text-white mb-5 flex items-center gap-2">
+            <h2 className="text-base font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2">
               <Plus className="w-4 h-4 text-blue-400" />
               <span>Create New Exam</span>
             </h2>
