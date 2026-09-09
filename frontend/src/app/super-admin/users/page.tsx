@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { apiFetch } from "@/lib/api";
 
-type Role = "STUDENT" | "TEACHER" | "PARENT" | "HEADMASTER" | "BEO" | "DEO" | "COMMISSIONER" | "MINISTER" | "SUPERADMIN";
+type Role = "SUPERADMIN" | "HEADMASTER" | "TEACHER" | "STUDENT" | "PARENT" | "BEO" | "DEO" | "COMMISSIONER" | "MINISTER";
 
 interface User {
   id: string;
@@ -17,30 +17,30 @@ interface User {
   joined: string;
 }
 
-const ROLES: Role[] = ["STUDENT","TEACHER","PARENT","HEADMASTER","BEO","DEO","COMMISSIONER","MINISTER","SUPERADMIN"];
+const ROLES: Role[] = ["SUPERADMIN","HEADMASTER","TEACHER","STUDENT","PARENT","BEO","DEO","COMMISSIONER","MINISTER"];
 
 const roleColors: Record<Role, string> = {
-  STUDENT: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
-  TEACHER: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-  PARENT: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+  SUPERADMIN: "text-slate-300 bg-slate-500/10 border-slate-500/30",
   HEADMASTER: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  TEACHER: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  STUDENT: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
+  PARENT: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
   BEO: "text-violet-400 bg-violet-500/10 border-violet-500/30",
   DEO: "text-pink-400 bg-pink-500/10 border-pink-500/30",
   COMMISSIONER: "text-cyan-400 bg-cyan-500/10 border-cyan-500/30",
   MINISTER: "text-red-400 bg-red-500/10 border-red-500/30",
-  SUPERADMIN: "text-slate-300 bg-slate-500/10 border-slate-500/30",
 };
 
 const roleFlaticons: Record<Role, string> = {
-  STUDENT: "fi-rr-graduation-cap",
-  TEACHER: "fi-rr-book-alt",
-  PARENT: "fi-rr-users",
+  SUPERADMIN: "fi-rr-settings",
   HEADMASTER: "fi-rr-building",
+  TEACHER: "fi-rr-book-alt",
+  STUDENT: "fi-rr-graduation-cap",
+  PARENT: "fi-rr-users",
   BEO: "fi-rr-marker",
   DEO: "fi-rr-map",
   COMMISSIONER: "fi-rr-scale",
   MINISTER: "fi-rr-bank",
-  SUPERADMIN: "fi-rr-settings",
 };
 
 const renderRoleFlaticon = (r: Role, className = "text-base") => {
@@ -63,9 +63,8 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [schoolsList, setSchoolsList] = useState<any[]>([]);
   const [roleCounts, setRoleCounts] = useState<Record<string, string>>({
-    STUDENT: "0", TEACHER: "0", PARENT: "0",
-    HEADMASTER: "0", BEO: "0", DEO: "0",
-    COMMISSIONER: "0", MINISTER: "0", SUPERADMIN: "0"
+    SUPERADMIN: "0", HEADMASTER: "0", TEACHER: "0", STUDENT: "0", PARENT: "0",
+    BEO: "0", DEO: "0", COMMISSIONER: "0", MINISTER: "0"
   });
 
   const [search, setSearch] = useState("");
@@ -296,6 +295,10 @@ export default function UserManagement() {
   };
 
   const validateForm = () => {
+    if (!isRoleVisible(form.role)) {
+      alert(`The ${form.role} role is currently disabled in Portal Visibility settings.`);
+      return false;
+    }
     if (!form.name || !form.email) {
       alert("Name and Email are required.");
       return false;

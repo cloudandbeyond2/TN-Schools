@@ -5,7 +5,7 @@ import PortalLayout from "@/components/PortalLayout";
 import { apiFetch } from "@/lib/api";
 import { Check, X, Lock, RefreshCw, Save, Search } from "lucide-react";
 
-type Role = "STUDENT" | "TEACHER" | "PARENT" | "HEADMASTER" | "BEO" | "DEO" | "COMMISSIONER" | "MINISTER" | "SUPERADMIN";
+type Role = "SUPERADMIN" | "HEADMASTER" | "TEACHER" | "STUDENT" | "PARENT" | "BEO" | "DEO" | "COMMISSIONER" | "MINISTER";
 
 interface Module {
   id: string;
@@ -14,16 +14,16 @@ interface Module {
   category: string;
 }
 
-const roles: Role[] = ["STUDENT", "TEACHER", "PARENT", "HEADMASTER", "BEO", "DEO", "COMMISSIONER", "MINISTER", "SUPERADMIN"];
+const roles: Role[] = ["SUPERADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT", "BEO", "DEO", "COMMISSIONER", "MINISTER"];
 
 const roleIcons: Record<Role, string> = {
-  STUDENT: "🎓", TEACHER: "📚", PARENT: "👨‍👩‍👧", HEADMASTER: "🏫", BEO: "🏢",
-  DEO: "🗺️", COMMISSIONER: "⚖️", MINISTER: "🏛️", SUPERADMIN: "🛠️",
+  SUPERADMIN: "🛠️", HEADMASTER: "🏫", TEACHER: "📚", STUDENT: "🎓", PARENT: "👨‍👩‍👧", BEO: "🏢",
+  DEO: "🗺️", COMMISSIONER: "⚖️", MINISTER: "🏛️",
 };
 
 const roleColors: Record<Role, string> = {
-  STUDENT: "#6366f1", TEACHER: "#f59e0b", PARENT: "#10b981", HEADMASTER: "#3b82f6",
-  BEO: "#8b5cf6", DEO: "#ec4899", COMMISSIONER: "#06b6d4", MINISTER: "#ef4444", SUPERADMIN: "#475569",
+  SUPERADMIN: "#475569", HEADMASTER: "#3b82f6", TEACHER: "#f59e0b", STUDENT: "#6366f1", PARENT: "#10b981",
+  BEO: "#8b5cf6", DEO: "#ec4899", COMMISSIONER: "#06b6d4", MINISTER: "#ef4444",
 };
 
 const modules: Module[] = [
@@ -73,9 +73,8 @@ const categories = Array.from(new Set(modules.map((m) => m.category)));
 export default function RolePermissions() {
   const [matrix, setMatrix] = useState<Record<Role, Record<string, boolean>>>(buildDefault);
   const [roleCounts, setRoleCounts] = useState<Record<string, string>>({
-    STUDENT: "0", TEACHER: "0", PARENT: "0",
-    HEADMASTER: "0", BEO: "0", DEO: "0",
-    COMMISSIONER: "0", MINISTER: "0", SUPERADMIN: "0"
+    SUPERADMIN: "0", HEADMASTER: "0", TEACHER: "0", STUDENT: "0", PARENT: "0",
+    BEO: "0", DEO: "0", COMMISSIONER: "0", MINISTER: "0"
   });
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [loading, setLoading] = useState(true);

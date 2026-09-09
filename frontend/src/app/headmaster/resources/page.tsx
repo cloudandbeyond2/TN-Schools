@@ -329,6 +329,43 @@ export default function ResourcesPage() {
   // Toast
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  // Portal visibility
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const isOfficialVisible = useCallback((role: OfficialRole) => {
+    if (role === "BEO" && !portalVisibility.beo) return false;
+    if (role === "DEO" && !portalVisibility.deo) return false;
+    if (role === "Commissioner" && !portalVisibility.commissioner) return false;
+    if (role === "Minister" && !portalVisibility.minister) return false;
+    return true;
+  }, [portalVisibility]);
+
+  const fetchEffective = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/features/effective`);
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  }, [API_BASE]);
+
+  useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
+  }, [fetchEffective]);
+
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchResources = useCallback(async () => {
     if (!schoolId) return;
@@ -359,6 +396,7 @@ export default function ResourcesPage() {
   const needsRepair = resources.filter(r => r.status === "Needs Repair").length;
   const critical    = resources.filter(r => r.status === "Critical").length;
   const openReports = reports.filter(r => r.status !== "Resolved").length;
+  const visibleOfficials = OFFICIALS.filter(o => isOfficialVisible(o.role));
 
   // Overall infrastructure health (0–100)
   const healthScore = total === 0 ? null
@@ -456,7 +494,8 @@ export default function ResourcesPage() {
   // ── Report modal helpers ──────────────────────────────────────────────────
   const openReport = (opts?: { recipient?: OfficialRole; resource?: SchoolResource; category?: ResourceCategory }) => {
     const base = emptyReportForm();
-    if (opts?.recipient) base.recipientRole = opts.recipient;
+    const defaultRecipient = visibleOfficials[0]?.role || "BEO";
+    base.recipientRole = opts?.recipient && isOfficialVisible(opts.recipient) ? opts.recipient : defaultRecipient;
     if (opts?.category) base.category = opts.category;
     if (opts?.resource) {
       base.category = opts.resource.category;
@@ -528,6 +567,10 @@ export default function ResourcesPage() {
   const handleSendReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!schoolId) return;
+    if (!isOfficialVisible(reportForm.recipientRole)) {
+      setReportError(`The ${reportForm.recipientRole} module is currently disabled in Portal Visibility.`);
+      return;
+    }
     setSendingReport(true);
     setReportError(null);
     const isFull = reportForm.reportType === "Full Infrastructure Report";
@@ -1742,7 +1785,7 @@ export default function ResourcesPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {OFFICIALS.map((o, i) => {
+              {visibleOfficials.map((o, i) => {
                 const sent = reports.filter(r => r.recipientRole === o.role).length;
                 const open = reports.filter(r => r.recipientRole === o.role && r.status !== "Resolved").length;
                 return (
@@ -1754,7 +1797,7 @@ export default function ResourcesPage() {
                   >
                     {/* Chain step number */}
                     <span className="absolute top-3 right-3 text-xs font-black text-slate-500">
-                      {i < OFFICIALS.length - 1 ? `LEVEL ${i + 1} →` : `LEVEL ${i + 1}`}
+                      {i < visibleOfficials.length - 1 ? `LEVEL ${i + 1} →` : `LEVEL ${i + 1}`}
                     </span>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${o.bg} border ${o.border} mb-2.5`}>
                       <i className={`${o.icon} text-xl leading-none ${o.color} transition-transform duration-300 group-hover:scale-110`} aria-hidden />
@@ -1792,7 +1835,7 @@ export default function ResourcesPage() {
                   className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all
                     ${reportFilter === "All" ? "bg-violet-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
                 >All</button>
-                {OFFICIALS.map(o => (
+                {visibleOfficials.map(o => (
                   <button
                     key={o.role}
                     onClick={() => setReportFilter(o.role)}
@@ -2104,7 +2147,7 @@ export default function ResourcesPage() {
                   Send To <span className="text-rose-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {OFFICIALS.map(o => {
+                  {visibleOfficials.map(o => {
                     const sel = reportForm.recipientRole === o.role;
                     return (
                       <button

@@ -206,8 +206,8 @@ export default function SchoolManagement() {
         schoolType: form.type,
         mediumOfInstruction: form.medium,
         headmasterName: form.hm || "N/A",
-        beoId: form.beoId || null,
-        deoId: form.deoId || null,
+        beoId: portalVisibility.beo ? (form.beoId || null) : null,
+        deoId: portalVisibility.deo ? (form.deoId || null) : null,
       };
       const endpoint = editSchool ? `/api/schools/${editSchool.id}` : `/api/schools`;
       const method = editSchool ? "PUT" : "POST";
@@ -505,6 +505,8 @@ export default function SchoolManagement() {
               ["Type", viewSchool.type], ["Medium", viewSchool.medium],
               ["District", viewSchool.district], ["Block", viewSchool.block],
               ["Headmaster", viewSchool.hm || "Not Assigned"],
+              ...(portalVisibility.beo ? [["Assigned BEO", beoUsers.find(b => b.id === viewSchool.beoId)?.name || (viewSchool.beoId ? "Assigned" : "Not Assigned")]] : []),
+              ...(portalVisibility.deo ? [["Assigned DEO", deoUsers.find(d => d.id === viewSchool.deoId)?.name || (viewSchool.deoId ? "Assigned" : "Not Assigned")]] : []),
               ["Students", viewSchool.students.toLocaleString()],
               ["Teachers", viewSchool.teachers.toLocaleString()],
               ["Status", viewSchool.status.toUpperCase()],
