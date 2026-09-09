@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -58,6 +58,7 @@ export default function TeacherPersonalGuidePage() {
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [searchStudents, setSearchStudents] = useState("");
+  const [selectedClassFilter, setSelectedClassFilter] = useState("All");
   const [form, setForm] = useState({
     title: "",
     question: "",
@@ -299,9 +300,33 @@ export default function TeacherPersonalGuidePage() {
     await loadTasks(selectedStudent.id);
   };
 
-  const filteredStudents = students.filter((s) =>
-    (s.user?.name || "").toLowerCase().includes(searchStudents.toLowerCase())
-  );
+  const availableClasses = useMemo(() => {
+    const map = new Map<string, number>();
+    students.forEach((s) => {
+      const clsSec = `${s.class || ""}${s.section ? `-${s.section}` : ""}`.trim();
+      if (clsSec) {
+        map.set(clsSec, (map.get(clsSec) || 0) + 1);
+      }
+    });
+    return Array.from(map.entries())
+      .map(([cls, count]) => ({ className: cls, count }))
+      .sort((a, b) => a.className.localeCompare(b.className, undefined, { numeric: true }));
+  }, [students]);
+
+  const filteredStudents = useMemo(() => {
+    return students.filter((s) => {
+      const clsSec = `${s.class || ""}${s.section ? `-${s.section}` : ""}`.trim();
+      const matchesClass =
+        selectedClassFilter === "All" ||
+        clsSec === selectedClassFilter ||
+        String(s.class) === selectedClassFilter;
+      const matchesSearch = (s.user?.name || "")
+        .toLowerCase()
+        .includes(searchStudents.toLowerCase());
+      return matchesClass && matchesSearch;
+    });
+  }, [students, selectedClassFilter, searchStudents]);
+
   const pendingCount = tasks.filter((t) => t.status === "pending").length;
   const answeredCount = tasks.filter((t) => t.status === "answered").length;
 
@@ -336,18 +361,38 @@ export default function TeacherPersonalGuidePage() {
 
             {/* Student List */}
              <div
-              className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm overflow-hidden h-[300px] lg:h-[80vh]"
+              className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm overflow-hidden h-[360px] lg:h-[80vh]"
             >
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-2.5">
+                <div className="flex items-center gap-2">
                   <i className="fi fi-rr-users-alt text-indigo-500 text-sm" />
                   <h2 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
                     {lang === "தமிழ்" ? "மாணவர்கள்" : "Students"}
                   </h2>
                   <span className="ml-auto text-xs bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold border border-indigo-100 dark:border-indigo-900">
-                    {students.length}
+                    {filteredStudents.length} / {students.length}
                   </span>
                 </div>
+
+                {/* Class Filter Dropdown */}
+                <div>
+                  <select
+                    value={selectedClassFilter}
+                    onChange={(e) => setSelectedClassFilter(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="All">
+                      {lang === "தமிழ்" ? "எல்லா வகுப்புகளும்" : "All Classes"} ({students.length})
+                    </option>
+                    {availableClasses.map((item) => (
+                      <option key={item.className} value={item.className}>
+                        {lang === "தமிழ்" ? "வகுப்பு" : "Class"} {item.className} ({item.count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Search Input */}
                 <input
                   value={searchStudents}
                   onChange={(e) => setSearchStudents(e.target.value)}
@@ -375,38 +420,50 @@ export default function TeacherPersonalGuidePage() {
                       .toUpperCase()
                       .slice(0, 2);
                     const isSel = selectedStudent?.id === s.id;
+                    const classSecLabel = s.class
+                      ? `${s.class}${s.section ? `-${s.section}` : ""}`
+                      : "N/A";
                     return (
                       <button
                         key={s.id}
                         onClick={() => setSelectedStudent(s)}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-l-2 ${
                           isSel
-                            ? "bg-indigo-50 dark:bg-indigo-950/20 border-indigo-500"
+                            ? "bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-500"
                             : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border-transparent"
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                          className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
                             isSel
-                              ? "bg-indigo-500 text-white"
+                              ? "bg-indigo-600 text-white shadow-sm"
                               : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                           }`}
                         >
                           {initials}
                         </div>
-                        <div className="min-w-0">
-                          <p
-                            className={`text-xs font-bold truncate ${
-                              isSel
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-slate-800 dark:text-white"
-                            }`}
-                          >
-                            {name}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            Class {s.class}-{s.section}
-                          </p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <p
+                              className={`text-xs font-bold truncate ${
+                                isSel
+                                  ? "text-indigo-600 dark:text-indigo-400"
+                                  : "text-slate-800 dark:text-white"
+                              }`}
+                            >
+                              {name}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/50">
+                              Class {classSecLabel}
+                            </span>
+                            {s.rollNumber && (
+                              <span className="text-[10px] text-slate-400">
+                                Roll #{s.rollNumber}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );
