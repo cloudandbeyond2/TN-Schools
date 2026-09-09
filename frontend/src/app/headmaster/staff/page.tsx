@@ -133,7 +133,7 @@ export default function StaffManagementPage() {
   const [formType, setFormType] = useState<"Teaching" | "Non-Teaching" | "Temporary">("Teaching");
   const [formName, setFormName] = useState("");
   const [formEmisId, setFormEmisId] = useState("");
-  const [formSubjectOrRole, setFormSubjectOrRole] = useState("PET");
+  const [formSubjectOrRole, setFormSubjectOrRole] = useState("Science");
   const [formPhone, setFormPhone] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formDob, setFormDob] = useState("");
