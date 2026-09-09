@@ -133,7 +133,7 @@ export default function StaffManagementPage() {
   const [formType, setFormType] = useState<"Teaching" | "Non-Teaching" | "Temporary">("Teaching");
   const [formName, setFormName] = useState("");
   const [formEmisId, setFormEmisId] = useState("");
-  const [formSubjectOrRole, setFormSubjectOrRole] = useState("Science");
+  const [formSubjectOrRole, setFormSubjectOrRole] = useState("Mathematics");
   const [formPhone, setFormPhone] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formDob, setFormDob] = useState("");
@@ -993,7 +993,7 @@ export default function StaffManagementPage() {
   const resetForm = () => {
     setFormName("");
     setFormEmisId("");
-    setFormSubjectOrRole("Science");
+    setFormSubjectOrRole("Mathematics");
     setFormPhone("");
     setFormEmail("");
     setFormDob("");
@@ -1989,6 +1989,20 @@ export default function StaffManagementPage() {
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                       />
                     </div>
+                    {formType === "Teaching" && (
+                      <div>
+                        <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Primary Subject *</label>
+                        <select
+                          value={formSubjectOrRole}
+                          onChange={e => setFormSubjectOrRole(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 font-medium"
+                        >
+                          {["Mathematics", "Science", "English", "Tamil", "Social Science", "Computer Science", "Physics", "Chemistry", "Biology", "Physical Education"].map(sub => (
+                            <option key={sub} value={sub}>{sub}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     {formType === "Non-Teaching" && (
                       <div>
                         <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Role (Optional)</label>
@@ -2286,6 +2300,21 @@ export default function StaffManagementPage() {
                   />
                 </div>
               </div>
+
+              {formType === "Teaching" && (
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Subject *</label>
+                  <select
+                    value={formSubjectOrRole}
+                    onChange={e => setFormSubjectOrRole(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none font-medium"
+                  >
+                    {["Mathematics", "Science", "English", "Tamil", "Social Science", "Computer Science", "Physics", "Chemistry", "Biology", "Physical Education"].map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {formType === "Non-Teaching" && (
                 <div>
