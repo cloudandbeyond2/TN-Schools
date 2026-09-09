@@ -256,6 +256,35 @@ export default function MiddayMealPage() {
   // Delete confirmation modal state
   const [confirmDelete, setConfirmDelete] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
+  // Portal visibility
+  const [portalVisibility, setPortalVisibility] = useState({
+    beo: true,
+    deo: true,
+    commissioner: true,
+    minister: true,
+    pet: true,
+  });
+
+  const fetchEffective = useCallback(async () => {
+    try {
+      const res = await apiFetch("/api/features/effective");
+      const data = await res.json();
+      if (data.success && data.data?.portalVisibility) {
+        setPortalVisibility(data.data.portalVisibility);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchEffective();
+    window.addEventListener("portalVisibilityChanged", fetchEffective);
+    window.addEventListener("focus", fetchEffective);
+    return () => {
+      window.removeEventListener("portalVisibilityChanged", fetchEffective);
+      window.removeEventListener("focus", fetchEffective);
+    };
+  }, [fetchEffective]);
+
   /* ── Fetch all MDM data for this school from the backend ── */
   const fetchAll = useCallback(async () => {
     if (!schoolId) return;
@@ -1693,7 +1722,7 @@ export default function MiddayMealPage() {
       )}
 
       {showAddReport && (
-        <AddReportModal onClose={() => setShowAddReport(false)} onSave={addQualityReport} />
+        <AddReportModal onClose={() => setShowAddReport(false)} onSave={addQualityReport} portalVisibility={portalVisibility} />
       )}
 
       {confirmDelete && (
@@ -2286,7 +2315,15 @@ function DeviationModal({ day, onClose, onSave }: {
   );
 }
 
-function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: any) => void }) {
+function AddReportModal({
+  onClose,
+  onSave,
+  portalVisibility,
+}: {
+  onClose: () => void;
+  onSave: (r: any) => void;
+  portalVisibility?: { beo: boolean; deo: boolean; commissioner: boolean; minister: boolean; pet: boolean };
+}) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [inspector, setInspector] = useState("");
   const [role, setRole] = useState("Teacher on Duty");
@@ -2295,6 +2332,9 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
   const [hygiene, setHygiene] = useState("4");
   const [issues, setIssues] = useState("");
   const [status, setStatus] = useState<QualityStatus>("Satisfactory");
+
+  const showBeo = portalVisibility ? portalVisibility.beo : true;
+  const showDeo = portalVisibility ? portalVisibility.deo : true;
 
   return (
     <ModalShell
@@ -2327,8 +2367,8 @@ function AddReportModal({ onClose, onSave }: { onClose: () => void; onSave: (r: 
           <div>
             <label className={labelCls}>Inspector Role *</label>
             <select className={inputCls} value={role} onChange={(e) => setRole(e.target.value)}>
-              <option>Block Educational Officer (BEO)</option>
-              <option>District Educational Officer (DEO)</option>
+              {showBeo && <option>Block Educational Officer (BEO)</option>}
+              {showDeo && <option>District Educational Officer (DEO)</option>}
               <option>Headmaster</option>
               <option>Teacher on Duty</option>
               <option>VEC Member</option>

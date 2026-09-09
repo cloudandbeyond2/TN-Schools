@@ -296,6 +296,10 @@ export default function UserManagement() {
   };
 
   const validateForm = () => {
+    if (!isRoleVisible(form.role)) {
+      alert(`The ${form.role} role is currently disabled in Portal Visibility settings.`);
+      return false;
+    }
     if (!form.name || !form.email) {
       alert("Name and Email are required.");
       return false;
