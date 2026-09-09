@@ -51,25 +51,66 @@ async function ensureAcademicTablesExist() {
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "AcademicClass" (
         "id" TEXT PRIMARY KEY,
-        "name" TEXT UNIQUE NOT NULL,
+        "name" TEXT NOT NULL,
         "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE ("name", "board")
       );
     `);
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "AcademicSection" (
         "id" TEXT PRIMARY KEY,
-        "name" TEXT UNIQUE NOT NULL,
+        "name" TEXT NOT NULL,
         "board" TEXT DEFAULT 'State Board',
         "status" TEXT DEFAULT 'Active',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE ("name", "board")
       );
     `);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicClass" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSection" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
+
+    // Clean up old constraints and ensure composite constraints exist
+    await prisma.$executeRawUnsafe(`
+      DO $$ 
+      DECLARE 
+          cname text;
+      BEGIN
+          -- Drop single unique constraints on AcademicClass
+          FOR cname IN (
+              SELECT conname FROM pg_constraint 
+              WHERE conrelid = '"AcademicClass"'::regclass AND contype = 'u' 
+              AND array_length(conkey, 1) = 1
+          ) LOOP
+              EXECUTE 'ALTER TABLE "AcademicClass" DROP CONSTRAINT IF EXISTS "' || cname || '"';
+          END LOOP;
+
+          -- Drop single unique constraints on AcademicSection
+          FOR cname IN (
+              SELECT conname FROM pg_constraint 
+              WHERE conrelid = '"AcademicSection"'::regclass AND contype = 'u' 
+              AND array_length(conkey, 1) = 1
+          ) LOOP
+              EXECUTE 'ALTER TABLE "AcademicSection" DROP CONSTRAINT IF EXISTS "' || cname || '"';
+          END LOOP;
+
+          -- Add composite constraints if they don't exist
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'AcademicClass_name_board_key') THEN
+              ALTER TABLE "AcademicClass" ADD CONSTRAINT "AcademicClass_name_board_key" UNIQUE ("name", "board");
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'AcademicSection_name_board_key') THEN
+              ALTER TABLE "AcademicSection" ADD CONSTRAINT "AcademicSection_name_board_key" UNIQUE ("name", "board");
+          END IF;
+      END $$;
+    `);
+
+    // Drop legacy unique indexes explicitly (since dropping constraint doesn't always drop the index if it was created as a unique index)
+    await prisma.$executeRawUnsafe(`DROP INDEX IF EXISTS "AcademicClass_name_key";`);
+    await prisma.$executeRawUnsafe(`DROP INDEX IF EXISTS "AcademicSection_name_key";`);
+
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "board" TEXT DEFAULT 'State Board';`);
@@ -148,8 +189,8 @@ router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: 
     try {
       if ((prisma as any).academicClass) {
         result = await (prisma as any).academicClass.upsert({
-          where: { name: cleanName },
-          update: { board: cleanBoard, updatedAt: new Date() },
+          where: { name_board: { name: cleanName, board: cleanBoard } },
+          update: { updatedAt: new Date() },
           create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
@@ -157,7 +198,7 @@ router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: 
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicClass" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicClass" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name", "board") DO UPDATE SET "updatedAt" = NOW()`,
         id,
         cleanName,
         cleanBoard
@@ -212,8 +253,13 @@ router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, re
         throw new Error("academicClass model not loaded");
       }
     } catch {
-      await prisma.$executeRawUnsafe(`UPDATE "AcademicClass" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
-      result = { id, name: cleanName };
+      if (cleanBoard) {
+        await prisma.$executeRawUnsafe(`UPDATE "AcademicClass" SET "name" = $1, "board" = $2, "updatedAt" = NOW() WHERE "id" = $3`, cleanName, cleanBoard, id);
+        result = { id, name: cleanName, board: cleanBoard };
+      } else {
+        await prisma.$executeRawUnsafe(`UPDATE "AcademicClass" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
+        result = { id, name: cleanName };
+      }
     }
     res.json(result);
   } catch (error: any) {
@@ -278,8 +324,8 @@ router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res:
     try {
       if ((prisma as any).academicSection) {
         result = await (prisma as any).academicSection.upsert({
-          where: { name: cleanName },
-          update: { board: cleanBoard, updatedAt: new Date() },
+          where: { name_board: { name: cleanName, board: cleanBoard } },
+          update: { updatedAt: new Date() },
           create: { id, name: cleanName, board: cleanBoard, status: "Active" },
         });
       } else {
@@ -287,7 +333,7 @@ router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res:
       }
     } catch {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "AcademicSection" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "board" = $3, "updatedAt" = NOW()`,
+        `INSERT INTO "AcademicSection" ("id", "name", "board", "status", "createdAt", "updatedAt") VALUES ($1, $2, $3, 'Active', NOW(), NOW()) ON CONFLICT ("name", "board") DO UPDATE SET "updatedAt" = NOW()`,
         id,
         cleanName,
         cleanBoard
@@ -342,8 +388,13 @@ router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, r
         throw new Error("academicSection model not loaded");
       }
     } catch {
-      await prisma.$executeRawUnsafe(`UPDATE "AcademicSection" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
-      result = { id, name: cleanName };
+      if (cleanBoard) {
+        await prisma.$executeRawUnsafe(`UPDATE "AcademicSection" SET "name" = $1, "board" = $2, "updatedAt" = NOW() WHERE "id" = $3`, cleanName, cleanBoard, id);
+        result = { id, name: cleanName, board: cleanBoard };
+      } else {
+        await prisma.$executeRawUnsafe(`UPDATE "AcademicSection" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
+        result = { id, name: cleanName };
+      }
     }
     res.json(result);
   } catch (error: any) {
