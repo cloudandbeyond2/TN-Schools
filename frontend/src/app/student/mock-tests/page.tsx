@@ -518,16 +518,34 @@ export default function StudentMockTestsPage() {
                         const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
                         const score = hasSubmitted ? assignment.submissions[0].score : null;
 
+                        const rawClass = assignment.class || test.grade || "";
+                        let publishedClass = "All Classes";
+                        if (rawClass) {
+                          let str = String(rawClass).trim();
+                          if (!/^class/i.test(str)) {
+                            str = `Class ${str}`;
+                          }
+                          if (assignment.section && !str.toLowerCase().includes(String(assignment.section).toLowerCase())) {
+                            str += `-${assignment.section}`;
+                          }
+                          publishedClass = str;
+                        }
+
                         return (
                           <div key={assignment.id} className="group bg-white dark:bg-slate-900/90 rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-800 relative overflow-hidden flex flex-col h-full min-h-[190px]">
                             
-                            {test.schoolId === null && (
-                              <div className="mb-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
+                                <i className="fi fi-rr-graduation-cap text-[10px]" />
+                                {publishedClass}
+                              </span>
+
+                              {test.schoolId === null && (
                                 <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/40 dark:border-blue-800/40">
                                   State Board
                                 </span>
-                              </div>
-                            )}
+                              )}
+                            </div>
 
                             <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mb-1 line-clamp-1 leading-snug">{test.title}</h3>
 
