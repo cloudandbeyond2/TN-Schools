@@ -155,7 +155,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
       { label: "Mock Tests", href: "/student/mock-tests", icon: "Target" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -244,7 +244,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exam Results", href: "/student/high-school/model-exams", icon: "ClipboardCheck" },
       { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
       { label: "Assessments", href: "/student/assessments", icon: "CheckSquare" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -428,7 +428,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Homework", href: "/student/homework", icon: "BookMarked" },
       { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "ClipboardCheck" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
