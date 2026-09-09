@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X, Plus, Edit2, Trash2 } from "lucide-react";
+import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X, Plus, Edit2, Trash2, UploadCloud, Sparkles, FileText, Loader2, Globe, EyeOff, Send } from "lucide-react";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
@@ -24,6 +24,81 @@ const getCategoryColor = (catId: string) => {
 
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
+export function formatMathFormula(str: string): string {
+  if (!str) return "";
+  let res = str;
+
+  // Common numerical fractions
+  res = res.replace(/\\frac\{1\}\{2\}/g, "½");
+  res = res.replace(/\\frac\{1\}\{3\}/g, "⅓");
+  res = res.replace(/\\frac\{2\}\{3\}/g, "⅔");
+  res = res.replace(/\\frac\{1\}\{4\}/g, "¼");
+  res = res.replace(/\\frac\{3\}\{4\}/g, "¾");
+  res = res.replace(/\\frac\{1\}\{8\}/g, "⅛");
+
+  // General \frac{num}{den} -> (num / den)
+  res = res.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, (_match, num, den) => {
+    const cleanNum = num.trim();
+    const cleanDen = den.trim();
+    if (cleanNum.length === 1 && cleanDen.length === 1) {
+      return `${cleanNum}/${cleanDen}`;
+    }
+    return `(${cleanNum}/${cleanDen})`;
+  });
+
+  // Math Operators & Symbols
+  res = res.replace(/\\times/g, "×");
+  res = res.replace(/\\cdot/g, "·");
+  res = res.replace(/\\div/g, "÷");
+  res = res.replace(/\\pm/g, "±");
+  res = res.replace(/\\pi/g, "π");
+  res = res.replace(/\\theta/g, "θ");
+  res = res.replace(/\\alpha/g, "α");
+  res = res.replace(/\\beta/g, "β");
+  res = res.replace(/\\gamma/g, "γ");
+  res = res.replace(/\\sqrt\{([^{}]+)\}/g, "√($1)");
+  res = res.replace(/\\sqrt/g, "√");
+  res = res.replace(/\\le/g, "≤");
+  res = res.replace(/\\ge/g, "≥");
+  res = res.replace(/\\neq/g, "≠");
+  res = res.replace(/\\approx/g, "≈");
+
+  // Subscripts
+  res = res.replace(/_0/g, "₀");
+  res = res.replace(/_1/g, "₁");
+  res = res.replace(/_2/g, "₂");
+  res = res.replace(/_3/g, "₃");
+  res = res.replace(/_4/g, "₄");
+  res = res.replace(/_5/g, "₅");
+  res = res.replace(/_6/g, "₆");
+  res = res.replace(/_7/g, "₇");
+  res = res.replace(/_8/g, "₈");
+  res = res.replace(/_9/g, "₉");
+  res = res.replace(/_n/g, "ₙ");
+  res = res.replace(/_x/g, "ₓ");
+  res = res.replace(/_y/g, "ᵧ");
+
+  // Superscripts
+  res = res.replace(/\^0/g, "⁰");
+  res = res.replace(/\^1/g, "¹");
+  res = res.replace(/\^2/g, "²");
+  res = res.replace(/\^3/g, "³");
+  res = res.replace(/\^4/g, "⁴");
+  res = res.replace(/\^5/g, "⁵");
+  res = res.replace(/\^6/g, "⁶");
+  res = res.replace(/\^7/g, "⁷");
+  res = res.replace(/\^8/g, "⁸");
+  res = res.replace(/\^9/g, "⁹");
+  res = res.replace(/\^n/g, "ⁿ");
+
+  // Remove leftover backslashes or braces
+  res = res.replace(/\\left\(/g, "(");
+  res = res.replace(/\\right\)/g, ")");
+  res = res.replace(/\\/g, "");
+
+  return res.trim();
+}
+
 
 export default function MathsFormulasPage() {
   const { lang: portalLang } = usePortalLanguage();
@@ -43,6 +118,72 @@ export default function MathsFormulasPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"playground" | "memory">("playground");
+
+  // Unit Title Upload Modal State
+  const [unitModalOpen, setUnitModalOpen] = useState(false);
+  const [unitTitleInput, setUnitTitleInput] = useState("");
+  const [unitStandardInput, setUnitStandardInput] = useState("6");
+  const [unitTermInput, setUnitTermInput] = useState("1");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileContext, setFileContext] = useState("");
+  const [generatingUnit, setGeneratingUnit] = useState(false);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadedFile(file);
+    if (!unitTitleInput.trim()) {
+      const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+      setUnitTitleInput(cleanName);
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFileContext((event.target?.result as string || "").slice(0, 15000));
+    };
+    reader.readAsText(file);
+  };
+
+  const handleGenerateUnit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!unitTitleInput.trim() && !fileContext.trim()) {
+      showToast("Please enter a unit title or upload a unit document.");
+      return;
+    }
+
+    try {
+      setGeneratingUnit(true);
+      const res = await fetch(`${API_URL}/api/teacher/maths-formulas/generate-by-unit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unitTitle: unitTitleInput || (uploadedFile ? uploadedFile.name.replace(/\.[^/.]+$/, "") : "Unit Formulas"),
+          standard: unitStandardInput,
+          term: unitTermInput,
+          extraContext: fileContext
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUnitModalOpen(false);
+        const addedTitle = unitTitleInput;
+        setUnitTitleInput("");
+        setUploadedFile(null);
+        setFileContext("");
+        setActiveStandard(unitStandardInput);
+        setActiveTerm(unitTermInput);
+        setActiveCat("all");
+        await fetchFormulas();
+        showToast(` Generated ${data.count} formulas for Unit "${addedTitle}"!`);
+      } else {
+        Swal.fire({ icon: "error", title: "Generation Failed", text: data.error || "Could not generate formulas" });
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to generate formulas." });
+    } finally {
+      setGeneratingUnit(false);
+    }
+  };
 
   // Database Formulas State
   const [formulas, setFormulas] = useState<any[]>([]);
@@ -107,6 +248,67 @@ export default function MathsFormulasPage() {
       }
       return next;
     });
+  };
+
+  const handleTogglePublish = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/maths-formulas/${id}/toggle-publish`, {
+        method: "PATCH"
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFormulas(prev =>
+          prev.map(f => (f.id === id ? { ...f, isPublished: data.data.isPublished } : f))
+        );
+        if (data.data.isPublished) {
+          showToast("Formula published to class students!");
+        } else {
+          showToast("Formula unpublished (saved as draft).");
+        }
+      }
+    } catch (err) {
+      console.error("Error toggling publish state:", err);
+      showToast("Failed to update publish status.");
+    }
+  };
+
+  const handleBulkPublish = async (isPublished: boolean = true) => {
+    const actionText = isPublished ? "Publish" : "Unpublish";
+    const result = await Swal.fire({
+      title: `${actionText} Class Formulas?`,
+      text: isPublished
+        ? `This will make all formulas in Standard ${activeStandard} visible to students on their portal.`
+        : `This will hide all formulas in Standard ${activeStandard} from students.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionText} All`,
+      confirmButtonColor: isPublished ? "#9333ea" : "#f59e0b"
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/maths-formulas/publish-bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          standard: activeStandard,
+          term: activeTerm,
+          isPublished
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchFormulas();
+        showToast(
+          isPublished
+            ? ` Published ${data.count} formulas to Standard ${activeStandard} students!`
+            : ` Hidden ${data.count} formulas from student portal.`
+        );
+      }
+    } catch (err) {
+      console.error("Error in bulk publishing:", err);
+      showToast("Failed to bulk publish formulas.");
+    }
   };
 
   // Form State
@@ -291,6 +493,12 @@ export default function MathsFormulasPage() {
                   className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl py-2 pl-9 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer"
                 >
                   <option value="6">Standard 6</option>
+                  <option value="7">Standard 7</option>
+                  <option value="8">Standard 8</option>
+                  <option value="9">Standard 9</option>
+                  <option value="10">Standard 10</option>
+                  <option value="11">Standard 11</option>
+                  <option value="12">Standard 12</option>
                 </select>
               </div>
 
@@ -328,10 +536,31 @@ export default function MathsFormulasPage() {
             >
               <Gamepad2 className="w-5 h-5" />
             </button>
+
+            <button
+              onClick={() => {
+                setUnitStandardInput(activeStandard);
+                setUnitTermInput(activeTerm === "all" ? "1" : activeTerm);
+                setUnitModalOpen(true);
+              }}
+              className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-md flex items-center gap-1.5 text-sm flex-shrink-0"
+              title="Upload Unit Title & Auto-Generate Formulas"
+            >
+              <UploadCloud className="w-4 h-4" /> Upload Unit Title
+            </button>
+
+            <button
+              onClick={() => handleBulkPublish(true)}
+              className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-md flex items-center gap-1.5 text-sm flex-shrink-0"
+              title={`Publish all formulas in Standard ${activeStandard} to students`}
+            >
+              <Send className="w-4 h-4" /> Publish Class
+            </button>
+
             <button
               onClick={() => { resetForm(); setFormOpen(true); }}
               className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md flex items-center gap-1 text-sm flex-shrink-0"
-              title="Add Formula"
+              title="Add Single Formula"
             >
               <Plus className="w-4 h-4" /> Add
             </button>
@@ -382,7 +611,7 @@ export default function MathsFormulasPage() {
                   >
                     {revealed.has(formula.id) ? (
                       <span className="font-mono text-2xl font-black text-white text-center drop-shadow-md animate-in zoom-in duration-300">
-                        {formula.formula}
+                        {formatMathFormula(formula.formula)}
                       </span>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
@@ -396,7 +625,7 @@ export default function MathsFormulasPage() {
                 ) : (
                   <div className={`w-full h-36 rounded-t-[2rem] rounded-b-2xl bg-gradient-to-br ${formula.bg} flex items-center justify-center p-6 relative`}>
                     <p className="font-mono text-2xl font-black !text-white text-center drop-shadow-md">
-                      {formula.formula}
+                      {formatMathFormula(formula.formula)}
                     </p>
 
                     <button
@@ -431,6 +660,29 @@ export default function MathsFormulasPage() {
                       {cat?.icon ? React.cloneElement(cat.icon as React.ReactElement, { className: "w-3 h-3" }) : <Sigma className="w-3 h-3" />}
                       {cat?.name[lang]}
                     </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePublish(formula.id);
+                      }}
+                      className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border flex items-center gap-1 transition-all ${
+                        formula.isPublished !== false
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                          : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+                      }`}
+                      title={formula.isPublished !== false ? "Visible to students. Click to unpublish" : "Draft (hidden from students). Click to publish"}
+                    >
+                      {formula.isPublished !== false ? (
+                        <>
+                          <Globe className="w-3 h-3 text-emerald-600" /> Published
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3 h-3 text-amber-600" /> Draft (Hidden)
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-5 leading-tight">{lang === "en" ? formula.titleEn : formula.titleTa}</h3>
@@ -488,7 +740,7 @@ export default function MathsFormulasPage() {
             {/* Modal Header (Formula Display) */}
             <div className={`w-full h-32 bg-gradient-to-br ${selectedFormula.bg} flex items-center justify-center p-6 relative shadow-inner`}>
               <span className="font-mono text-3xl font-black text-white text-center drop-shadow-md">
-                {selectedFormula.formula}
+                {formatMathFormula(selectedFormula.formula)}
               </span>
 
               <button
@@ -637,6 +889,131 @@ export default function MathsFormulasPage() {
                 <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">Cancel</button>
                 <button type="submit" className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md">
                   {editId ? "Update Formula" : "Save Formula"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Unit Title Upload & AI Generation Modal */}
+      {unitModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-xl shadow-2xl p-6 relative animate-in zoom-in-95 border-4 border-slate-100 dark:border-slate-700">
+            <button
+              onClick={() => setUnitModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500"
+              disabled={generatingUnit}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                <UploadCloud className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-800 dark:text-white">Upload Unit Title</h2>
+                <p className="text-xs text-slate-500 font-medium">Auto-generate and import all formulas for a unit using Gemini AI</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleGenerateUnit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Unit Title (Topic / Chapter Name) *
+                </label>
+                <input
+                  type="text"
+                  required={!uploadedFile}
+                  value={unitTitleInput}
+                  onChange={(e) => setUnitTitleInput(e.target.value)}
+                  placeholder="e.g. Measurements, Algebra, Trigonometry, Coordinate Geometry"
+                  className="w-full px-4 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-emerald-500/30 focus:outline-none font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Standard (Grade)</label>
+                  <select
+                    value={unitStandardInput}
+                    onChange={(e) => setUnitStandardInput(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
+                  >
+                    <option value="6">Standard 6</option>
+                    <option value="7">Standard 7</option>
+                    <option value="8">Standard 8</option>
+                    <option value="9">Standard 9</option>
+                    <option value="10">Standard 10</option>
+                    <option value="11">Standard 11</option>
+                    <option value="12">Standard 12</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Term</label>
+                  <select
+                    value={unitTermInput}
+                    onChange={(e) => setUnitTermInput(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
+                  >
+                    <option value="1">Term I</option>
+                    <option value="2">Term II</option>
+                    <option value="3">Term III</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Or Upload Syllabus / Unit File (Optional: .txt, .csv, .json, .pdf)
+                </label>
+                <div className="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-4 text-center transition-all bg-slate-50/50 dark:bg-slate-900/50">
+                  <input
+                    type="file"
+                    accept=".txt,.csv,.json,.pdf,.doc,.docx"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1.5 text-slate-500">
+                    <FileText className="w-7 h-7 text-emerald-500" />
+                    {uploadedFile ? (
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        📁 {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)} KB)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium">
+                        Click or drag & drop unit syllabus file here
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setUnitModalOpen(false)}
+                  disabled={generatingUnit}
+                  className="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={generatingUnit}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-md flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  {generatingUnit ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Generating Formulas with AI...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" /> Generate Unit Formulas
+                    </>
+                  )}
                 </button>
               </div>
             </form>

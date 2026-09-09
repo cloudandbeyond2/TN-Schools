@@ -2256,6 +2256,7 @@ model MathsFormula {
   standard        String
   term            String?
   popular         Boolean  @default(false)
+  isPublished     Boolean  @default(true)
   bg              String
   mnemonicPrompt  String
   mnemonicText    String

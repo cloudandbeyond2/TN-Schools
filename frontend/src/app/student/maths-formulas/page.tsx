@@ -25,6 +25,81 @@ const getCategoryColor = (catId: string) => {
   return "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-200/50";
 };
 
+export function formatMathFormula(str: string): string {
+  if (!str) return "";
+  let res = str;
+
+  // Common numerical fractions
+  res = res.replace(/\\frac\{1\}\{2\}/g, "½");
+  res = res.replace(/\\frac\{1\}\{3\}/g, "⅓");
+  res = res.replace(/\\frac\{2\}\{3\}/g, "⅔");
+  res = res.replace(/\\frac\{1\}\{4\}/g, "¼");
+  res = res.replace(/\\frac\{3\}\{4\}/g, "¾");
+  res = res.replace(/\\frac\{1\}\{8\}/g, "⅛");
+
+  // General \frac{num}{den} -> (num / den)
+  res = res.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, (_match, num, den) => {
+    const cleanNum = num.trim();
+    const cleanDen = den.trim();
+    if (cleanNum.length === 1 && cleanDen.length === 1) {
+      return `${cleanNum}/${cleanDen}`;
+    }
+    return `(${cleanNum}/${cleanDen})`;
+  });
+
+  // Math Operators & Symbols
+  res = res.replace(/\\times/g, "×");
+  res = res.replace(/\\cdot/g, "·");
+  res = res.replace(/\\div/g, "÷");
+  res = res.replace(/\\pm/g, "±");
+  res = res.replace(/\\pi/g, "π");
+  res = res.replace(/\\theta/g, "θ");
+  res = res.replace(/\\alpha/g, "α");
+  res = res.replace(/\\beta/g, "β");
+  res = res.replace(/\\gamma/g, "γ");
+  res = res.replace(/\\sqrt\{([^{}]+)\}/g, "√($1)");
+  res = res.replace(/\\sqrt/g, "√");
+  res = res.replace(/\\le/g, "≤");
+  res = res.replace(/\\ge/g, "≥");
+  res = res.replace(/\\neq/g, "≠");
+  res = res.replace(/\\approx/g, "≈");
+
+  // Subscripts
+  res = res.replace(/_0/g, "₀");
+  res = res.replace(/_1/g, "₁");
+  res = res.replace(/_2/g, "₂");
+  res = res.replace(/_3/g, "₃");
+  res = res.replace(/_4/g, "₄");
+  res = res.replace(/_5/g, "₅");
+  res = res.replace(/_6/g, "₆");
+  res = res.replace(/_7/g, "₇");
+  res = res.replace(/_8/g, "₈");
+  res = res.replace(/_9/g, "₉");
+  res = res.replace(/_n/g, "ₙ");
+  res = res.replace(/_x/g, "ₓ");
+  res = res.replace(/_y/g, "ᵧ");
+
+  // Superscripts
+  res = res.replace(/\^0/g, "⁰");
+  res = res.replace(/\^1/g, "¹");
+  res = res.replace(/\^2/g, "²");
+  res = res.replace(/\^3/g, "³");
+  res = res.replace(/\^4/g, "⁴");
+  res = res.replace(/\^5/g, "⁵");
+  res = res.replace(/\^6/g, "⁶");
+  res = res.replace(/\^7/g, "⁷");
+  res = res.replace(/\^8/g, "⁸");
+  res = res.replace(/\^9/g, "⁹");
+  res = res.replace(/\^n/g, "ⁿ");
+
+  // Remove leftover backslashes or braces
+  res = res.replace(/\\left\(/g, "(");
+  res = res.replace(/\\right\)/g, ")");
+  res = res.replace(/\\/g, "");
+
+  return res.trim();
+}
+
 const getFormulaBgStyle = (formula: any): React.CSSProperties => {
   const bg = formula?.bg || "";
   if (bg.includes("emerald")) return { background: "linear-gradient(135deg, #059669 0%, #047857 100%)" };
@@ -148,7 +223,37 @@ export default function MathsFormulasPage() {
     });
   };
 
-  let filteredFormulas = samacheerFormulas.filter(f => f.standard === activeStandard);
+  const [dbFormulas, setDbFormulas] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchPublishedFormulas() {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${apiUrl}/api/teacher/maths-formulas?publishedOnly=true`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setDbFormulas(json.data);
+        }
+      } catch (err) {
+        console.error("Error fetching published formulas:", err);
+      }
+    }
+    fetchPublishedFormulas();
+  }, []);
+
+  const allFormulasMap = new Map();
+  // Standard Samacheer formulas
+  samacheerFormulas.forEach(f => allFormulasMap.set(f.id || f.titleEn, f));
+  // Database published formulas override/extend
+  dbFormulas.forEach(f => {
+    allFormulasMap.set(f.id, {
+      ...f,
+      categoryName: { en: f.categoryNameEn || f.category, ta: f.categoryNameTa || f.category }
+    });
+  });
+  const allFormulas = Array.from(allFormulasMap.values());
+
+  let filteredFormulas = allFormulas.filter(f => f.standard === activeStandard);
   if (activeTerm !== "all") {
     filteredFormulas = filteredFormulas.filter(f => f.term === activeTerm);
   }
@@ -319,7 +424,7 @@ export default function MathsFormulasPage() {
                   >
                     {revealed.has(formula.id) ? (
                       <span className="font-mono text-xl sm:text-2xl font-black !text-white text-center drop-shadow-md animate-in zoom-in duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-                        {formula.formula}
+                        {formatMathFormula(formula.formula)}
                       </span>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
@@ -336,7 +441,7 @@ export default function MathsFormulasPage() {
                     style={getFormulaBgStyle(formula)}
                   >
                     <span className="font-mono text-xl sm:text-2xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-                      {formula.formula}
+                      {formatMathFormula(formula.formula)}
                     </span>
 
                     <button

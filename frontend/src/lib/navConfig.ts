@@ -136,6 +136,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
+      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
@@ -144,10 +145,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
-      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
+      
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
@@ -155,7 +156,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
       { label: "Mock Tests", href: "/student/mock-tests", icon: "Target" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -223,6 +224,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "AI Studio", href: "/student/ai-studio", icon: "Sparkles" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },      
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
@@ -230,10 +232,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
-      { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
+      
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
 
@@ -244,7 +246,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exam Results", href: "/student/high-school/model-exams", icon: "ClipboardCheck" },
       { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
       { label: "Assessments", href: "/student/assessments", icon: "CheckSquare" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -413,7 +415,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "AI Infographics", href: "/student/infographics", icon: "Image" },
-      { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
+      // { label: "Class Materials", href: "/student/ai-content", icon: "FolderOpen" },
 
       // ===================== STUDY PLANNER =====================
       { label: "---", href: "#", icon: "" },
@@ -428,7 +430,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Homework", href: "/student/homework", icon: "BookMarked" },
       { label: "Assessments", href: "/student/assessments", icon: "FileCheck" },
-      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "Exam Timetable", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "ClipboardCheck" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
@@ -535,15 +537,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-map" },
       { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "fi fi-rr-trophy" },
 
-      // Common Menu & Tools
-      { label: "Admin & Tools", href: "#", icon: "" },
-      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "fi fi-rr-apps" },
-      { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
-      { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
-      // { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
-      { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
-      { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
-      { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
+      
 
       // AI Content Studio — 20 subject-adaptive content skills. The hub holds
       // all of them; the six group entries open it pre-filtered.
@@ -557,6 +551,17 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Feedback & Rubric", href: "/teacher/ai-studio/feedback", icon: "fi fi-rr-comment-check" },
       { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
+
+      // Common Menu & Tools
+      { label: "Admin & Tools", href: "#", icon: "" },
+      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "fi fi-rr-apps" },
+      { label: "Smart Class", href: "/teacher/smart-class", icon: "fi fi-rr-laptop" },
+      { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "fi fi-rr-document" },
+      // { label: "AI Lesson Creator", href: "/teacher/ai-lesson-creator", icon: "fi fi-rr-magic-wand" },
+      
+      { label: "Question Generator", href: "/teacher/questions", icon: "fi fi-rr-interrogation" },
+      { label: "AI Evaluation", href: "/teacher/evaluation", icon: "fi fi-rr-checkbox" },
+      { label: "Lab Creator", href: "/teacher/lab-creator", icon: "fi fi-rr-microscope" },
 
       // Class Teacher Responsibilities
       { label: "---", href: "#", icon: "" },

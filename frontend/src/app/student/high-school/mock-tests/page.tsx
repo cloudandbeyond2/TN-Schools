@@ -464,9 +464,15 @@ export default function MockTestsPage() {
                     className="group bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-800 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]"
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-[10px] font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border tracking-wider text-blue-600 border-blue-600/20 bg-blue-500/10">
-                        {test.subject}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border tracking-wider text-blue-600 border-blue-600/20 bg-blue-500/10">
+                          {test.subject}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border tracking-wider text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/50">
+                          <i className="fi fi-rr-graduation-cap text-[10px]" />
+                          Class 10th
+                        </span>
+                      </div>
                       <span className="text-[10px] text-slate-400 font-bold">
                         Difficulty: {test.difficulty}
                       </span>
