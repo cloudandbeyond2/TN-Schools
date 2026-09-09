@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
@@ -46,6 +46,8 @@ export default function TeacherMockTestsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"repository" | "create">("repository");
   const [searchQuery, setSearchQuery] = useState("");
+  const [gradeFilter, setGradeFilter] = useState<string>("ALL");
+  const [subjectFilter, setSubjectFilter] = useState<string>("ALL");
 
   const [selectedTestResults, setSelectedTestResults] = useState<any[]>([]);
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
@@ -88,8 +90,8 @@ export default function TeacherMockTestsPage() {
     }
   };
 
-  const uniqueGrades = Array.from(new Set(teacherClasses.map((c) => c.className)));
-  const uniqueSubjects = Array.from(new Set(teacherClasses.map((c) => c.subject)));
+  const uniqueGrades = Array.from(new Set(teacherClasses.map((c) => c.className || c.grade || c.class))).filter(Boolean);
+  const uniqueSubjects = Array.from(new Set(teacherClasses.map((c) => c.subject))).filter(Boolean);
 
   const handleOpenCreate = () => {
     setTitle("");
@@ -390,10 +392,82 @@ export default function TeacherMockTestsPage() {
     }
   };
 
-  const filteredTests = existingTests.filter(t =>
-    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.subject.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizeGrade = (g: any): string => {
+    if (!g) return "";
+    const str = String(g).trim();
+    const match = str.match(/\d+/);
+    return match ? match[0] : str.toLowerCase();
+  };
+
+  const normalizeSubject = (s: any): string => {
+    if (!s) return "";
+    return String(s).trim().toLowerCase();
+  };
+
+  // Strictly check if test belongs to teacher's handled classes & subjects or was created by teacher
+  const isTestRelevantForTeacher = (test: any) => {
+    const currentUserId = profile?.userId || (session?.user as any)?.id;
+    const isOwn = Boolean(test.createdById && currentUserId && test.createdById === currentUserId);
+    const testRole = (test.createdByRole || "").toUpperCase();
+
+    // 1. If test was created by a TEACHER, ONLY show if it was created by THIS teacher
+    if (testRole === "TEACHER") {
+      return isOwn;
+    }
+
+    // 2. If it's own test, always show
+    if (isOwn) return true;
+
+    // 3. If teacher has no assigned classes in DB, fallback to true so tests aren't blank
+    if (!teacherClasses || teacherClasses.length === 0) return true;
+
+    const testGradeNorm = normalizeGrade(test.grade);
+    const testSubNorm = normalizeSubject(test.subject);
+
+    // 4. If created by HM / Super Admin / State: match both assigned grade AND assigned subject
+    return teacherClasses.some((c: any) => {
+      const tGradeNorm = normalizeGrade(c.className || c.grade || c.class);
+      const tSubNorm = normalizeSubject(c.subject);
+
+      const gradeMatches = testGradeNorm === tGradeNorm;
+      const subMatches = !tSubNorm || !testSubNorm || testSubNorm.includes(tSubNorm) || tSubNorm.includes(testSubNorm);
+
+      return gradeMatches && subMatches;
+    });
+  };
+
+  const relevantTests = useMemo(() => {
+    return existingTests.filter(isTestRelevantForTeacher);
+  }, [existingTests, teacherClasses, profile, session]);
+
+  const filteredTests = useMemo(() => {
+    return relevantTests.filter((t) => {
+      // Search Query filter
+      const matchesSearch =
+        !searchQuery ||
+        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.grade.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      // Grade Dropdown Filter (only teacher's handled grades)
+      if (gradeFilter !== "ALL") {
+        const testGradeNorm = normalizeGrade(t.grade);
+        const selGradeNorm = normalizeGrade(gradeFilter);
+        if (testGradeNorm !== selGradeNorm) return false;
+      }
+
+      // Subject Dropdown Filter (only teacher's handled subjects)
+      if (subjectFilter !== "ALL") {
+        const testSubNorm = normalizeSubject(t.subject);
+        const selSubNorm = normalizeSubject(subjectFilter);
+        if (!testSubNorm.includes(selSubNorm) && !selSubNorm.includes(testSubNorm)) return false;
+      }
+
+      return true;
+    });
+  }, [relevantTests, searchQuery, gradeFilter, subjectFilter]);
 
   return (
     <PortalLayout
@@ -432,7 +506,7 @@ export default function TeacherMockTestsPage() {
         </div>
 
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-5">
             <h2 className="text-lg sm:text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
               <i className="fi fi-rr-layers text-blue-500 flex items-center" /> Test Repository
             </h2>
@@ -443,8 +517,43 @@ export default function TeacherMockTestsPage() {
                 placeholder="Search tests by title or subject..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-3 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs sm:text-sm font-medium focus:outline-none"
+                className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs sm:text-sm font-medium focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/* Quick Filter Control Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-white dark:bg-gray-800 p-3 sm:p-3.5 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mr-1">
+                <i className="fi fi-rr-filter text-emerald-500" /> Filter:
+              </span>
+
+              <select
+                value={gradeFilter}
+                onChange={(e) => setGradeFilter(e.target.value)}
+                className="px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-xs rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="ALL">All My Handled Classes</option>
+                {uniqueGrades.map((g) => (
+                  <option key={g} value={g}>Class {g}</option>
+                ))}
+              </select>
+
+              <select
+                value={subjectFilter}
+                onChange={(e) => setSubjectFilter(e.target.value)}
+                className="px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-xs rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="ALL">All My Handled Subjects</option>
+                {uniqueSubjects.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+              Showing {filteredTests.length} tests for your classes
             </div>
           </div>
 
@@ -455,8 +564,8 @@ export default function TeacherMockTestsPage() {
           ) : filteredTests.length === 0 ? (
             <div className="text-center py-12 sm:py-20 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
               <i className="fi fi-rr-file-add text-gray-300 text-4xl sm:text-5xl flex items-center justify-center mx-auto mb-3 sm:mb-4" />
-              <h3 className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No tests yet</h3>
-              <p className="text-gray-500 text-sm">Create your first mock exam to start evaluating your class.</p>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No matching tests found</h3>
+              <p className="text-gray-500 text-sm">No mock exams match your selected class/subject filter. Switch filter to "All School & Central Tests" or create a new assessment.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
@@ -473,6 +582,21 @@ export default function TeacherMockTestsPage() {
                         <span className="text-[10px] font-bold text-emerald-500">{test.grade}</span>
                       </div>
                     </div>
+
+                    {/* Badge */}
+                    {test.createdById && (test.createdById === profile?.userId || test.createdById === (session?.user as any)?.id) ? (
+                      <span className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        Created by You
+                      </span>
+                    ) : (test.createdByRole === "SUPERADMIN" || test.createdByRole === "SUPER_ADMIN" || !test.schoolId) ? (
+                      <span className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-purple-500/20">
+                        Central Exam
+                      </span>
+                    ) : (
+                      <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-blue-500/20">
+                        School Roster
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-1">{test.title}</h3>
