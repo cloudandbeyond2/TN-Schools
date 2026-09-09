@@ -4,6 +4,20 @@ import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
+const RenderIcon = ({ icon, name = "", className = "text-xl", style = {} }: { icon?: string | null; name?: string; className?: string; style?: React.CSSProperties }) => {
+  if (!icon) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+  const str = String(icon).trim();
+  if (str.startsWith("<")) {
+    return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style} dangerouslySetInnerHTML={{ __html: str }} />;
+  }
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+  }
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style}>{str}</span>;
+};
+
 interface Subject {
   id: string;
   name: string;
@@ -832,9 +846,7 @@ export default function CentralLearningHubAdmin() {
                     onClick={() => handleSelectSubject(sub)}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-xl" style={{ textShadow: `0 0 10px ${sub.color || "#6366f1"}50` }}>
-                        {sub.icon || "📚"}
-                      </span>
+                        <RenderIcon icon={sub.icon} name={sub.name} className="text-xl" style={{ textShadow: `0 0 10px ${sub.color || "#6366f1"}50` }} />
                       <span className="text-xs font-bold truncate max-w-[120px]">{sub.name}</span>
                     </div>
                     <div className="flex gap-1 items-center opacity-0 group-hover:opacity-100 transition-all">

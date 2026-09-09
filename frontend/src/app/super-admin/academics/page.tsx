@@ -58,6 +58,26 @@ const Fi = ({ name, className = "", style = {} }: { name: string; className?: st
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
+const RenderIcon = ({ icon, name = "", className = "text-xl", style = {} }: { icon?: string; name?: string; className?: string; style?: React.CSSProperties }) => {
+  const iconStr = icon || (name ? getSubjectIcon(name) : "book-alt");
+  if (!iconStr) return <i className={`fi fi-rr-book inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+
+  const str = String(iconStr).trim();
+
+  if (str.startsWith("<svg")) {
+    return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style} dangerouslySetInnerHTML={{ __html: str }} />;
+  }
+
+  const isIconKey = /^[a-z0-9_ -]+$/i.test(str);
+
+  if (isIconKey) {
+    const cleanName = str.replace(/^fi-rr-|^fi-sr-|^fi-/, "").trim();
+    return <i className={`fi fi-rr-${cleanName} inline-flex items-center justify-center leading-none ${className}`} style={style} />;
+  }
+
+  return <span className={`inline-flex items-center justify-center leading-none ${className}`} style={style}>{str}</span>;
+};
+
 const SYLLABUS_CLASSES = [
   { id: "6", name: "Class 6", badge: "SSLC" },
   { id: "7", name: "Class 7", badge: "SSLC" },
@@ -1760,7 +1780,7 @@ export default function SuperadminAcademicsPage() {
                                     color: "#fff"
                                   }}
                                 >
-                                  {sub.icon || "📚"}
+                                  <RenderIcon icon={sub.icon} name={sub.name} className="text-base" />
                                 </div>
                                 <div className="truncate">
                                   <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{sub.name}</h5>
@@ -1893,7 +1913,7 @@ export default function SuperadminAcademicsPage() {
                             color: "#fff"
                           }}
                         >
-                          {sub.icon || "📚"}
+                          <RenderIcon icon={sub.icon} name={sub.name} className="text-xl" />
                         </div>
 
                         {/* Status Label Badge */}
@@ -2017,7 +2037,7 @@ export default function SuperadminAcademicsPage() {
                         <div>
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center text-2xl shrink-0 shadow-sm">
-                              {getSubjectIcon(selectedSyllabusSubject)}
+                              <RenderIcon icon={syllabusSubjectsForClass.find(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase())?.icon || getSubjectIcon(selectedSyllabusSubject)} name={selectedSyllabusSubject} className="text-2xl" />
                             </div>
                             <div>
                               <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
