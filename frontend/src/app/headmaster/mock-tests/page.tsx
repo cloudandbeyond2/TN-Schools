@@ -50,6 +50,8 @@ export default function HeadmasterMockTestsPage() {
   const [activeTab, setActiveTab] = useState<"repository" | "create">("repository");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClassFilter, setSelectedClassFilter] = useState("all");
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState("all");
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
   const [schools, setSchools] = useState<any[]>([]);
@@ -328,6 +330,7 @@ export default function HeadmasterMockTestsPage() {
   const filteredTests = useMemo(() => {
     return existingTests.filter((t) => {
       const matchesSearch =
+        !searchQuery ||
         t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.subject.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -335,9 +338,19 @@ export default function HeadmasterMockTestsPage() {
         selectedClassFilter === "all" ||
         normalizeGrade(t.grade) === normalizeGrade(selectedClassFilter);
 
-      return matchesSearch && matchesClass;
+      const matchesSubject =
+        selectedSubjectFilter === "all" ||
+        t.subject.toLowerCase().includes(selectedSubjectFilter.toLowerCase());
+
+      const matchesRole =
+        selectedRoleFilter === "all" ||
+        (selectedRoleFilter === "CENTRAL" && (t.createdByRole === "SUPERADMIN" || t.createdByRole === "SUPER_ADMIN" || !t.schoolId)) ||
+        (selectedRoleFilter === "HM" && t.createdByRole === "HEADMASTER") ||
+        (selectedRoleFilter === "TEACHER" && t.createdByRole === "TEACHER");
+
+      return matchesSearch && matchesClass && matchesSubject && matchesRole;
     });
-  }, [existingTests, searchQuery, selectedClassFilter]);
+  }, [existingTests, searchQuery, selectedClassFilter, selectedSubjectFilter, selectedRoleFilter]);
 
   const totalPages = Math.ceil(filteredTests.length / ITEMS_PER_PAGE);
 
@@ -396,12 +409,12 @@ export default function HeadmasterMockTestsPage() {
             <h2 className="text-lg sm:text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
               <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
             </h2>
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
               {/* Class Filter Dropdown */}
               <select
                 value={selectedClassFilter}
                 onChange={(e) => setSelectedClassFilter(e.target.value)}
-                className="w-full sm:w-40 px-3 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl text-xs font-semibold text-gray-700 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
               >
                 <option value="all">{lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes"}</option>
                 {[6, 7, 8, 9, 10, 11, 12].map((cls) => (
@@ -411,15 +424,39 @@ export default function HeadmasterMockTestsPage() {
                 ))}
               </select>
 
+              {/* Subject Filter Dropdown */}
+              <select
+                value={selectedSubjectFilter}
+                onChange={(e) => setSelectedSubjectFilter(e.target.value)}
+                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl text-xs font-semibold text-gray-700 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Subjects</option>
+                {Array.from(new Set(existingTests.map(t => t.subject))).filter(Boolean).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+
+              {/* Creator Role Filter Dropdown */}
+              <select
+                value={selectedRoleFilter}
+                onChange={(e) => setSelectedRoleFilter(e.target.value)}
+                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl text-xs font-semibold text-gray-700 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Creator Roles</option>
+                <option value="CENTRAL">State Central Exams</option>
+                <option value="HM">Headmaster Created</option>
+                <option value="TEACHER">Teacher Created</option>
+              </select>
+
               {/* Search Input */}
-              <div className="relative w-full sm:w-72">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder={lang === "தமிழ்" ? "தேடவும்..." : "Search tests by title or subject..."}
+                  placeholder={lang === "தமிழ்" ? "தேடவும்..." : "Search tests..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 transition-shadow text-xs sm:text-sm font-medium focus:outline-none"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 transition-shadow text-xs font-medium focus:outline-none"
                 />
               </div>
             </div>
@@ -433,7 +470,7 @@ export default function HeadmasterMockTestsPage() {
             <div className="text-center py-12 sm:py-20 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
               <Target className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
               <h3 className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No mock tests found</h3>
-              <p className="text-gray-500 text-sm">Create your first assessment to start evaluating students.</p>
+              <p className="text-gray-500 text-sm">No assessments match your selected filters. Change filter options or create a new assessment.</p>
             </div>
           ) : (
             <>
@@ -451,6 +488,21 @@ export default function HeadmasterMockTestsPage() {
                           <span className="text-[10px] font-bold text-blue-500">{test.grade}</span>
                         </div>
                       </div>
+
+                      {/* Origin Badge */}
+                      {test.createdByRole === "HEADMASTER" ? (
+                        <span className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-500/20">
+                          Headmaster Test
+                        </span>
+                      ) : (test.createdByRole === "SUPERADMIN" || test.createdByRole === "SUPER_ADMIN" || !test.schoolId) ? (
+                        <span className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-purple-500/20">
+                          State Central Exam
+                        </span>
+                      ) : (
+                        <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-blue-500/20">
+                          Teacher Created
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-1">{test.title}</h3>
