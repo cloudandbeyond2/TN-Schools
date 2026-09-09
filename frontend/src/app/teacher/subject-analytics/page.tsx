@@ -445,8 +445,8 @@ export default function SubjectAnalyticsPage() {
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed max-w-2xl">
                   {lang === "தமிழ்"
-                    ? "வகுப்புகளுக்கான பாடத்திட்ட நிறைவு நிலை, சராசரி மதிப்பெண்கள் மற்றும் AI காலக்கெடு கணிப்புகளை பகுப்பாய்வு செய்யவும்."
-                    : "Track syllabus completion velocity, chapter progress, class average benchmarks, and AI-predicted syllabus deadline completion."}
+                    ? "வகுப்புகளுக்கான பாடத்திட்ட நிறைவு நிலை மற்றும் சராசரி மதிப்பெண்களை பகுப்பாய்வு செய்யவும்."
+                    : "Track syllabus completion velocity, chapter progress, and class average benchmarks."}
                 </p>
               </div>
             </div>
@@ -553,15 +553,6 @@ export default function SubjectAnalyticsPage() {
           </div>
           {/* Side panel skeletons */}
           <div className="space-y-6">
-            {/* AI Predictor skeleton */}
-            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
-              <div className="h-5 bg-slate-800 rounded w-2/3" />
-              <div className="space-y-2">
-                <div className="h-3 bg-slate-800 rounded w-full" />
-                <div className="h-3 bg-slate-800 rounded w-5/6" />
-              </div>
-              <div className="h-10 bg-slate-800 rounded w-full" />
-            </div>
             {/* Distribution skeleton */}
             <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
               <div className="h-5 bg-slate-800 rounded w-1/2" />
@@ -659,36 +650,8 @@ export default function SubjectAnalyticsPage() {
             </div>
           </div>
 
-          {/* Prediction and Performance distribution */}
+          {/* Performance distribution */}
           <div className="space-y-6">
-            {/* AI Syllabus Planner Assistant */}
-            <div className="glass rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-1.5">
-                <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> {lang === "தமிழ்" ? "AI பாடத்திட்ட கடைசிநாள் கணிப்பி" : "AI Syllabus Deadline Predictor"}
-              </h2>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                {lang === "தமிழ்" ? "மாணவர் கற்றல் முன்னேற்ற பட்டை பொது விடுமுறை, தேர்வு இடைவேளை மற்றும் முறையீடு தேர்வுகள் ஆகியவற்றுடன் பாடத்திட்ட முடிவு அடைவு காலச்செயல் கணக்கிடுகிறது." : "Calculates syllabus completion schedules by correlating class progress trends against public holidays, exam breaks, and revision requirements."}
-              </p>
-              <button
-                onClick={handlePredictCompletion}
-                disabled={isProjecting}
-                className="!text-white  w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
-              >
-                {isProjecting ? (lang === "தமிழ்" ? "கற்பிக்கும் வேகத்தை பகுப்பாய்வு செய்யப்படுகிறது..." : "Analyzing Teaching Velocity...") : (lang === "தமிழ்" ? " AI கடைசிநாள் பகுப்பாய்வு இயக்கு" : " Run AI Deadline Analysis")}
-              </button>
-
-              {isProjecting && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 p-3 bg-slate-900/60 rounded-xl border border-slate-800 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                  {lang === "தமிழ்" ? "முன்கணிப்பு அட்டவணை மாதிரிகளைக் கணக்கிடுகிறது..." : "Calculating predictive schedule models..."}
-                </div>
-              )}
-
-              <div className="mt-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-xs text-slate-300 leading-relaxed">
-                {projectionResult || dynamicPredictionText}
-              </div>
-            </div>
-
             {/* Score distribution visual report */}
             <div className="glass rounded-2xl p-6 border border-slate-800">
               <h2 className="text-base font-semibold text-white mb-4">
