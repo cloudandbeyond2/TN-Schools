@@ -30,9 +30,12 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
+import { authenticate } from '../middleware/auth.middleware';
+
 const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
+router.use(authenticate);
 
 
 /* ------------------- GET PUBLISHED AI LESSONS ------------------- */

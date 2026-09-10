@@ -2,18 +2,21 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'crypto';
 import { resolveUserId } from '../config/userResolver';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // ─── GET /api/notifications?userId=[userId] ──────────────────────
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { userId } = req.query;
-    if (!userId) {
+    // Restrict query to authenticated user's ID unless caller is SuperAdmin
+    const targetUserId = (req.user?.role !== 'SUPERADMIN' ? req.user?.id : (req.query.userId as string)) || req.user?.id;
+    if (!targetUserId) {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    const resolvedId = await resolveUserId(String(userId));
+    const resolvedId = await resolveUserId(String(targetUserId));
     if (!resolvedId) {
       return res.json({ success: true, data: [] });
     }
