@@ -5,8 +5,10 @@ import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 const SAFE_STAFF_SELECT = {
   id: true, name: true, emisId: true, subject: true, phone: true, email: true,
@@ -60,7 +62,10 @@ function parseDob(dobStr: any) {
 // GET /api/headmaster/students — List all students for a school
 router.get('/students', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    let { schoolId } = req.query;
+    if (!schoolId && req.user?.schoolId && req.user?.role !== 'SUPERADMIN') {
+      schoolId = req.user.schoolId;
+    }
     const students = await prisma.student.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
       include: { user: true },

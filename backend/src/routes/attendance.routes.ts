@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { sendMockSMS, getStudentParents } from '../utils/sms';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // POST /api/attendance — Bulk mark attendance (supports updates via delete-and-recreate transaction)
 router.post('/', async (req: Request, res: Response) => {

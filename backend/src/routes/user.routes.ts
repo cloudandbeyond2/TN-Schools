@@ -385,19 +385,27 @@ return res.json({
         }
       }
 
-      // Fallback check for PARENT role password in headmasterParent
+      // Fallback check for PARENT role password (must match Phone Number or stored hash)
       if (!isPasswordValid && pgUser.role === "PARENT") {
-        const parent = await prisma.headmasterParent.findFirst({
-          where: { email: { equals: cleanEmail, mode: "insensitive" } },
-        });
-        if (parent && await verifyPassword(password, parent.password)) {
+        const parentMobile = String(pgUser.mobile || "").trim();
+        if (password === parentMobile && parentMobile !== "") {
           isPasswordValid = true;
-          // Synchronize password to PostgreSQL User table for future logins
-          // (always store a bcrypt hash — never copy a possibly-plaintext value)
-          await prisma.user.update({
-            where: { id: pgUser.id },
-            data: { passwordHash: await hashPassword(password) }
+        } else {
+          const parent = await prisma.headmasterParent.findFirst({
+            where: {
+              OR: [
+                { email: { equals: cleanEmail, mode: "insensitive" } },
+                { phone: cleanEmail }
+              ]
+            },
           });
+          if (parent && (password === parent.phone || await verifyPassword(password, parent.password))) {
+            isPasswordValid = true;
+            await prisma.user.update({
+              where: { id: pgUser.id },
+              data: { passwordHash: await hashPassword(password) }
+            });
+          }
         }
       }
 
@@ -522,13 +530,22 @@ return res.json({
         });
       }
 
-      // ── Step 3: Check headmasterParent (MongoDB via Prisma) ──
+      // ── Step 3: Check headmasterParent records ──
       const parentMember = await prisma.headmasterParent.findFirst({
-        where: { email: cleanEmail }
+        where: {
+          OR: [
+            { email: { equals: cleanEmail, mode: 'insensitive' } },
+            { phone: cleanEmail }
+          ]
+        }
       });
 
       if (parentMember) {
-        if (!(await verifyPassword(password, parentMember.password))) {
+        const parentPassOk =
+          (password === parentMember.phone && parentMember.phone !== "") ||
+          await verifyPassword(password, parentMember.password);
+
+        if (!parentPassOk) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
         return res.json({
@@ -544,6 +561,78 @@ return res.json({
               role: 'PARENT',
               schoolId: parentMember.schoolId || null,
               name: parentMember.name,
+            }),
+          })
+        });
+      }
+
+      // ── Step 4: Fallback check Student parent info (from Parent Directory) ──
+      const studentMatch = await prisma.student.findFirst({
+        where: {
+          OR: [
+            { parentEmail: { equals: cleanEmail, mode: 'insensitive' } },
+            { parentMobile: cleanEmail },
+            { phoneNumber: cleanEmail }
+          ]
+        },
+        include: { user: true }
+      });
+
+      if (studentMatch) {
+        const parentPhone = String(studentMatch.parentMobile || studentMatch.phoneNumber || "").trim();
+        const parentPassOk =
+          (password === parentPhone && parentPhone !== "") ||
+          (studentMatch.user?.passwordHash ? await verifyPassword(password, studentMatch.user.passwordHash) : false);
+
+        if (!parentPassOk) {
+          return res.status(400).json({ success: false, error: 'Invalid password.' });
+        }
+
+        const parentName = studentMatch.parentName || studentMatch.fatherName || studentMatch.motherName || `${studentMatch.user?.name || "Student"}'s Parent`;
+        const parentEmail = studentMatch.parentEmail || cleanEmail;
+
+        let pUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: { equals: parentEmail, mode: 'insensitive' } },
+              { mobile: parentPhone }
+            ]
+          }
+        });
+
+        if (!pUser) {
+          try {
+            pUser = await prisma.user.create({
+              data: {
+                name: parentName,
+                email: parentEmail.includes('@') ? parentEmail : `parent_${Date.now()}@tn.gov.in`,
+                mobile: parentPhone || cleanEmail,
+                role: "PARENT",
+                passwordHash: await hashPassword(password),
+                schoolId: studentMatch.schoolId
+              }
+            });
+          } catch (e) {
+            console.error("Auto-provision parent user failed:", e);
+          }
+        }
+
+        const pUserId = pUser?.id || studentMatch.id;
+        const pSchoolId = pUser?.schoolId || studentMatch.schoolId;
+
+        return res.json({
+          success: true,
+          data: await withSchoolInfo({
+            id: pUserId,
+            name: parentName,
+            email: parentEmail,
+            role: 'PARENT',
+            schoolId: pSchoolId,
+            token: signAuthToken({
+              id: pUserId,
+              role: 'PARENT',
+              schoolId: pSchoolId,
+              name: parentName,
             }),
           })
         });

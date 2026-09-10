@@ -24,7 +24,7 @@ const getCategoryColor = (catId: string) => {
 
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
-export function formatMathFormula(str: string): string {
+function formatMathFormula(str: string): string {
   if (!str) return "";
   let res = str;
 
@@ -330,11 +330,11 @@ export default function MathsFormulasPage() {
     setFTitleEn("");
     setFTitleTa("");
     setFFormula("");
-    setFCategory("");
-    setFCategoryNameEn("");
-    setFCategoryNameTa("");
-    setFStandard("");
-    setFTerm("");
+    setFCategory("measurements");
+    setFCategoryNameEn("Measurements");
+    setFCategoryNameTa("அளவீடுகள்");
+    setFStandard(activeStandard || "6");
+    setFTerm(activeTerm === "all" ? "1" : activeTerm);
     setFMnemonicText("");
     setFMnemonicPrompt("");
   };
@@ -387,6 +387,7 @@ export default function MathsFormulasPage() {
       mnemonicText: fMnemonicText,
       mnemonicPrompt: fMnemonicPrompt,
       popular: false,
+      isPublished: true,
       bg: "from-blue-400 to-indigo-500" // default
     };
 
@@ -407,12 +408,19 @@ export default function MathsFormulasPage() {
       }
       if (res.ok) {
         setFormOpen(false);
+        if (fStandard) setActiveStandard(fStandard);
+        if (fTerm) setActiveTerm(fTerm);
+        setActiveCat("all");
         resetForm();
-        fetchFormulas();
-        showToast("Formula saved successfully!");
+        await fetchFormulas();
+        showToast("Formula saved & published successfully!");
+      } else {
+        const errorData = await res.json();
+        Swal.fire({ icon: "error", title: "Error", text: errorData.error || "Failed to save formula" });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to save formula" });
     }
   };
 
@@ -787,7 +795,7 @@ export default function MathsFormulasPage() {
                   <div className="space-y-4 animate-in fade-in duration-500">
                     <div className="w-full h-44 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-200 shadow-inner group">
                       <img
-                        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(selectedFormula.mnemonicPrompt)}?width=600&height=400&nologo=true`}
+                        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(selectedFormula.mnemonicPrompt || `${selectedFormula.titleEn || selectedFormula.formula} colorful math educational diagram illustration`)}?width=600&height=400&nologo=true`}
                         alt="Memory Mnemonic"
                         className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110"
                       />

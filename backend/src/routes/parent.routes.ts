@@ -2,8 +2,10 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { currentAcademicYear, yearVariants } from '../services/kpi.service';
 import { callGemini } from './ai.routes';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // Resolve parentId parameter: if it is a User ID, map it to the corresponding HeadmasterParent profile ID
 router.param('parentId', async (req: Request, res: Response, next, parentId) => {
