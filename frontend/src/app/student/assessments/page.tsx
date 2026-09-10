@@ -273,6 +273,25 @@ export default function StudentAssessmentsPage() {
     return acc;
   }, {} as Record<string, Question[]>);
 
+  // Helper to determine assigned class/grade for an assessment topic
+  const getAssignedClassForTopic = (topicKey: string | null) => {
+    if (!topicKey) {
+      const cls = profile?.class || "10";
+      const formatted = cls.toString().toLowerCase().includes("grade") || cls.toString().toLowerCase().includes("class")
+        ? cls
+        : `Class ${cls}`;
+      return profile?.section && !formatted.includes("-") ? `${formatted}-${profile.section}` : formatted;
+    }
+    const list = topicsMap[topicKey] || [];
+    const rawGrade = list[0]?.grade || profile?.class || "10";
+    const formattedClass = rawGrade.toLowerCase().includes("grade") || rawGrade.toLowerCase().includes("class")
+      ? rawGrade
+      : `Class ${rawGrade}`;
+    return profile?.section && !formattedClass.includes("-")
+      ? `${formattedClass}-${profile.section}`
+      : formattedClass;
+  };
+
   const startAssessment = (topicKey: string) => {
     setPendingTopic(topicKey);
     setShowInstructions(true);
@@ -386,7 +405,7 @@ export default function StudentAssessmentsPage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   {profile ? (
                     <>
-                      Assigned learning assessments for <strong className="text-amber-500">Grade {profile.class}</strong> ({profile.schoolName || "Government School"}).
+                      Assigned learning assessments for <strong className="text-amber-500 font-bold">{getAssignedClassForTopic(null)}</strong> ({profile.schoolName || "Government School"}).
                     </>
                   ) : (
                     "Available syllabus assessments for your grade level."
@@ -409,7 +428,7 @@ export default function StudentAssessmentsPage() {
                 </div>
                 <div>
                   <span className="font-bold text-white block">How Assessments Populate:</span>
-                  <span className="text-slate-400">Questions arrive here automatically whenever your teacher publishes a test or creates a quiz in the Teacher Question Bank. Practice assessments are available anytime below.</span>
+                  <span className="text-slate-400">Questions arrive here automatically whenever your teacher publishes a test for <strong className="text-amber-400 font-semibold">{getAssignedClassForTopic(null)}</strong> or creates a quiz in the Teacher Question Bank. Practice assessments are available anytime below.</span>
                 </div>
               </div>
             </div>
@@ -436,6 +455,8 @@ export default function StudentAssessmentsPage() {
                       const sub = dashIndex !== -1 ? topicKey.substring(0, dashIndex).trim() : "General";
                       const top = dashIndex !== -1 ? topicKey.substring(dashIndex + 3).trim() : topicKey;
                       
+                      const assignedClass = getAssignedClassForTopic(topicKey);
+
                       const prevAttempt = studentMarks.find(
                         (m) => m.subject.toLowerCase() === sub.toLowerCase() && m.examType === `Assessment: ${top}`
                       );
@@ -446,16 +467,24 @@ export default function StudentAssessmentsPage() {
                           className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900 transition-all flex flex-col justify-between"
                         >
                           <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                               <span className="text-indigo-500 font-bold text-xs flex items-center gap-1.5">
                                 <i className="fi fi-rr-book-alt text-xs flex items-center" /> {sub}
                               </span>
-                              <span className="text-[10px] font-extrabold text-slate-400 uppercase bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                                {list.length} Questions
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1 whitespace-nowrap">
+                                  <i className="fi fi-rr-users-alt text-[10px] flex items-center" /> {assignedClass}
+                                </span>
+                                <span className="text-[10px] font-extrabold text-slate-400 uppercase bg-slate-900 px-2 py-0.5 rounded border border-slate-800 whitespace-nowrap">
+                                  {list.length} Questions
+                                </span>
+                              </div>
                             </div>
                             <h4 className="text-sm font-black text-slate-900 dark:text-white mb-1">{top}</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Syllabus Practice Assessment</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 inline-block"></span>
+                              Syllabus Assessment • Assigned for <strong className="text-slate-700 dark:text-slate-200 font-semibold">{assignedClass}</strong>
+                            </p>
                           </div>
 
                           {prevAttempt ? (
@@ -505,6 +534,15 @@ export default function StudentAssessmentsPage() {
             </div>
             
             <div className="space-y-4 mb-8">
+              <div className="flex gap-3 items-start p-4 bg-amber-500/10 dark:bg-amber-950/20 rounded-xl border-2 border-amber-500/20">
+                <i className="fi fi-rr-users-alt text-amber-500 shrink-0 mt-0.5 text-base flex items-center" />
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">Assigned Target Class</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    This test is specifically assigned for <strong className="text-amber-500 font-extrabold">{getAssignedClassForTopic(pendingTopic)}</strong>.
+                  </p>
+                </div>
+              </div>
               <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800">
                 <i className="fi fi-rr-clock text-indigo-500 shrink-0 mt-0.5 text-base flex items-center" />
                 <div>
@@ -713,7 +751,12 @@ export default function StudentAssessmentsPage() {
                       >
                         <i className="fi fi-rr-arrow-left text-xs flex items-center" /> {t.back}
                       </button>
-                      <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white">{selectedTopic}</h2>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white">{selectedTopic}</h2>
+                        <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                          <i className="fi fi-rr-users-alt text-xs flex items-center" /> Assigned to: {getAssignedClassForTopic(selectedTopic)}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -810,7 +853,9 @@ export default function StudentAssessmentsPage() {
                         </div>
                         <div>
                           <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">{t.evalReport}</h4>
-                          <p className="text-xs text-[var(--text-muted)]">Assessment Grade Card</p>
+                          <p className="text-xs text-[var(--text-muted)]">
+                            Assessment Grade Card • Assigned for <strong className="text-amber-500 font-bold">{getAssignedClassForTopic(selectedTopic)}</strong>
+                          </p>
                         </div>
                       </div>
                       
