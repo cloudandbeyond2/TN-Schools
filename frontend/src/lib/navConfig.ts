@@ -254,7 +254,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Test Preparation", href: "#", icon: "" },
       { label: "Prep Plans", href: "/student/high-school/prep-plans", icon: "BookOpen" },
-      { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
+      // { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
       { label: "Performance Predictions", href: "/student/high-school/predictions", icon: "TrendingUp" },
       { label: "Study Boost", href: "/student/high-school/study-boost", icon: "Zap" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
@@ -478,7 +478,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
-      { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+      // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ===================== SUPPORT =====================
       { label: "---", href: "#", icon: "" },
