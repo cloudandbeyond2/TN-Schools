@@ -163,7 +163,7 @@ export default function GroupAwareExamList({ studentId, studentClass, schoolId }
   const [loading, setLoading] = useState(true);
   const [showOthers, setShowOthers] = useState(false);
 
-  const classNum = parseInt(studentClass || "0", 10);
+  const classNum = parseInt(String(studentClass || "").match(/\d+/)?.[0] || "0", 10);
   const isHsc = classNum === 11 || classNum === 12;
 
   useEffect(() => {

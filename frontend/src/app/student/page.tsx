@@ -6,8 +6,8 @@ export default async function StudentDashboard() {
   const session = await getServerSession(authOptions);
   
   // Extract student class from session if available
-  const studentClassStr = (session?.user as any)?.class;
-  const studentClass = parseInt(studentClassStr || "0", 10);
+  const studentClassStr = String((session?.user as any)?.class || "");
+  const studentClass = parseInt(studentClassStr.match(/\d+/)?.[0] || "0", 10);
 
   // Automatically route based on student class
   if (studentClass >= 9 && studentClass <= 10) {

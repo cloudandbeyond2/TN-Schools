@@ -168,7 +168,7 @@ export default function ScholarshipTrackingHub({
           setStudentId(currentStudent.id);
 
           if (currentStudent.class) {
-            setCalcClass(parseInt(currentStudent.class));
+            setCalcClass(parseInt(String(currentStudent.class).match(/\d+/)?.[0] || "0", 10));
           }
           if (currentStudent.community) {
             setCalcCommunity(currentStudent.community);

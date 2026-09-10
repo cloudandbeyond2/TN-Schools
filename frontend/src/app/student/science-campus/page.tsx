@@ -127,7 +127,7 @@ const mapStreamToDbStream = (stream: Stream): string => {
 export default function ScienceCampusPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
-  const studentClass = parseInt(user?.class || "10");
+  const studentClass = parseInt(String(user?.class || "").match(/\d+/)?.[0] || "10", 10);
   const isHigherSecondary = studentClass >= 11;
 
   const [stream, setStream] = useState<Stream>("Science");

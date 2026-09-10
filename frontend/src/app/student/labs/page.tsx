@@ -423,7 +423,7 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
 export default function VirtualLabsPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
-  const studentClass = user?.class ? parseInt(user.class) : 10;
+  const studentClass = user?.class ? parseInt(String(user.class).match(/\d+/)?.[0] || "10", 10) : 10;
   const studentGroup = useStudentGroup();
   const isHigherSecondary = (studentClass || 10) >= 11;
 
