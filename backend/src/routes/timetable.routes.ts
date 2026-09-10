@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // Helper to resolve all potential IDs for a teacher (User.id and HeadmasterStaff.id)
 async function getTeacherIds(teacherId: string) {
