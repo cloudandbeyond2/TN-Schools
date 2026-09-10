@@ -276,14 +276,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
-      { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
+      // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
       // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── Other Activities ──────────────────────────────
-      { label: "---", href: "#", icon: "" },
-      { label: "Other Activities", href: "#", icon: "" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
-      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
+      // { label: "---", href: "#", icon: "" },
+      // { label: "Other Activities", href: "#", icon: "" },
+      // { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+      // { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
