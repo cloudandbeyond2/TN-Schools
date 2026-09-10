@@ -294,7 +294,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
-      { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+      // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ── Support & Safety ──────────────────────────────
       { label: "---", href: "#", icon: "" },
