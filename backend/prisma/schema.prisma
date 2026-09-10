@@ -2254,14 +2254,17 @@ model MathsFormula {
   categoryNameEn  String
   categoryNameTa  String
   standard        String
-  term            String?
+  term            String?  @default("1")
   popular         Boolean  @default(false)
   isPublished     Boolean  @default(true)
-  bg              String
-  mnemonicPrompt  String
-  mnemonicText    String
+  bg              String?  @default("from-blue-400 to-indigo-500")
+  mnemonicPrompt  String?
+  mnemonicText    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([standard])
+  @@index([isPublished])
 }
 
 // ─── Premium Mock Tests Management ─────────────────────────────────────────────
@@ -2367,3 +2370,4 @@ model AiContent {
   @@index([isPublished])
   @@index([className])
 }
+
