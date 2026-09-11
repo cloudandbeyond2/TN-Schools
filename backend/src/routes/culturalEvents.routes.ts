@@ -1,13 +1,18 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'crypto';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // GET all cultural events
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    let { schoolId } = req.query;
+    if (!schoolId && req.user?.schoolId && req.user?.role !== 'SUPERADMIN') {
+      schoolId = req.user.schoolId;
+    }
     const events = await prisma.culturalEvent.findMany({
       where: schoolId ? { schoolId: schoolId as string } : undefined,
       orderBy: { eventDate: 'asc' }

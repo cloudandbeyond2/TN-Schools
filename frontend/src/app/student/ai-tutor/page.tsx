@@ -27,25 +27,84 @@ const suggestedQuestions = [
   "How do I write a formal essay?",
 ];
 
-const allSubjects = ["Mathematics", "Science", "Tamil", "English", "Social Science", "Physics", "Chemistry", "Biology"];
+const HSC_GROUP_SUBJECTS: Record<string, string[]> = {
+  // 25xx: Science with Mathematics
+  "2501": ["Physics", "Chemistry", "Statistics", "Mathematics"],
+  "2502": ["Physics", "Chemistry", "Computer Science", "Mathematics"],
+  "2503": ["Physics", "Chemistry", "Biology", "Mathematics"],
+  "2504": ["Physics", "Chemistry", "Bio-Chemistry", "Mathematics"],
+  "2505": ["Physics", "Chemistry", "Communicative English", "Mathematics"],
+  "2506": ["Physics", "Chemistry", "Mathematics", "Home Science"],
+  // 26xx: Science with Biology
+  "2601": ["Mathematics", "Physics", "Chemistry", "Biology", "Computer Science"],
+  "2602": ["Physics", "Chemistry", "Biology", "Micro-Biology"],
+  "2603": ["Physics", "Chemistry", "Biology", "Bio-Chemistry"],
+  "2604": ["Physics", "Chemistry", "Biology", "General Nursing"],
+  "2605": ["Physics", "Chemistry", "Biology", "Nutrition and Dietetics"],
+  "2606": ["Physics", "Chemistry", "Biology", "Communicative English"],
+  "2607": ["Physics", "Chemistry", "Biology", "Home Science"],
+  "2608": ["Physics", "Chemistry", "Botany", "Zoology"],
+  // 27xx: Commerce
+  "2701": ["Statistics", "Economics", "Commerce", "Accountancy"],
+  "2702": ["Economics", "Commerce", "Accountancy", "Computer Applications"],
+  "2703": ["Communicative English", "Economics", "Commerce", "Accountancy"],
+  "2704": ["History", "Economics", "Commerce", "Accountancy"],
+  "2705": ["Economics", "Political Science", "Commerce", "Accountancy"],
+  "2706": ["Economics", "Commerce", "Accountancy", "Ethics and Indian Culture"],
+  "2707": ["Economics", "Commerce", "Accountancy", "Advanced Language (Tamil)"],
+  "2708": ["Economics", "Commerce", "Accountancy", "Business Mathematics and Statistics"],
+  // 28xx: Arts
+  "2801": ["Statistics", "Geography", "History", "Economics"],
+  "2802": ["Geography", "History", "Economics", "Computer Applications"],
+  "2803": ["Geography", "Communicative English", "History", "Economics"],
+  "2804": ["Geography", "History", "Economics", "Political Science"],
+  "2805": ["Geography", "History", "Economics", "Ethics and Indian Culture"],
+  "2806": ["Geography", "History", "Economics", "Advanced Language (Tamil)"],
+};
+
+function getStudentSubjects(parsedClass: number, groupCode?: string | null): string[] {
+  if (parsedClass < 11) {
+    return ["All Subjects", "Tamil", "English", "Mathematics", "Science", "Social Science", "Computer Science"];
+  }
+
+  const cleanGroup = String(groupCode || "").trim();
+  if (cleanGroup && HSC_GROUP_SUBJECTS[cleanGroup]) {
+    return ["All Subjects", "Tamil", "English", ...HSC_GROUP_SUBJECTS[cleanGroup]];
+  }
+
+  // Fallback for Higher Secondary based on group prefix/name
+  if (cleanGroup.startsWith("25") || cleanGroup.startsWith("26") || cleanGroup.toLowerCase().includes("science")) {
+    return ["All Subjects", "Tamil", "English", "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science"];
+  }
+  if (cleanGroup.startsWith("27") || cleanGroup.toLowerCase().includes("commerce")) {
+    return ["All Subjects", "Tamil", "English", "Economics", "Commerce", "Accountancy", "Computer Applications"];
+  }
+  if (cleanGroup.startsWith("28") || cleanGroup.toLowerCase().includes("arts")) {
+    return ["All Subjects", "Tamil", "English", "History", "Geography", "Economics", "Political Science"];
+  }
+
+  return ["All Subjects", "Tamil", "English", "Physics", "Chemistry", "Biology", "Computer Science"];
+}
+
+const allKnownSubjects = ["All Subjects", "Mathematics", "Science", "Physics", "Chemistry", "Biology", "Computer Science", "History", "Geography", "Social Science", "Commerce", "Accountancy", "Economics", "Tamil", "English"];
 
 export default function AITutorPage() {
   const { data: session } = useSession();
   const studentClass = (session?.user as any)?.class || "10";
   const parsedClass = parseInt(String(studentClass).match(/\d+/)?.[0] || "10", 10);
-  const displaySubjects = parsedClass >= 11 ? allSubjects : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [studentGroupCode, setStudentGroupCode] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "வணக்கம்! 👋 I am your AI Tutor. I can help you in Tamil or English. Ask me anything about your syllabus — concepts, homework doubts, exam prep, or anything else!\n\n(Hello! I speak both Tamil and English. What would you like to learn today?)",
+      content: "வணக்கம்! 👋 I am your AI Tutor. I can help you in Tamil or English across your syllabus subjects. Ask me anything about your concepts, homework doubts, or exam prep!\n\n(Hello! What would you like to learn today?)",
       time: "Now",
     },
   ]);
   const [input, setInput] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("Mathematics");
+  const [selectedSubject, setSelectedSubject] = useState("All Subjects");
   const [language, setLanguage] = useState<"bilingual" | "tamil" | "english">("bilingual");
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
@@ -54,9 +113,30 @@ export default function AITutorPage() {
 
   const [pastSessions, setPastSessions] = useState<SavedSession[]>([]);
 
+  const displaySubjects = getStudentSubjects(
+    parsedClass,
+    studentGroupCode || (session?.user as any)?.group || (session?.user as any)?.groupCode || "2601"
+  );
+
+  const dailyQuotaLimit = parsedClass >= 11 ? 25 : 15;
+  const [questionsAskedToday, setQuestionsAskedToday] = useState<number>(0);
+
   useEffect(() => {
     setSessionId(`session-${Date.now()}`);
   }, []);
+
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    let count = 0;
+    for (const s of pastSessions) {
+      const sessionDate = new Date(s.createdAt).toISOString().split("T")[0];
+      if (sessionDate === todayStr) {
+        count += (s.messages || []).filter((m: any) => m.role === "user").length;
+      }
+    }
+    const storedCount = Number(localStorage.getItem(`ai_tutor_asked_${todayStr}`)) || 0;
+    setQuestionsAskedToday(Math.max(count, storedCount));
+  }, [pastSessions]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -65,7 +145,7 @@ export default function AITutorPage() {
       const questionParam = params.get("question");
 
       if (subjectParam) {
-        const matched = allSubjects.find(
+        const matched = allKnownSubjects.find(
           (s) => s.toLowerCase() === subjectParam.toLowerCase()
         );
         if (matched) {
@@ -95,11 +175,15 @@ export default function AITutorPage() {
         
         let profile = null;
         if (studentJson.success) {
-          profile = studentJson.data.find((s: any) => s.userId === userId);
+          profile = studentJson.data.find((s: any) => s.userId === userId || s.id === (session?.user as any)?.studentId);
         }
 
         if (profile) {
           setStudentId(profile.id);
+          const gCode = String(profile.group || profile.groupCode || profile.hscGroup || "").trim();
+          if (gCode) {
+            setStudentGroupCode(gCode);
+          }
           const historyRes = await fetch(`${API_URL}/api/ai/chat/${profile.id}`);
           const historyJson = await historyRes.json();
           if (historyJson.success) {
@@ -146,6 +230,19 @@ export default function AITutorPage() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+
+    if (questionsAskedToday >= dailyQuotaLimit) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `⚠️ **Daily Question Limit Reached!**\n\nYou have used all **${dailyQuotaLimit} questions** allocated for today (Grade ${studentClass} limit: ${dailyQuotaLimit} questions/day).\n\nPlease take a break and return tomorrow for more learning! Your quota resets at midnight. 🌟`,
+          time: "Now"
+        }
+      ]);
+      return;
+    }
+
     const userMsg: Message = { role: "user", content: input, time: "Now" };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
@@ -158,6 +255,7 @@ export default function AITutorPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          studentId,
           subject: selectedSubject,
           grade: `Grade ${studentClass}`,
           messages: chatHistory,
@@ -166,6 +264,19 @@ export default function AITutorPage() {
         })
       });
       const data = await res.json();
+      if (res.status === 429 || data.quotaExceeded) {
+        setQuestionsAskedToday(dailyQuotaLimit);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `⚠️ **Daily Question Limit Reached!**\n\n${data.error || `You have reached your daily quota of ${dailyQuotaLimit} questions.`}`,
+            time: "Now"
+          }
+        ]);
+        return;
+      }
+
       if (data.success && data.text) {
         const finalMsgs: Message[] = [
           ...updatedMessages,
@@ -173,6 +284,11 @@ export default function AITutorPage() {
         ];
         setMessages(finalMsgs);
         saveChatSession(finalMsgs);
+
+        const newCount = (data.quotaInfo?.used) || (questionsAskedToday + 1);
+        setQuestionsAskedToday(newCount);
+        const todayStr = new Date().toISOString().split("T")[0];
+        localStorage.setItem(`ai_tutor_asked_${todayStr}`, String(newCount));
       } else {
         throw new Error(data.error || "Failed to fetch AI completion");
       }
@@ -217,10 +333,22 @@ export default function AITutorPage() {
               Bilingual virtual guide tailored to support Standard {studentClass} students
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
-            <i className="fi fi-sr-school flex items-center text-sm" />
-            Standard {studentClass} Portal
-          </span>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <span className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl border shadow-sm transition-all ${
+              questionsAskedToday >= dailyQuotaLimit
+                ? "bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-950/40 dark:text-red-400"
+                : dailyQuotaLimit - questionsAskedToday <= 3
+                ? "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-400"
+                : "bg-indigo-500/10 text-indigo-600 border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-400"
+            }`}>
+              <i className="fi fi-sr-comment-alt flex items-center text-xs" />
+              Daily Quota: {questionsAskedToday} / {dailyQuotaLimit} Questions Used
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
+              <i className="fi fi-sr-school flex items-center text-sm" />
+              Standard {studentClass} Portal
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-270px)] sm:h-[calc(100vh-310px)] lg:h-[calc(100vh-330px)] relative overflow-hidden">
@@ -355,6 +483,15 @@ export default function AITutorPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold border flex items-center gap-1.5 shrink-0 ${
+                  questionsAskedToday >= dailyQuotaLimit
+                    ? "bg-red-500/20 text-red-300 border-red-500/40"
+                    : "bg-indigo-500/20 text-indigo-300 border-indigo-500/40"
+                }`}>
+                  {questionsAskedToday >= dailyQuotaLimit
+                    ? "❌ Limit Reached Today"
+                    : `⚡ ${dailyQuotaLimit - questionsAskedToday} Left Today`}
+                </span>
                 <button
                   onClick={() => setIsChatPoppedOut(true)}
                   className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95 animate-pulse"

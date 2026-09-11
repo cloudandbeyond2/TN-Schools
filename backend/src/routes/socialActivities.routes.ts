@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { resolveUserId } from "../config/userResolver";
 import { callGemini } from "./ai.routes";
+import { authenticate } from "../middleware/auth.middleware";
 
 import multer from "multer";
 import path from "path";
@@ -10,6 +11,7 @@ import fs from "fs";
 import os from "os";
 
 const router = Router();
+router.use(authenticate);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

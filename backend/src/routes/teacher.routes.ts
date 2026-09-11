@@ -10,9 +10,12 @@ import multer from 'multer';
 import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
 import { uploadBuffer } from '../services/storage.service';
 
+import { authenticate } from '../middleware/auth.middleware';
+
 const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
+router.use(authenticate);
 
 async function createSafeNotification(userId: string, message: string) {
   try {

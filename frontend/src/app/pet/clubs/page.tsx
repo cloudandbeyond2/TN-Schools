@@ -613,7 +613,7 @@ function ApiMembersModal({
     return students
       .filter((s) => !memberIds.has(s.id))
       .filter((s) => {
-        const studentClass = parseInt(s.class || "0", 10);
+        const studentClass = parseInt(String(s.class || "").match(/\d+/)?.[0] || "0", 10);
         return studentClass >= eligibility.minClass && studentClass <= eligibility.maxClass;
       })
       .filter((s) => !q || (s.user?.name || "").toLowerCase().includes(q) || `${s.class}${s.section}`.toLowerCase().includes(q))
@@ -708,7 +708,7 @@ function LocalMembersModal({
   const eligibility = getClubEligibility(club.name);
   const candidates = LOCAL_STUDENT_ROSTER.filter((s) => !memberIds.has(s.id))
     .filter((s) => {
-      const studentClass = parseInt(s.class || "0", 10);
+      const studentClass = parseInt(String(s.class || "").match(/\d+/)?.[0] || "0", 10);
       return studentClass >= eligibility.minClass && studentClass <= eligibility.maxClass;
     })
     .filter((s) => !q || s.name.toLowerCase().includes(q) || s.class.toLowerCase().includes(q))

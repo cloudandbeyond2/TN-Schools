@@ -418,7 +418,7 @@ type AssessmentResult = {
 export default function CareerGuidancePage() {
   const { data: session } = useSession();
   const user = session?.user as any;
-  const studentClass = parseInt(user?.class || "10");
+  const studentClass = parseInt(String(user?.class || "").match(/\d+/)?.[0] || "10", 10);
   const studentName = user?.name?.split(" ")[0] || "Student";
 
 

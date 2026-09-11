@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'crypto';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // Helper to sync teacher taught subjects to HeadmasterStaff and User tables
 async function syncTeacherSubject(teacherId: string | null) {

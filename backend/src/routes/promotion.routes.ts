@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { yearToDateRange, yearVariants, normalizeYear } from '../services/kpi.service';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // ─── Helpers ──────────────────────────────────────────────────────
 

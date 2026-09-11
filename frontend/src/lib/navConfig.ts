@@ -254,7 +254,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Test Preparation", href: "#", icon: "" },
       { label: "Prep Plans", href: "/student/high-school/prep-plans", icon: "BookOpen" },
-      { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
+      // { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
       { label: "Performance Predictions", href: "/student/high-school/predictions", icon: "TrendingUp" },
       { label: "Study Boost", href: "/student/high-school/study-boost", icon: "Zap" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
@@ -276,14 +276,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
-      { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
+      // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
       // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── Other Activities ──────────────────────────────
-      { label: "---", href: "#", icon: "" },
-      { label: "Other Activities", href: "#", icon: "" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
-      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
+      // { label: "---", href: "#", icon: "" },
+      // { label: "Other Activities", href: "#", icon: "" },
+      // { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+      // { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -294,7 +294,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
-      { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+      // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ── Support & Safety ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -478,7 +478,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
-      { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+      // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ===================== SUPPORT =====================
       { label: "---", href: "#", icon: "" },

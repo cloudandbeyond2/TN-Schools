@@ -3,18 +3,23 @@ import { prisma } from '../config/prisma';
 import multer from 'multer';
 import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
 import { uploadBuffer } from '../services/storage.service';
+import { authenticate } from '../middleware/auth.middleware';
 
 // Files buffer in memory and go through the storage service, which routes to
 // the superadmin-configured provider (local disk / S3 / custom server).
 const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
+router.use(authenticate);
 
 // GET /api/digital-library-upload
 // Fetch approved resources for students (can be combined with main API in frontend)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId, subject, type, class: cls, search } = req.query;
+    let { schoolId, subject, type, class: cls, search } = req.query;
+    if (!schoolId && req.user?.schoolId && req.user?.role !== 'SUPERADMIN') {
+      schoolId = req.user.schoolId;
+    }
 
     const where: any = { approvalStatus: 'APPROVED' };
     const conditions: any[] = [];

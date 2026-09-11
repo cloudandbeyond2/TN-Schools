@@ -125,7 +125,7 @@ export default function ClubsDirectoryPage() {
             const myStudent = studentJson.data.find((s: any) => s.userId === (session.user as any).id);
             if (myStudent) {
               setStudentProfile(myStudent);
-              const studentClassNum = parseInt(myStudent.class || "0", 10);
+              const studentClassNum = parseInt(String(myStudent.class || "").match(/\d+/)?.[0] || "0", 10);
               const defaultStd = studentClassNum >= 11 ? "higher" : studentClassNum >= 9 ? "high" : "middle";
               setSelectedStandard(defaultStd);
 
@@ -285,7 +285,7 @@ export default function ClubsDirectoryPage() {
               const eligibility = getClubEligibility(club.name);
 
               const isMember = joinedClubs.some(c => c.name === club.name);
-              const studentClassNum = studentProfile ? parseInt(studentProfile.class || "0", 10) : 0;
+              const studentClassNum = studentProfile ? parseInt(String(studentProfile.class || "").match(/\d+/)?.[0] || "0", 10) : 0;
               const studentLevel = studentClassNum >= 11 ? "higher" : studentClassNum >= 9 ? "high" : "middle";
               const isEligible = !studentProfile || eligibility.levels.includes(studentLevel);
 

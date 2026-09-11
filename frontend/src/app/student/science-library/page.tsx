@@ -18,7 +18,7 @@ const SUBJECT_COLOR: Record<string, string> = {
 export default function ScienceLibraryPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
-  const studentClass = user?.class ? parseInt(user.class) : null;
+  const studentClass = user?.class ? parseInt(String(user.class).match(/\d+/)?.[0] || "0", 10) : null;
   const studentSchoolId = user?.schoolId || "";
 
   const [cls, setCls] = useState<number | "all">("all");

@@ -25,7 +25,7 @@ const getCategoryColor = (catId: string) => {
   return "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-200/50";
 };
 
-export function formatMathFormula(str: string): string {
+function formatMathFormula(str: string): string {
   if (!str) return "";
   let res = str;
 
@@ -243,12 +243,25 @@ export default function MathsFormulasPage() {
 
   const allFormulasMap = new Map();
   // Standard Samacheer formulas
-  samacheerFormulas.forEach(f => allFormulasMap.set(f.id || f.titleEn, f));
-  // Database published formulas override/extend
+  samacheerFormulas.forEach(f => {
+    const titleStr = typeof f.title === 'object' ? f.title?.en : String(f.title || "");
+    const key = `${f.standard}_${f.term}_${titleStr.toLowerCase().trim()}`;
+    allFormulasMap.set(key, f);
+  });
+  // Database published formulas override/extend static formulas if title matches
   dbFormulas.forEach(f => {
-    allFormulasMap.set(f.id, {
+    const titleEn = f.titleEn || (typeof f.title === 'object' ? f.title?.en : f.title) || "";
+    const key = `${f.standard}_${f.term}_${titleEn.toLowerCase().trim()}`;
+    allFormulasMap.set(key, {
       ...f,
-      categoryName: { en: f.categoryNameEn || f.category, ta: f.categoryNameTa || f.category }
+      title: {
+        en: titleEn,
+        ta: f.titleTa || (typeof f.title === 'object' ? f.title?.ta : f.title) || ""
+      },
+      categoryName: {
+        en: f.categoryNameEn || (typeof f.categoryName === 'object' ? f.categoryName?.en : f.categoryName) || f.category,
+        ta: f.categoryNameTa || (typeof f.categoryName === 'object' ? f.categoryName?.ta : f.categoryName) || f.category
+      }
     });
   });
   const allFormulas = Array.from(allFormulasMap.values());

@@ -503,10 +503,12 @@ export default function StudentsMonitoringPage() {
   const itemsPerPage = 10;
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClassFilter, setSelectedClassFilter] = useState("ALL");
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState("ALL");
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, selectedClassFilter, selectedSectionFilter]);
 
   // Health report state
   const [healthReports, setHealthReports] = useState<Record<string, any>>({});
@@ -1328,12 +1330,53 @@ export default function StudentsMonitoringPage() {
     }
   };
 
-  const filteredWatchlist = watchlist.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.parentName && s.parentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (s.phone && s.phone.includes(searchTerm))
-  );
+  const availableClasses = Array.from(
+    new Set([
+      "Class 6", "Class 7", "Class 8", "Class 9", "Class 10",
+      "Class 11", "Class 12",
+      ...watchlist.map(s => {
+        if (!s.class) return "";
+        let c = s.class.trim();
+        return c.toLowerCase().startsWith("class") ? c : `Class ${c}`;
+      }).filter(Boolean)
+    ])
+  ).sort((a, b) => {
+    const numA = parseInt(a.replace(/\D/g, "") || "0");
+    const numB = parseInt(b.replace(/\D/g, "") || "0");
+    return numA - numB;
+  });
+
+  const availableSections = Array.from(
+    new Set([
+      "A", "B", "C", "D", "E",
+      ...watchlist.map(s => (s.section || "").trim().toUpperCase()).filter(Boolean)
+    ])
+  ).sort();
+
+  const filteredWatchlist = watchlist.filter(s => {
+    const matchesSearch =
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.parentName && s.parentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (s.phone && s.phone.includes(searchTerm));
+
+    let studentCls = s.class ? s.class.trim() : "";
+    if (studentCls && !studentCls.toLowerCase().startsWith("class")) {
+      studentCls = `Class ${studentCls}`;
+    }
+
+    const matchesClass =
+      selectedClassFilter === "ALL" ||
+      studentCls.toLowerCase() === selectedClassFilter.toLowerCase() ||
+      s.class === selectedClassFilter ||
+      s.class === selectedClassFilter.replace(/^Class\s*/i, "");
+
+    const matchesSection =
+      selectedSectionFilter === "ALL" ||
+      (s.section && s.section.trim().toUpperCase() === selectedSectionFilter.toUpperCase());
+
+    return matchesSearch && matchesClass && matchesSection;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filteredWatchlist.length / itemsPerPage));
   const currentWatchlist = filteredWatchlist.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -1496,18 +1539,75 @@ export default function StudentsMonitoringPage() {
               <i className="fi fi-rr-school text-blue-400" /> Student Watchlist Overview
             </h2>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Search Bar */}
               <div className="relative flex-1 sm:flex-initial">
                 <input
                   type="text"
                   placeholder="Search students..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-2 pl-9 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 md:w-64 transition-all"
+                  className="px-3.5 py-2.5 pl-10 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-72 md:w-80 lg:w-96 transition-all shadow-sm"
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 flex items-center">
-                  <i className="fi fi-rr-search text-[13px]" />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 flex items-center">
+                  <i className="fi fi-rr-search text-[14px]" />
                 </div>
               </div>
+
+              {/* Class Dropdown Filter */}
+              <div className="relative flex-1 sm:flex-initial">
+                <select
+                  value={selectedClassFilter}
+                  onChange={(e) => setSelectedClassFilter(e.target.value)}
+                  className="px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-44 transition-all cursor-pointer shadow-sm"
+                >
+                  <option value="ALL" className="bg-slate-900 text-white">All Classes ({watchlist.length})</option>
+                  {availableClasses.map((cls) => {
+                    const count = watchlist.filter(s => {
+                      let c = s.class ? s.class.trim() : "";
+                      if (c && !c.toLowerCase().startsWith("class")) c = `Class ${c}`;
+                      const matchesCls = c.toLowerCase() === cls.toLowerCase() || s.class === cls || s.class === cls.replace(/^Class\s*/i, "");
+                      const matchesSec = selectedSectionFilter === "ALL" || (s.section || "").trim().toUpperCase() === selectedSectionFilter.toUpperCase();
+                      return matchesCls && matchesSec;
+                    }).length;
+                    return (
+                      <option key={cls} value={cls} className="bg-slate-900 text-white">
+                        {cls} ({count})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Section Dropdown Filter */}
+              <div className="relative flex-1 sm:flex-initial">
+                <select
+                  value={selectedSectionFilter}
+                  onChange={(e) => setSelectedSectionFilter(e.target.value)}
+                  className="px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-36 transition-all cursor-pointer shadow-sm"
+                >
+                  <option value="ALL" className="bg-slate-900 text-white">All Sections</option>
+                  {availableSections.map((sec) => {
+                    const count = watchlist.filter(s => {
+                      let studentCls = s.class ? s.class.trim() : "";
+                      if (studentCls && !studentCls.toLowerCase().startsWith("class")) {
+                        studentCls = `Class ${studentCls}`;
+                      }
+                      const matchesCls = selectedClassFilter === "ALL" ||
+                        studentCls.toLowerCase() === selectedClassFilter.toLowerCase() ||
+                        s.class === selectedClassFilter ||
+                        s.class === selectedClassFilter.replace(/^Class\s*/i, "");
+                      const matchesSec = (s.section || "").trim().toUpperCase() === sec;
+                      return matchesCls && matchesSec;
+                    }).length;
+                    return (
+                      <option key={sec} value={sec} className="bg-slate-900 text-white">
+                        Section {sec} ({count})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
               {selectedStudentIds.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
@@ -1541,6 +1641,8 @@ export default function StudentsMonitoringPage() {
               </button>
             </div>
           </div>
+
+
           {watchlist.length === 0 && !isLoading ? (
             <div className="text-center py-16 text-slate-500 text-[10px] sm:text-xs">
               <div className="text-3xl mb-3 text-slate-400">

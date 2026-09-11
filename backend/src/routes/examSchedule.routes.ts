@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticate);
 
 // Helper to notify staff, students, and parents when an exam is scheduled
 async function notifyExamScheduled(
@@ -110,7 +112,11 @@ async function notifyExamScheduled(
 // class can be a raw string "Class 11 - B" or a number "11" — matched with contains.
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId, class: cls, section, examType, academicYear, status, fromDate, toDate } = req.query;
+    let { schoolId, class: cls, section, examType, academicYear, status, fromDate, toDate } = req.query;
+
+    if (!schoolId && req.user?.schoolId && req.user?.role !== 'SUPERADMIN') {
+      schoolId = req.user.schoolId;
+    }
 
     const andClauses: any[] = [];
 

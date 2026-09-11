@@ -274,7 +274,7 @@ export default function ExtracurricularsPage() {
   const eligibleMyClubs = useMemo(() => {
     return myClubs.filter(club => {
       const eligibility = getClubEligibility(club.name);
-      const userClassNum = studentProfile ? parseInt(studentProfile.class || "0", 10) : 0;
+      const userClassNum = studentProfile ? parseInt(String(studentProfile.class || "").match(/\d+/)?.[0] || "0", 10) : 0;
       const userLevel = userClassNum >= 11 ? "higher" : userClassNum >= 9 ? "high" : "middle";
       return eligibility.levels.includes(userLevel);
     });
@@ -324,7 +324,7 @@ export default function ExtracurricularsPage() {
               setStudentProfile(myStudent);
               
               // Automatically initialize standard filtering to the student's actual class range
-              const studentClassNum = parseInt(myStudent.class || "0", 10);
+              const studentClassNum = parseInt(String(myStudent.class || "").match(/\d+/)?.[0] || "0", 10);
               if (studentClassNum >= 11) {
                 setSelectedStandard("higher");
               } else if (studentClassNum >= 9) {
@@ -379,7 +379,7 @@ export default function ExtracurricularsPage() {
 
   const targetStandard = useMemo(() => {
     if (!studentProfile) return selectedStandard;
-    const studentClassNum = parseInt(studentProfile.class || "0", 10);
+    const studentClassNum = parseInt(String(studentProfile.class || "").match(/\d+/)?.[0] || "0", 10);
     if (studentClassNum >= 11) return "higher";
     if (studentClassNum >= 9) return "high";
     return "middle";
@@ -520,7 +520,7 @@ export default function ExtracurricularsPage() {
     }
 
     const eligibility = getClubEligibility(club.name);
-    const userClassNum = parseInt(studentProfile.class || "0", 10);
+    const userClassNum = parseInt(String(studentProfile.class || "").match(/\d+/)?.[0] || "0", 10);
     const initialStandard = userClassNum >= 11 ? "higher" : userClassNum >= 9 ? "high" : "middle";
     const isEligible = eligibility.levels.includes(initialStandard);
 
@@ -1034,7 +1034,7 @@ export default function ExtracurricularsPage() {
         const eligibility = getClubEligibility(club.name);
         const isMember = eligibleMyClubs.some(c => c.name === club.name);
         
-        const userClassNum = studentProfile ? parseInt(studentProfile.class || "0", 10) : 0;
+        const userClassNum = studentProfile ? parseInt(String(studentProfile.class || "").match(/\d+/)?.[0] || "0", 10) : 0;
         const userLevel = userClassNum >= 11 ? "higher" : userClassNum >= 9 ? "high" : "middle";
         const isEligible = eligibility.levels.includes(userLevel);
         const theme = getCategoryTheme(club.category);
