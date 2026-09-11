@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getSession, useSession, signOut } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { API_URL } from "@/lib/api";
 
 // Transitional bridge: the app has ~180 pages that call the backend with raw
@@ -9,7 +9,7 @@ import { API_URL } from "@/lib/api";
 // requests on protected routes. Until those pages migrate to apiFetch()
 // (src/lib/api.ts), this component patches window.fetch once and injects the
 // session's backend JWT as an Authorization bearer header on every request
-// that targets the backend API. It also handles auto-signout if account is deleted (401).
+// that targets the backend API.
 
 let currentToken: string | null = null;
 let patched = false;
@@ -38,13 +38,7 @@ function patchFetch() {
           headers.set("Authorization", `Bearer ${token}`);
         }
 
-        const res = await originalFetch(input, { ...init, headers });
-        if (res.status === 401) {
-          // Backend rejected request (e.g. account deleted/deactivated). Immediately sign out.
-          currentToken = null;
-          signOut({ callbackUrl: "/login?reason=deactivated" });
-        }
-        return res;
+        return await originalFetch(input, { ...init, headers });
       }
     } catch {
       // fall through to the unmodified call
@@ -60,18 +54,6 @@ export default function BackendAuthBridge() {
     const token = ((session?.user as any)?.backendToken as string) || null;
     currentToken = token;
     patchFetch();
-
-    if (token) {
-      // Proactively verify token status on backend on mount/session update
-      window.fetch(`${API_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((res) => {
-        if (res.status === 401) {
-          currentToken = null;
-          signOut({ callbackUrl: "/login?reason=deactivated" });
-        }
-      }).catch(() => {});
-    }
   }, [session]);
 
   return null;
