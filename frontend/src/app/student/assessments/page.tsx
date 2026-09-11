@@ -377,7 +377,7 @@ export default function StudentAssessmentsPage() {
         {!selectedTopic && !showInstructions && (
           <>
             {/* Header Information Banner */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+            <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
               <div>
                 <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
                   <i className="fi fi-rr-award text-indigo-500 dark:text-indigo-400 text-lg shrink-0 flex items-center" />
@@ -392,12 +392,6 @@ export default function StudentAssessmentsPage() {
                     "Available syllabus assessments for your grade level."
                   )}
                 </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs rounded-xl border border-indigo-200/30 whitespace-nowrap">
-                  <i className="fi fi-rr-sparkles text-xs flex items-center" /> Live Sync Active
-                </span>
               </div>
             </div>
 
