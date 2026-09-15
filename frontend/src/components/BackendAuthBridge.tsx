@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { getSession, useSession, signOut } from "next-auth/react";
 import { API_URL } from "@/lib/api";
 
@@ -13,6 +14,35 @@ import { API_URL } from "@/lib/api";
 
 let currentToken: string | null = null;
 let patched = false;
+
+const PROTECTED_PREFIXES = [
+  "/student",
+  "/parent",
+  "/teacher",
+  "/pet",
+  "/headmaster",
+  "/block-education-officer",
+  "/district-education-officer",
+  "/commissioner",
+  "/minister",
+  "/super-admin",
+];
+
+function isProtectedRoute(path?: string): boolean {
+  const currentPath = path || (typeof window !== "undefined" ? window.location.pathname : "");
+  return PROTECTED_PREFIXES.some(
+    (prefix) => currentPath === prefix || currentPath.startsWith(prefix + "/")
+  );
+}
+
+function handle401Failure(currentPath?: string) {
+  currentToken = null;
+  if (isProtectedRoute(currentPath)) {
+    signOut({ callbackUrl: "/login?reason=deactivated" });
+  } else {
+    signOut({ redirect: false });
+  }
+}
 
 function patchFetch() {
   if (patched || typeof window === "undefined") return;
@@ -41,8 +71,7 @@ function patchFetch() {
         const res = await originalFetch(input, { ...init, headers });
         if (res.status === 401) {
           // Backend rejected request (e.g. account deleted/deactivated). Immediately sign out.
-          currentToken = null;
-          signOut({ callbackUrl: "/login?reason=deactivated" });
+          handle401Failure();
         }
         return res;
       }
@@ -55,6 +84,7 @@ function patchFetch() {
 
 export default function BackendAuthBridge() {
   const { data: session } = useSession();
+  const pathname = usePathname();
 
   useEffect(() => {
     const token = ((session?.user as any)?.backendToken as string) || null;
@@ -65,14 +95,15 @@ export default function BackendAuthBridge() {
       // Proactively verify token status on backend on mount/session update
       window.fetch(`${API_URL}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
-      }).then((res) => {
-        if (res.status === 401) {
-          currentToken = null;
-          signOut({ callbackUrl: "/login?reason=deactivated" });
-        }
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (res.status === 401) {
+            handle401Failure(pathname);
+          }
+        })
+        .catch(() => {});
     }
-  }, [session]);
+  }, [session, pathname]);
 
   return null;
 }
