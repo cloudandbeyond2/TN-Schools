@@ -922,6 +922,7 @@ export interface ILearningMaterial extends Document {
   status: 'active' | 'draft' | 'archived';
   aiTagged: boolean;
   fileUrl?: string;
+  downloads: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -938,6 +939,7 @@ const LearningMaterialSchema = new Schema<ILearningMaterial>({
   status: { type: String, enum: ['active', 'draft', 'archived'], default: 'active' },
   aiTagged: { type: Boolean, default: false },
   fileUrl: { type: String },
+  downloads: { type: Number, default: 0 },
 }, { timestamps: true });
 
 export const LearningMaterial = mongoose.models.LearningMaterial || mongoose.model<ILearningMaterial>('LearningMaterial', LearningMaterialSchema);
