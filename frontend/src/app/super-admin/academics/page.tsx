@@ -1115,18 +1115,21 @@ export default function SuperadminAcademicsPage() {
   };
 
   // --- Calculations for Hero Banner Stats & Rails ---
+  // --- Calculations for Hero Banner Stats & Rails ---
   const stats = useMemo(() => {
     const filteredSubs = subjects.filter(sub => {
       const hasClass = Boolean(sub.class) && sub.class !== "ALL";
+      const matchBoard = selectedBoard === "All" || !sub.board || sub.board === selectedBoard || sub.board === "All";
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      return hasClass && matchClass && matchSection;
+      return hasClass && matchBoard && matchClass && matchSection;
     });
 
     const filteredRes = resources.filter(res => {
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const matchClass = filterClass ? res.class === String(filterClass) : true;
       const matchSection = filterSection ? res.section === filterSection : true;
-      return matchClass && matchSection;
+      return matchBoard && matchClass && matchSection;
     });
 
     const videosCount = filteredRes.filter(res => res.category === "videos" || res.type === "Video").length;
@@ -1136,12 +1139,13 @@ export default function SuperadminAcademicsPage() {
       resources: filteredRes.length,
       videos: videosCount,
     };
-  }, [subjects, resources, filterClass, filterSection]);
+  }, [subjects, resources, filterClass, filterSection, selectedBoard]);
 
   const railSubjects = useMemo(() => {
     const classFiltered = subjects.filter(s => {
       const hasClass = Boolean(s.class) && s.class !== "ALL";
-      return hasClass && (filterClass ? s.class === String(filterClass) : true);
+      const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
+      return hasClass && matchBoard && (filterClass ? s.class === String(filterClass) : true);
     });
     const uniqueNames = Array.from(new Set(classFiltered.map(s => s.name)));
     return uniqueNames.map(name => {
@@ -1152,28 +1156,31 @@ export default function SuperadminAcademicsPage() {
         icon: found?.icon || "📚",
       };
     });
-  }, [subjects, filterClass]);
+  }, [subjects, filterClass, selectedBoard]);
 
   const countByCategory = (key: string) => {
     if (key === "structure") {
-      const uniqueSubjectsCount = Array.from(new Set(subjects.map(s => s.name))).length;
+      const filteredForBoard = subjects.filter(s => selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All");
+      const uniqueSubjectsCount = Array.from(new Set(filteredForBoard.map(s => s.name))).length;
       return classes.length + sections.length + uniqueSubjectsCount;
     }
     if (key === "subjects") {
       return subjects.filter(s => {
         const hasClass = Boolean(s.class) && s.class !== "ALL";
+        const matchBoard = selectedBoard === "All" || !s.board || s.board === selectedBoard || s.board === "All";
         const matchClass = filterClass ? s.class === String(filterClass) : true;
         const matchSection = filterSection ? s.section === filterSection : true;
-        return hasClass && matchClass && matchSection;
+        return hasClass && matchBoard && matchClass && matchSection;
       }).length;
     }
     return resources.filter(r => {
       if (r.category !== key) return false;
+      const matchBoard = selectedBoard === "All" || !r.board || r.board === selectedBoard || r.board === "All";
       const matchClass = filterClass ? r.class === String(filterClass) : true;
       const matchSection = filterSection ? r.section === filterSection : true;
       const resSubName = subjects.find(s => s.id === r.subjectId)?.name || "General";
       const matchRail = selectedSubject === "All" ? true : resSubName === selectedSubject;
-      return matchClass && matchSection && matchRail;
+      return matchBoard && matchClass && matchSection && matchRail;
     }).length;
   };
 
@@ -1181,47 +1188,68 @@ export default function SuperadminAcademicsPage() {
   const filteredSubjects = useMemo(() => {
     return subjects.filter(sub => {
       const hasClass = Boolean(sub.class) && sub.class !== "ALL";
+      const matchBoard = selectedBoard === "All" || !sub.board || sub.board === selectedBoard || sub.board === "All";
       const matchSearch = searchQuery.trim() ? sub.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
-      const matchStatus = statusFilter === "All" ? true : sub.status === statusFilter;
+      const matchStatus = statusFilter === "All" ? true : (
+        sub.status ? (
+          sub.status.toLowerCase() === statusFilter.toLowerCase() ||
+          (statusFilter === "Active" && (sub.status.toUpperCase() === "APPROVED" || sub.status === "Active")) ||
+          (statusFilter === "Inactive" && (sub.status.toUpperCase() === "REJECTED" || sub.status === "Inactive"))
+        ) : (statusFilter === "Active")
+      );
       const matchRail = selectedSubject === "All" ? true : sub.name === selectedSubject;
-      return hasClass && matchSearch && matchClass && matchSection && matchStatus && matchRail;
+      return hasClass && matchBoard && matchSearch && matchClass && matchSection && matchStatus && matchRail;
     });
-  }, [subjects, searchQuery, filterClass, filterSection, statusFilter, selectedSubject]);
+  }, [subjects, searchQuery, filterClass, filterSection, statusFilter, selectedSubject, selectedBoard]);
 
   const filteredResources = useMemo(() => {
     return resources.filter(res => {
       if (activeTab !== "overview" && activeTab !== "subjects" && res.category !== activeTab) return false;
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const matchSearch = searchQuery.trim() ? (
         res.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (res.description && res.description.toLowerCase().includes(searchQuery.toLowerCase()))
       ) : true;
       const matchClass = filterClass ? res.class === String(filterClass) : true;
       const matchSection = filterSection ? res.section === filterSection : true;
-      const matchStatus = statusFilter === "All" ? true : res.status === statusFilter;
+      const matchStatus = statusFilter === "All" ? true : (
+        res.status ? (
+          res.status.toLowerCase() === statusFilter.toLowerCase() ||
+          (statusFilter === "Active" && (res.status.toUpperCase() === "APPROVED" || res.status === "Active")) ||
+          (statusFilter === "Inactive" && (res.status.toUpperCase() === "REJECTED" || res.status === "Inactive"))
+        ) : (statusFilter === "Active")
+      );
       const resSubName = subjects.find(s => s.id === res.subjectId)?.name || "General";
       const matchRail = selectedSubject === "All" ? true : resSubName === selectedSubject;
-      return matchSearch && matchClass && matchSection && matchStatus && matchRail;
+      return matchBoard && matchSearch && matchClass && matchSection && matchStatus && matchRail;
     });
-  }, [resources, subjects, activeTab, searchQuery, filterClass, filterSection, statusFilter, selectedSubject]);
+  }, [resources, subjects, activeTab, searchQuery, filterClass, filterSection, statusFilter, selectedSubject, selectedBoard]);
 
   // Global search resources across ALL categories (when on Overview page)
   const globalSearchedResources = useMemo(() => {
     if (!searchQuery.trim() || activeTab !== "overview") return [];
     const query = searchQuery.trim().toLowerCase();
     return resources.filter(res => {
+      const matchBoard = selectedBoard === "All" || !res.board || res.board === selectedBoard || res.board === "All";
       const matchSearch = res.title.toLowerCase().includes(query) ||
         (res.description && res.description.toLowerCase().includes(query)) ||
         res.category.toLowerCase().includes(query);
       const matchClass = filterClass ? res.class === String(filterClass) : true;
       const matchSection = filterSection ? res.section === filterSection : true;
-      const matchStatus = statusFilter === "All" ? true : res.status === statusFilter;
+      const matchStatus = statusFilter === "All" ? true : (
+        res.status ? (
+          res.status.toLowerCase() === statusFilter.toLowerCase() ||
+          (statusFilter === "Active" && (res.status.toUpperCase() === "APPROVED" || res.status === "Active")) ||
+          (statusFilter === "Inactive" && (res.status.toUpperCase() === "REJECTED" || res.status === "Inactive"))
+        ) : (statusFilter === "Active")
+      );
       const resSubName = subjects.find(s => s.id === res.subjectId)?.name || "General";
       const matchRail = selectedSubject === "All" ? true : resSubName === selectedSubject;
-      return matchSearch && matchClass && matchSection && matchStatus && matchRail;
+      return matchBoard && matchSearch && matchClass && matchSection && matchStatus && matchRail;
     });
-  }, [resources, subjects, activeTab, searchQuery, filterClass, filterSection, statusFilter, selectedSubject]);
+  }, [resources, subjects, activeTab, searchQuery, filterClass, filterSection, statusFilter, selectedSubject, selectedBoard]);
 
   const subjectTheme = (name: string) => {
     const found = subjects.find(s => s.name === name);

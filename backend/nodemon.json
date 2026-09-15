@@ -7,5 +7,5 @@
     "dist",
     "store"
   ],
-  "exec": "ts-node"
+  "exec": "node -r ts-node/register"
 }
