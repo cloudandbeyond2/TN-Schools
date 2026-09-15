@@ -64,7 +64,7 @@ const HSC_GROUP_SUBJECTS: Record<string, string[]> = {
 
 function getStudentSubjects(parsedClass: number, groupCode?: string | null): string[] {
   if (parsedClass < 11) {
-    return ["All Subjects", "Tamil", "English", "Mathematics", "Science", "Social Science", "Computer Science"];
+    return ["All Subjects", "Tamil", "English", "Mathematics", "Science", "Social Science"];
   }
 
   const cleanGroup = String(groupCode || "").trim();
