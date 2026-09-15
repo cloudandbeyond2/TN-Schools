@@ -946,50 +946,99 @@ Requirements:
 // ===========================================================================
 router.post('/chat-tutor', async (req: Request, res: Response) => {
   try {
-    const { subject, grade, messages, currentMessage, language } = req.body;
+    const { subject, grade, messages, currentMessage, language, studentId } = req.body;
+    const parsedGrade = parseInt(String(grade || '').match(/\d+/)?.[0] || '10', 10);
+    const dailyQuotaLimit = parsedGrade >= 11 ? 25 : 15;
+
+    // Check daily quota if studentId is provided
+    let countToday = 0;
+    if (studentId) {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const todayChats = await AIChat.find({
+        studentId,
+        updatedAt: { $gte: startOfDay }
+      });
+
+      for (const chat of todayChats) {
+        countToday += (chat.messages || []).filter((m: any) => m.role === 'user').length;
+      }
+
+      if (countToday >= dailyQuotaLimit) {
+        return res.status(429).json({
+          success: false,
+          error: `Daily question limit reached (${dailyQuotaLimit} questions/day for Grade ${parsedGrade}). Please return tomorrow for more learning!`,
+          quotaExceeded: true,
+          limit: dailyQuotaLimit,
+          used: countToday
+        });
+      }
+    }
+
     const historyText = (messages || [])
       .map((m: any) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
       .join('\n');
 
     let prompt = '';
     if (language === 'tamil') {
-      prompt = `நீங்கள் தமிழ்நாடு மாணவர்களுக்கான AI ஆசிரியர்.
-மாணவர் படிக்கும் பாடம்: ${subject}, வகுப்பு: ${grade}.
-முழுக்க முழுக்க தமிழில் மட்டுமே பதில் அளிக்கவும் (Only answer in Tamil). கடினமான தொழில்நுட்ப சொற்கள் மட்டும் ஆங்கிலத்தில் கொடுக்கலாம்.
+      prompt = `நீங்கள் தமிழ்நாடு பள்ளி மாணவர்களுக்கான ஒரு முழுமையான அனைத்துப் பாட AI கற்றல் ஆசிரியர் (All-Subject AI Scholar Tutor).
+மாணவரின் வகுப்பு/தரநிலை: ${grade}.
+மாணவர் தற்போது தேர்ந்தெடுத்துள்ள பாடம்/தலைப்பு: ${subject || 'அனைத்துப் பாடங்கள்'}.
+
+முக்கியக் கட்டளைகள் (CRITICAL INSTRUCTIONS):
+1. மாணவர் கணிதம், இயற்பியல், வேதியியல், உயிரியல், கணினி அறிவியல், வரலாறு, புவியியல், சமூக அறிவியல், வணிகவியல், கணக்குப்பதிவியல், பொருளாதாரம், தமிழ், ஆங்கிலம், பொது அறிவு போன்ற எந்தப் பாடத்தைப் பற்றிக் கேட்டாலும், அவரது வகுப்புக்கு (${grade}) ஏற்ற உயர்தர பாடத்திட்ட பதில்களைத் தெளிவாக வழங்க வேண்டும்.
+2. "நான் ஒரு குறிப்பிட்ட பாடத்திற்கு மட்டுமே பதில் அளிப்பேன்" என்று ஒருபோதும் மறுக்கவோ கூறவோ கூடாது. நீங்கள் அனைத்துப் பாடங்களுக்கும் சந்தேகங்களைத் தீர்க்கும் தகுதிவாய்ந்த AI ஆசிரியர்.
+3. முழுக்க முழுக்க தமிழில் மட்டுமே பதில் அளிக்கவும் (Only answer in Tamil). கடினமான கலைச்சொற்கள்/தொழில்நுட்ப சொற்கள் தேவைப்படும் போது அடைப்புக்குறியில் ஆங்கிலத்திலும் கொடுக்கலாம்.
+4. தெளிவான bullet points, bold text, numbered lists பயன்படுத்தி கட்டமைக்கப்பட்ட வடிவில் பதில் அளிக்கவும்.
+5. தொனி மிகவும் ஊக்கமளிக்கும் வகையிலும், வகுப்பறை ஆசிரியரைப் போல இயற்கையாகவும் இருக்க வேண்டும்.
 
 உரையாடல் வரலாறு:
 ${historyText}
-மாணவர்: ${currentMessage}
-
-தெளிவான bullet points, bold text, numbered lists பயன்படுத்தி பதில் அளிக்கவும்.
-தொனி ஊக்கமளிக்கும் வகையில், வகுப்பறை தமிழில் இயற்கையாக பேசவும்.`;
+மாணவர்: ${currentMessage}`;
     } else if (language === 'english') {
-      prompt = `You are a helpful AI Tutor for Tamil Nadu school students.
-The student is studying: Subject = ${subject}, Grade = ${grade}.
-Language mode: STRICTLY ENGLISH ONLY. Do not use any Tamil words or sentences.
+      prompt = `You are a comprehensive All-Subject AI Scholar Tutor for Tamil Nadu school students.
+Student Grade Level: ${grade}.
+Currently selected subject/topic: ${subject || 'All Subjects'}.
+
+CRITICAL INSTRUCTIONS:
+1. You MUST answer questions across ALL academic subjects and disciplines (Mathematics, Physics, Chemistry, Biology, Computer Science, History, Geography, Social Science, Commerce, Accountancy, Economics, Languages, General Knowledge, etc.) tailored specifically to the student's grade standard (${grade}).
+2. NEVER refuse to answer a question or claim that you are restricted to only Science, Math, or any single subject. You are a complete all-subject AI tutor for ${grade}. Regardless of what subject question the student asks, provide an accurate, in-depth, age-appropriate answer suitable for ${grade}.
+3. Language mode: STRICTLY ENGLISH ONLY. Do not use any Tamil words or sentences.
+4. Answer clearly with bullet points, bold text, and numbered lists where helpful.
+5. Keep the tone encouraging, inspiring, and pedagogical.
 
 Conversation history:
 ${historyText}
-Student: ${currentMessage}
-
-Answer clearly with bullet points, bold text, and numbered lists where helpful.
-Keep the tone encouraging and pedagogical.`;
+Student: ${currentMessage}`;
     } else {
-      prompt = `You are a helpful, bilingual AI Tutor for Tamil Nadu school students.
+      prompt = `You are a comprehensive, bilingual All-Subject AI Scholar Tutor for Tamil Nadu school students.
 You speak both Tamil (தமிழ்) and English (Tanglish is also allowed).
-The student is studying: Subject = ${subject}, Grade = ${grade}.
-Language mode: bilingual — mix English explanation with Tamil reinforcement.
+Student Grade Level: ${grade}.
+Currently selected subject/topic: ${subject || 'All Subjects'}.
+
+CRITICAL INSTRUCTIONS:
+1. You MUST answer questions across ALL academic subjects and disciplines (Mathematics, Physics, Chemistry, Biology, Computer Science, History, Geography, Social Science, Commerce, Accountancy, Economics, Tamil, English, General Knowledge, etc.) tailored specifically to the student's grade standard (${grade}).
+2. NEVER refuse to answer a question or claim that you are restricted to only Science or one specific subject. You are an all-subject AI tutor. Whatever subject question the student asks, answer it thoroughly at the ${grade} curriculum level.
+3. Language mode: BILINGUAL — mix clear English explanations with friendly Tamil reinforcement.
+4. Answer clearly with bullet points, bold text, and numbered lists where helpful.
+5. Keep the tone encouraging, inspiring, and pedagogical.
 
 Conversation history:
 ${historyText}
-Student: ${currentMessage}
-
-Answer clearly with bullet points, bold text, and numbered lists where helpful.
-Keep the tone encouraging and pedagogical. Alternate English/Tamil sentences.`;
+Student: ${currentMessage}`;
     }
 
     const result = await callGemini(prompt, false);
-    res.json({ success: true, text: result });
+    res.json({
+      success: true,
+      text: result,
+      quotaInfo: {
+        used: countToday + 1,
+        limit: dailyQuotaLimit,
+        remaining: Math.max(0, dailyQuotaLimit - (countToday + 1))
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

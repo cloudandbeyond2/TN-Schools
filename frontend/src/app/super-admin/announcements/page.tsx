@@ -21,10 +21,19 @@ interface Announcement {
 
 const PORTALS: TargetPortal[] = ["All","Student","Teacher","Parent","Headmaster","BEO","DEO","Commissioner","Minister"];
 
-const priorityStyles: Record<Priority, { color:string; badge:string; icon:React.ReactNode; border:string }> = {
+const priorityStyles: Record<string, { color:string; badge:string; icon:React.ReactNode; border:string }> = {
   info:     { color:"text-blue-400", badge:"bg-blue-500/10 border-blue-500/30 text-blue-400", icon:<i className="fi fi-rr-info text-blue-400"></i>, border:"border-blue-500/20" },
   warning:  { color:"text-amber-400", badge:"bg-amber-500/10 border-amber-500/30 text-amber-400", icon:<i className="fi fi-rr-triangle-warning text-amber-400"></i>, border:"border-amber-500/20" },
   critical: { color:"text-red-400", badge:"bg-red-500/10 border-red-500/30 text-red-400", icon:<i className="fi fi-rr-exclamation text-red-400"></i>, border:"border-red-500/20" },
+  high:     { color:"text-rose-400", badge:"bg-rose-500/10 border-rose-500/30 text-rose-400", icon:<i className="fi fi-rr-exclamation text-rose-400"></i>, border:"border-rose-500/20" },
+  medium:   { color:"text-amber-400", badge:"bg-amber-500/10 border-amber-500/30 text-amber-400", icon:<i className="fi fi-rr-triangle-warning text-amber-400"></i>, border:"border-amber-500/20" },
+  low:      { color:"text-emerald-400", badge:"bg-emerald-500/10 border-emerald-500/30 text-emerald-400", icon:<i className="fi fi-rr-info text-emerald-400"></i>, border:"border-emerald-500/20" },
+};
+
+const getPriorityStyle = (p?: string) => {
+  if (!p) return priorityStyles.info;
+  const key = p.toLowerCase();
+  return priorityStyles[key] || priorityStyles.info;
 };
 
 const statusColors: Record<Announcement["status"], string> = {
@@ -187,16 +196,19 @@ export default function Announcements() {
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-5">
         <div className="flex gap-2">
-          {(["All","info","warning","critical"] as const).map((p) => (
-            <button key={p} onClick={() => setFilterPriority(p)}
-              className={`text-[10px] font-bold px-3 py-1 rounded-full transition capitalize border flex items-center gap-1 ${
-                filterPriority === p
-                  ? p === "All" ? "bg-slate-600 text-white border-slate-500" : priorityStyles[p as Priority].badge
-                  : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
-              }`}>
-              {p === "All" ? "All Priority" : <>{priorityStyles[p as Priority].icon} <span className="capitalize">{p}</span></>}
-            </button>
-          ))}
+          {(["All","info","warning","critical"] as const).map((p) => {
+            const style = getPriorityStyle(p);
+            return (
+              <button key={p} onClick={() => setFilterPriority(p)}
+                className={`text-[10px] font-bold px-3 py-1 rounded-full transition capitalize border flex items-center gap-1 ${
+                  filterPriority === p
+                    ? p === "All" ? "bg-slate-600 text-white border-slate-500" : style.badge
+                    : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                }`}>
+                {p === "All" ? "All Priority" : <>{style.icon} <span className="capitalize">{p}</span></>}
+              </button>
+            );
+          })}
         </div>
         <div className="flex gap-2">
           {(["All","active","scheduled","expired"] as const).map((s) => (
@@ -222,7 +234,7 @@ export default function Announcements() {
           </div>
         ) : (
           filtered.map((a) => {
-            const ps = priorityStyles[a.priority];
+            const ps = getPriorityStyle(a.priority);
             return (
               <div key={a.id} className={`glass rounded-2xl p-5 border ${ps.border} transition-all hover:border-opacity-50 ${a.status === "expired" ? "opacity-60" : ""}`}>
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -231,7 +243,7 @@ export default function Announcements() {
                     <div>
                       <h3 className="text-sm font-bold text-white">{a.title}</h3>
                       <div className="flex gap-2 mt-1 flex-wrap">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${ps.badge}`}>{a.priority.toUpperCase()}</span>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${ps.badge}`}>{(a.priority || "INFO").toUpperCase()}</span>
                         <span className="text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">→ {a.target}</span>
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${statusColors[a.status]}`}>{a.status.toUpperCase()}</span>
                       </div>
@@ -308,21 +320,24 @@ export default function Announcements() {
       )}
 
       {/* Preview Modal */}
-      {preview && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className={`bg-slate-900 border ${priorityStyles[preview.priority].border} rounded-2xl p-6 w-full max-w-sm shadow-2xl`}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">{priorityStyles[preview.priority].icon}</span>
-              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${priorityStyles[preview.priority].badge}`}>{preview.priority.toUpperCase()}</span>
-              <span className="text-[9px] text-slate-500">→ {preview.target}</span>
+      {preview && (() => {
+        const previewPs = getPriorityStyle(preview.priority);
+        return (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className={`bg-slate-900 border ${previewPs.border} rounded-2xl p-6 w-full max-w-sm shadow-2xl`}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">{previewPs.icon}</span>
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${previewPs.badge}`}>{(preview.priority || "INFO").toUpperCase()}</span>
+                <span className="text-[9px] text-slate-500">→ {preview.target}</span>
+              </div>
+              <h3 className="text-sm font-bold text-white mb-2">{preview.title}</h3>
+              <p className="text-xs text-slate-400 mb-4">{preview.body}</p>
+              <div className="text-[10px] text-slate-600">Published: {preview.createdAt} · Expires: {preview.expiresAt || "—"}</div>
+              <button onClick={() => setPreview(null)} className="mt-4 w-full text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700">Close Preview</button>
             </div>
-            <h3 className="text-sm font-bold text-white mb-2">{preview.title}</h3>
-            <p className="text-xs text-slate-400 mb-4">{preview.body}</p>
-            <div className="text-[10px] text-slate-600">Published: {preview.createdAt} · Expires: {preview.expiresAt || "—"}</div>
-            <button onClick={() => setPreview(null)} className="mt-4 w-full text-xs font-bold text-slate-400 bg-slate-800 py-2 rounded-lg border border-slate-700">Close Preview</button>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </PortalLayout>
   );
 }

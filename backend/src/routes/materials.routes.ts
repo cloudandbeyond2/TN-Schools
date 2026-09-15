@@ -21,10 +21,26 @@ router.get('/', async (req: Request, res: Response) => {
       status: m.status || 'active',
       aiTagged: !!m.aiTagged,
       fileUrl: m.fileUrl || '',
+      downloads: m.downloads || 0,
     }));
     return res.json({ success: true, data: formatted });
   } catch (err) {
     console.error('[GET /api/materials]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/materials/:id/download
+router.post('/:id/download', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updated = await LearningMaterial.findByIdAndUpdate(
+      id,
+      { $inc: { downloads: 1 } },
+      { new: true }
+    );
+    return res.json({ success: true, downloads: updated?.downloads || 0 });
+  } catch (err) {
     return res.status(500).json({ success: false, error: String(err) });
   }
 });

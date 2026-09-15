@@ -44,19 +44,17 @@ const categoryColor: Record<string, string> = {
   Other: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
 };
 
-const categoryIcon: Record<string, string> = {
-  Medical: "🏥",
-  Engineering: "⚙️",
-  "Civil Services": "🏛️",
-  Banking: "🏦",
-  Defence: "🛡️",
-  Law: "⚖️",
-  Technology: "💻",
-  Science: "🔬",
-  Arts: "🎨",
-  Management: "💼",
-  General: "📚",
-  Other: "📖",
+const categoryFlaticon: Record<string, React.ReactNode> = {
+  All: <i className="fi fi-rr-search text-amber-500 text-xl" />,
+  Medical: <i className="fi fi-rr-hospital text-emerald-500 text-xl" />,
+  Engineering: <i className="fi fi-rr-settings text-blue-500 text-xl" />,
+  "Civil Services": <i className="fi fi-rr-bank text-amber-500 text-xl" />,
+  Banking: <i className="fi fi-rr-building text-green-500 text-xl" />,
+  Defence: <i className="fi fi-rr-shield-check text-orange-500 text-xl" />,
+  Law: <i className="fi fi-rr-scale text-violet-500 text-xl" />,
+  Technology: <i className="fi fi-rr-laptop text-indigo-500 text-xl" />,
+  Science: <i className="fi fi-rr-flask text-teal-500 text-xl" />,
+  Other: <i className="fi fi-rr-book-alt text-slate-500 text-xl" />,
 };
 
 const statusColor: Record<string, string> = {
@@ -115,6 +113,8 @@ export default function CompetitiveExamsPage() {
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
+  const [materialsList, setMaterialsList] = useState<StudyMaterial[]>(staticMaterials);
+
   const fetchExams = useCallback(async () => {
     if (!teacherId) return;
     setLoading(true);
@@ -132,11 +132,40 @@ export default function CompetitiveExamsPage() {
     }
   }, [schoolId, teacherId]);
 
+  const fetchMaterials = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/materials`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        const mapped: StudyMaterial[] = data.data.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          exam: m.subject || "General",
+          type: m.type || "PDF",
+          downloads: m.downloads || 0,
+        }));
+        setMaterialsList(mapped);
+      }
+    } catch (e) {
+      console.error("Could not fetch dynamic materials", e);
+    }
+  }, []);
+
+  const handleDownload = async (matId: string) => {
+    setMaterialsList((prev) =>
+      prev.map((m) => (m.id === matId ? { ...m, downloads: m.downloads + 1 } : m))
+    );
+    try {
+      await fetch(`${API}/api/materials/${matId}/download`, { method: "POST" });
+    } catch {}
+  };
+
   useEffect(() => {
     if (status !== "loading" && teacherId) {
       fetchExams();
+      fetchMaterials();
     }
-  }, [status, teacherId, fetchExams]);
+  }, [status, teacherId, fetchExams, fetchMaterials]);
 
   const filtered = examsList.filter((e) => {
     const q = search.toLowerCase();
@@ -275,10 +304,10 @@ export default function CompetitiveExamsPage() {
       {/* ── KPI Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: lang === "தமிழ்" ? "மொத்த தேர்வுகள்" : "Total Exams Tracked", value: examsList.length, icon: <Clipboard className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
-          { label: lang === "தமிழ்" ? "பதிவு ஆரம்பம்" : "Registration Open", value: registrationOpenCount, icon: <Edit className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
-          { label: lang === "தமிழ்" ? "மாணவர்கள் சேர்க்கை" : "Students Enrolled", value: totalEnrolled, icon: <Users className="w-5 h-5" />, color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
-          { label: lang === "தமிழ்" ? "தேர்ச்சி விகிதம்" : "Clearance Rate", value: `${successRate}%`, icon: <Trophy className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: lang === "தமிழ்" ? "மொத்த தேர்வுகள்" : "Total Exams Tracked", value: examsList.length, icon: <i className="fi fi-rr-clipboard-list text-xl text-blue-500" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
+          { label: lang === "தமிழ்" ? "பதிவு ஆரம்பம்" : "Registration Open", value: registrationOpenCount, icon: <i className="fi fi-rr-edit text-xl text-amber-500" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
+          { label: lang === "தமிழ்" ? "மாணவர்கள் சேர்க்கை" : "Students Enrolled", value: totalEnrolled, icon: <i className="fi fi-rr-users-alt text-xl text-violet-500" />, color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
+          { label: lang === "தமிழ்" ? "தேர்ச்சி விகிதம்" : "Clearance Rate", value: `${successRate}%`, icon: <i className="fi fi-rr-trophy text-xl text-emerald-500" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className={`w-9 h-9 ${kpi.bg} rounded-xl flex items-center justify-center text-lg mb-3`}>{kpi.icon}</div>
@@ -290,10 +319,9 @@ export default function CompetitiveExamsPage() {
 
       {/* ── Category Quick Filter ─────────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "தேர்வு வகைகள்" : "Exam Categories"}</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-1.5"><i className="fi fi-rr-bullseye text-amber-500 text-base"></i> {lang === "தமிழ்" ? "தேர்வு வகைகள்" : "Exam Categories"}</h3>
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
           {(["All", "Medical", "Engineering", "Civil Services", "Defence", "Law", "Banking"] as const).map((cat) => {
-            const isAll = cat === "All";
             const catTranslated =
               cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") :
               cat === "Medical" ? (lang === "தமிழ்" ? "மருத்துவம்" : "Medical") :
@@ -307,11 +335,11 @@ export default function CompetitiveExamsPage() {
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
                 className={`flex flex-col items-center p-2.5 rounded-xl border transition-all ${filterCategory === cat
-                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20 shadow-sm"
                   : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:border-amber-300"
                 }`}
               >
-                <span className="text-xl mb-0.5">{isAll ? "🔍" : categoryIcon[cat] || "📖"}</span>
+                <span className="mb-1">{categoryFlaticon[cat] || <i className="fi fi-rr-book-alt text-slate-500 text-xl" />}</span>
                 <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 text-center leading-tight">{catTranslated}</span>
               </button>
             );
@@ -322,18 +350,19 @@ export default function CompetitiveExamsPage() {
       {/* ── Tabs ──────────────────────────────────────────────── */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-fit">
         {[
-          { key: "exams", label: lang === "தமிழ்" ? "அனைத்து தேர்வுகள்" : "All Exams" },
-          { key: "materials", label: lang === "தமிழ்" ? "பாடப் பொருட்கள்" : "Study Materials" },
-          { key: "results", label: lang === "தமிழ்" ? "முடிவுகள் சுருக்கம்" : "Results Summary" },
+          { key: "exams", label: lang === "தமிழ்" ? "அனைத்து தேர்வுகள்" : "All Exams", icon: <i className="fi fi-rr-list-check mr-1.5" /> },
+          { key: "materials", label: lang === "தமிழ்" ? "பாடப் பொருட்கள்" : "Study Materials", icon: <i className="fi fi-rr-book-alt mr-1.5" /> },
+          { key: "results", label: lang === "தமிழ்" ? "முடிவுகள் சுருக்கம்" : "Results Summary", icon: <i className="fi fi-rr-chart-histogram mr-1.5" /> },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center ${activeTab === tab.key
               ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
               : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             }`}
           >
+            {tab.icon}
             {tab.label}
           </button>
         ))}
@@ -410,8 +439,8 @@ export default function CompetitiveExamsPage() {
                   <div key={exam.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all group">
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
-                        {categoryIcon[exam.category] || "📖"}
+                      <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">
+                        {categoryFlaticon[exam.category] || <i className="fi fi-rr-book-alt text-slate-500 text-xl" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors leading-tight">{exam.examName}</h4>
@@ -511,7 +540,7 @@ export default function CompetitiveExamsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {staticMaterials.map((mat) => (
+                  {materialsList.map((mat) => (
                     <tr key={mat.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-amber-50/30 dark:hover:bg-amber-500/5 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="text-xs font-bold text-slate-800 dark:text-white">{mat.title}</div>
@@ -523,7 +552,13 @@ export default function CompetitiveExamsPage() {
                         <span className="text-[10px] text-slate-400 font-semibold">{mat.type}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-xs font-black text-emerald-500">⬇ {mat.downloads}</span>
+                        <button
+                          onClick={() => handleDownload(mat.id)}
+                          className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 px-2.5 py-1 rounded-lg transition-all cursor-pointer border border-emerald-500/20"
+                          title="Click to download and track engagement"
+                        >
+                          ⬇ {mat.downloads}
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -539,7 +574,7 @@ export default function CompetitiveExamsPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> {lang === "தமிழ்" ? "தேர்வு வாரியாக தேர்ச்சி விகிதம்" : "Exam-wise Clearance Rate"}</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-1.5"><i className="fi fi-rr-chart-histogram text-emerald-500 text-base"></i> {lang === "தமிழ்" ? "தேர்வு வாரியாக தேர்ச்சி விகிதம்" : "Exam-wise Clearance Rate"}</h4>
               {examsList.filter((e) => e.studentsEnrolled > 0).map((e) => {
                 const rate = Math.round((e.studentsCleared / e.studentsEnrolled) * 100);
                 return (
@@ -560,7 +595,7 @@ export default function CompetitiveExamsPage() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பிரிவு வாரியான விவரம்" : "Category Breakdown"}</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-1.5"><i className="fi fi-rr-apps text-amber-500 text-base"></i> {lang === "தமிழ்" ? "பிரிவு வாரியான விவரம்" : "Category Breakdown"}</h4>
               {["Medical", "Engineering", "Civil Services", "Defence", "Law"].map((cat) => {
                 const catExams = examsList.filter((e) => e.category === cat);
                 const enrolled = catExams.reduce((a, e) => a + e.studentsEnrolled, 0);
@@ -572,7 +607,7 @@ export default function CompetitiveExamsPage() {
                   (lang === "தமிழ்" ? "சட்டம்" : cat);
                 return (
                   <div key={cat} className="flex items-center gap-3 mb-3">
-                    <span className="text-lg">{categoryIcon[cat] || "📖"}</span>
+                    <span>{categoryFlaticon[cat] || <i className="fi fi-rr-book-alt text-slate-500 text-lg" />}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-[10px] mb-0.5">
                         <span className="font-semibold text-slate-600 dark:text-slate-300">{catTranslated}</span>
