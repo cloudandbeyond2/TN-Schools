@@ -654,10 +654,7 @@ function DigitalPortfolioContent() {
               <p style="font-size: 12px;"><strong>Honors & Awards:</strong> ${data.achievements.length}</p>
             </div>
           </div>
-          <div class="card">
-            <h2>Projects</h2>
-            ${data.projects.map((p) => `<div style="margin-bottom:8px;"><strong>${p.title}</strong> (${p.category}) - ${p.description}</div>`).join("")}
-          </div>
+
           <div class="card">
             <h2>Honors & Awards</h2>
             ${data.achievements.map((a) => `<div style="margin-bottom:6px;">🏆 <strong>${a.title}</strong> (${a.year})</div>`).join("")}
@@ -812,16 +809,7 @@ function DigitalPortfolioContent() {
         >
           <i className="fi fi-rr-book-alt text-sm flex items-center" /> Academic Performance
         </button>
-        <button
-          onClick={() => setActiveTab("projects")}
-          className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "projects"
-              ? "bg-indigo-600 text-white shadow-md font-extrabold"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <i className="fi fi-rr-sparkles text-sm flex items-center" /> Projects & Skills
-        </button>
+
         <button
           onClick={() => setActiveTab("activities")}
           className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
