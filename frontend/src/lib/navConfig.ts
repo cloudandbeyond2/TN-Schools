@@ -671,7 +671,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-calendar-star" },
       { label: "Clubs & Activities", href: "/headmaster/clubs", icon: "fi fi-rr-smile" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "fi fi-rr-globe" },
-      { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
+      // { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
       { label: "Rewards & Honors", href: "/headmaster/rewards", icon: "fi fi-rr-trophy" },
       { label: "Celebrations", href: "/headmaster/celebrations", icon: "fi fi-rr-party-horn" },
       { label: "Social Responsibility", href: "/headmaster/social-activities", icon: "fi fi-rr-heart" },
