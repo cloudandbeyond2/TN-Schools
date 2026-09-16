@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TN-Schools Unified Educational Ecosystem — Complete User Manual v2.0</title>
+<style>
+  :root {
+    --primary: #0f3460;
+    --primary-dark: #0a192f;
+    --secondary: #e94560;
+    --accent: #22577a;
+    --text-main: #1a1a2e;
+    --text-muted: #536171;
+    --border: #e2e8f0;
+    --bg-light: #f8fafc;
+    --bg-card: #ffffff;
+    --success: #16a34a;
+    --warning: #d97706;
+    --info: #0284c7;
+    --govt: #9d174d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--text-main);
+    background: #f1f5f9;
+    line-height: 1.6;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .doc-wrapper {
+    max-width: 1040px;
+    margin: 30px auto;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* ===== HEADER / COVER ===== */
+  .cover {
+    background: linear-gradient(135deg, #0a192f 0%, #0f3460 60%, #162447 100%);
+    color: #ffffff;
+    padding: 60px 50px 50px;
+    text-align: center;
+    position: relative;
+    border-bottom: 4px solid var(--secondary);
+  }
+  .gov-header {
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .gov-dept {
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    color: #cbd5e1;
+    margin-bottom: 24px;
+    font-weight: 600;
+  }
+  .cover-logo {
+    font-size: 52px;
+    margin-bottom: 12px;
+    display: inline-block;
+  }
+  .cover h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .cover h1 span {
+    color: #38bdf8;
+  }
+  .cover-sub {
+    font-size: 18px;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-bottom: 24px;
+  }
+  .cover-badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  .cover-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #f8fafc;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: left;
+    gap: 12px;
+    margin-top: 15px;
+  }
+  .meta-item .meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .meta-item .meta-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+  }
+
+  /* ===== PAGE & SECTION ===== */
+  .page {
+    padding: 40px 50px;
+  }
+  .page + .page {
+    border-top: 1px solid var(--border);
+  }
+
+  .chapter {
+    background: var(--primary);
+    color: #ffffff;
+    padding: 16px 22px;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 32px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    scroll-margin-top: 60px;
+  }
+  .chapter:first-of-type { margin-top: 10px; }
+  .chapter-sub {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 26px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+    scroll-margin-top: 60px;
+  }
+  .section-intro {
+    background: #f8fafc;
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 18px;
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    background: #ffffff;
+    padding: 35px 50px;
+  }
+  .toc-heading {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toc-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .toc-entry {
+    display: flex;
+    align-items: baseline;
+    font-size: 13.5px;
+  }
+  .toc-entry a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .toc-entry a:hover {
+    color: var(--secondary);
+  }
+  .toc-dots {
+    flex-grow: 1;
+    border-bottom: 1px dotted #cbd5e1;
+    margin: 0 8px;
+  }
+  .toc-entry.lvl1 {
+    margin-top: 10px;
+    font-weight: 700;
+  }
+  .toc-entry.lvl1 a {
+    color: var(--primary);
+    font-size: 14px;
+  }
+  .toc-entry.lvl2 {
+    padding-left: 18px;
+    font-size: 13px;
+  }
+  .toc-entry.lvl2 a {
+    font-weight: 400;
+    color: #334155;
+  }
+
+  /* ===== TABLES ===== */
+  .table-wrapper {
+    width: 100%;
+    margin: 16px 0 24px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+  }
+  thead th {
+    background: #0f3460;
+    color: #ffffff;
+    padding: 10px 14px;
+    font-weight: 600;
+    border: 1px solid #1e293b;
+    font-size: 12.5px;
+    letter-spacing: 0.3px;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    color: #334155;
+    vertical-align: top;
+  }
+  tbody td:last-child { border-right: none; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) {
+    background: #f8fafc;
+  }
+
+  /* ===== BOXES & CARDS ===== */
+  .info-box {
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    border: 1px solid transparent;
+  }
+  .info-box.blue { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+  .info-box.amber { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+  .info-box.green { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+  .info-box.purple { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
+  .ib-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+  .ib-body { font-size: 13px; }
+  .ib-body .label { font-weight: 700; margin-bottom: 2px; }
+  .ib-body p { margin-top: 2px; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0 22px;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .card-title {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  /* ===== STEPS & FLOWS ===== */
+  .flow {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 18px 0 24px;
+  }
+  .flow-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow-step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .flow-step:last-child { margin-bottom: 0; }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .step-content {
+    font-size: 13px;
+    color: #334155;
+  }
+  .step-content strong {
+    color: var(--primary);
+  }
+
+  /* ===== BADGES & TAGS ===== */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .tag-core { background: #dbeafe; color: #1e40af; }
+  .tag-govt { background: #fce7f3; color: #9d174d; }
+  .tag-ai { background: #f3e8ff; color: #6b21a8; }
+  .tag-opt { background: #fef3c7; color: #92400e; }
+
+  /* ===== PRINT STYLING ===== */
+  @media print {
+    @page {
+      size: A4;
+      margin: 15mm 15mm 15mm 15mm;
+    }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      background: #ffffff !important;
+      font-size: 10pt;
+      color: #111827;
+    }
+    .print-bar { display: none !important; }
+    .doc-wrapper {
+      max-width: 100% !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+    .cover {
+      min-height: 0;
+      padding: 40px 30px 30px;
+      page-break-after: always;
+      break-after: page;
+    }
+    .cover h1 { font-size: 26pt; }
+    .page { padding: 0 !important; }
+    .page + .page { border-top: none !important; }
+    .toc { page-break-after: always; break-after: page; }
+    .chapter {
+      margin: 22px 0 16px;
+      padding: 14px 18px;
+      page-break-before: always;
+      break-before: page;
+      background: var(--primary) !important;
+      color: #fff !important;
+    }
+    .chapter:first-of-type {
+      page-break-before: auto;
+      break-before: auto;
+    }
+    .chapter-sub {
+      font-size: 12.5pt;
+      margin-top: 18px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    h1, h2, h3, h4, .flow-title, .card-title {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    table {
+      width: 100% !important;
+      font-size: 9pt;
+      page-break-inside: auto;
+      break-inside: auto;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    thead { display: table-header-group !important; }
+    tfoot { display: table-footer-group !important; }
+    tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+    th, td { page-break-inside: avoid !important; break-inside: avoid !important; padding: 6px 10px !important; }
+    thead th { background: var(--primary) !important; color: #fff !important; }
+    tbody tr:nth-child(even) td { background: #f8fafc !important; }
+    .table-wrapper { overflow: visible !important; width: 100% !important; border: 1px solid #cbd5e1; }
+    .info-box, .flow, .card {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin: 14px 0;
+    }
+    .card-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .print-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: #0f172a;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .btn-print {
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- PRINT TOOLBAR -->
+<div class="print-bar">
+  <div><strong>TN-Schools Platform</strong> &mdash; Production Reference Manual v2.0</div>
+  <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="doc-wrapper">
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="gov-header">Government of Tamil Nadu</div>
+  <div class="gov-dept">Department of School Education</div>
+  <div class="cover-logo">&#127979;</div>
+  <h1>TN-SCHOOLS<br><span>Unified Educational Ecosystem</span></h1>
+  <div class="cover-sub">Comprehensive User Guide &middot; Technical Portal Documentation</div>
+  
+  <div class="cover-badge-row">
+    <span class="cover-badge">&#128216; Version 2.0</span>
+    <span class="cover-badge">&#127963;&#65039; Government Schools</span>
+    <span class="cover-badge">&#127970; Private Schools</span>
+    <span class="cover-badge">&#129302; 20+ AI Content Tools</span>
+    <span class="cover-badge">&#128202; State Executive Telemetry</span>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Version</div>
+      <div class="meta-val">2.0 — Production Reference</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Scope</div>
+      <div class="meta-val">All Role Portals Across State Hierarchy</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Classification</div>
+      <div class="meta-val">Administrative, Teaching, Student &amp; Governance</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIDENTIALITY & USAGE NOTICE -->
+<div class="page">
+  <div class="info-box blue">
+    <div class="ib-icon">&#128274;</div>
+    <div class="ib-body">
+      <div class="label">Confidentiality &amp; Operational Handbook Notice</div>
+      <p>This document serves as the complete technical user manual and operational handbook for all administrative, teaching, student, parent, and governance portals operating within the Tamil Nadu School Education System. Access and permissions are strictly enforced according to state Role-Based Access Control (RBAC) protocols.</p>
+    </div>
+  </div>
+
+  <div class="info-box purple">
+    <div class="ib-icon">&#127963;&#65039;</div>
+    <div class="ib-body">
+      <div class="label">Unified Digital Educational Architecture</div>
+      <p>The TN-Schools ecosystem bridges state-level policy formulation with day-to-day classroom execution. By interconnecting distinct user roles across schools and education departments, it automates attendance telemetry, student academic mastery tracking, welfare disbursements, teacher pedagogy with 20+ specialized AI tools, and executive state intelligence.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page toc">
+  <div class="toc-heading">Table of Contents</div>
+  <div class="toc-grid">
+    <!-- CHAPTER 1 -->
+    <div class="toc-entry lvl1"><a href="#ch1">1. Application Overview &amp; Strategic Purpose</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch1-1">1.1 Core Strategic Objectives</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch1-2">1.2 Educational Governance Hierarchy</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch1-3">1.3 System Portal Directory</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch1-4">1.4 Private vs Government School Modules</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch1-5">1.5 Technology Stack &amp; Architecture</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 2 -->
+    <div class="toc-entry lvl1"><a href="#ch2">2. Authentication &amp; Access Control</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch2-1">2.1 How to Login &amp; Role-Based Redirection</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch2-2">2.2 Security &amp; Data Isolation Principles</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 3 -->
+    <div class="toc-entry lvl1"><a href="#ch3">3. Headmaster Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-1">3.1 Dashboard &amp; Administrative Cockpit</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-2">3.2 Student Management &amp; Enrollment</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-3">3.3 Staff &amp; Faculty Management</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-4">3.4 Parent Directory &amp; Records</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-5">3.5 Attendance Overview &amp; Verification</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-6">3.6 Master Timetable Management</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-7">3.7 Exams &amp; Results Board</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-8">3.8 Scholarships &amp; Government Schemes</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-9">3.9 Mid-Day Meal (MDM) Daily Audits</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-10">3.10 Alumni, Clubs &amp; Events</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-11">3.11 Digital Library &amp; Resources</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-12">3.12 Promotions &amp; Academic Year Rollover</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-13">3.13 Rewards &amp; Recognition</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch3-14">3.14 School Public Portal &amp; Gallery</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 4 -->
+    <div class="toc-entry lvl1"><a href="#ch4">4. Teacher Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-1">4.1 Dashboard &amp; Classroom Command</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-2">4.2 Attendance Management</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-3">4.3 Homework &amp; Assignments</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-4">4.4 AI Lesson Planner</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-5">4.5 AI Evaluation &amp; Vision OCR Grading</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-6">4.6 Question Bank &amp; Generator</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-7">4.7 Timetable &amp; Proxy Classes</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-8">4.8 Student Profiles &amp; Progress</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-9">4.9 Exams &amp; Assessment Marking</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-10">4.10 Parent Communication &amp; PTA Slots</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-11">4.11 Digital Library &amp; Study Materials</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-12">4.12 Science Labs &amp; Virtual Experiments</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-13">4.13 NEET &amp; SSLC Board Preparation</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-14">4.14 Social Activities &amp; School Press</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-15">4.15 Sports, Cultural Events &amp; Clubs</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-16">4.16 Analytics &amp; Early-Warning Risk Alerts</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch4-17">4.17 AI Content Studio (20 Specialized Tools)</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 5 -->
+    <div class="toc-entry lvl1"><a href="#ch5">5. PET &mdash; Physical Education Teacher Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-1">5.1 Dashboard</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-2">5.2 Student Fitness Records &amp; BMI</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-3">5.3 Sports Events &amp; Tournament Board</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-4">5.4 Awards, Medals &amp; Sports Quota</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-5">5.5 Sports Equipment Inventory Ledger</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-6">5.6 Injury Reports &amp; Ground Maintenance</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch5-7">5.7 Sports Clubs &amp; Athletic Teams</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 6 -->
+    <div class="toc-entry lvl1"><a href="#ch6">6. Student Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-1">6.1 Differentiated Grade Hubs (Classes 6&ndash;12)</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-2">6.2 Homework &amp; Assessments</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-3">6.3 Learning Hub &amp; 24/7 AI Tutor</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-4">6.4 Science &amp; Virtual Lab Features</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-5">6.5 Digital Student Portfolio &amp; Activities</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-6">6.6 Exam Preparation (SSLC / NEET)</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch6-7">6.7 Health, Wellness &amp; Safety Desk</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 7 -->
+    <div class="toc-entry lvl1"><a href="#ch7">7. Parent Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-1">7.1 Dashboard &amp; Ward Overview</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-2">7.2 Daily Attendance &amp; Absence Alerts</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-3">7.3 Academic Performance &amp; Term Reports</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-4">7.4 Homework &amp; Assignment Monitor</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-5">7.5 Direct Communication with Teachers</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-6">7.6 PTA Appointments &amp; Assemblies</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-7">7.7 Leave Applications &amp; Approvals</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-8">7.8 Health &amp; Physical Growth Records</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-9">7.9 Scholarship &amp; Entitlements Tracker</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-10">7.10 Notifications &amp; Circulars</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-11">7.11 AI Parent Assistant</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch7-12">7.12 Child's Verified Digital Portfolio</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 8 -->
+    <div class="toc-entry lvl1"><a href="#ch8">8. Government Officer Portals</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch8-1">8.1 BEO &mdash; Block Education Officer Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch8-2">8.2 DEO &mdash; District Education Officer Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch8-3">8.3 Commissioner of School Education Portal</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch8-4">8.4 Minister Dashboard (Executive Command Center)</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 9 -->
+    <div class="toc-entry lvl1"><a href="#ch9">9. Cross-Portal Workflows &amp; Operational Lifecycles</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch9-1">9.1 Daily Attendance &amp; Early-Risk Intervention Lifecycle</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch9-2">9.2 Pedagogical Cycle: AI Planning to Automated Grading</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch9-3">9.3 Mid-Day Meal (MDM) Transparency Lifecycle</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch9-4">9.4 Academic Year Rollover &amp; Promotion Lifecycle</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch9-5">9.5 School Press &amp; Public Broadcast Lifecycle</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 10 -->
+    <div class="toc-entry lvl1"><a href="#ch10">10. Notifications &amp; Alerts System</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch10-1">10.1 Automated Real-Time Triggers</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch10-2">10.2 Notification Delivery Architecture</a><span class="toc-dots"></span></div>
+
+    <!-- CHAPTER 11 -->
+    <div class="toc-entry lvl1"><a href="#ch11">11. Master Roles &amp; Portal Applicability Matrix</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch11-1">11.1 Master Roles &amp; Supervised Entities Quick Reference</a><span class="toc-dots"></span></div>
+    <div class="toc-entry lvl2"><a href="#ch11-2">11.2 Private vs Government Feature Matrix</a><span class="toc-dots"></span></div>
+  </div>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 1
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch1">&#128218; Chapter 1: Application Overview &amp; Strategic Purpose</h1>
+
+<h2 class="chapter-sub" id="ch1-1">1.1 Core Strategic Objectives</h2>
+<p>The <strong>TN-Schools Unified Educational Platform</strong> is an enterprise-scale digital governance and personalized learning environment developed to streamline school management across Tamil Nadu's 38 revenue districts. The application establishes a transparent, automated, and AI-enabled data highway connecting all tiers of the education hierarchy.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">&#128214; Equitable Learning Access</div>
+    <div class="card-desc">Delivers centralized Samacheer Kalvi digital textbooks, interactive virtual science and vocational laboratories, and bilingual AI tutoring to every student regardless of geographic location.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#129302; Pedagogical AI Empowerment</div>
+    <div class="card-desc">Equips educators with an AI Content Studio featuring 20 specialized tools for automated lesson planning, Bloom's taxonomy question generation, and OCR-assisted grading.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#9889; Real-Time Telemetry</div>
+    <div class="card-desc">Provides immediate visibility into daily student and staff attendance, Mid-Day Meal (MDM) grain stocks, teacher deployments, and infrastructure health.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#128680; Dropout Risk Elimination</div>
+    <div class="card-desc">Leverages predictive tracking algorithms to identify irregular attendance patterns early and initiate community counseling workflows.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#128106; Family &amp; School Partnership</div>
+    <div class="card-desc">Gives parents transparent, real-time insights into their ward's academic standing, health indices, and direct two-way messaging with educators.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch1-2">1.2 Educational Governance Hierarchy</h2>
+<p>The ecosystem strictly mirrors the administrative governance structure of the Tamil Nadu Department of School Education:</p>
+
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Hierarchy Level</th>
+      <th>Primary Authority</th>
+      <th>Scope of Administrative Oversight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>State Apex Executive</strong></td>
+      <td>Minister for School Education</td>
+      <td>State-wide policy direction, live telemetry, public grievances, and legislative intelligence.</td>
+    </tr>
+    <tr>
+      <td><strong>State Operational Directorate</strong></td>
+      <td>Commissioner of School Education</td>
+      <td>State operations, budget utilization, inter-district analytics, and policy compliance.</td>
+    </tr>
+    <tr>
+      <td><strong>District Administration</strong></td>
+      <td>District Education Officer (DEO)</td>
+      <td>District school rankings, dropout heatmaps, teacher rationalization, and capital infrastructure.</td>
+    </tr>
+    <tr>
+      <td><strong>Sub-District Administration</strong></td>
+      <td>Block Education Officer (BEO)</td>
+      <td>Block school inspections, headmaster supervision, mid-day meal audits, and counselor dispatch.</td>
+    </tr>
+    <tr>
+      <td><strong>Institutional Leadership</strong></td>
+      <td>Headmaster / Principal</td>
+      <td>School-wide staff lifecycle, student enrollment, promotions, assets, and government schemes.</td>
+    </tr>
+    <tr>
+      <td><strong>Instructional Execution</strong></td>
+      <td>Teachers &amp; PET Staff</td>
+      <td>Classroom teaching, daily attendance, AI-driven evaluation, sports fitness, and parent communication.</td>
+    </tr>
+    <tr>
+      <td><strong>Beneficiaries &amp; Community</strong></td>
+      <td>Students &amp; Parents</td>
+      <td>Self-paced learning, virtual labs, test preparation, attendance visibility, assessments, and welfare tracking.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chapter-sub" id="ch1-3">1.3 System Portal Directory</h2>
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Portal</th>
+      <th>Target Persona</th>
+      <th>Key Operational Focus</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Student Portal</strong></td>
+      <td>Students (Grades 6&ndash;12)</td>
+      <td>AI Tutor, self-study plans, mock tests, virtual labs, and student portfolio.</td>
+    </tr>
+    <tr>
+      <td><strong>Parent Portal</strong></td>
+      <td>Parents &amp; Guardians</td>
+      <td>Child performance, attendance alerts, health log, and direct teacher chat.</td>
+    </tr>
+    <tr>
+      <td><strong>Teacher Portal</strong></td>
+      <td>Class &amp; Subject Teachers</td>
+      <td>AI lesson planner, OCR evaluation, question bank, and attendance logging.</td>
+    </tr>
+    <tr>
+      <td><strong>PET Portal</strong></td>
+      <td>Physical Education Staff</td>
+      <td>Student fitness records, sports events, inventory, and ground audits.</td>
+    </tr>
+    <tr>
+      <td><strong>Headmaster Portal</strong></td>
+      <td>Principals &amp; Headmasters</td>
+      <td>Staff lifecycle, student admissions, mid-day meal, and school resources.</td>
+    </tr>
+    <tr>
+      <td><strong>BEO Portal</strong></td>
+      <td>Block Education Officers</td>
+      <td>Block school monitoring, teacher deployment, and dropout radars.</td>
+    </tr>
+    <tr>
+      <td><strong>DEO Portal</strong></td>
+      <td>District Education Officers</td>
+      <td>District school rankings, dropout geospatial heatmaps, and learning outcomes.</td>
+    </tr>
+    <tr>
+      <td><strong>Commissioner Portal</strong></td>
+      <td>Commissioner of Education</td>
+      <td>State operations, budget utilization, and cross-district analytics.</td>
+    </tr>
+    <tr>
+      <td><strong>Minister Dashboard</strong></td>
+      <td>Minister for Education</td>
+      <td>Live executive command center, AI predictive policy, and media briefs.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chapter-sub" id="ch1-4">1.4 Private vs Government School Modules</h2>
+<p>The platform seamlessly adapts features based on the school's administrative category:</p>
+<ul style="padding-left: 20px; line-height: 1.8;">
+  <li><strong>Core Modules (Common to All):</strong> Student Management, Daily Attendance, Staff Directory, Timetable, Exams &amp; Results, Digital Library, Parent Communication, Student Portfolios, AI Lesson Planning.</li>
+  <li><strong>Government School Specializations:</strong> Mid-Day Meal (MDM) Daily Audits, State Welfare Distribution (Free Uniforms, Laptops, Bicycles, Textbooks), Scholarship Approvals, BEO Promotion Approvals, Staff Transfer Requests.</li>
+  <li><strong>Optional Advanced Add-ons:</strong> Specialized Science Labs (Physics, Chemistry, Botany, Zoology), NEET &amp; SSLC Board Boost Modules, Interactive Infographics Hub.</li>
+</ul>
+
+<h2 class="chapter-sub" id="ch1-5">1.5 Technology Stack &amp; Architecture</h2>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">&#128187; Next.js 14 &amp; React</div>
+    <div class="card-desc">High-performance modern frontend architecture with responsive layouts and server-side rendering.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#9881;&#65039; Node.js &amp; Express</div>
+    <div class="card-desc">Robust backend REST API handling multi-tenant data pipelines and role permissions.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#129302; AI Studio Engines</div>
+    <div class="card-desc">Integrated vision OCR for handwritten paper grading, bilingual AI tutor, and Bloom's taxonomy generator.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#128274; RBAC &amp; JWT Security</div>
+    <div class="card-desc">Strict role-based tokens ensuring zero cross-tenant leakage between schools and districts.</div>
+  </div>
+</div>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 2
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch2">&#128273; Chapter 2: Authentication &amp; Access Control</h1>
+
+<h2 class="chapter-sub" id="ch2-1">2.1 How to Login &amp; Role-Based Redirection</h2>
+<p>Users access the system through a unified, secure login interface. Upon entering their credentials (EMIS ID / Username and Password), the authentication server verifies their credentials and role, immediately redirecting them to their dedicated portal cockpit.</p>
+
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>User Role</th>
+      <th>Primary Identifier</th>
+      <th>Landing Dashboard Route</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Headmaster</td>
+      <td>School HM Account / EMIS Code</td>
+      <td><code>/headmaster</code></td>
+    </tr>
+    <tr>
+      <td>Teacher</td>
+      <td>Teacher Staff ID</td>
+      <td><code>/teacher</code></td>
+    </tr>
+    <tr>
+      <td>PET Staff</td>
+      <td>PET Staff ID</td>
+      <td><code>/pet</code></td>
+    </tr>
+    <tr>
+      <td>Student</td>
+      <td>Student Roll / EMIS Number</td>
+      <td><code>/student</code></td>
+    </tr>
+    <tr>
+      <td>Parent</td>
+      <td>Registered Mobile / OTP</td>
+      <td><code>/parent</code></td>
+    </tr>
+    <tr>
+      <td>BEO Officer</td>
+      <td>Block Admin Credentials</td>
+      <td><code>/block-education-officer</code></td>
+    </tr>
+    <tr>
+      <td>DEO Officer</td>
+      <td>District Admin Credentials</td>
+      <td><code>/district-education-officer</code></td>
+    </tr>
+    <tr>
+      <td>Commissioner</td>
+      <td>State Directorate Account</td>
+      <td><code>/commissioner</code></td>
+    </tr>
+    <tr>
+      <td>Minister</td>
+      <td>Executive State ID</td>
+      <td><code>/minister</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chapter-sub" id="ch2-2">2.2 Security &amp; Data Isolation Principles</h2>
+<p>The TN-Schools platform enforces complete cryptographic school-level data isolation. A school's staff, students, and marks cannot be accessed by any other school. State and district officers access aggregated analytical metrics while protecting individual student privacy.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 3
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch3">&#127979; Chapter 3: Headmaster Portal</h1>
+
+<div class="section-intro">
+  The <strong>Headmaster Portal</strong> serves as the primary operational cockpit for managing institutional compliance, faculty administration, student lifecycle, and state welfare schemes.
+</div>
+
+<h2 class="chapter-sub" id="ch3-1">3.1 Dashboard &amp; Administrative Cockpit</h2>
+<p>Provides a bird's-eye view of today's attendance summary, staff attendance, pending leave approvals, mid-day meal counts, and upcoming school events.</p>
+
+<h2 class="chapter-sub" id="ch3-2">3.2 Student Management &amp; Enrollment</h2>
+<p>Enables individual student admissions, bulk Excel uploads, section assignments, Transfer Certificate (TC) generation, and student registry exports.</p>
+
+<h2 class="chapter-sub" id="ch3-3">3.3 Staff &amp; Faculty Management</h2>
+<p>Complete teaching, contract, and temporary staff directory, service registers, leave approval workflows, and substitute/proxy timetable assignments.</p>
+
+<h2 class="chapter-sub" id="ch3-4">3.4 Parent Directory &amp; Records</h2>
+<p>Directory of parent contacts linked with student EMIS IDs, communication history, and PTA membership records.</p>
+
+<h2 class="chapter-sub" id="ch3-5">3.5 Attendance Overview &amp; Verification</h2>
+<p>Real-time institutional attendance compilation, absentee tracking, and daily submission confirmation to BEO/DEO offices.</p>
+
+<h2 class="chapter-sub" id="ch3-6">3.6 Master Timetable Management</h2>
+<p>Class-wise and teacher-wise timetable builder, period conflict detection, and proxy period allocation for absent teachers.</p>
+
+<h2 class="chapter-sub" id="ch3-7">3.7 Exams &amp; Results Board</h2>
+<p>Examination schedules, hall ticket distribution, model exam analytics, and top performer rankings across classes.</p>
+
+<h2 class="chapter-sub" id="ch3-8">3.8 Scholarships &amp; Government Schemes</h2>
+<p>Distribution logs for government welfare schemes (uniforms, textbooks, footwear, bicycles, laptops) and state scholarship approvals.</p>
+
+<h2 class="chapter-sub" id="ch3-9">3.9 Mid-Day Meal (MDM) Daily Audits</h2>
+<p>Daily headcount logging of meals served, grain inventory reconciliations (rice, dhal, eggs), nutritional quality checks, and kitchen hygiene compliance.</p>
+
+<h2 class="chapter-sub" id="ch3-10">3.10 Alumni, Clubs &amp; Events</h2>
+<p>Verified alumni network, co-curricular club management (Eco Club, Red Cross, NCC, NSS), and annual celebration logs.</p>
+
+<h2 class="chapter-sub" id="ch3-11">3.11 Digital Library &amp; Resources</h2>
+<p>Catalog of physical and digitized library books, teacher resource repositories, and digital content repository management.</p>
+
+<h2 class="chapter-sub" id="ch3-12">3.12 Promotions &amp; Academic Year Rollover</h2>
+<p>End-of-year batch student promotions from class to class, retention logs, and promotion list submission to BEO for government approvals.</p>
+
+<h2 class="chapter-sub" id="ch3-13">3.13 Rewards &amp; Recognition</h2>
+<p>Student achievement badges, teacher appreciation entries, and athletic awards tracking.</p>
+
+<h2 class="chapter-sub" id="ch3-14">3.14 School Public Portal &amp; Gallery</h2>
+<p>Configuration of the school's public website profile, photo galleries, staff showcase, and public announcement board.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 4
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch4">&#128218; Chapter 4: Teacher Portal</h1>
+
+<div class="section-intro">
+  The <strong>Teacher Portal</strong> combines daily classroom administrative management with state-of-the-art AI tools to elevate pedagogical quality and cut administrative workload by up to 60%.
+</div>
+
+<h2 class="chapter-sub" id="ch4-1">4.1 Dashboard &amp; Classroom Command</h2>
+<p>Displays today's schedule, assigned classes, quick attendance status, pending homework to grade, and recent student risk alerts.</p>
+
+<h2 class="chapter-sub" id="ch4-2">4.2 Attendance Management</h2>
+<p>Fast single-tap attendance marking for assigned classrooms, automatic parent SMS trigger for absentees, and monthly attendance percentage records.</p>
+
+<h2 class="chapter-sub" id="ch4-3">4.3 Homework &amp; Assignments</h2>
+<p>Create assignments with attachments, set submission deadlines, view student submission rates, and grade submitted files.</p>
+
+<h2 class="chapter-sub" id="ch4-4">4.4 AI Lesson Planner</h2>
+<p>Automated lesson blueprint generator producing Samacheer Kalvi-compliant plans complete with teaching objectives, timeline splits, and interactive classroom activities.</p>
+
+<h2 class="chapter-sub" id="ch4-5">4.5 AI Evaluation &amp; Vision OCR Grading</h2>
+<p>Vision-enabled AI scanning tool that reads handwritten student answer scripts, suggests score allocations against custom rubrics, and generates qualitative student feedback.</p>
+
+<h2 class="chapter-sub" id="ch4-6">4.6 Question Bank &amp; Generator</h2>
+<p>Generates multi-tier questions (Easy, Medium, Hard) mapped to Bloom's taxonomy, producing instant question papers with answer keys.</p>
+
+<h2 class="chapter-sub" id="ch4-7">4.7 Timetable &amp; Proxy Classes</h2>
+<p>View weekly assigned periods, room numbers, and accept proxy substitution classes when assigned by the Headmaster.</p>
+
+<h2 class="chapter-sub" id="ch4-8">4.8 Student Profiles &amp; Progress</h2>
+<p>Comprehensive 360-degree student profile showing attendance trends, exam marks, co-curricular achievements, and teacher remarks.</p>
+
+<h2 class="chapter-sub" id="ch4-9">4.9 Exams &amp; Assessment Marking</h2>
+<p>Input term and unit test marks, generate class grade distributions, and automatically publish report cards to the Parent Portal.</p>
+
+<h2 class="chapter-sub" id="ch4-10">4.10 Parent Communication &amp; PTA Slots</h2>
+<p>Two-way messaging with parents, broadcast classroom announcements, and schedule PTA meeting slots.</p>
+
+<h2 class="chapter-sub" id="ch4-11">4.11 Digital Library &amp; Study Materials</h2>
+<p>Upload study notes, presentations, question banks, and reference links accessible by students in the Learning Hub.</p>
+
+<h2 class="chapter-sub" id="ch4-12">4.12 Science Labs &amp; Virtual Experiments</h2>
+<p>Interactive virtual laboratory simulations in Physics, Chemistry, Botany, and Zoology for classroom demonstrations.</p>
+
+<h2 class="chapter-sub" id="ch4-13">4.13 NEET &amp; SSLC Board Preparation</h2>
+<p>Specialized revision modules, previous year question paper banks, and timed mock tests for Class 10 and 12 board readiness.</p>
+
+<h2 class="chapter-sub" id="ch4-14">4.14 Social Activities &amp; School Press</h2>
+<p>Document community service projects, social awareness rallies, and submit articles for the school press newsletter.</p>
+
+<h2 class="chapter-sub" id="ch4-15">4.15 Sports, Cultural Events &amp; Clubs</h2>
+<p>Nominate students for inter-house cultural competitions, drama clubs, and coordinate with the Physical Education Teacher.</p>
+
+<h2 class="chapter-sub" id="ch4-16">4.16 Analytics &amp; Early-Warning Risk Alerts</h2>
+<p>Automated early-warning engine flagging students showing chronic absenteeism or sharp performance drops, initiating timely academic remediation.</p>
+
+<h2 class="chapter-sub" id="ch4-17">4.17 AI Content Studio (20 Specialized Tools)</h2>
+<p>Suite of 20 subject-adaptive pedagogical tools organized into four key teaching domains:</p>
+
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Pedagogical Domain</th>
+      <th>Available AI Tools in Studio</th>
+      <th>Teaching Impact</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Teach &amp; Explain</strong></td>
+      <td>Concept Explainer, Analogy Maker, Real-World Storyboard, Visual Mindmap Generator, Bilingual Tamil-English Translater</td>
+      <td>Simplifies complex scientific &amp; mathematical concepts with relatable regional analogies.</td>
+    </tr>
+    <tr>
+      <td><strong>Practice &amp; Work</strong></td>
+      <td>Worksheet Builder, Step-by-Step Math Solver, Vocabulary Flashcard Maker, Diagram Drawing Prompter, Lab Protocol Assistant</td>
+      <td>Produces customized classroom exercises and guided problem-solving sheets.</td>
+    </tr>
+    <tr>
+      <td><strong>Tests &amp; Assess</strong></td>
+      <td>Bloom's Taxonomy Question Creator, Rubric Architect, Multiple Choice Generator, Short Answer Evaluator, Model Answer Key Maker</td>
+      <td>Generates tiered assessment items covering Knowledge, Understanding, and Application.</td>
+    </tr>
+    <tr>
+      <td><strong>Differentiate</strong></td>
+      <td>Remedial Lesson Builder, Gifted Student Challenge Generator, Special Needs Simplifier, English Language Scaffolder, At-Risk Study Booster</td>
+      <td>Personalizes classroom materials to match every student's learning pace.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 5
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch5">&#9917; Chapter 5: PET &mdash; Physical Education Teacher Portal</h1>
+
+<div class="section-intro">
+  The <strong>PET Portal</strong> provides a dedicated infrastructure for tracking student physical health indices, athletic development, school sports inventory, and zonal competition entries.
+</div>
+
+<h2 class="chapter-sub" id="ch5-1">5.1 Dashboard</h2>
+<p>Summary of upcoming sports meets, ground readiness status, daily fitness record counts, and athlete rosters.</p>
+
+<h2 class="chapter-sub" id="ch5-2">5.2 Student Fitness Records &amp; BMI</h2>
+<p>Records height, weight, BMI, endurance tests, 100m sprint timings, and motor skill assessments across all classes.</p>
+
+<h2 class="chapter-sub" id="ch5-3">5.3 Sports Events &amp; Tournament Board</h2>
+<p>Management hub for annual sports meets, zonal athletic fixtures, inter-school matches, and team registrations.</p>
+
+<h2 class="chapter-sub" id="ch5-4">5.4 Awards, Medals &amp; Sports Quota</h2>
+<p>Digital registry documenting medals, certificates, state athletic representations, and sports quota verification records.</p>
+
+<h2 class="chapter-sub" id="ch5-5">5.5 Sports Equipment Inventory Ledger</h2>
+<p>Asset log tracking balls, gymnastics gear, athletic kits, damage reports, and new procurement requisitions.</p>
+
+<h2 class="chapter-sub" id="ch5-6">5.6 Injury Reports &amp; Ground Maintenance</h2>
+<p>Safety and maintenance audit logs for running tracks, playing courts, football fields, and sports injury first-aid logs.</p>
+
+<h2 class="chapter-sub" id="ch5-7">5.7 Sports Clubs &amp; Athletic Teams</h2>
+<p>Team rosters for Cricket, Football, Volleyball, Kabaddi, Kho-Kho, and Track &amp; Field squads.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 6
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch6">&#127891; Chapter 6: Student Portal</h1>
+
+<div class="section-intro">
+  The <strong>Student Portal</strong> provides an engaging, personalized digital learning hub designed to support self-directed study, test readiness, and career exploration.
+</div>
+
+<h2 class="chapter-sub" id="ch6-1">6.1 Differentiated Grade Hubs (Classes 6&ndash;12)</h2>
+<p>The student portal automatically adapts its interface, learning tools, and navigation to the student's grade level:</p>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">&#128126; Middle School Hub (Classes 6&ndash;8)</div>
+    <div class="card-desc">Gamified learning with achievement badges, interactive storybooks, math formula flashcards, and curiosity challenges.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#128218; High School Hub (Classes 9&ndash;10)</div>
+    <div class="card-desc">SSLC Board examination preparation cockpit, previous year question papers (PYQs), timed mock tests, and score predictors.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#9879;&#65039; Higher Secondary Specialized Streams (Classes 11&ndash;12)</div>
+    <div class="card-desc">Dynamic stream adaptation for Science, Commerce, Computer Science, and Arts &amp; Vocational streams with dedicated virtual labs and competitive prep.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch6-2">6.2 Homework &amp; Assessments</h2>
+<p>View pending homework, submission deadlines, submit completed files/photos, and check teacher marks with feedback.</p>
+
+<h2 class="chapter-sub" id="ch6-3">6.3 Learning Hub &amp; 24/7 AI Tutor</h2>
+<p>Bilingual (Tamil/English) AI assistant providing step-by-step guidance on complex homework problems, chapter summaries, and interactive lessons.</p>
+
+<h2 class="chapter-sub" id="ch6-4">6.4 Science &amp; Virtual Lab Features</h2>
+<p>Virtual science experiments, 3D biological models, chemical reaction simulations, and interactive science infographics.</p>
+
+<h2 class="chapter-sub" id="ch6-5">6.5 Digital Student Portfolio &amp; Activities</h2>
+<p>Verified digital repository of academic certificates, extracurricular badges, sports achievements, and leadership records.</p>
+
+<h2 class="chapter-sub" id="ch6-6">6.6 Exam Preparation (SSLC / NEET)</h2>
+<p>Mock test engine, syllabus breakdown, revision planner, formula cheat sheets, and model exam rankings.</p>
+
+<h2 class="chapter-sub" id="ch6-7">6.7 Health, Wellness &amp; Safety Desk</h2>
+<p>Personal health card, wellness tips, leave application requests, and confidential counselor communication channel.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 7
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch7">&#128106; Chapter 7: Parent Portal</h1>
+
+<div class="section-intro">
+  The <strong>Parent Portal</strong> fosters active family engagement by providing comprehensive transparency regarding child progress, institutional notifications, and welfare entitlements.
+</div>
+
+<h2 class="chapter-sub" id="ch7-1">7.1 Dashboard &amp; Ward Overview</h2>
+<p>Overview of the child's daily attendance status, overall academic grade, recent test results, pending homework, and teacher remarks.</p>
+
+<h2 class="chapter-sub" id="ch7-2">7.2 Daily Attendance &amp; Absence Alerts</h2>
+<p>Live attendance calendar tracking daily check-ins, excused leaves, and automated SMS alerts triggered upon unexcused morning absence.</p>
+
+<h2 class="chapter-sub" id="ch7-3">7.3 Academic Performance &amp; Term Reports</h2>
+<p>Subject-wise marks breakdown, term report cards, teacher feedback notes, and progress mastery charts.</p>
+
+<h2 class="chapter-sub" id="ch7-4">7.4 Homework &amp; Assignment Monitor</h2>
+<p>Real-time ledger of pending, submitted, and evaluated homework assignments with submission deadline reminders.</p>
+
+<h2 class="chapter-sub" id="ch7-5">7.5 Direct Communication with Teachers</h2>
+<p>Secure messaging channel to communicate directly with class and subject teachers regarding academic or behavioral progress.</p>
+
+<h2 class="chapter-sub" id="ch7-6">7.6 PTA Appointments &amp; Assemblies</h2>
+<p>Book one-on-one appointments for Parent-Teacher Association (PTA) meetings and view assembly notifications.</p>
+
+<h2 class="chapter-sub" id="ch7-7">7.7 Leave Applications &amp; Approvals</h2>
+<p>Submit digital leave applications for sickness or personal reasons directly to the class teacher, receiving instant status updates.</p>
+
+<h2 class="chapter-sub" id="ch7-8">7.8 Health &amp; Physical Growth Records</h2>
+<p>Annual physical examination records, vision screening test reports, height/weight BMI growth curves, and vaccination tracking.</p>
+
+<h2 class="chapter-sub" id="ch7-9">7.9 Scholarship &amp; Entitlements Tracker</h2>
+<p>Status tracking for government assistance including free uniforms, textbooks, bicycles, laptops, and direct scholarship bank transfers.</p>
+
+<h2 class="chapter-sub" id="ch7-10">7.10 Notifications &amp; Circulars</h2>
+<p>Official school circulars, holiday announcements, examination timetables, and emergency alerts.</p>
+
+<h2 class="chapter-sub" id="ch7-11">7.11 AI Parent Assistant</h2>
+<p>Intelligent conversational assistant offering guidance on supporting child study routines, understanding exam schedules, and navigating welfare schemes.</p>
+
+<h2 class="chapter-sub" id="ch7-12">7.12 Child's Verified Digital Portfolio</h2>
+<p>View verified co-curricular certificates, athletic awards, and sign parent reflections for school records.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 8
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch8">&#127963;&#65039; Chapter 8: Government Officer Portals</h1>
+
+<div class="section-intro">
+  Comprehensive multi-tier governance portals designed for administrative oversight across Tamil Nadu's educational hierarchy.
+</div>
+
+<h2 class="chapter-sub" id="ch8-1">8.1 BEO &mdash; Block Education Officer Portal</h2>
+<p><strong>Target Users:</strong> Sub-District Block Education Officers overseeing 50&ndash;100 schools in an educational block.</p>
+<ul style="padding-left: 20px; line-height: 1.8;">
+  <li><strong>Block School Registry &amp; Inspections:</strong> Master registry of all government, aided, and private schools with historical inspection logs and audit reports.</li>
+  <li><strong>Headmaster Administration:</strong> Administrative circular broadcasting, compliance tracking, and HM meetings.</li>
+  <li><strong>Teacher Deployment &amp; PTR Rationalization:</strong> Pupil-Teacher Ratio (PTR) analysis across the block, identifying staffing deficits and deploying temporary substitute teachers.</li>
+  <li><strong>Dropout Prevention Radar:</strong> Block-wide early-warning radar tracking students with prolonged absenteeism, enabling rapid dispatch of field counselors.</li>
+  <li><strong>Mid-Day Meal Audits:</strong> Block-level grain distribution audits, kitchen hygiene compliance tracking, and nutrition anomaly flags.</li>
+</ul>
+
+<h2 class="chapter-sub" id="ch8-2">8.2 DEO &mdash; District Education Officer Portal</h2>
+<p><strong>Target Users:</strong> District Education Officers (DEOs) and Chief Educational Officers (CEOs) across Tamil Nadu's 38 revenue districts.</p>
+<ul style="padding-left: 20px; line-height: 1.8;">
+  <li><strong>District School Rankings:</strong> Composite index ranking schools across academic pass percentages, student attendance consistency, and athletic achievements.</li>
+  <li><strong>Geospatial Dropout Heatmap:</strong> Geographic visualization pinpointing high-risk dropout pockets across urban, rural, and tribal sectors.</li>
+  <li><strong>Block Governance &amp; Coordination:</strong> Comparative evaluation of block performance metrics, inspection completions, and administrative throughput.</li>
+  <li><strong>Infrastructure Capital Projects:</strong> Monitoring school building construction, smart classroom rollouts, science lab modernizations, and sanitation facilities.</li>
+  <li><strong>Learning Outcomes Benchmarking:</strong> Multi-year analysis of Foundational Literacy and Numeracy (FLN) and board exam pass trends.</li>
+</ul>
+
+<h2 class="chapter-sub" id="ch8-3">8.3 Commissioner of School Education Portal</h2>
+<p><strong>Target Users:</strong> Commissioner of School Education, Joint Directors, and State Directorate Leadership.</p>
+<ul style="padding-left: 20px; line-height: 1.8;">
+  <li><strong>State Operational Telemetry:</strong> Live state summary of active student enrollments, daily teacher attendance rates, and composite education indices across all 38 districts.</li>
+  <li><strong>DEO Performance Scorecards:</strong> Evaluation of district leadership across KPI benchmarks, inspection completion rates, and scheme execution timelines.</li>
+  <li><strong>Budget Utilization &amp; Grant Tracking:</strong> Real-time fiscal monitoring of Samagra Shiksha grants, infrastructure disbursements, and teacher development funds.</li>
+  <li><strong>Statewide Policy Enforcement:</strong> Tracking rollout compliance for updated Samacheer Kalvi curricula, teacher training milestones, and digital lab deployments.</li>
+</ul>
+
+<h2 class="chapter-sub" id="ch8-4">8.4 Minister Dashboard (Executive Command Center)</h2>
+<p><strong>Target Users:</strong> Honourable Minister for School Education, Principal Secretaries, and Cabinet Advisors.</p>
+<ul style="padding-left: 20px; line-height: 1.8;">
+  <li><strong>Live State Telemetry Cockpit:</strong> Real-time executive dashboard monitoring daily attendance check-ins, breakfast/lunch meal disbursements, and operational status across all districts.</li>
+  <li><strong>AI Policy &amp; Performance Predictions:</strong> Predictive modeling engines forecasting 5-year enrollment trends, board exam pass forecasts, and demographic fiscal requirements.</li>
+  <li><strong>Flagship Welfare Schemes Progress:</strong> Real-time disbursement metrics for flagship initiatives such as the Chief Minister's Breakfast Scheme, Free Laptops, Pudhumai Penn, and Illam Thedi Kalvi.</li>
+  <li><strong>Public Grievance &amp; Media Intelligence:</strong> Media sentiment synthesis, public feedback digests, and legislative briefing generators for assembly questions.</li>
+</ul>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 9
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch9">&#128260; Chapter 9: Cross-Portal Workflows &amp; Operational Lifecycles</h1>
+
+<div class="section-intro">
+  The TN-Schools platform connects multiple roles into seamless automated workflows. The operational lifecycles below illustrate how data and responsibility move across the system.
+</div>
+
+<h2 class="chapter-sub" id="ch9-1">9.1 Daily Attendance &amp; Early-Risk Intervention Lifecycle</h2>
+<div class="flow">
+  <div class="flow-title">&#9201; Attendance Telemetry &amp; Dropout Prevention Cycle</div>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>Classroom Check-In:</strong> The class teacher marks digital attendance through the Teacher Portal by 9:30 AM.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Instant Parent Notification:</strong> Absence records trigger immediate automated SMS and push notifications to parents through the Parent Portal.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>School-Wide Aggregation:</strong> The Headmaster Portal compiles morning totals and verifies institutional attendance rates.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>Block &amp; District Telemetry:</strong> BEO and DEO portals highlight schools with anomalous absentee spikes.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">5</div>
+    <div class="step-content"><strong>Watchlist Intervention:</strong> If a student accumulates five or more unexcused absences, the system automatically creates an At-Risk case, alerting the Headmaster and dispatching a field counselor.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch9-2">9.2 Pedagogical Cycle: AI Planning to Automated Grading</h2>
+<div class="flow">
+  <div class="flow-title">&#129302; Classroom AI Pedagogy &amp; Evaluation Flow</div>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>AI Lesson Formulation:</strong> The teacher generates a Samacheer Kalvi-aligned lesson plan through the Teacher Portal's lesson planner.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Adaptive Question Generation:</strong> The teacher uses the Question Generator to produce tiered assessment questions mapped to Bloom's taxonomy.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>Student Practice &amp; Assessment:</strong> Students attempt practice quizzes on the Student Portal or complete written classroom sheets.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>Vision AI OCR Evaluation:</strong> The teacher scans physical answer sheets using the AI Evaluation tool, which performs OCR mark suggestions and rubric grading.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">5</div>
+    <div class="step-content"><strong>Performance Analytics Distribution:</strong> Evaluated marks automatically populate Student and Parent dashboards, highlighting specific conceptual weaknesses for remediation.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch9-3">9.3 Mid-Day Meal (MDM) Transparency Lifecycle</h2>
+<div class="flow">
+  <div class="flow-title">&#127858; Mid-Day Meal &amp; Welfare Verification Pipeline</div>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>Institutional Meal Count:</strong> The Headmaster records morning student meal counts and grain consumption through the Headmaster Portal.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Block-Level Quota Audit:</strong> The BEO monitors block grain stock balances and flags supply deficits before stocks deplete.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>District Hygiene &amp; Nutrition Log:</strong> The DEO inspects meal quality logs and verifies random inspection reports.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>State Executive Dashboard:</strong> Commissioner and Minister dashboards reflect live statewide nutrition metrics, verifying budget utilization in real time.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch9-4">9.4 Academic Year Rollover &amp; Promotion Lifecycle</h2>
+<div class="flow">
+  <div class="flow-title">&#128214; Grade Promotion &amp; Institutional Rollover Pipeline</div>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>Year-End Marks Verification:</strong> Teachers finalize annual term scores and generate promotion eligibility lists.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Headmaster Verification:</strong> Headmaster audits promotion records and submits government school batches for BEO endorsement.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>BEO Formal Approval:</strong> Block Officer reviews and authorizes promotion rollouts across government schools in the block.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div class="step-content"><strong>Automated Rollover:</strong> The system rolls students to the next academic grade, archiving previous year transcripts in their permanent digital portfolio.</div>
+  </div>
+</div>
+
+<h2 class="chapter-sub" id="ch9-5">9.5 School Press &amp; Public Broadcast Lifecycle</h2>
+<div class="flow">
+  <div class="flow-title">&#128227; Public Announcement &amp; Media Approval Flow</div>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content"><strong>Draft Submission:</strong> Teachers and student editorial clubs draft achievement stories and photo galleries.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content"><strong>Headmaster Editorial Review:</strong> Headmaster reviews and approves the news item for public release.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content"><strong>Multi-Channel Publication:</strong> Approved news instantly publishes to the school's public website, parent notifications, and student activity feeds.</div>
+  </div>
+</div>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 10
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch10">&#128276; Chapter 10: Notifications &amp; Alerts System</h1>
+
+<h2 class="chapter-sub" id="ch10-1">10.1 Automated Real-Time Triggers</h2>
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Event Trigger</th>
+      <th>Recipient</th>
+      <th>Notification Channel</th>
+      <th>Content &amp; Action Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Morning Absence</strong></td>
+      <td>Parent</td>
+      <td>SMS &amp; In-App Alert</td>
+      <td>Immediate alert that child is marked absent by 9:30 AM. Parent can reply or submit leave.</td>
+    </tr>
+    <tr>
+      <td><strong>Homework Assigned</strong></td>
+      <td>Student &amp; Parent</td>
+      <td>In-App Notification</td>
+      <td>Subject, topic, submission due date, and attached digital worksheets.</td>
+    </tr>
+    <tr>
+      <td><strong>Exam Marks Published</strong></td>
+      <td>Student &amp; Parent</td>
+      <td>In-App &amp; SMS</td>
+      <td>Term / unit test marks published with score breakdown and teacher remarks.</td>
+    </tr>
+    <tr>
+      <td><strong>5+ Absentee Alert</strong></td>
+      <td>Headmaster &amp; BEO</td>
+      <td>High-Priority Alert</td>
+      <td>At-risk student flagged for dropout prevention counselor intervention.</td>
+    </tr>
+    <tr>
+      <td><strong>Low MDM Grain Stock</strong></td>
+      <td>Headmaster &amp; BEO</td>
+      <td>System Warning</td>
+      <td>Alert that rice/dhal inventory is below 3-day buffer threshold.</td>
+    </tr>
+    <tr>
+      <td><strong>PTA Meeting Request</strong></td>
+      <td>Parent / Teacher</td>
+      <td>In-App Invitation</td>
+      <td>Appointment slot confirmation for parent-teacher conference.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chapter-sub" id="ch10-2">10.2 Notification Delivery Architecture</h2>
+<p>The notification system utilizes real-time WebSockets for instant in-app alerts and an enterprise SMS gateway for mission-critical parent absence notifications, ensuring zero missed alerts even in rural areas with low internet connectivity.</p>
+</div>
+
+<!-- =========================================================================
+     CHAPTER 11
+========================================================================= -->
+<div class="page">
+<h1 class="chapter" id="ch11">&#128202; Chapter 11: Master Roles &amp; Portal Applicability Matrix</h1>
+
+<h2 class="chapter-sub" id="ch11-1">11.1 Master Roles &amp; Supervised Entities Quick Reference</h2>
+<p>A consolidated lookup of every role, its span of supervision, and its core daily actions within the platform:</p>
+
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Direct Supervised Entities</th>
+      <th>Core Daily Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Student</strong></td>
+      <td>Self (Academics &amp; Portfolio)</td>
+      <td>Attend AI tutoring, take mock tests, complete assignments, access virtual labs.</td>
+    </tr>
+    <tr>
+      <td><strong>Parent</strong></td>
+      <td>Linked Wards / Children</td>
+      <td>Review attendance alerts, check test marks, message teachers, track welfare entitlements.</td>
+    </tr>
+    <tr>
+      <td><strong>Teacher</strong></td>
+      <td>Assigned Classrooms &amp; Students</td>
+      <td>Mark attendance, generate AI lesson plans, evaluate tests with OCR, manage homework.</td>
+    </tr>
+    <tr>
+      <td><strong>PET Staff</strong></td>
+      <td>Athletics &amp; Sports Inventory</td>
+      <td>Record student fitness tests, manage tournaments, track sports equipment and ground safety.</td>
+    </tr>
+    <tr>
+      <td><strong>Headmaster</strong></td>
+      <td>Single School Staff &amp; Students</td>
+      <td>Approve staff leaves, audit mid-day meals, oversee admissions, timetable, and school operations.</td>
+    </tr>
+    <tr>
+      <td><strong>BEO</strong></td>
+      <td>50&ndash;100 Schools in Block</td>
+      <td>Conduct school inspections, balance teacher deployment, audit MDM, track dropouts.</td>
+    </tr>
+    <tr>
+      <td><strong>DEO</strong></td>
+      <td>All Blocks &amp; High Schools in District</td>
+      <td>Rank district schools, audit dropout heatmaps, monitor infrastructure projects, FLN trends.</td>
+    </tr>
+    <tr>
+      <td><strong>Commissioner</strong></td>
+      <td>All 38 Districts &amp; State Departments</td>
+      <td>Execute state education policies, track budget utilization, review DEO performance scorecards.</td>
+    </tr>
+    <tr>
+      <td><strong>Minister</strong></td>
+      <td>State Executive Command</td>
+      <td>Review live statewide telemetry, evaluate AI policy forecasts, review media briefs, welfare schemes.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chapter-sub" id="ch11-2">11.2 Private vs Government Feature Matrix</h2>
+<div class="table-wrapper">
+<table>
+  <thead>
+    <tr>
+      <th>Feature / Module</th>
+      <th>Private Schools</th>
+      <th>Government Schools</th>
+      <th>State Governance Portals</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Student Admissions &amp; Attendance</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&#128065;&#65039; Telemetry View</td>
+    </tr>
+    <tr>
+      <td><strong>Teacher AI Studio (20 Tools)</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Vision AI OCR Answer Grading</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>24/7 Bilingual AI Student Tutor</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Mid-Day Meal (MDM) Daily Audits</strong></td>
+      <td>&mdash;</td>
+      <td>&#9989; Enabled</td>
+      <td>&#128065;&#65039; State Audits</td>
+    </tr>
+    <tr>
+      <td><strong>State Welfare Schemes (Laptops/Bicycles)</strong></td>
+      <td>&mdash;</td>
+      <td>&#9989; Enabled</td>
+      <td>&#128065;&#65039; Budget &amp; Tracking</td>
+    </tr>
+    <tr>
+      <td><strong>BEO Promotion Approvals</strong></td>
+      <td>Internal Approval</td>
+      <td>&#9989; Required</td>
+      <td>&#9989; Block Authorization</td>
+    </tr>
+    <tr>
+      <td><strong>Dropout Early-Warning Radar</strong></td>
+      <td>Internal Alerts</td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; District Counselor Dispatch</td>
+    </tr>
+    <tr>
+      <td><strong>Virtual Science Laboratories</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Public School Web Portal &amp; Gallery</strong></td>
+      <td>&#9989; Enabled</td>
+      <td>&#9989; Enabled</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="info-box green" style="margin-top: 30px;">
+  <div class="ib-icon">&#128222;</div>
+  <div class="ib-body">
+    <div class="label">Official Verification &amp; Technical Support</div>
+    <p>For technical support, role credential provisioning, or syllabus integration requests, contact the State IT Support Desk through the official portal support channel or by email at <strong>support@tnschools.gov.in</strong>.</p>
+  </div>
+</div>
+
+</div>
+
+</div>
+</body>
+</html>

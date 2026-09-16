@@ -46,8 +46,10 @@ interface StaffMetadata {
   workAllocation?: string;
   assignedClass?: string;
   assignedSection?: string;
-  docAppointment?: string;
   isClassTeacher?: boolean;
+  regMode?: "new" | "existing";
+  annualLeaveQuota?: number;
+  sickLeaveQuota?: number;
 }
 
 interface StaffMember {
@@ -108,7 +110,7 @@ export default function StaffManagementPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Navigation tabs
-  const [activeTab, setActiveTab] = useState<"directory" | "attendance" | "leave" | "work" | "appointments">("directory");
+  const [activeTab, setActiveTab] = useState<"directory" | "attendance" | "leave" | "work">("directory");
   // Directory sub-tabs
   const [directoryType, setDirectoryType] = useState<"teaching" | "non-teaching" | "temporary">("teaching");
 
@@ -131,6 +133,7 @@ export default function StaffManagementPage() {
 
   // Forms state
   const [formType, setFormType] = useState<"Teaching" | "Non-Teaching" | "Temporary">("Teaching");
+  const [formStaffRegMode, setFormStaffRegMode] = useState<"new" | "existing">("new");
   const [formName, setFormName] = useState("");
   const [formEmisId, setFormEmisId] = useState("");
   const [formSubjectOrRole, setFormSubjectOrRole] = useState("Mathematics");
@@ -149,8 +152,15 @@ export default function StaffManagementPage() {
   const [formWorkAllocation, setFormWorkAllocation] = useState("");
   const [formAssignedClass, setFormAssignedClass] = useState("");
   const [formAssignedSection, setFormAssignedSection] = useState("");
-  const [formDocAppointment, setFormDocAppointment] = useState("");
   const [formIsClassTeacher, setFormIsClassTeacher] = useState(false);
+
+  // School Leave Configuration state
+  const [leaveConfig, setLeaveConfig] = useState<{ annualLeave: number; sickLeave: number; casualLeave: number }>({
+    annualLeave: 12,
+    sickLeave: 10,
+    casualLeave: 12
+  });
+  const [isSavingLeaveConfig, setIsSavingLeaveConfig] = useState(false);
 
   // Temporary Staff specific form fields
   const [formTempAgency, setFormTempAgency] = useState("Direct Contract");
@@ -178,13 +188,14 @@ export default function StaffManagementPage() {
       staffType: defaultSubject === "Non-Teaching" || defaultSubject === "Office Staff" || defaultSubject === "Administrative" ? "Non-Teaching" : "Teaching",
       joiningDate: "",
       workAllocation: defaultSubject || "",
-      docAppointment: ""
+      annualLeaveQuota: 12,
+      sickLeaveQuota: 10
     };
 
     if (rawAddress) {
       try {
         const parsed = JSON.parse(rawAddress);
-        if (parsed && (parsed.staffType || parsed.joiningDate || parsed.workAllocation || parsed.assignedClass || parsed.assignedSection || parsed.docAppointment)) {
+        if (parsed && (parsed.staffType || parsed.joiningDate || parsed.workAllocation || parsed.assignedClass || parsed.assignedSection || parsed.annualLeaveQuota || parsed.sickLeaveQuota)) {
           parsedMeta = {
             address: parsed.address || "",
             staffType: parsed.staffType || parsedMeta.staffType,
@@ -192,8 +203,10 @@ export default function StaffManagementPage() {
             workAllocation: parsed.workAllocation || parsedMeta.workAllocation,
             assignedClass: parsed.assignedClass || "",
             assignedSection: parsed.assignedSection || "",
-            docAppointment: parsed.docAppointment || "",
-            isClassTeacher: parsed.isClassTeacher || false
+            isClassTeacher: parsed.isClassTeacher || false,
+            regMode: parsed.regMode,
+            annualLeaveQuota: parsed.annualLeaveQuota,
+            sickLeaveQuota: parsed.sickLeaveQuota
           };
         } else {
           parsedMeta.address = rawAddress;
@@ -235,6 +248,21 @@ export default function StaffManagementPage() {
       // 3. Fetch Leave Requests
       const leaveRes = await fetch(`${API_BASE}/api/teacher/leave?schoolId=${mySchoolId}`);
       const leaveJson = await leaveRes.json();
+
+      // 4. Fetch School Leave Configuration
+      try {
+        const leaveConfigRes = await fetch(`${API_BASE}/api/headmaster/leave-config?schoolId=${mySchoolId}`);
+        const leaveConfigJson = await leaveConfigRes.json();
+        if (leaveConfigJson.success && leaveConfigJson.data) {
+          setLeaveConfig({
+            annualLeave: leaveConfigJson.data.annualLeave ?? 12,
+            sickLeave: leaveConfigJson.data.sickLeave ?? 10,
+            casualLeave: leaveConfigJson.data.casualLeave ?? 12
+          });
+        }
+      } catch (err) {
+        console.warn("Using default leave config", err);
+      }
 
       let formattedStaff: StaffMember[] = [];
       if (staffJson.success) {
@@ -289,6 +317,49 @@ export default function StaffManagementPage() {
       fetchData();
     }
   }, [mySchoolId, fetchData]);
+
+  // Save School Leave Configuration
+  const handleSaveLeaveConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mySchoolId) return;
+    setIsSavingLeaveConfig(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/leave-config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: mySchoolId,
+          annualLeave: Number(leaveConfig.annualLeave) || 12,
+          sickLeave: Number(leaveConfig.sickLeave) || 10,
+          casualLeave: Number(leaveConfig.casualLeave) || 12
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: "Leave Policy Updated",
+          text: `School leave quotas configured: Annual ${leaveConfig.annualLeave} days, Sick ${leaveConfig.sickLeave} days.`,
+          icon: "success",
+          timer: 1800,
+          showConfirmButton: false,
+          background: "var(--bg-card)",
+          color: "var(--text-heading)"
+        });
+      } else {
+        throw new Error(json.error);
+      }
+    } catch (err: any) {
+      Swal.fire({
+        title: "Update Failed",
+        text: err.message || "Failed to update school leave configuration.",
+        icon: "error",
+        background: "var(--bg-card)",
+        color: "var(--text-heading)"
+      });
+    } finally {
+      setIsSavingLeaveConfig(false);
+    }
+  };
 
   // Handle manual additions
   const handleSaveStaff = async (e: React.FormEvent) => {
@@ -382,9 +453,15 @@ export default function StaffManagementPage() {
           workAllocation: formWorkAllocation,
           assignedClass: formAssignedClass,
           assignedSection: formAssignedSection,
-          docAppointment: formDocAppointment,
-          isClassTeacher: formIsClassTeacher
+          isClassTeacher: formIsClassTeacher,
+          regMode: formStaffRegMode,
+          annualLeaveQuota: leaveConfig.annualLeave,
+          sickLeaveQuota: leaveConfig.sickLeave
         });
+
+        // For new appointment, attendance is 100% and leaveUsed is 0
+        const finalAttendance = formStaffRegMode === "new" ? 100 : formAttendance;
+        const finalLeaveUsed = formStaffRegMode === "new" ? 0 : formLeaveUsed;
 
         const body = {
           name: formName,
@@ -392,14 +469,15 @@ export default function StaffManagementPage() {
           subject: formSubjectOrRole || (formType === "Teaching" ? "General" : "Non-Teaching"),
           phone: formPhone || "N/A",
           email: formEmail || null,
-          attendance: formAttendance,
+          attendance: finalAttendance,
           performance: formPerformance,
-          leaveUsed: formLeaveUsed,
+          leaveUsed: finalLeaveUsed,
           password: formPassword || "123456",
           schoolId: mySchoolId,
           address: serializedAddress,
           dob: formDob || null,
-          gender: formGender || null
+          gender: formGender || null,
+          regMode: formStaffRegMode
         };
 
         const res = await fetch(`${API_BASE}/api/headmaster/staff`, {
@@ -412,7 +490,7 @@ export default function StaffManagementPage() {
         if (json.success) {
           Swal.fire({
             title: "Staff Registered",
-            text: `${formName} added to the permanent registry.`,
+            text: `${formName} added to the school faculty registry (${formStaffRegMode === "new" ? "New Appointment" : "Existing Staff"}).`,
             icon: "success",
             timer: 1500,
             showConfirmButton: false,
@@ -528,7 +606,6 @@ export default function StaffManagementPage() {
           workAllocation: formWorkAllocation,
           assignedClass: formAssignedClass,
           assignedSection: formAssignedSection,
-          docAppointment: formDocAppointment,
           isClassTeacher: formIsClassTeacher
         });
 
@@ -605,7 +682,6 @@ export default function StaffManagementPage() {
     setFormWorkAllocation(staff.parsedMeta?.workAllocation || "");
     setFormAssignedClass(staff.parsedMeta?.assignedClass || "");
     setFormAssignedSection(staff.parsedMeta?.assignedSection || "");
-    setFormDocAppointment(staff.parsedMeta?.docAppointment || "");
     setFormIsClassTeacher(staff.parsedMeta?.isClassTeacher || false);
     setIsEditModalOpen(true);
   };
@@ -941,7 +1017,7 @@ export default function StaffManagementPage() {
   const exportExcel = () => {
     const headers = [
       "Staff Name", "EMIS ID", "Category", "Subject/Role", "Phone",
-      "Email", "Attendance (%)", "Performance", "Leave Used", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section", "Doc Appointment"
+      "Email", "Attendance (%)", "Performance", "Leave Used", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section"
     ];
     const data = staffList.map(s => [
       s.name,
@@ -956,8 +1032,7 @@ export default function StaffManagementPage() {
       s.parsedMeta?.joiningDate || "",
       s.parsedMeta?.workAllocation || "",
       s.parsedMeta?.assignedClass || "",
-      s.parsedMeta?.assignedSection || "",
-      s.parsedMeta?.docAppointment || ""
+      s.parsedMeta?.assignedSection || ""
     ]);
 
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
@@ -969,18 +1044,18 @@ export default function StaffManagementPage() {
   const downloadSampleTemplate = () => {
     const headers = [
       "Staff Name", "EMIS ID", "Category", "Subject/Role", "Phone",
-      "Email", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section", "Document Appointment",
+      "Email", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section",
       "Address", "Attendance", "Performance", "Leave Used", "Password"
     ];
     const sampleRows = [
       [
         "Karthik Raja", "TCHKR001", "Teaching", "Mathematics", "9876543210",
-        "karthik.raja@email.com", "2024-06-01", "Exam Coordinator", "10", "A", "Completed",
+        "karthik.raja@email.com", "2024-06-01", "Exam Coordinator", "10", "A",
         "12, Anna Salai, Coimbatore", "95", "Excellent", "1", "123456"
       ],
       [
         "Meena Kumari", "NTCMK002", "Non-Teaching", "Librarian", "9876543211",
-        "meena.kumari@email.com", "2023-09-15", "Library Management", "", "", "Completed",
+        "meena.kumari@email.com", "2023-09-15", "Library Management", "", "",
         "45, Gandhi Road, Coimbatore", "98", "Good", "0", "123456"
       ]
     ];
@@ -993,6 +1068,7 @@ export default function StaffManagementPage() {
   const resetForm = () => {
     setFormName("");
     setFormEmisId("");
+    setFormStaffRegMode("new");
     setFormSubjectOrRole("Mathematics");
     setFormPhone("");
     setFormEmail("");
@@ -1007,7 +1083,6 @@ export default function StaffManagementPage() {
     setFormWorkAllocation("");
     setFormAssignedClass("");
     setFormAssignedSection("");
-    setFormDocAppointment("");
     setFormIsClassTeacher(false);
     setFormTempAgency("Direct Contract");
     setFormTempJoined("");
@@ -1056,21 +1131,6 @@ export default function StaffManagementPage() {
       return matchesSearch && matchesAgency;
     });
   }, [tempStaffList, searchTerm, agencyFilter]);
-
-  // Document collection appointments lists
-  const documentAppointments = useMemo(() => {
-    return staffList
-      .filter(s => s.parsedMeta?.docAppointment)
-      .map(s => ({
-        id: s.id,
-        name: s.name,
-        category: s.parsedMeta?.staffType || "Teaching",
-        phone: s.phone,
-        appointment: s.parsedMeta!.docAppointment!,
-        status: new Date(s.parsedMeta!.docAppointment!) < new Date() ? "Completed" : "Scheduled"
-      }))
-      .sort((a, b) => new Date(a.appointment).getTime() - new Date(b.appointment).getTime());
-  }, [staffList]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -1172,8 +1232,7 @@ export default function StaffManagementPage() {
           { id: "directory", label: lang === "தமிழ்" ? "பட்டியல் & அடைவு" : "Roster & Directory", icon: Users },
           { id: "attendance", label: lang === "தமிழ்" ? "தினசரி வருகைப்பதிவு" : "Daily Attendance", icon: UserCheck },
           { id: "leave", label: lang === "தமிழ்" ? "விடுப்பு ஒப்புதல்கள்" : "Leave Approvals", icon: FileText },
-          { id: "work", label: lang === "தமிழ்" ? "கடமைகள் & பணி ஒதுக்கீடு" : "Duties & Work Allocation", icon: Briefcase },
-          { id: "appointments", label: lang === "தமிழ்" ? "சரிபார்ப்பு நியமனங்கள்" : "Verification Appointments", icon: Calendar }
+          { id: "work", label: lang === "தமிழ்" ? "கடமைகள் & பணி ஒதுக்கீடு" : "Duties & Work Allocation", icon: Briefcase }
         ].map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -1363,7 +1422,7 @@ export default function StaffManagementPage() {
                       <th className="p-4">Name & Profile Details</th>
                       <th className="p-4">{directoryType === "temporary" ? "Agency / Source" : "Designation / Subject"}</th>
                       <th className="p-4">{directoryType === "temporary" ? "Contract Term" : "Joining Date"}</th>
-                      <th className="p-4">{directoryType === "temporary" ? "Compensation" : "Doc Verification"}</th>
+                      <th className="p-4">{directoryType === "temporary" ? "Compensation" : "Leave Quota & Balance"}</th>
                       <th className="p-4">{directoryType === "temporary" ? "Duty Role" : "Attendance & Performance"}</th>
                       <th className="p-4 text-center">Action</th>
                     </tr>
@@ -1418,9 +1477,8 @@ export default function StaffManagementPage() {
                         const dateFormatted = s.parsedMeta?.joiningDate
                           ? new Date(s.parsedMeta.joiningDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
                           : "—";
-                        const apptDate = s.parsedMeta?.docAppointment
-                          ? new Date(s.parsedMeta.docAppointment).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })
-                          : "Pending";
+                        const totalQuota = (s.parsedMeta?.annualLeaveQuota || leaveConfig.annualLeave) + (s.parsedMeta?.sickLeaveQuota || leaveConfig.sickLeave);
+                        const remainingLeaves = Math.max(0, totalQuota - (s.leaveUsed || 0));
 
                         return (
                           <tr key={s.id || s.emisId} className="hover:bg-slate-900/30 transition-colors">
@@ -1449,12 +1507,19 @@ export default function StaffManagementPage() {
                             </td>
                             <td className="p-4 text-slate-400">{dateFormatted}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.parsedMeta?.docAppointment
-                                ? (new Date(s.parsedMeta.docAppointment) < new Date() ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20")
-                                : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                                }`}>
-                                {apptDate}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    {s.leaveUsed || 0} Used
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-medium">
+                                    / {totalQuota} Quota
+                                  </span>
+                                </div>
+                                <span className="text-[9px] text-emerald-400 font-semibold">
+                                  {remainingLeaves} days remaining
+                                </span>
+                              </div>
                             </td>
                             <td className="p-4 space-y-1">
                               <div className="flex items-center gap-2">
@@ -1654,6 +1719,72 @@ export default function StaffManagementPage() {
       {activeTab === "leave" && (
         <div className="space-y-6 fade-in">
 
+          {/* School Leave Policy Configuration */}
+          <div className="bg-gradient-to-br from-blue-50/80 to-indigo-50/50 dark:from-slate-900 dark:to-slate-850 rounded-2xl p-6 border border-blue-100 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-100/80 dark:border-slate-800 pb-3">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="text-blue-600 dark:text-blue-400">⚙️</span>
+                  School Staff Leave Policy & Quota Configuration
+                </h2>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                  Configure default annual leave entitlements. Newly appointed faculty members automatically receive these quotas upon registration.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                  ● Policy Active
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveLeaveConfig} className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 items-end">
+              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wider">Annual Leave (Days)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={leaveConfig.annualLeave}
+                  onChange={e => setLeaveConfig(prev => ({ ...prev, annualLeave: parseInt(e.target.value, 10) || 0 }))}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-black text-blue-600 dark:text-blue-400 focus:outline-none focus:border-blue-500"
+                />
+                <span className="text-[9px] text-slate-400 mt-1 block">Casual & general annual leaves</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wider">Sick Leave (Days)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={leaveConfig.sickLeave}
+                  onChange={e => setLeaveConfig(prev => ({ ...prev, sickLeave: parseInt(e.target.value, 10) || 0 }))}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-black text-rose-600 dark:text-rose-400 focus:outline-none focus:border-rose-500"
+                />
+                <span className="text-[9px] text-slate-400 mt-1 block">Medical and illness leave buffer</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-bold uppercase tracking-wider">Total Standard Quota</label>
+                <div className="py-2 px-1 text-sm font-black text-slate-800 dark:text-white">
+                  {(Number(leaveConfig.annualLeave) || 0) + (Number(leaveConfig.sickLeave) || 0)} Days / Year
+                </div>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold block">Combined default allowance</span>
+              </div>
+
+              <div className="flex items-center">
+                <button
+                  type="submit"
+                  disabled={isSavingLeaveConfig}
+                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  {isSavingLeaveConfig ? "Updating Policy..." : "💾 Save Leave Policy"}
+                </button>
+              </div>
+            </form>
+          </div>
+
           {/* Leaves list */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <div>
@@ -1829,104 +1960,6 @@ export default function StaffManagementPage() {
         </div>
       )}
 
-      {/* Verification Appointments Tab */}
-      {activeTab === "appointments" && (
-        <div className="space-y-6 fade-in">
-
-          {/* Scheduling & Info */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-                Staff Document Collection & Verification Appointments
-              </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">Track and plan verification appointments for new staff members, checking original certificates, IDs, and credentials.</p>
-            </div>
-
-            {documentAppointments.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
-                No active document collection appointments scheduled. Edit a staff member's profile to set an appointment time.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {documentAppointments.map(appt => {
-                  const isCompleted = appt.status === "Completed";
-                  const dateObj = new Date(appt.appointment);
-                  return (
-                    <div
-                      key={appt.id}
-                      className={`p-4 rounded-2xl border transition-all flex items-start justify-between bg-white dark:bg-slate-950/20 shadow-sm ${isCompleted ? "border-emerald-200 dark:border-emerald-800/30" : "border-blue-200 dark:border-blue-500/30 bg-gradient-to-br from-blue-50/50 dark:from-blue-500/10 to-transparent"
-                        }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2.5 h-2.5 rounded-full ${isCompleted ? "bg-emerald-500" : "bg-blue-500 dark:bg-blue-400 animate-pulse"}`} />
-                          <span className="font-bold text-slate-900 dark:text-white text-xs">{appt.name}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded font-bold uppercase tracking-wider">
-                            {appt.category}
-                          </span>
-                        </div>
-
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                            <span>{dateObj.toLocaleDateString("en-IN", { dateStyle: "medium" })} at {dateObj.toLocaleTimeString("en-IN", { timeStyle: "short" })}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                            <span>Phone: {appt.phone}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isCompleted ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" : "bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
-                        }`}>
-                        {appt.status}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Timeline View */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-            <div>
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Verification Appointments Timeline</h3>
-              <p className="text-[10px] text-slate-500 mt-0.5">Chronological checklist of scheduled credential handovers.</p>
-            </div>
-
-            <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-4 pl-6 space-y-6">
-              {documentAppointments.length === 0 ? (
-                <div className="text-xs text-slate-500 py-2">No timeline available.</div>
-              ) : (
-                documentAppointments.map((appt, idx) => {
-                  const isCompleted = appt.status === "Completed";
-                  const dateObj = new Date(appt.appointment);
-                  return (
-                    <div key={appt.id} className="relative">
-                      {/* Timeline dot */}
-                      <span className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 ${isCompleted ? "bg-emerald-500 border-white dark:border-slate-900 shadow-sm" : "bg-blue-500 border-white dark:border-slate-900 shadow-sm ring-2 ring-blue-500/20"
-                        }`} />
-
-                      <div className="text-xs space-y-1">
-                        <div className="text-[10px] text-slate-500 font-bold">
-                          {dateObj.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} · {dateObj.toLocaleTimeString("en-IN", { timeStyle: "short" })}
-                        </div>
-                        <div className="font-bold text-slate-900 dark:text-white">{appt.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Document collection for {appt.category === "Teaching" ? "Academic Certification" : "Employment Credentials"} verification.</div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-        </div>
-      )}
-
       {/* ======================================================== */}
       {/* ADD STAFF MEMBER MODAL */}
       {/* ======================================================== */}
@@ -1945,21 +1978,58 @@ export default function StaffManagementPage() {
             <form onSubmit={handleSaveStaff} className="space-y-4 text-xs">
 
               {/* Type Switcher */}
-              <div>
-                <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Employment Category</label>
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 max-w-md">
-                  {["Teaching", "Non-Teaching", "Temporary"].map(type => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setFormType(type as any)}
-                      className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                        }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Employment Category</label>
+                  <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                    {["Teaching", "Non-Teaching", "Temporary"].map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setFormType(type as any)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                          }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Registration Mode: New Appointment vs Existing Teacher */}
+                {formType !== "Temporary" && (
+                  <div>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Staff Onboarding Mode</label>
+                    <div className="grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormStaffRegMode("new");
+                          setFormAttendance(100);
+                          setFormLeaveUsed(0);
+                        }}
+                        className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+                          formStaffRegMode === "new"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        }`}
+                      >
+                        <span>✨ New Appointment</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormStaffRegMode("existing")}
+                        className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+                          formStaffRegMode === "existing"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        }`}
+                      >
+                        <span>👥 Existing Teacher</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Basic Fields */}
@@ -2103,27 +2173,29 @@ export default function StaffManagementPage() {
                     </div>
                   </div>
 
-                  {/* Joined Date & Appointments */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-blue-50/40 dark:bg-blue-950/30 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/50">
-                    <div>
-                      <label className="block text-[10px] text-blue-800 dark:text-blue-300 mb-1 font-bold">Official Joining Date</label>
-                      <input
-                        type="date"
-                        value={formJoiningDate}
-                        onChange={e => setFormJoiningDate(e.target.value)}
-                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-blue-800 dark:text-blue-300 mb-1 font-bold">Doc Collection Appointment</label>
-                      <input
-                        type="datetime-local"
-                        value={formDocAppointment}
-                        onChange={e => setFormDocAppointment(e.target.value)}
-                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
+                  {/* Joined Date */}
+                  <div className="bg-blue-50/40 dark:bg-blue-950/30 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/50">
+                    <label className="block text-[10px] text-blue-800 dark:text-blue-300 mb-1 font-bold">Official Joining Date</label>
+                    <input
+                      type="date"
+                      value={formJoiningDate}
+                      onChange={e => setFormJoiningDate(e.target.value)}
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
+                    />
                   </div>
+
+                  {/* New Appointment Auto Leave & Attendance Notice */}
+                  {formStaffRegMode === "new" && (
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl flex items-start gap-2.5 text-emerald-800 dark:text-emerald-300">
+                      <span className="text-base leading-none">🛡️</span>
+                      <div className="text-[11px] leading-relaxed">
+                        <span className="font-bold text-emerald-900 dark:text-emerald-200">Automated School Leave & Attendance Allocation</span>
+                        <p className="text-emerald-700 dark:text-emerald-400 mt-0.5">
+                          Initial attendance is preset to <strong>100%</strong> and school leave quota (<strong>{leaveConfig.annualLeave} Annual Leave</strong> + <strong>{leaveConfig.sickLeave} Sick Leave</strong> days) will be automatically credited with 0 leaves used. Historical figures are not requested for new appointments.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {formType === "Teaching" && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/40 dark:bg-indigo-950/30 p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 mt-3">
@@ -2196,29 +2268,32 @@ export default function StaffManagementPage() {
                     />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Attendance Rate (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={formAttendance}
-                        onChange={e => setFormAttendance(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
-                      />
+                  /* Only show Attendance Rate and Leave Used for Existing Teacher */
+                  formStaffRegMode === "existing" ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Attendance Rate (%)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formAttendance}
+                          onChange={e => setFormAttendance(parseFloat(e.target.value) || 0)}
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Leave Used (Days)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formLeaveUsed}
+                          onChange={e => setFormLeaveUsed(parseInt(e.target.value, 10) || 0)}
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Leave Used (Days)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formLeaveUsed}
-                        onChange={e => setFormLeaveUsed(parseInt(e.target.value, 10) || 0)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
-                      />
-                    </div>
-                  </div>
+                  ) : null
                 )}
                 <div>
                   <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Portal Password</label>
@@ -2409,26 +2484,15 @@ export default function StaffManagementPage() {
                     </div>
                   </div>
 
-                  {/* Joined Date & Appointments */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-blue-50/40 p-3 rounded-2xl border border-blue-100">
-                    <div>
-                      <label className="block text-[10px] text-blue-800 mb-1 font-bold">Official Joining Date</label>
-                      <input
-                        type="date"
-                        value={formJoiningDate}
-                        onChange={e => setFormJoiningDate(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-blue-800 mb-1 font-bold">Doc Collection Appointment</label>
-                      <input
-                        type="datetime-local"
-                        value={formDocAppointment}
-                        onChange={e => setFormDocAppointment(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
+                  {/* Joined Date */}
+                  <div className="bg-blue-50/40 p-3 rounded-2xl border border-blue-100">
+                    <label className="block text-[10px] text-blue-800 mb-1 font-bold">Official Joining Date</label>
+                    <input
+                      type="date"
+                      value={formJoiningDate}
+                      onChange={e => setFormJoiningDate(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                    />
                   </div>
 
                   {formType === "Teaching" && (
@@ -2478,13 +2542,13 @@ export default function StaffManagementPage() {
               {/* Address */}
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Residential Address</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Residential Address</label>
                   <textarea
                     rows={2}
                     value={formAddressVal}
                     onChange={e => setFormAddressVal(e.target.value)}
-                    placeholder="Residential address..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
+                    placeholder="Current postal address..."
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
               </div>
@@ -2493,56 +2557,56 @@ export default function StaffManagementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {formType === "Temporary" ? (
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Joined Date</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Joined Date</label>
                     <input
                       type="date"
                       value={formTempJoined}
                       onChange={e => setFormTempJoined(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                     />
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Attendance Rate (%)</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Attendance Rate (%)</label>
                       <input
                         type="number"
                         min="0"
                         max="100"
                         value={formAttendance}
                         onChange={e => setFormAttendance(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Leave Used (Days)</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Leave Used (Days)</label>
                       <input
                         type="number"
                         min="0"
                         value={formLeaveUsed}
                         onChange={e => setFormLeaveUsed(parseInt(e.target.value, 10) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       />
                     </div>
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Update Password (Leave blank to preserve)</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Portal Password</label>
                   <input
                     type="text"
                     value={formPassword}
                     onChange={e => setFormPassword(e.target.value)}
-                    placeholder="Enter new password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                    placeholder="123456"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => { setIsEditModalOpen(false); resetForm(); }}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+                  onClick={() => { setIsAddModalOpen(false); resetForm(); }}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
@@ -2551,7 +2615,7 @@ export default function StaffManagementPage() {
                   disabled={isSaving}
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
-                  {isSaving ? "Saving Changes..." : "💾 Save Changes"}
+                  {isSaving ? "Saving..." : "💾 Register Staff"}
                 </button>
               </div>
 

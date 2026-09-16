@@ -686,13 +686,49 @@ router.get('/staff', async (req: Request, res: Response) => {
   }
 });
 
+// In-memory / cache store for School Leave Configurations (keyed by schoolId)
+const schoolLeaveConfigs: Record<string, { annualLeave: number; sickLeave: number; casualLeave: number }> = {};
+
+// GET /api/headmaster/leave-config — Get leave configuration for a school
+router.get('/leave-config', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    const sId = String(schoolId || 'default');
+    const config = schoolLeaveConfigs[sId] || { annualLeave: 12, sickLeave: 10, casualLeave: 12 };
+    res.json({ success: true, data: config });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/leave-config — Update leave configuration for a school
+router.post('/leave-config', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, annualLeave, sickLeave, casualLeave } = req.body;
+    const sId = String(schoolId || 'default');
+    schoolLeaveConfigs[sId] = {
+      annualLeave: typeof annualLeave === 'number' ? annualLeave : 12,
+      sickLeave: typeof sickLeave === 'number' ? sickLeave : 10,
+      casualLeave: typeof casualLeave === 'number' ? casualLeave : 12,
+    };
+    res.json({ success: true, data: schoolLeaveConfigs[sId] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // POST /api/headmaster/staff — Add single staff member
 router.post('/staff', async (req: Request, res: Response) => {
   try {
-    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender } = req.body;
+    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender, regMode } = req.body;
     if (!name || !emisId) {
       return res.status(400).json({ success: false, error: 'name and emisId are required' });
     }
+
+    // For new appointment, automatically reset attendance to 100% and leaves used to 0
+    const finalAttendance = regMode === 'new' ? 100 : (attendance ?? 100);
+    const finalLeaveUsed = regMode === 'new' ? 0 : (leaveUsed ?? 0);
+
     const hashedPassword = await hashPassword(password || '123456');
     const staff = await prisma.headmasterStaff.upsert({
       where: { emisId },
@@ -701,9 +737,9 @@ router.post('/staff', async (req: Request, res: Response) => {
         subject: subject || 'General', 
         phone: phone || 'N/A', 
         email: email || null, 
-        attendance: attendance ?? 100, 
+        attendance: finalAttendance, 
         performance: performance || 'Good', 
-        leaveUsed: leaveUsed ?? 0, 
+        leaveUsed: finalLeaveUsed, 
         password: hashedPassword, 
         schoolId: schoolId || null,
         address: address !== undefined ? address : undefined,
@@ -716,9 +752,9 @@ router.post('/staff', async (req: Request, res: Response) => {
         subject: subject || 'General', 
         phone: phone || 'N/A', 
         email: email || null, 
-        attendance: attendance ?? 100, 
+        attendance: finalAttendance, 
         performance: performance || 'Good', 
-        leaveUsed: leaveUsed ?? 0, 
+        leaveUsed: finalLeaveUsed, 
         password: hashedPassword, 
         schoolId: schoolId || null,
         address: address || null,
