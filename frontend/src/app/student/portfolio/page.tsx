@@ -136,7 +136,7 @@ function DigitalPortfolioContent() {
   const [data, setData] = useState<PortfolioData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const searchParams = useSearchParams();
   const queryStudentId = searchParams.get("studentId");
@@ -205,10 +205,10 @@ function DigitalPortfolioContent() {
     color: "text-amber-400",
     bg: "border-amber-500/30 bg-amber-500/10"
   });
-
   useEffect(() => {
+    if (status === "loading") return;
     fetchPortfolio();
-  }, [session, queryStudentId]);
+  }, [session, queryStudentId, status]);
 
   const fetchPortfolio = async () => {
     setIsLoading(true);
@@ -668,14 +668,12 @@ function DigitalPortfolioContent() {
     printWin.document.close();
     setTimeout(() => printWin.print(), 300);
   };
-
-  if (isLoading) {
+  if (isLoading || status === "loading") {
     return (
-      <PortalLayout title="Digital Portfolio" subtitle="Loading portfolio details..." themeClass={themeClass}>
-        <div className="flex items-center justify-center min-h-[350px]">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </PortalLayout>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+        <p className="text-slate-400 font-medium animate-pulse">Loading portfolio details...</p>
+      </div>
     );
   }
 
