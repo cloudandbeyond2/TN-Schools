@@ -370,7 +370,7 @@ export default function MiddleSchoolDashboard() {
         {NAV_LINKS.map(n => {
           const ac = ACCENT_CLASSES[n.accent];
           return (
-            <Link key={n.href} href={n.href}
+            <Link key={n.href} href={n.href} target="_blank" rel="noopener noreferrer"
               className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm ${ac.text} ${ac.bg} border ${ac.border} hover:shadow-md hover:-translate-y-0.5 transition-all`}>
               <i className={`fi ${n.fi} flex items-center text-sm`} />
               {isTa ? n.labelTa : n.labelEn}
