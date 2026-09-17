@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { TrendingUp, Award, Microscope, ClipboardEdit, MessageSquare, Star, Trophy } from "lucide-react";
+import Link from "next/link";
+import { TrendingUp, Award, Microscope, ClipboardEdit, MessageSquare, Star, Trophy, Clock, Activity } from "lucide-react";
 
 interface RosterStudent {
   id: string;
@@ -199,6 +200,30 @@ export default function StudentStatusPage() {
       title={lang === "தமிழ்" ? "மாணவர் நிலை & ஈடுபாடு" : "Student Status & Engagement"}
       subtitle={lang === "தமிழ்" ? "ஆர்ஜிதமான பேச்சுகள் வழங்கி மாணவர் வகுப்பறைப் பங்கேற்பு அளவீடுகளைக் கண்காணியுங்கள்." : "Award virtual badges and monitor student classroom participation metrics."}
     >
+      {/* Live Student Login & Usage Hours Monitoring Shortcut Banner */}
+      <div className="mb-6 p-5 theme-card border border-indigo-500/30 bg-indigo-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+              {lang === "தமிழ்" ? "மாணவர் உள்நுழைவு & பயன்பாட்டு மணிநேரக் கண்காணிப்பு" : "Live Student Login & Portal Usage Hours Monitoring"}
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              {lang === "தமிழ்" ? "இன்று உள்நுழைந்த மாணவர்கள் எண்ணிக்கை மற்றும் அவர்களின் கற்றல் மணிநேரங்களை நேரலையாகக் கண்காணிக்கவும்." : "Real-time monitoring of how many students logged into the portal and total hours spent studying today."}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/teacher/student-monitoring"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all shrink-0 self-start sm:self-auto"
+        >
+          <Activity className="w-4 h-4" />
+          {lang === "தமிழ்" ? "கண்காணிப்புத் திரையைத் திற →" : "Open Student Monitoring →"}
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Engagement status board */}
         <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">

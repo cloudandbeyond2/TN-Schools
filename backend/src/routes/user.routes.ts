@@ -330,6 +330,11 @@ router.post('/auth', async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, error: 'Incorrect phone number.' });
       }
 
+      // Touch updatedAt on student login
+      const now = new Date();
+      await prisma.user.update({ where: { id: student.user.id }, data: { updatedAt: now } }).catch(() => {});
+      await prisma.student.update({ where: { id: student.id }, data: { updatedAt: now } }).catch(() => {});
+
 return res.json({
   success: true,
   data: await withSchoolInfo({
@@ -644,6 +649,32 @@ return res.json({
   } catch (err: any) {
     console.error('Authentication error:', err);
     res.status(500).json({ success: false, error: String(err?.message || err) });
+  }
+});
+
+// POST /api/users/heartbeat — Heartbeat ping for active user/student session
+router.post('/heartbeat', async (req: Request, res: Response) => {
+  try {
+    const { userId, studentId } = req.body;
+    const now = new Date();
+
+    if (userId) {
+      await prisma.user.update({
+        where: { id: String(userId) },
+        data: { updatedAt: now }
+      }).catch(() => {});
+    }
+
+    if (studentId) {
+      await prisma.student.update({
+        where: { id: String(studentId) },
+        data: { updatedAt: now }
+      }).catch(() => {});
+    }
+
+    return res.json({ success: true, timestamp: now.toISOString() });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: 'Failed to update heartbeat' });
   }
 });
 

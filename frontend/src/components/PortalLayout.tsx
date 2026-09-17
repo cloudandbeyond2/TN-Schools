@@ -661,6 +661,37 @@ export default function PortalLayout({
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  // Session heartbeat ping for active status & usage hours monitoring
+  useEffect(() => {
+    let uId = (session?.user as any)?.id || (session?.user as any)?.userId;
+    let sId = (session?.user as any)?.studentId;
+
+    if (!uId && typeof window !== "undefined") {
+      try {
+        const storedUser = localStorage.getItem("user") || localStorage.getItem("studentUser");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          uId = parsed.id || parsed.userId || uId;
+          sId = parsed.studentId || sId;
+        }
+      } catch (e) {}
+    }
+
+    if (!uId && !sId) return;
+
+    const sendHeartbeat = () => {
+      fetch(`${API_URL}/api/users/heartbeat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: uId, studentId: sId }),
+      }).catch(() => {});
+    };
+
+    sendHeartbeat();
+    const timer = setInterval(sendHeartbeat, 2 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [session, API_URL]);
+
   // Fetch teacher live profile, proxy duties & assigned classes
   useEffect(() => {
     const isTeacherRole = (session?.user as any)?.role?.toUpperCase() === "TEACHER" || (session?.user as any)?.role?.toUpperCase() === "PET" || pathname.startsWith("/teacher");
