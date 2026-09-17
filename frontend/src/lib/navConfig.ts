@@ -460,7 +460,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Music4" },
-      { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
+      // { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
 
       // ===================== OTHER ACTIVITIES =====================
       { label: "---", href: "#", icon: "" },
