@@ -375,19 +375,27 @@ interface SubjectHistoryPoint {
 // PostgreSQL Mark rows, ModelExamResult rows and mock test attempts.
 async function collectSubjectHistory(studentDbId: string): Promise<Record<string, SubjectHistoryPoint[]>> {
   const history: Record<string, SubjectHistoryPoint[]> = {};
-  const push = (subject: string, percent: number, at: Date, source: string) => {
+  const push = (subject: string, percent: number, at: Date | number, source: string) => {
     const key = SSLC_SUBJECTS.find((s) => s.toLowerCase() === subject.toLowerCase()) || subject;
     if (!history[key]) history[key] = [];
     history[key].push({ percent: Math.round(percent * 10) / 10, at: new Date(at).getTime(), source });
   };
 
-  const marks = await prisma.mark.findMany({ where: { studentId: studentDbId } });
+  const student = await prisma.student.findFirst({
+    where: { OR: [{ id: studentDbId }, { userId: studentDbId }] },
+  });
+  const validStudentId = student ? student.id : studentDbId;
+  const validUserId = student ? student.userId : studentDbId;
+
+  const marks = await prisma.mark.findMany({
+    where: { OR: [{ studentId: validStudentId }, { studentId: validUserId }] }
+  });
   for (const m of marks) {
-    if (m.maxMarks > 0) push(m.subject, (m.scored / m.maxMarks) * 100, m.createdAt, m.examType);
+    if (m.maxMarks > 0) push(m.subject, (m.scored / m.maxMarks) * 100, m.createdAt, m.examType || 'Regular Exam');
   }
 
   const modelResults = await prisma.modelExamResult.findMany({
-    where: { studentId: studentDbId },
+    where: { OR: [{ studentId: validStudentId }, { studentId: validUserId }] },
     include: { exam: true },
   });
   for (const r of modelResults) {
@@ -395,14 +403,18 @@ async function collectSubjectHistory(studentDbId: string): Promise<Record<string
       ['Tamil', r.tamil], ['English', r.english], ['Mathematics', r.mathematics],
       ['Science', r.science], ['Social Science', r.socialScience],
     ];
+    const examDate = r.exam?.examDate || r.createdAt;
+    const source = r.exam?.examName || (r.exam?.examType ? `${r.exam.examType} Exam` : 'Model Exam');
     for (const [subject, scored] of subjectCols) {
       if (scored !== null && scored !== undefined) {
-        push(subject, scored, r.createdAt, r.exam?.examName || 'Model Exam');
+        push(subject, scored, examDate, source);
       }
     }
   }
 
-  const attempts = await SSLCMockAttempt.find({ studentId: studentDbId });
+  const attempts = await SSLCMockAttempt.find({
+    $or: [{ studentId: validStudentId }, { studentId: validUserId }]
+  });
   for (const a of attempts) {
     push(a.subject, a.percentage, a.createdAt, `Mock: ${a.testTitle}`);
   }

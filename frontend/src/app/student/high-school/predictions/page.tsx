@@ -5,6 +5,18 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import {
+  ClipboardList,
+  Award,
+  TrendingUp,
+  ArrowRight,
+  CheckCircle2,
+  XCircle,
+  BarChart3,
+  Calendar,
+  BookOpen
+} from "lucide-react";
 
 const Icon = ({ name, className = "", style }: { name: string; className?: string; style?: React.CSSProperties }) => (
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
@@ -57,11 +69,11 @@ function Sparkline({ points, color }: { points: Array<{ percent: number }>; colo
   );
 }
 
-
 export default function PredictionsPage() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
   const [prediction, setPrediction] = useState<any>(null);
+  const [modelExams, setModelExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,19 +101,25 @@ export default function PredictionsPage() {
     if (!s) return;
     setLoading(true);
     setError(null);
-    fetch(`${API_BASE}/api/sslc-prep/predictions/${s.id}`)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) {
-          const subjectsWithData = json.data.subjects?.filter((x: any) => x.samples > 0) || [];
-          if (subjectsWithData.length === 0) {
+    Promise.all([
+      fetch(`${API_BASE}/api/sslc-prep/predictions/${s.id}`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/headmaster/model-exams/student/${s.id}`).then((r) => r.json()),
+    ])
+      .then(([predJson, modelJson]) => {
+        if (predJson.success) {
+          const subjectsWithData = predJson.data.subjects?.filter((x: any) => x.samples > 0) || [];
+          if (subjectsWithData.length === 0 && (!modelJson.data || modelJson.data.length === 0)) {
             setPrediction(null);
-            setError("No practice or mock test scores recorded yet. Take a test to generate predictions!");
+            setError("No practice or model exam scores recorded yet. Take an exam to generate predictions!");
           } else {
-            setPrediction(json.data);
+            setPrediction(predJson.data);
           }
         } else {
-          setError(json.error || "Prediction unavailable.");
+          setError(predJson.error || "Prediction unavailable.");
+        }
+
+        if (modelJson.success) {
+          setModelExams(modelJson.data || []);
         }
         setLoading(false);
       })
@@ -120,10 +138,34 @@ export default function PredictionsPage() {
   const subjects = prediction?.subjects || [];
   const subjectsWithData = subjects.filter((s: any) => s.samples > 0);
 
+  const getLatestExamScoreForSubject = (subjName: string) => {
+    if (!modelExams || modelExams.length === 0) return null;
+    const keyMap: Record<string, string> = {
+      Tamil: "tamil",
+      English: "english",
+      Mathematics: "mathematics",
+      Science: "science",
+      "Social Science": "socialScience",
+    };
+    const key = keyMap[subjName];
+    if (!key) return null;
+    for (const result of modelExams) {
+      if (result[key] !== null && result[key] !== undefined) {
+        return {
+          score: result[key],
+          examName: result.exam?.examName || "Model Exam",
+          examType: result.exam?.examType || "Exam",
+          date: result.exam?.examDate || result.createdAt,
+        };
+      }
+    }
+    return null;
+  };
+
   return (
     <PortalLayout
       title="Performance Predictions"
-      subtitle="AI-projected board scores from your exams, model tests and mock attempts."
+      subtitle="AI-projected SSLC board scores based on your model exam results and mock tests."
     >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
@@ -134,17 +176,19 @@ export default function PredictionsPage() {
               Performance Predictions
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-              AI-projected board scores generated from your exam history, model test marks, and mock attempts.
+              AI-projected SSLC board scores calculated dynamically from your official model exam results and test history.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
-          <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
-          <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
-            <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
-            Class 10th Standard
-          </span>
+        <div className="flex items-center gap-3 whitespace-nowrap shrink-0 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+          <Link
+            href="/student/high-school/model-exams"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+          >
+            <Award className="w-4 h-4" />
+            View Model Exams →
+          </Link>
         </div>
       </div>
 
@@ -165,8 +209,6 @@ export default function PredictionsPage() {
         </div>
       ) : (
         <>
-
-          
           {/* Overall banner */}
           <div className="glass rounded-2xl p-4 sm:p-6 mb-6 border-l-4 border-red-500 bg-red-900/10 fade-in flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
@@ -174,11 +216,10 @@ export default function PredictionsPage() {
                 <Icon name="brain" className="text-2xl text-red-400" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Predicted Board Performance</h2>
+                <h2 className="text-lg font-bold text-white">Predicted SSLC Board Performance</h2>
                 <p className="text-xs text-slate-400 mt-1 max-w-lg">
-                  Built from {subjectsWithData.reduce((s: number, x: any) => s + x.samples, 0)} recorded scores across{" "}
-                  {subjectsWithData.length} subjects using trend analysis. Predictions update every time new marks
-                  or mock attempts are recorded.
+                  Calculated from {subjectsWithData.reduce((s: number, x: any) => s + x.samples, 0)} exam data points across{" "}
+                  {subjectsWithData.length} subjects. Predictions automatically update whenever new school model exam results or mock attempts are published.
                 </p>
               </div>
             </div>
@@ -203,12 +244,76 @@ export default function PredictionsPage() {
             </div>
           </div>
 
+          {/* Model Exam Results Basis Card */}
+          <div className="glass rounded-2xl p-5 sm:p-6 mb-6 border border-indigo-500/30 bg-indigo-950/20 fade-in-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-700/60">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center shrink-0">
+                  <ClipboardList className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                    Model Exam Results Basis
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Your official school model exam scores directly driving these predictions
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/student/high-school/model-exams"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md self-start sm:self-auto"
+              >
+                <Award className="w-4 h-4" />
+                View Full Exam Details →
+              </Link>
+            </div>
+
+            {modelExams.length === 0 ? (
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
+                No published model exam results found yet. Official exam results will automatically populate here as soon as your school locks and releases them.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {modelExams.slice(0, 3).map((r: any) => (
+                  <div key={r.id} className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-indigo-500/40 transition-all">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-xs font-bold text-white truncate">{r.exam?.examName || "Model Exam"}</span>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+                        {r.exam?.examType || "Model"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between mb-2">
+                      <div className="text-2xl font-black text-indigo-400">
+                        {r.total ?? "—"} <span className="text-xs text-slate-500 font-normal">/ {r.maxTotal || 500}</span>
+                      </div>
+                      <span className="text-xs font-bold text-slate-300">
+                        {r.percentage !== null && r.percentage !== undefined ? `${r.percentage}%` : ""}
+                      </span>
+                    </div>
+
+                    {/* Subject score tags */}
+                    <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-slate-800 text-[10px]">
+                      {r.tamil != null && <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">Tam: {r.tamil}</span>}
+                      {r.english != null && <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Eng: {r.english}</span>}
+                      {r.mathematics != null && <span className="px-1.5 py-0.5 rounded bg-red-500/15 text-red-300 border border-red-500/30">Mat: {r.mathematics}</span>}
+                      {r.science != null && <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">Sci: {r.science}</span>}
+                      {r.socialScience != null && <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">Soc: {r.socialScience}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 fade-in-2">
             {subjects.map((s: any) => {
               const color = SUBJECT_COLORS[s.subject] || "#ef4444";
               const TrendIconName = s.trend > 0.5 ? "arrow-trend-up" : s.trend < -0.5 ? "arrow-trend-down" : "minus";
               const trendColor = s.trend > 0.5 ? "text-emerald-400" : s.trend < -0.5 ? "text-red-400" : "text-slate-400";
+              const latestModelScore = getLatestExamScoreForSubject(s.subject);
+
               return (
                 <div key={s.subject} className="glass rounded-2xl p-4 sm:p-5 border border-slate-700/50 hover:border-red-500/40 transition-colors">
                   <div className="flex items-center justify-between mb-4">
@@ -233,10 +338,19 @@ export default function PredictionsPage() {
                             {s.predictedMarks}
                             <span className="text-sm text-slate-500">/100</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 uppercase font-bold mt-0.5">Predicted Marks</div>
+                          <div className="text-[10px] text-slate-500 uppercase font-bold mt-0.5">Predicted Board Marks</div>
                         </div>
                         <Sparkline points={s.history} color={color} />
                       </div>
+
+                      {latestModelScore && (
+                        <div className="mb-3 p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 flex items-center justify-between text-xs">
+                          <span className="text-slate-400 text-[11px] font-medium truncate max-w-[170px]">
+                            Latest Exam ({latestModelScore.examType}):
+                          </span>
+                          <span className="font-mono font-bold text-indigo-300">{latestModelScore.score} / 100</span>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-3 gap-2 text-center mb-3">
                         <div className="bg-slate-900/60 rounded-lg py-2 border border-slate-800">
@@ -282,20 +396,20 @@ export default function PredictionsPage() {
           {/* How it works */}
           <div className="glass rounded-2xl p-4 sm:p-6 mt-6 border border-slate-700/50 fade-in-3">
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <Icon name="award" className="text-sm text-red-400" /> How predictions are calculated
+              <Icon name="award" className="text-sm text-red-400" /> How predictions are calculated from exam results
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-400">
               <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
-                <div className="font-bold text-slate-300 mb-1">1. Collect</div>
-                Every exam mark, model exam result and mock test attempt is gathered per subject in date order.
+                <div className="font-bold text-slate-300 mb-1">1. Collect Model Exam Marks</div>
+                Every published score from Unit Tests, Quarterly, Half-Yearly, and Model Exams (from <Link href="/student/high-school/model-exams" className="text-indigo-400 underline">Model Exams</Link>) is gathered in date order per subject.
               </div>
               <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
-                <div className="font-bold text-slate-300 mb-1">2. Analyse trend</div>
-                A regression line is fitted through your score history to detect whether you are improving or slipping.
+                <div className="font-bold text-slate-300 mb-1">2. Trend & Volatility Analysis</div>
+                Linear regression tracks your progression trajectory across model exams to measure score improvements or risk areas.
               </div>
               <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
-                <div className="font-bold text-slate-300 mb-1">3. Project forward</div>
-                The line is projected to your next board exam. More data and steadier scores raise the confidence level.
+                <div className="font-bold text-slate-300 mb-1">3. Forecast SSLC Board Marks</div>
+                Projects expected final board exam marks per subject out of 100, and overall out of 500, continuously updating with new exam entries.
               </div>
             </div>
           </div>
