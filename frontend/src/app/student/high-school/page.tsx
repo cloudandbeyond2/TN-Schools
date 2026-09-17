@@ -19,7 +19,8 @@ import {
   Scroll, 
   Languages, 
   Globe,
-  HeartPulse 
+  HeartPulse,
+  Briefcase
 } from "lucide-react";
 
 const getApiBase = () => {
@@ -222,6 +223,13 @@ export default function HighSchoolDashboard() {
             <div className="glass rounded-2xl p-5 fade-in-5 border border-[var(--border)]">
               <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4">{lang === "தமிழ்" ? "விரைவு இணைப்புகள்" : "Quick Links"}</h2>
               <div className="space-y-3">
+                <a href="/student/portfolio" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="h-5 w-5 text-red-500" />
+                    <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "டிஜிட்டல் போர்ட்ஃபோலியோ" : "Digital Portfolio"}</span>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)] group-hover:text-red-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
+                </a>
                 <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-red-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-red-500" />
