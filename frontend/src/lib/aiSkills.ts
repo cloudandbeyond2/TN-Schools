@@ -111,12 +111,12 @@ export const GROUP_BY_SLUG: Record<string, StudioGroup> = STUDIO_GROUPS.reduce(
 );
 
 export const PACK_DISPLAY: Record<SubjectPack, { label: string; icon: string }> = {
-  MATHS: { label: "Mathematics", icon: "🧮" },
-  SCIENCE: { label: "Science", icon: "🔬" },
-  LANGUAGE: { label: "Language", icon: "📖" },
-  SOCIAL: { label: "Social Science", icon: "🗺️" },
-  COMPUTER: { label: "Computer Science", icon: "💻" },
-  GENERAL: { label: "General", icon: "📚" },
+  MATHS: { label: "Mathematics", icon: "fi fi-rr-calculator" },
+  SCIENCE: { label: "Science", icon: "fi fi-rr-flask" },
+  LANGUAGE: { label: "Language", icon: "fi fi-rr-book-alt" },
+  SOCIAL: { label: "Social Science", icon: "fi fi-rr-globe" },
+  COMPUTER: { label: "Computer Science", icon: "fi fi-rr-laptop" },
+  GENERAL: { label: "General", icon: "fi fi-rr-book" },
 };
 
 export const PUSH_TARGET_LABEL: Record<PushTarget, string> = {

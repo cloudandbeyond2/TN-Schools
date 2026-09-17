@@ -526,7 +526,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
             placeholder="Press / to search 20 skills"
             className="w-full rounded-xl bg-[var(--bg-main)] border border-[var(--border)] pl-8 pr-3 py-2 text-xs text-[var(--text-heading)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--primary)] transition"
           />
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">🔍</span>
+          <i className="fi fi-rr-search absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs" />
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -586,8 +586,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
 
           {grouped.map(({ group, items }) => (
             <div key={group.key}>
-              <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1 mb-1.5">
-                {group.label}
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1 mb-1.5 flex items-center gap-1.5">
+                <i className={`${group.icon} text-[10px]`} />
+                <span>{group.label}</span>
               </div>
               <div className="space-y-1">
                 {items.map((s) => {
@@ -605,7 +606,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                         } ${reason ? "opacity-45" : ""}`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.accent}`} />
+                        <span className={`w-5 h-5 rounded-md ${s.accent || "bg-[var(--primary)]"} text-white flex items-center justify-center shrink-0 text-[10px] shadow-xs`}>
+                          <i className={s.icon || "fi fi-rr-document"} />
+                        </span>
                         <span
                           className={`text-[11px] font-bold font-mono ${isSelected ? "text-[var(--primary)]" : "text-[var(--text-heading)]"
                             }`}
@@ -613,7 +616,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                           {s.command}
                         </span>
                       </div>
-                      <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug pl-3.5">
+                      <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug pl-7">
                         {reason ? <span className="text-amber-600 dark:text-amber-400">🔒 {reason}</span> : s.label}
                       </div>
                     </button>
@@ -629,7 +632,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
       <section className="theme-card p-4 xl:sticky xl:top-4 xl:self-start space-y-3">
         {!selectedSkill ? (
           <div className="text-center py-10">
-            <div className="text-3xl mb-3">✨</div>
+            <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center mx-auto mb-3 text-xl">
+              <i className="fi fi-rr-sparkles" />
+            </div>
             <h3 className="text-sm font-bold text-[var(--text-heading)]">Pick a skill to start</h3>
             <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
               20 AI content skills, each one tuned to how your subject is actually taught.
@@ -740,7 +745,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
             {/* subject pack chip — the adaptation the teacher can see and override */}
             <div className="relative">
               <div className="flex items-center gap-2 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-2.5 py-2">
-                <span className="text-base leading-none">{pack.icon}</span>
+                <span className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-xs shrink-0">
+                  <i className={pack.icon} />
+                </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-[10px] font-bold text-[var(--primary)]">{pack.label} method</div>
                   <div className="text-[10px] text-[var(--text-muted)] leading-snug truncate">
@@ -771,7 +778,7 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                         : "text-[var(--text-heading)] hover:bg-[var(--bg-main)]"
                         }`}
                     >
-                      <span>{PACK_DISPLAY[k].icon}</span>
+                      <i className={`${PACK_DISPLAY[k].icon} text-xs shrink-0`} />
                       {PACK_DISPLAY[k].label}
                     </button>
                   ))}
@@ -866,9 +873,10 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
                 type="button"
                 onClick={() => generate()}
                 disabled={Boolean(blockedReason)}
-                className="w-full rounded-xl bg-[var(--primary)] text-white py-2.5 text-xs font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="w-full rounded-xl bg-[var(--primary)] text-white py-2.5 text-xs font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5"
               >
-                ✨ Generate
+                <i className="fi fi-rr-sparkles" />
+                <span>Generate</span>
               </button>
             )}
           </>
@@ -903,7 +911,9 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
 
         {!generating && !genError && !result && (
           <div className="h-full flex flex-col items-center justify-center text-center py-12">
-            <div className="text-3xl mb-3">📄</div>
+            <div className="w-14 h-14 rounded-2xl bg-[var(--bg-main)] border border-[var(--border)] text-[var(--text-muted)] flex items-center justify-center mx-auto mb-3 text-2xl">
+              <i className="fi fi-rr-document" />
+            </div>
             <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-[280px]">
               Your generated content appears here. You can edit it inline, print it, save it to your library,
               or send it straight into the Question Bank, Homework or Smart Class.
@@ -918,58 +928,64 @@ export default function StudioShell({ initialGroup }: { initialGroup?: SkillGrou
               <button
                 type="button"
                 onClick={() => generate()}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
+                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition flex items-center gap-1"
               >
-                ⟳ Regenerate
+                <i className="fi fi-rr-refresh text-[10px]" />
+                <span>Regenerate</span>
               </button>
               <button
                 type="button"
                 onClick={() => setEditMode((v) => !v)}
-                className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition ${editMode
+                className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition flex items-center gap-1 ${editMode
                   ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
                   : "border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40"
                   }`}
               >
-                {editMode ? "✓ Editing" : "✎ Edit"}
+                <i className={`text-[10px] ${editMode ? "fi fi-rr-check" : "fi fi-rr-pencil"}`} />
+                <span>{editMode ? "Editing" : "Edit"}</span>
               </button>
               <button
                 type="button"
                 onClick={save}
                 disabled={saving || Boolean(savedId)}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-[var(--primary)] text-white hover:opacity-90 disabled:opacity-40 transition"
+                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-[var(--primary)] text-white hover:opacity-90 disabled:opacity-40 transition flex items-center gap-1"
               >
-                {savedId ? "✓ Saved" : saving ? "Saving…" : "💾 Save"}
+                <i className={`text-[10px] ${savedId ? "fi fi-rr-check" : "fi fi-rr-disk"}`} />
+                <span>{savedId ? "Saved" : saving ? "Saving…" : "Save"}</span>
               </button>
               <button
                 type="button"
                 onClick={print}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
+                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition flex items-center gap-1"
               >
-                ⤓ Print / PDF
+                <i className="fi fi-rr-print text-[10px]" />
+                <span>Print / PDF</span>
               </button>
               {selectedSkill.pushTargets.map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => push(t)}
-                  className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition"
+                  className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/40 transition flex items-center gap-1"
                 >
-                  ➜ {PUSH_TARGET_LABEL[t]}
+                  <i className="fi fi-rr-paper-plane text-[10px]" />
+                  <span>{PUSH_TARGET_LABEL[t]}</span>
                 </button>
               ))}
               <button
                 type="button"
                 onClick={publish}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-500 hover:border-emerald-500/40 transition"
+                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-500 hover:border-emerald-500/40 transition flex items-center gap-1"
               >
-                ⇧ Publish
+                <i className="fi fi-rr-share text-[10px]" />
+                <span>Publish</span>
               </button>
             </div>
 
             {result.tokensUsed && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border)] text-[11px]">
                 <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                  <span className="text-amber-500 font-bold">⚡</span>
+                  <i className="fi fi-rr-bolt text-amber-500 font-bold" />
                   <span>Tokens used for topic <strong className="text-[var(--text-heading)] font-semibold">"{result.topic}"</strong>:</span>
                 </div>
                 <div className="flex items-center gap-2">
