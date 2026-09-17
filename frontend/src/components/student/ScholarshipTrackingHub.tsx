@@ -301,13 +301,13 @@ export default function ScholarshipTrackingHub({
 
     const missingDocs = scholarship.documents.filter(doc => !uploadedDocs[doc]);
     if (missingDocs.length > 0 && scholarship.id !== "nmms") {
-      const docListHtml = `<ul class="text-left text-xs list-disc pl-5 mt-2 space-y-1 text-slate-300">
+      const docListHtml = `<ul class="text-left text-xs list-disc pl-5 mt-2 space-y-1 text-slate-700 font-medium">
         ${missingDocs.map(d => `<li>${d}</li>`).join("")}
       </ul>`;
       
       const confirmUpload = await Swal.fire({
         title: t("Missing Documents", "ஆவணங்கள் இல்லை"),
-        html: `<div class="text-sm text-slate-300">${t("The following required documents are missing from your e-Sanad Locker. Auto-sync from e-Sevai now?", "பின்வரும் ஆவணங்கள் உங்கள் மின்-சன்னத் லாக்கரில் இல்லை. மின்-சேவையிலிருந்து ஒத்திசைக்கவா?")}</div>${docListHtml}`,
+        html: `<div class="text-sm text-slate-700 font-medium">${t("The following required documents are missing from your e-Sanad Locker. Auto-sync from e-Sevai now?", "பின்வரும் ஆவணங்கள் உங்கள் மின்-சன்னத் லாக்கரில் இல்லை. மின்-சேவையிலிருந்து ஒத்திசைக்கவா?")}</div>${docListHtml}`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: t("Auto-Sync & Apply", "ஒத்திசைத்து விண்ணப்பி"),
