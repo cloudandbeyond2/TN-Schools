@@ -576,7 +576,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Management", href: "#", icon: "" },
       { label: "Personal Counsellor", href: "/teacher/counsellor", icon: "fi fi-rr-heart" },
       { label: "Parent Communication", href: "/teacher/communication", icon: "fi fi-rr-comment" },
-      { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "fi fi-rr-folder" },
+      // { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "fi fi-rr-folder" },
       { label: "Student Status", href: "/teacher/student-status", icon: "fi fi-rr-stats" },
       { label: "Student Progress", href: "/teacher/progress", icon: "fi fi-rr-chart-histogram" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "fi fi-rr-pencil" },

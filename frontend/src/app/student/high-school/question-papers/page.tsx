@@ -95,12 +95,16 @@ export default function QuestionPapersPage() {
     [visiblePapers]
   );
 
+  const [viewingPaper, setViewingPaper] = useState<any | null>(null);
+
   const handleOpen = (paper: any) => {
     fetch(`${API_BASE}/api/sslc-prep/papers/${paper._id}/download`, { method: "POST" }).catch(() => {});
     setPapers((prev) =>
       prev.map((p) => (p._id === paper._id ? { ...p, downloads: (p.downloads || 0) + 1 } : p))
     );
-    if (paper.fileUrl) window.open(paper.fileUrl, "_blank");
+    if (paper.fileUrl) {
+      setViewingPaper(paper);
+    }
   };
 
   return (
@@ -259,9 +263,15 @@ export default function QuestionPapersPage() {
                           </span>
                         </div>
                         <h4 className="text-sm font-bold text-white mb-1 leading-snug">{paper.title}</h4>
-                        <p className="text-[11px] text-slate-500 mb-4">
+                        <p className="text-[11px] text-slate-500 mb-2">
                           {paper.subject} · {paper.durationMinutes} min · {paper.maxMarks} marks
                         </p>
+                        <div className="text-[10px] text-slate-400 mb-4 flex items-center gap-1.5 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-800 w-fit">
+                          <span className="font-medium text-slate-400">Uploaded by:</span>
+                          <span className="text-indigo-300 font-bold">
+                            {paper.uploadedByName || (paper.schoolId ? "School Subject Teacher" : "State Board (DGE TN)")}
+                          </span>
+                        </div>
                         <div className="mt-auto flex items-center justify-between">
                           <span className="text-[11px] text-slate-500 flex items-center gap-1">
                             <FcDownload className="w-4 h-4" /> {paper.downloads || 0} opens
@@ -283,6 +293,96 @@ export default function QuestionPapersPage() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Information Banner: Who uploads question papers */}
+      <div className="glass rounded-2xl p-4 sm:p-6 mt-8 border border-slate-700/50">
+        <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <FcDocument className="w-5 h-5" /> Who uploads these question papers?
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+          <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+            <div className="font-bold text-indigo-300 mb-1">1. School Subject Teachers & Headmasters</div>
+            High school subject teachers upload school-specific unit test papers, revision series, quarterly, half-yearly, and school model exam papers via the Teacher SSLC Prep Portal.
+          </div>
+          <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+            <div className="font-bold text-emerald-300 mb-1">2. State Directorate of Government Examinations (DGE)</div>
+            Official Tamil Nadu SSLC Public Board Exam papers (PYQs) and state-wide model question papers are uploaded and maintained by the School Education Department & State Admins.
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive PDF Document Viewer Modal */}
+      <AnimatePresence>
+        {viewingPaper && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-5xl h-[88vh] bg-slate-900 border border-slate-700 rounded-2xl flex flex-col overflow-hidden shadow-2xl"
+            >
+              {/* Modal Header */}
+              <div className="p-4 bg-slate-850 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0 pr-2">
+                  <div className="p-2 rounded-xl bg-red-500/15 text-red-400 border border-red-500/30 shrink-0">
+                    <FcDocument className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-white truncate">{viewingPaper.title}</h3>
+                    <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                      <span>{viewingPaper.subject}</span>
+                      <span>•</span>
+                      <span>Class {selectedGrade} ({viewingPaper.year})</span>
+                      <span>•</span>
+                      <span className="text-amber-400 font-semibold">{viewingPaper.paperType} Paper</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {viewingPaper.fileUrl && (
+                    <a
+                      href={viewingPaper.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={`${viewingPaper.title}.pdf`}
+                      className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                    >
+                      <FcDownload className="w-4 h-4" /> Download / New Tab
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setViewingPaper(null)}
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors text-xs font-bold px-3"
+                  >
+                    Close ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 bg-slate-950 relative flex items-center justify-center">
+                {viewingPaper.fileUrl ? (
+                  <iframe
+                    src={viewingPaper.fileUrl}
+                    title={viewingPaper.title}
+                    className="w-full h-full border-0 bg-white"
+                  />
+                ) : (
+                  <div className="text-center p-8 text-slate-400">
+                    <p className="text-sm font-semibold">No PDF document attached to this paper.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PortalLayout>
   );
 }

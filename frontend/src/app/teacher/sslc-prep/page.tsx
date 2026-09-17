@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import {
   LayoutDashboard, FileText, BookOpen, ClipboardList, Plus, Trash2, Eye, EyeOff,
   Users, TrendingUp, AlertTriangle, RefreshCw, ChevronDown, ChevronUp, X, BarChart2,
+  Upload, Download,
 } from "lucide-react";
 
 const getApiBase = () => {
@@ -114,6 +115,44 @@ export default function TeacherSSLCPrepPage() {
   const [papers, setPapers] = useState<any[]>([]);
   const [paperForm, setPaperForm] = useState({ title: "", subject: "Mathematics", year: "2025", paperType: "Board", fileUrl: "" });
   const [showPaperForm, setShowPaperForm] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [selectedPdfName, setSelectedPdfName] = useState<string | null>(null);
+  const [viewingPaper, setViewingPaper] = useState<any | null>(null);
+
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      Swal.fire("Invalid File", "Please select a valid PDF file (.pdf).", "warning");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      Swal.fire("File Too Large", "PDF size should be under 15MB.", "warning");
+      return;
+    }
+
+    setUploadingPdf(true);
+    setSelectedPdfName(file.name);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64Url = reader.result as string;
+        setPaperForm((prev) => ({ ...prev, fileUrl: base64Url }));
+        setUploadingPdf(false);
+      };
+      reader.onerror = () => {
+        Swal.fire("Upload Failed", "Could not read the PDF file.", "error");
+        setUploadingPdf(false);
+      };
+    } catch (err) {
+      console.error("PDF upload error:", err);
+      setUploadingPdf(false);
+    }
+  };
 
   // ── Prep plans ────────────────────────────────────────────────────
   const [plans, setPlans] = useState<any[]>([]);
@@ -355,6 +394,7 @@ export default function TeacherSSLCPrepPage() {
     const json = await res.json();
     if (json.success) {
       setShowPaperForm(false);
+      setSelectedPdfName(null);
       setPaperForm({ title: "", subject: "Mathematics", year: "2025", paperType: "Board", fileUrl: "" });
       loadPapers();
     } else {
@@ -1015,16 +1055,57 @@ export default function TeacherSSLCPrepPage() {
                   {PAPER_TYPES.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <input
-                value={paperForm.fileUrl}
-                onChange={(e) => setPaperForm({ ...paperForm, fileUrl: e.target.value })}
-                placeholder="Paper link / uploaded file URL (optional)"
-                className="md:col-span-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
-              />
+
+              {/* Upload PDF or Link section */}
+              <div className="md:col-span-2 space-y-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                  <span>Question Paper Document (Upload PDF OR Paste Link)</span>
+                  {paperForm.fileUrl && (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      ✓ Document Attached
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-dashed border-amber-500/50 cursor-pointer transition-all text-xs font-bold text-amber-400">
+                    <Upload className="w-4 h-4" />
+                    {uploadingPdf ? "Reading PDF..." : selectedPdfName ? `Change PDF (${selectedPdfName.slice(0, 18)}...)` : "Upload PDF File (.pdf)"}
+                    <input type="file" accept="application/pdf,.pdf" onChange={handlePdfUpload} className="hidden" />
+                  </label>
+
+                  <input
+                    value={paperForm.fileUrl.startsWith("data:application/pdf") ? "" : paperForm.fileUrl}
+                    onChange={(e) => {
+                      setSelectedPdfName(null);
+                      setPaperForm({ ...paperForm, fileUrl: e.target.value });
+                    }}
+                    placeholder="OR Paste Web Link / URL"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                {selectedPdfName && (
+                  <div className="text-[11px] text-amber-300 flex items-center justify-between bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+                    <span>📄 Attached PDF: <strong>{selectedPdfName}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPdfName(null);
+                        setPaperForm({ ...paperForm, fileUrl: "" });
+                      }}
+                      className="text-red-400 hover:underline font-bold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="md:col-span-2 flex justify-end">
                 <button onClick={savePaper}
-                  className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-black">
-                  Add to Library
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-black transition-colors shadow-md">
+                  Add to Question Paper Library
                 </button>
               </div>
             </div>
@@ -1048,9 +1129,12 @@ export default function TeacherSSLCPrepPage() {
                 <p className="text-[11px] text-slate-500 mb-4">{paper.subject} · {paper.downloads || 0} student opens</p>
                 <div className="mt-auto flex justify-between items-center">
                   {paper.fileUrl ? (
-                    <a href={paper.fileUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-amber-400 hover:text-amber-300">
-                      Open link →
-                    </a>
+                    <button
+                      onClick={() => setViewingPaper(paper)}
+                      className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                    >
+                      View / Open PDF →
+                    </button>
                   ) : <span className="text-[11px] text-slate-600 italic">No file attached</span>}
                   <button onClick={() => deletePaper(paper)} className="text-red-400 hover:text-red-300">
                     <Trash2 className="w-4 h-4" />
@@ -1254,6 +1338,67 @@ export default function TeacherSSLCPrepPage() {
         </div>
       )}
       </div>
+
+      {/* Interactive PDF Viewer Modal */}
+      {viewingPaper && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-5xl h-[88vh] bg-slate-900 border border-slate-700 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-4 bg-slate-850 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base font-bold text-white truncate">{viewingPaper.title}</h3>
+                  <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                    <span>{viewingPaper.subject}</span>
+                    <span>•</span>
+                    <span>Class {selectedGrade} ({viewingPaper.year})</span>
+                    <span>•</span>
+                    <span className="text-amber-400 font-semibold">{viewingPaper.paperType} Paper</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {viewingPaper.fileUrl && (
+                  <a
+                    href={viewingPaper.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    download={`${viewingPaper.title}.pdf`}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold transition-all flex items-center gap-1.5"
+                  >
+                    <Download className="w-4 h-4" /> Download / Open Tab
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingPaper(null)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 bg-slate-950 relative flex items-center justify-center">
+              {viewingPaper.fileUrl ? (
+                <iframe
+                  src={viewingPaper.fileUrl}
+                  title={viewingPaper.title}
+                  className="w-full h-full border-0 bg-white"
+                />
+              ) : (
+                <div className="text-center p-8 text-slate-400">
+                  <p className="text-sm font-semibold">No document file attached to this paper.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
