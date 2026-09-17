@@ -460,7 +460,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Music4" },
-      { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
+      // { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
 
       // ===================== OTHER ACTIVITIES =====================
       { label: "---", href: "#", icon: "" },
@@ -475,7 +475,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       { label: "Career Guidance", href: "/student/career", icon: "Compass" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "Award" },
-      { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
+      // { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       // { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       // { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
@@ -671,7 +671,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-calendar-star" },
       { label: "Clubs & Activities", href: "/headmaster/clubs", icon: "fi fi-rr-smile" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "fi fi-rr-globe" },
-      { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
+      // { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
       { label: "Rewards & Honors", href: "/headmaster/rewards", icon: "fi fi-rr-trophy" },
       { label: "Celebrations", href: "/headmaster/celebrations", icon: "fi fi-rr-party-horn" },
       { label: "Social Responsibility", href: "/headmaster/social-activities", icon: "fi fi-rr-heart" },

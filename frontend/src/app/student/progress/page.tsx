@@ -95,14 +95,26 @@ export default function StudentProgressPage() {
 
       // 2. Fetch Real PostgreSQL Database Marks
       let dbMarks: any[] = [];
-      if (userSchoolId) {
-        const marksRes = await fetch(
-          `${API_URL}/api/students/marks/class-wise?schoolId=${userSchoolId}&class=${cls}&section=${sec}`
-        );
-        const marksData = await marksRes.json();
-        if (marksData.success && Array.isArray(marksData.data)) {
-          dbMarks = marksData.data.filter((m: any) => !studentId || m.studentId === studentId);
-        }
+      if (studentId) {
+        try {
+          const res = await fetch(`${API_URL}/api/students/${studentId}/marks`);
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            dbMarks = json.data;
+          }
+        } catch {}
+      }
+
+      if (dbMarks.length === 0 && userSchoolId) {
+        try {
+          const marksRes = await fetch(
+            `${API_URL}/api/students/marks/class-wise?schoolId=${userSchoolId}&class=${cls}&section=${sec}`
+          );
+          const marksData = await marksRes.json();
+          if (marksData.success && Array.isArray(marksData.data)) {
+            dbMarks = marksData.data.filter((m: any) => !studentId || m.studentId === studentId);
+          }
+        } catch {}
       }
 
       // 3. Format Subjects List from PostgreSQL Marks
@@ -352,7 +364,7 @@ export default function StudentProgressPage() {
               {lang === "தமிழ்" ? "முன்னேற்றத் தரவுகள் ஏற்றப்படுகின்றன..." : "Loading Academic Progress..."}
             </p>
           </div>
-        ) : profile ? (
+        ) : profile && profile.subjects && profile.subjects.length > 0 ? (
           <div className="space-y-6">
             {/* Student Profile Identity Card */}
             <div className="bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -430,52 +442,41 @@ export default function StudentProgressPage() {
                 </h3>
               </div>
 
-              {profile.subjects.length === 0 ? (
-                <div className="p-8 text-center bg-[var(--bg-main)] rounded-2xl border border-[var(--border)] space-y-2">
-                  <i className="fi fi-rr-book-alt text-3xl text-[var(--text-muted)] mx-auto opacity-50 block" />
-                  <p className="text-xs font-semibold text-[var(--text-muted)]">
-                    {lang === "தமிழ்"
-                      ? "இன்னும் எந்த பாடத்திற்கும் மதிப்பெண் பதிவு செய்யப்படவில்லை."
-                      : "No subject marks recorded yet by your teacher."}
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-[var(--bg-main)] rounded-2xl border border-[var(--border)] overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[var(--bg-card)] border-b border-[var(--border)] text-[var(--text-muted)] font-bold uppercase">
-                      <tr>
-                        <th className="p-3.5">{lang === "தமிழ்" ? "பாடம்" : "Subject"}</th>
-                        <th className="p-3.5 text-center">{lang === "தமிழ்" ? "மதிப்பெண்" : "Score"}</th>
-                        <th className="p-3.5 text-center">{lang === "தமிழ்" ? "தரம்" : "Grade"}</th>
-                        <th className="p-3.5">{lang === "தமிழ்" ? "முன்னேற்றம்" : "Progress"}</th>
+              <div className="bg-[var(--bg-main)] rounded-2xl border border-[var(--border)] overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[var(--bg-card)] border-b border-[var(--border)] text-[var(--text-muted)] font-bold uppercase">
+                    <tr>
+                      <th className="p-3.5">{lang === "தமிழ்" ? "பாடம்" : "Subject"}</th>
+                      <th className="p-3.5 text-center">{lang === "தமிழ்" ? "மதிப்பெண்" : "Score"}</th>
+                      <th className="p-3.5 text-center">{lang === "தமிழ்" ? "தரம்" : "Grade"}</th>
+                      <th className="p-3.5">{lang === "தமிழ்" ? "முன்னேற்றம்" : "Progress"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {profile.subjects.map((sub) => (
+                      <tr key={sub.name} className="hover:bg-[var(--bg-card)] transition-colors">
+                        <td className="p-3.5 font-bold text-[var(--text-heading)]">{sub.name}</td>
+                        <td className="p-3.5 text-center font-extrabold text-[var(--text-heading)]">
+                          {sub.score} / {sub.maxScore}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <span className="px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            {sub.grade}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="w-full bg-[var(--bg-card)] h-2 rounded-full overflow-hidden border border-[var(--border)]">
+                            <div
+                              className="bg-amber-500 h-full rounded-full"
+                              style={{ width: `${(sub.score / sub.maxScore) * 100}%` }}
+                            />
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border)]">
-                      {profile.subjects.map((sub) => (
-                        <tr key={sub.name} className="hover:bg-[var(--bg-card)] transition-colors">
-                          <td className="p-3.5 font-bold text-[var(--text-heading)]">{sub.name}</td>
-                          <td className="p-3.5 text-center font-extrabold text-[var(--text-heading)]">
-                            {sub.score} / {sub.maxScore}
-                          </td>
-                          <td className="p-3.5 text-center">
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                              {sub.grade}
-                            </span>
-                          </td>
-                          <td className="p-3.5">
-                            <div className="w-full bg-[var(--bg-card)] h-2 rounded-full overflow-hidden border border-[var(--border)]">
-                              <div
-                                className="bg-amber-500 h-full rounded-full"
-                                style={{ width: `${(sub.score / sub.maxScore) * 100}%` }}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Teacher Evaluation & Remarks */}
@@ -497,7 +498,23 @@ export default function StudentProgressPage() {
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] p-12 sm:p-16 rounded-3xl text-center space-y-4 shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mx-auto flex items-center justify-center">
+              <i className="fi fi-rr-document text-3xl flex items-center" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-extrabold text-[var(--text-heading)]">
+                {lang === "தமிழ்" ? "கல்வி முன்னேற்றம் இல்லை" : "No academic progress"}
+              </h3>
+              <p className="text-xs text-[var(--text-muted)] font-medium max-w-md mx-auto">
+                {lang === "தமிழ்"
+                  ? "இந்த மாணவருக்கு கல்வி முன்னேற்ற பதிவுகள் எதுவும் இதுவரை இல்லை."
+                  : "No academic progress records or subject marks found for this student."}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </PortalLayout>
   );
