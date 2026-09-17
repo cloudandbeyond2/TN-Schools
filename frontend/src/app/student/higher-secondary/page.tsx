@@ -6,7 +6,7 @@ import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Link from "next/link";
-import { FileText, HeartPulse } from "lucide-react";
+import { FileText, HeartPulse, Briefcase } from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -439,6 +439,13 @@ export default function HigherSecondaryDashboard() {
                   <div className="flex items-center gap-3">
                     <HeartPulse className="h-5 w-5 text-purple-500" />
                     <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "எனது சுகாதார அறிக்கை" : "My Health Report"}</span>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)] group-hover:text-purple-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
+                </a>
+                <a href="/student/portfolio" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="h-5 w-5 text-purple-500" />
+                    <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "டிஜிட்டல் போர்ட்ஃபோலியோ" : "Digital Portfolio"}</span>
                   </div>
                   <span className="text-xs text-[var(--text-muted)] group-hover:text-purple-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
                 </a>
