@@ -811,8 +811,7 @@ router.get('/leave', async (req: Request, res: Response) => {
       }
     }
 
-    
-const leaves = await prisma.leaveRequest.findMany({
+    const leaves = await prisma.leaveRequest.findMany({
       where: {
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
         ...(userId ? {
@@ -824,7 +823,72 @@ const leaves = await prisma.leaveRequest.findMany({
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ success: true, data: leaves });
+
+    // Enrich student leave requests with class and section details
+    const studentIds = leaves.map((l: any) => l.studentId).filter(Boolean) as string[];
+    const studentNames = leaves.map((l: any) => l.studentName).filter((n: string) => n && n !== 'Unknown');
+
+    let students: any[] = [];
+    if (schoolId || studentIds.length > 0 || studentNames.length > 0) {
+      const orConditions: any[] = [];
+      if (studentIds.length > 0) {
+        orConditions.push({ id: { in: studentIds } });
+        orConditions.push({ userId: { in: studentIds } });
+      }
+      if (studentNames.length > 0) {
+        orConditions.push({ user: { name: { in: studentNames } } });
+      }
+
+      students = await prisma.student.findMany({
+        where: {
+          ...(schoolId ? { schoolId: String(schoolId) } : {}),
+          ...(orConditions.length > 0 ? { OR: orConditions } : {})
+        },
+        select: {
+          id: true,
+          userId: true,
+          class: true,
+          section: true,
+          user: { select: { name: true } }
+        }
+      });
+    }
+
+    const studentMapById = new Map<string, any>();
+    const studentMapByName = new Map<string, any>();
+
+    students.forEach((s) => {
+      if (s.id) studentMapById.set(s.id, s);
+      if (s.userId) studentMapById.set(s.userId, s);
+      if (s.user?.name) {
+        studentMapByName.set(s.user.name.toLowerCase().trim(), s);
+      }
+    });
+
+    const enrichedLeaves = leaves.map((l: any) => {
+      let st: any = null;
+      if (l.studentId) {
+        st = studentMapById.get(l.studentId);
+      }
+      if (!st && l.studentName && l.studentName !== 'Unknown') {
+        st = studentMapByName.get(l.studentName.toLowerCase().trim());
+      }
+
+      if (st) {
+        return {
+          ...l,
+          studentClass: st.class || '',
+          studentSection: st.section || '',
+          className: st.class || '',
+          sectionName: st.section || '',
+          studentName: l.studentName && l.studentName !== 'Unknown' ? l.studentName : (st.user?.name || 'Unknown')
+        };
+      }
+
+      return l;
+    });
+
+    res.json({ success: true, data: enrichedLeaves });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
