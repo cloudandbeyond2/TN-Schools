@@ -420,6 +420,36 @@ export default function ParentDashboard() {
         </div>
       )}
 
+      {/* ── Screen Time & Digital Wellness Banner ── */}
+      {activeChild && (
+        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-600/10 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-emerald-900/40 border border-emerald-500/30 rounded-2xl p-5 md:p-6 mb-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0 border border-emerald-500/30">
+              <i className="fi fi-rr-time-check text-xl"></i>
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                Children Screen Time & Portal Usage Tracker
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">
+                  MONITOR USAGE
+                </span>
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                Track daily portal learning hours, active online status, and category breakdown for your children.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/parent/screen-time"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-emerald-500/30 shrink-0"
+          >
+            <i className="fi fi-rr-clock text-sm"></i>
+            <span>Monitor Screen Timing</span>
+            <i className="fi fi-rr-arrow-right text-xs"></i>
+          </Link>
+        </div>
+      )}
+
       {/* ── Current Year Academic KPIs ────────────────────────────── */}
       {activeChild && (
         <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">
