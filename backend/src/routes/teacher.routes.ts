@@ -1287,7 +1287,72 @@ router.get('/messages/:parentId', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/teacher/messages
+// GET /api/teacher/conversations — Fetch active parent conversations for teacher
+router.get('/conversations', async (req: Request, res: Response) => {
+  try {
+    const { teacherId } = req.query;
+    if (!teacherId) {
+      return res.status(400).json({ success: false, error: 'teacherId is required' });
+    }
+    const resolvedTeacherId = await resolveTeacherId(String(teacherId));
+
+    // Find all messages involving this teacher
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [
+          { teacherId: resolvedTeacherId },
+          { teacherId: String(teacherId) }
+        ]
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const parentIds = Array.from(new Set(messages.map(m => m.parentId).filter(Boolean)));
+
+    const parents = await prisma.headmasterParent.findMany({
+      where: { id: { in: parentIds } },
+      include: {
+        linkedStudents: {
+          include: {
+            student: {
+              include: { user: { select: { name: true } } }
+            }
+          }
+        }
+      }
+    });
+
+    const conversations = parentIds.map(pId => {
+      const pRecord = parents.find(p => p.id === pId);
+      const parentMsgs = messages.filter(m => m.parentId === pId);
+      const lastMsg = parentMsgs[0];
+      const unreadCount = parentMsgs.filter(m => m.sender === 'parent').length;
+
+      const primaryLink = pRecord?.linkedStudents?.find(l => l.isPrimary) || pRecord?.linkedStudents?.[0];
+      const studentName = primaryLink?.student?.user?.name || 'Student';
+      const studentClass = primaryLink?.student
+        ? `Class ${primaryLink.student.class}-${primaryLink.student.section || 'A'}`
+        : 'Class Student';
+
+      return {
+        id: pId,
+        name: pRecord?.name || 'Parent',
+        studentName,
+        studentClass,
+        phone: pRecord?.phone || 'N/A',
+        lastMessage: lastMsg?.text || '',
+        lastTime: lastMsg ? lastMsg.createdAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+        unreadCount
+      };
+    });
+
+    res.json({ success: true, data: conversations });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/teacher/messages — Post message and create notification for recipient
 router.post('/messages', async (req: Request, res: Response) => {
   try {
     const { parentId, sender, text, schoolId, teacherId } = req.body;
@@ -1306,6 +1371,42 @@ router.post('/messages', async (req: Request, res: Response) => {
         schoolId: schoolId || null 
       },
     });
+
+    // Send high-priority notification to recipient
+    if (sender === 'parent' && resolvedTeacherId) {
+      const tRecord = await prisma.teacher.findUnique({
+        where: { id: resolvedTeacherId },
+        select: { userId: true }
+      });
+      const targetUserId = tRecord?.userId || resolvedTeacherId;
+      if (targetUserId) {
+        await prisma.notification.create({
+          data: {
+            userId: targetUserId,
+            type: 'COMMUNICATION',
+            title: 'New Message from Parent 💬',
+            message: `Parent sent a message: "${text.slice(0, 60)}${text.length > 60 ? '...' : ''}"`
+          }
+        }).catch(() => {});
+      }
+    } else if (sender === 'teacher' && resolvedParentId) {
+      const pRecord = await prisma.headmasterParent.findUnique({
+        where: { id: resolvedParentId },
+        select: { userId: true }
+      });
+      const targetUserId = pRecord?.userId || resolvedParentId;
+      if (targetUserId) {
+        await prisma.notification.create({
+          data: {
+            userId: targetUserId,
+            type: 'COMMUNICATION',
+            title: 'New Reply from Class Teacher 💬',
+            message: `Class Teacher replied: "${text.slice(0, 60)}${text.length > 60 ? '...' : ''}"`
+          }
+        }).catch(() => {});
+      }
+    }
+
     const newMsg = {
       id: msg.id,
       sender: msg.sender,

@@ -1035,18 +1035,21 @@ function generateRulesFallback(name: string, avg: number, attendance: number, st
 // PTA Appointment & Teacher Slots Endpoints
 // =========================================================================
 
-// GET /api/parent/teachers?schoolId=...
+// GET /api/parent/teachers?schoolId=...&class=...&section=...&onlyClassTeacher=true
 router.get('/teachers', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const { schoolId, class: targetClass, section: targetSection, onlyClassTeacher } = req.query;
     if (!schoolId) {
       return res.status(400).json({ success: false, error: 'schoolId is required' });
     }
 
+    const sClass = targetClass ? String(targetClass).trim() : null;
+    const sSec = targetSection ? String(targetSection).trim() : null;
+
     // 1. Fetch subject teachers
     const schoolTeachers = await prisma.teacher.findMany({
       where: { schoolId: String(schoolId) },
-      include: { user: { select: { name: true, email: true } } }
+      include: { user: { select: { id: true, name: true, email: true } } }
     });
 
     // 2. Fetch staff members
@@ -1054,26 +1057,112 @@ router.get('/teachers', async (req: Request, res: Response) => {
       where: { schoolId: String(schoolId) }
     });
 
-    const mappedTeachers = schoolTeachers.map(t => ({
-      id: t.id,
-      user: {
-        name: t.user?.name || 'Unknown Teacher',
-        email: t.user?.email || null,
-        subject: t.subjects && t.subjects.length > 0 ? t.subjects.join(', ') : 'Subject Teacher'
-      }
-    }));
+    // 3. Fetch ClassRooms for this school to cross reference class teacher assignments
+    const classRooms = await prisma.classRoom.findMany({
+      where: { schoolId: String(schoolId) }
+    });
 
-    const mappedStaff = staff.map(s => ({
-      id: s.id,
-      user: {
-        name: s.name,
-        email: s.email,
-        subject: s.subject || 'Staff Member'
-      }
-    }));
+    const mappedTeachers = schoolTeachers.map(t => {
+      let isCT = false;
+      let aClass = "";
+      let aSec = "";
 
-    const allTeachers = [...mappedTeachers, ...mappedStaff];
-    res.json({ success: true, data: allTeachers });
+      if (t.address) {
+        try {
+          const meta = JSON.parse(t.address);
+          isCT = !!meta.isClassTeacher || meta.workAllocation === "Class Teacher";
+          aClass = meta.assignedClass || meta.cls || "";
+          aSec = meta.assignedSection || meta.sec || "";
+        } catch (e) {}
+      }
+
+      const matchingRooms = classRooms.filter(cr => cr.teacherId === t.id || cr.teacherId === t.userId);
+      if (matchingRooms.length > 0) {
+        if (!aClass) aClass = matchingRooms[0].className;
+        if (!aSec) aSec = matchingRooms[0].section;
+      }
+
+      return {
+        id: t.id,
+        userId: t.userId,
+        isClassTeacher: isCT,
+        assignedClass: aClass,
+        assignedSection: aSec,
+        user: {
+          name: t.user?.name || 'Unknown Teacher',
+          email: t.user?.email || null,
+          subject: t.subjects && t.subjects.length > 0 ? t.subjects.join(', ') : 'Class Teacher'
+        }
+      };
+    });
+
+    const mappedStaff = staff.map(s => {
+      const sAny = s as any;
+      let isCT = (sAny.work === "Class Teacher") || (s.address ? s.address.includes("Class Teacher") : false);
+      let aClass = sAny.cls || "";
+      let aSec = sAny.sec || "";
+
+      if (s.address) {
+        try {
+          const meta = JSON.parse(s.address);
+          if (meta.isClassTeacher || meta.workAllocation === "Class Teacher") isCT = true;
+          if (meta.assignedClass || meta.cls) aClass = meta.assignedClass || meta.cls;
+          if (meta.assignedSection || meta.sec) aSec = meta.assignedSection || meta.sec;
+        } catch (e) {}
+      }
+
+      const matchingRooms = classRooms.filter(cr => cr.teacherId === s.id);
+      if (matchingRooms.length > 0) {
+        if (!aClass) aClass = matchingRooms[0].className;
+        if (!aSec) aSec = matchingRooms[0].section;
+      }
+
+      return {
+        id: s.id,
+        userId: s.id,
+        isClassTeacher: isCT,
+        assignedClass: aClass,
+        assignedSection: aSec,
+        user: {
+          name: s.name,
+          email: s.email,
+          subject: s.subject || 'Class Teacher'
+        }
+      };
+    });
+
+    let allTeachers = [...mappedTeachers, ...mappedStaff];
+
+    // Filter by child's Class Teacher requirement
+    const shouldFilterClassTeacher = onlyClassTeacher === 'true' || onlyClassTeacher === '1' || Boolean(sClass);
+
+    if (shouldFilterClassTeacher) {
+      // Step A: Exact match for child's class and section
+      let classTeacherMatch = allTeachers.filter(t => {
+        const classMatch = !sClass || t.assignedClass === sClass || t.assignedClass.includes(sClass);
+        const sectionMatch = !sSec || t.assignedSection === sSec || t.assignedSection.toLowerCase() === sSec.toLowerCase();
+        return (t.isClassTeacher || Boolean(t.assignedClass)) && classMatch && sectionMatch;
+      });
+
+      // Step B: Match by class if section doesn't match
+      if (classTeacherMatch.length === 0 && sClass) {
+        classTeacherMatch = allTeachers.filter(t => {
+          return (t.isClassTeacher || Boolean(t.assignedClass)) && (t.assignedClass === sClass || t.assignedClass.includes(sClass));
+        });
+      }
+
+      // Step C: Fallback to all designated class teachers in the school
+      if (classTeacherMatch.length === 0) {
+        classTeacherMatch = allTeachers.filter(t => t.isClassTeacher);
+      }
+
+      // Step D: Final safety fallback if match found
+      if (classTeacherMatch.length > 0) {
+        allTeachers = classTeacherMatch;
+      }
+    }
+
+    res.json({ success: true, count: allTeachers.length, data: allTeachers });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

@@ -94,6 +94,18 @@ function CommunicationContent() {
         }];
       }
 
+      // 2. Fetch parents from backend and active conversations
+      let convParents: Parent[] = [];
+      if (teacherId) {
+        try {
+          const convRes = await fetch(`${API_URL}/api/teacher/conversations?teacherId=${teacherId}`);
+          const convJson = await convRes.json();
+          if (convJson.success && Array.isArray(convJson.data)) {
+            convParents = convJson.data;
+          }
+        } catch {}
+      }
+
       const res = await fetch(`${API_URL}/api/headmaster/parents?schoolId=${activeSchoolId}`);
       const data = await res.json();
       if (data.success && data.data) {
@@ -118,6 +130,22 @@ function CommunicationContent() {
 
             return (classMatches && secMatches) || linkedMatches;
           });
+        });
+
+        // Merge active conversation parents at top
+        const seenIds = new Set(filteredParents.map((p: any) => p.id));
+        convParents.forEach(cp => {
+          if (!seenIds.has(cp.id)) {
+            filteredParents.unshift(cp);
+            seenIds.add(cp.id);
+          } else {
+            // Update lastMessage snippet
+            const idx = filteredParents.findIndex((p: any) => p.id === cp.id);
+            if (idx >= 0 && cp.lastMessage) {
+              filteredParents[idx].lastMessage = cp.lastMessage;
+              filteredParents[idx].unreadCount = cp.unreadCount;
+            }
+          }
         });
 
         // If no parents are assigned to this class yet, link to the student in teacher's class
