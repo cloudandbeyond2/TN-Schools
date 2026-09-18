@@ -27,7 +27,8 @@ export default function ParentLeavePage() {
   // Form states
   const [formChildId, setFormChildId] = useState<string>("");
   const [leaveType, setLeaveType] = useState<string>("Sick Leave");
-  const [duration, setDuration] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [reason, setReason] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string>("");
@@ -105,14 +106,23 @@ export default function ParentLeavePage() {
       setFormError("Please select a child.");
       return;
     }
-    if (!duration.trim()) {
-      setFormError("Please specify the duration.");
+    if (!startDate) {
+      setFormError("Please select a From Date.");
+      return;
+    }
+    if (endDate && endDate < startDate) {
+      setFormError("To Date cannot be earlier than From Date.");
       return;
     }
     if (!reason.trim()) {
       setFormError("Please provide a reason for the leave.");
       return;
     }
+
+    const durationStr =
+      !endDate || startDate === endDate
+        ? `${startDate} (1 Day)`
+        : `${startDate} to ${endDate}`;
 
     const selectedChild = children.find(c => c.studentId === formChildId);
     if (!selectedChild) {
@@ -131,7 +141,7 @@ export default function ParentLeavePage() {
         },
         body: JSON.stringify({
           type: leaveType,
-          duration: duration.trim(),
+          duration: durationStr,
           reason: reason.trim(),
           studentId: selectedChild.studentId,
           studentName: selectedChild.name,
@@ -144,7 +154,8 @@ export default function ParentLeavePage() {
       const json = await res.json();
       if (json.success) {
         setFormSuccess("Leave request submitted successfully!");
-        setDuration("");
+        setStartDate("");
+        setEndDate("");
         setReason("");
         // Reload list
         fetchLeaves();
@@ -486,20 +497,45 @@ export default function ParentLeavePage() {
               </select>
             </div>
 
-            {/* Duration Input */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
-                Duration / Dates
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 1 Day (12 Jul) or 3 Days (12-14 Jul)"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                disabled={submitting}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-750 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                required
-              />
+            {/* From Date & To Date Pickers */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                  From Date
+                </label>
+                <div className="relative">
+                  <i className="fi fi-rr-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                  <input
+                    type="date"
+                    required
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (endDate && e.target.value > endDate) {
+                        setEndDate(e.target.value);
+                      }
+                    }}
+                    disabled={submitting}
+                    className="w-full pl-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-750 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                  To Date
+                </label>
+                <div className="relative">
+                  <i className="fi fi-rr-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    disabled={submitting}
+                    className="w-full pl-9 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-750 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Reason Textarea */}
