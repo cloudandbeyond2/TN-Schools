@@ -281,16 +281,25 @@ function ParentMessagesContent() {
                     return (
                       <div key={i} className={`flex ${isParent ? "justify-end" : "justify-start"}`}>
                         <div
-                          className={`max-w-[80%] rounded-xl px-4 py-2.5 text-xs leading-relaxed ${
+                          className={`max-w-[80%] rounded-xl px-4 py-2.5 text-xs leading-relaxed font-medium ${
                             isParent
-                              ? "bg-[var(--portal-color,#10b981)] text-white shadow-md rounded-tr-none"
+                              ? "bg-[#10b981] !text-white shadow-md rounded-tr-none"
                               : "bg-[var(--bg-main)] text-[var(--text-heading)] rounded-tl-none border border-[var(--border-light)]"
                           }`}
+                          style={isParent ? { backgroundColor: "#10b981", color: "#ffffff" } : undefined}
                         >
-                          <div>{msg.text}</div>
-                          <div className={`text-[8px] text-right mt-1.5 ${isParent ? "text-emerald-100" : "text-[var(--text-muted)]"}`}>
+                          <p
+                            style={isParent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                            className={isParent ? "!text-white font-semibold text-white" : "text-[var(--text-heading)]"}
+                          >
+                            {msg.text}
+                          </p>
+                          <span
+                            className={`block text-[9px] text-right mt-1.5 ${isParent ? "!text-white font-medium opacity-90" : "text-[var(--text-muted)]"}`}
+                            style={isParent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                          >
                             {msg.time || "Just now"}
-                          </div>
+                          </span>
                         </div>
                       </div>
                     );

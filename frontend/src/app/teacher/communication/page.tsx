@@ -364,16 +364,25 @@ function CommunicationContent() {
                     return (
                       <div key={i} className={`flex ${isTeacher ? "justify-end" : "justify-start"}`}>
                         <div
-                          className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
+                          className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed font-medium ${
                             isTeacher
-                              ? "bg-[var(--primary)] text-white shadow-md rounded-tr-none"
+                              ? "bg-emerald-600 !text-white shadow-md rounded-tr-none"
                               : "bg-[var(--bg-main)] text-[var(--text-heading)] rounded-tl-none border border-[var(--border-light)]"
                           }`}
+                          style={isTeacher ? { backgroundColor: "#059669", color: "#ffffff" } : undefined}
                         >
-                          <div>{msg.text}</div>
-                          <div className={`text-[8px] text-right mt-1.5 ${isTeacher ? "text-indigo-100" : "text-[var(--text-muted)]"}`}>
+                          <p
+                            style={isTeacher ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                            className={isTeacher ? "!text-white font-semibold text-white" : "text-[var(--text-heading)]"}
+                          >
+                            {msg.text}
+                          </p>
+                          <span
+                            className={`block text-[9px] text-right mt-1.5 ${isTeacher ? "!text-white font-medium opacity-90" : "text-[var(--text-muted)]"}`}
+                            style={isTeacher ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                          >
                             {msg.time}
-                          </div>
+                          </span>
                         </div>
                       </div>
                     );
