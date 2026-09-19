@@ -147,7 +147,24 @@ router.post('/', async (req: Request, res: Response) => {
             });
           }
 
-          console.log(`Dispatched notifications for sports event "${created.name}" to HM, ${students.length} students, and parents`);
+          // 3. Dispatch Class Teachers Notification
+          const teachers = await prisma.user.findMany({
+            where: {
+              schoolId: created.schoolId,
+              role: 'TEACHER'
+            }
+          });
+          for (const teacher of teachers) {
+            await prisma.notification.create({
+              data: {
+                userId: teacher.id,
+                message: `PET Sports Notification: "${created.name}" (${created.sport}) scheduled for ${created.targetClasses} on ${created.date} at ${created.venue}.`,
+                read: false
+              }
+            });
+          }
+
+          console.log(`Dispatched notifications for sports event "${created.name}" to HM, ${teachers.length} teachers, ${students.length} students, and parents`);
         } catch (err) {
           console.error('Error dispatching notifications for sports event:', err);
         }
@@ -230,6 +247,17 @@ router.put('/:id', async (req: Request, res: Response) => {
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error('Error updating PET sports event:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/pet/sports-conducted/all/clear - Clear all events for the school
+router.delete('/all/clear', async (req: Request, res: Response) => {
+  try {
+    await prisma.petSportsEvent.deleteMany({ where: schoolScope(req) });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error clearing PET sports events:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

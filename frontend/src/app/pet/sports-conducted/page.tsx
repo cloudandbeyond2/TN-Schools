@@ -1,4 +1,7 @@
 "use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import PETPortalBanner from "@/components/PETPortalBanner";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -19,10 +22,11 @@ import {
   RefreshCw, 
   CheckCircle,
   Activity,
-  X
+  X,
+  Filter,
+  Sparkles,
+  ArrowUpRight
 } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
   SportsEvent,
@@ -41,6 +45,7 @@ import {
   createSportsEventsBulk,
   updateSportsEvent,
   deleteSportsEvent,
+  clearAllSportsEvents,
   fetchStudents,
 } from "@/lib/petSportsApi";
 
@@ -68,7 +73,14 @@ const SPORT_CATEGORIES = [
     sports: ["Other"]
   }
 ];
-const SPORTS = SPORT_CATEGORIES.flatMap(cat => cat.sports);
+
+const LEVEL_GRADIENTS: Record<EventLevel, string> = {
+  "Intra-School": "from-blue-500 to-indigo-600",
+  "Inter-School": "from-cyan-500 to-blue-600",
+  "District": "from-violet-500 to-purple-600",
+  "State": "from-amber-500 to-orange-600",
+  "National": "from-rose-500 to-pink-600",
+};
 
 export default function SportsConductedPage() {
   const { lang } = usePortalLanguage();
@@ -85,24 +97,54 @@ export default function SportsConductedPage() {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 10;
 
   const [editing, setEditing] = useState<SportsEvent | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
+
+  const persist = (next: SportsEvent[]) => {
+    setEvents(next);
+    petSave(EVENTS_KEY, next);
+  };
 
   const loadData = async () => {
     try {
       const srvEvents = await fetchSportsEvents();
-      setEvents(srvEvents);
-      petSave(EVENTS_KEY, srvEvents);
-      setSource("server");
+      if (srvEvents && srvEvents.length > 0) {
+        setEvents(srvEvents);
+        petSave(EVENTS_KEY, srvEvents);
+        setSource("server");
+      } else {
+        const local = petLoad<SportsEvent[]>(EVENTS_KEY, []);
+        setEvents(local);
+        setSource("local");
+      }
     } catch (err) {
       console.warn("Falling back to local storage:", err);
-      setEvents(petLoad(EVENTS_KEY, []));
+      setEvents(petLoad<SportsEvent[]>(EVENTS_KEY, []));
       setSource("local");
     } finally {
       setLoaded(true);
+    }
+  };
+
+  const executeClearAll = async () => {
+    setLoadingAction(true);
+    try {
+      persist([]);
+      if (source === "server") {
+        try {
+          await clearAllSportsEvents();
+        } catch (err) {
+          console.warn("Could not clear events on server API:", err);
+        }
+      }
+    } finally {
+      setLoadingAction(false);
+      setShowClearConfirm(false);
     }
   };
 
@@ -114,33 +156,33 @@ export default function SportsConductedPage() {
     setLoadingAction(true);
     try {
       if (editing) {
+        // Optimistic UI update
+        const next = events.map((e) => (e.id === ev.id ? ev : e));
+        persist(next);
         if (source === "server") {
-          const updated = await updateSportsEvent(ev);
-          const next = events.map((e) => (e.id === ev.id ? updated : e));
-          setEvents(next);
-          petSave(EVENTS_KEY, next);
-        } else {
-          const next = events.map((e) => (e.id === ev.id ? ev : e));
-          setEvents(next);
-          petSave(EVENTS_KEY, next);
+          try {
+            await updateSportsEvent(ev);
+          } catch (err) {
+            console.warn("Could not sync event update to server API:", err);
+          }
         }
       } else {
+        const tempId = ev.id || petId();
+        const newEv = { ...ev, id: tempId };
+        const next = [newEv, ...events];
+        persist(next);
         if (source === "server") {
-          const { id, ...rest } = ev; // strip client temporary id
-          const created = await createSportsEvent({ ...rest, studentIds } as any);
-          const next = [created, ...events];
-          setEvents(next);
-          petSave(EVENTS_KEY, next);
-        } else {
-          const next = [{ ...ev, id: petId() }, ...events];
-          setEvents(next);
-          petSave(EVENTS_KEY, next);
+          try {
+            const { id, ...rest } = ev;
+            const created = await createSportsEvent({ ...rest, studentIds } as any);
+            persist([created, ...events.filter((e) => e.id !== tempId)]);
+          } catch (err) {
+            console.warn("Could not sync created event to server API:", err);
+          }
         }
       }
       setShowAdd(false);
       setEditing(null);
-    } catch (err) {
-      alert(`Could not save changes to the database: ${err instanceof Error ? err.message : "request failed"}.`);
     } finally {
       setLoadingAction(false);
     }
@@ -149,37 +191,35 @@ export default function SportsConductedPage() {
   const removeEvent = async (id: string) => {
     setLoadingAction(true);
     try {
-      if (source === "server") {
-        await deleteSportsEvent(id);
-      }
       const next = events.filter((e) => e.id !== id);
-      setEvents(next);
-      petSave(EVENTS_KEY, next);
+      persist(next);
+      if (source === "server") {
+        try {
+          await deleteSportsEvent(id);
+        } catch (err) {
+          console.warn("Could not delete event from server API:", err);
+        }
+      }
       setDeletingId(null);
-    } catch (err) {
-      alert(`Could not delete the event from the database: ${err instanceof Error ? err.message : "request failed"}.`);
     } finally {
       setLoadingAction(false);
     }
   };
 
-  const handleImportDefaults = async () => {
-    if (events.length > 0 && !confirm("Import the default TN school sports calendar? Existing events will be kept.")) return;
+  const executeImportDefaults = async () => {
+    setShowSeedConfirm(false);
     setLoadingAction(true);
     try {
+      const next = [...DEFAULT_EVENTS, ...events];
+      persist(next);
       if (source === "server") {
-        const cleaned = DEFAULT_EVENTS.map(({ id, ...rest }) => rest);
-        const created = await createSportsEventsBulk(cleaned);
-        const next = [...created, ...events];
-        setEvents(next);
-        petSave(EVENTS_KEY, next);
-      } else {
-        const next = [...DEFAULT_EVENTS, ...events];
-        setEvents(next);
-        petSave(EVENTS_KEY, next);
+        try {
+          const cleaned = DEFAULT_EVENTS.map(({ id, ...rest }) => rest);
+          await createSportsEventsBulk(cleaned);
+        } catch (err) {
+          console.warn("Could not bulk sync defaults to server API:", err);
+        }
       }
-    } catch (err) {
-      alert(`Could not import defaults: ${err instanceof Error ? err.message : "request failed"}.`);
     } finally {
       setLoadingAction(false);
     }
@@ -206,7 +246,7 @@ export default function SportsConductedPage() {
           (e.result && e.result.toLowerCase().includes(query))
         );
       })
-      .sort((a, b) => b.date.localeCompare(a.date)); // Sort latest events first
+      .sort((a, b) => b.date.localeCompare(a.date));
   }, [events, tab, levelFilter, statusFilter, searchQuery]);
 
   // Pagination calculations
@@ -216,7 +256,6 @@ export default function SportsConductedPage() {
     return filteredEvents.slice(start, start + itemsPerPage);
   }, [filteredEvents, currentPage]);
 
-  // Participants per level, computed from real data (not random numbers)
   const levelStats = useMemo(() => {
     const map = new Map<EventLevel, number>();
     LEVELS.forEach((l) => map.set(l, 0));
@@ -231,233 +270,255 @@ export default function SportsConductedPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 w-full mx-auto space-y-6">
+      <div className="p-4 sm:p-6 w-full space-y-6 text-slate-800 dark:text-slate-100">
         
-        {/* Header Section */}
-        <PETPortalBanner
-          pageKey="sports"
-          customDesc={
-            lang === "தமிழ்"
-              ? `பள்ளி விளையாட்டு நாட்காட்டி, போட்டிகள் மற்றும் முடிவுகள் — ${upcoming} வரவிருக்கும் போட்டிகள் · ${completed} முடிவடைந்தவை`
-              : `School games calendar, competition results and participation — ${upcoming} upcoming · ${completed} completed`
-          }
-          rightElement={
-            <div className="flex items-center gap-2 flex-wrap">
-              {events.length === 0 && loaded && (
+        {/* ── Top Hero Header Banner ──────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-400/20">
+                  <Trophy size={20} />
+                </span>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  Sports Events & Competitions
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
+                School sports calendar, tournament results, eligible standards, and student athlete registrations ({upcoming} upcoming · {completed} completed).
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              {events.length > 0 && (
                 <button
-                  onClick={handleImportDefaults}
+                  onClick={() => setShowClearConfirm(true)}
                   disabled={loadingAction}
-                  className="px-4 py-2 border border-[var(--border)] bg-white/50 dark:bg-slate-850/50 hover:border-blue-500 text-[var(--text-heading)] rounded-xl text-sm font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                  className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                  title="Clear all events to start with a blank calendar"
                 >
-                  <RefreshCw size={14} className={loadingAction ? "animate-spin" : ""} /> Seed default calendar
+                  <Trash2 size={14} className="text-rose-400" /> Clear Events
                 </button>
               )}
               <button
                 onClick={() => setShowAdd(true)}
                 disabled={loadingAction}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 disabled:opacity-50"
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-900/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
               >
                 <Plus size={16} /> Log New Event
               </button>
             </div>
-          }
-        />
+          </div>
+        </div>
 
-        {/* Level Stats Summary Grid */}
+        {/* ── Level Participation Metric Grid ──────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {LEVELS.map((level) => (
             <div 
               key={level} 
-              className="bg-[var(--bg-card)] p-5 rounded-2xl border border-[var(--border)] transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 flex flex-col justify-between"
+              className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5"
             >
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${LEVEL_GRADIENTS[level]}`} />
               <div>
-                <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider mb-1">{level}</div>
-                <div className="text-3xl font-black text-[var(--text-heading)] tracking-tight">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{level}</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                   {levelStats.get(level) || 0}
                 </div>
               </div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-2 font-bold flex items-center gap-1">
-                <Users size={12} className="opacity-75" /> Total participants
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <Users size={12} className="text-blue-500" /> Total Athletes
               </div>
             </div>
           ))}
         </div>
 
-        {/* Filter & Search Bar Container */}
-        <div className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] flex flex-col gap-4 shadow-sm">
-          <div className="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
-            
-            {/* Kind Filters */}
-            <div className="flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl gap-1 shrink-0">
-              {(["All", "Event", "Competition"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`flex-1 lg:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    tab === t
-                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                      : "text-[var(--text-muted)] hover:text-blue-500"
-                  }`}
-                >
-                  {t === "All" ? "All" : t === "Event" ? "Sports Events" : "Competitions"}
-                </button>
+        {/* ── Controls, Search & Filter Bar ────────────────────────── */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4">
+          
+          {/* Kind Segmented Tabs */}
+          <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+            {(["All", "Event", "Competition"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                  tab === t
+                    ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-md"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                {t === "All" ? "All Types" : t === "Event" ? "Sports Events" : "Competitions"}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search event name, sport, venue, or medals..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 dark:text-slate-100"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* Dropdown Filters */}
+          <div className="flex items-center gap-2">
+            <Filter size={15} className="text-slate-400 hidden sm:block" />
+            <select 
+              value={levelFilter} 
+              onChange={(e) => setLevelFilter(e.target.value as any)} 
+              className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
+            >
+              <option value="All">All Levels</option>
+              {LEVELS.map((l) => (
+                <option key={l} value={l}>{l}</option>
               ))}
-            </div>
+            </select>
 
-            {/* Controls Right Section */}
-            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center w-full lg:w-auto">
-              
-              {/* Search Bar */}
-              <div className="relative flex-1 md:w-64">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search events, sports, results..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-1.5 text-xs font-semibold rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-heading)] placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
-                />
-              </div>
-
-              {/* Select Level */}
-              <select 
-                value={levelFilter} 
-                onChange={(e) => setLevelFilter(e.target.value as any)} 
-                className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-xs font-bold focus:outline-none focus:border-blue-500 text-[var(--text-heading)]"
-              >
-                <option value="All">All Levels</option>
-                {LEVELS.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-
-              {/* Select Status */}
-              <select 
-                value={statusFilter} 
-                onChange={(e) => setStatusFilter(e.target.value as any)} 
-                className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-xs font-bold focus:outline-none focus:border-blue-500 text-[var(--text-heading)]"
-              >
-                <option value="All">All Statuses</option>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value as any)} 
+              className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
+            >
+              <option value="All">All Statuses</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Main Events List */}
-        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm">
+        {/* ── Main Events Log List ────────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
           
           {/* Header */}
-          <div className="p-4 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/40 font-bold text-[var(--text-heading)] flex justify-between items-center flex-wrap gap-2 text-sm">
-            <span>Event Log ({filteredEvents.length})</span>
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex items-center justify-between font-bold text-xs">
+            <span className="uppercase tracking-wider text-slate-400">
+              Sports Calendar Log ({filteredEvents.length} Events)
+            </span>
             {filteredEvents.length > 0 && (
-              <span className="text-xs text-[var(--text-muted)] font-semibold">
+              <span className="text-slate-500">
                 Showing {Math.min(filteredEvents.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(filteredEvents.length, currentPage * itemsPerPage)} of {filteredEvents.length}
               </span>
             )}
           </div>
 
-          {/* List Contents */}
-          <div className="divide-y divide-[var(--border)]">
-            
+          {/* List Items */}
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {paginatedEvents.map((ev) => (
               <div 
                 key={ev.id} 
-                className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-colors duration-200"
+                className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all group"
               >
                 <div className="flex items-start gap-4 min-w-0">
                   
-                  {/* Status Indicator Icon */}
+                  {/* Status Trophy Badge */}
                   <div
-                    className={`p-3 rounded-xl shrink-0 transition-transform ${
+                    className={`p-3.5 rounded-2xl shrink-0 transition-all ${
                       ev.status === "Completed"
-                        ? "bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400"
+                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                         : ev.status === "Cancelled"
-                        ? "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+                        ? "bg-slate-500/10 text-slate-400 border border-slate-500/20"
                         : ev.status === "Ongoing"
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400"
-                        : "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400"
+                        ? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                        : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                     }`}
                   >
-                    <Trophy size={18} />
+                    <Trophy size={20} />
                   </div>
 
-                  <div className="min-w-0 space-y-1">
+                  <div className="min-w-0 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-extrabold text-[var(--text-heading)] text-sm tracking-tight">{ev.name}</h4>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wide uppercase ${
+                      <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        {ev.name}
+                      </h3>
+
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
                         ev.kind === "Competition"
-                          ? "bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/40"
-                          : "bg-sky-50 text-sky-600 border border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40"
+                          ? "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
+                          : "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:text-cyan-400"
                       }`}>
                         {ev.kind}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wide uppercase ${
+
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
                         ev.status === "Completed"
-                          ? "bg-green-50 text-green-600 border border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/40"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                           : ev.status === "Cancelled"
-                          ? "bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700/80"
+                          ? "bg-slate-500/10 text-slate-400 border-slate-500/20"
                           : ev.status === "Ongoing"
-                          ? "bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/40"
-                          : "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/40"
+                          ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                          : "bg-amber-500/10 text-amber-600 border-amber-500/20"
                       }`}>
                         {ev.status}
                       </span>
+
                       {ev.targetClasses && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wide uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20 dark:text-blue-400">
                           {ev.targetClasses}
                         </span>
                       )}
+
                       {ev.ageGroup && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wide uppercase bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/50">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20 dark:text-rose-400">
                           {ev.ageGroup}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-x-3.5 gap-y-1.5 text-xs text-[var(--text-muted)] font-bold flex-wrap">
-                      <span className="flex items-center gap-1"><Medal size={12} className="opacity-75" /> {ev.sport}</span>
-                      <span className="flex items-center gap-1"><MapPin size={12} className="opacity-75" /> {ev.level} · {ev.venue}</span>
-                      <span className="flex items-center gap-1"><Calendar size={12} className="opacity-75" /> {ev.date}</span>
+                    <div className="flex items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400 font-medium flex-wrap">
+                      <span className="flex items-center gap-1.5"><Medal size={13} className="text-blue-500" /> {ev.sport}</span>
+                      <span className="flex items-center gap-1.5"><MapPin size={13} className="text-violet-500" /> {ev.level} · {ev.venue}</span>
+                      <span className="flex items-center gap-1.5"><Calendar size={13} className="text-emerald-500" /> {ev.date}</span>
                     </div>
 
                     {ev.result && (
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/20 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
-                        <Trophy size={11} />
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <Trophy size={12} />
                         Result: {ev.result}
                       </div>
                     )}
-                    {ev.notes && <div className="text-xs text-[var(--text-muted)] leading-relaxed italic opacity-85">{ev.notes}</div>}
+                    {ev.notes && <p className="text-xs text-slate-500 dark:text-slate-400 italic line-clamp-2">{ev.notes}</p>}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-5 shrink-0 border-t md:border-t-0 border-[var(--border)] pt-3.5 md:pt-0">
-                  <div className="text-left md:text-right">
-                    <div className="text-xl font-black text-[var(--text-heading)] flex items-center gap-1 justify-start md:justify-end tracking-tight">
-                      <Users size={14} className="text-[var(--text-muted)] opacity-75" /> {ev.participants}
+                {/* Right side stats & actions */}
+                <div className="flex items-center justify-between md:justify-end gap-5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                  <div className="text-left md:text-right space-y-0.5">
+                    <div className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5 justify-start md:justify-end">
+                      <Users size={15} className="text-slate-400" /> {ev.participants}
                     </div>
-                    <div className="text-[9px] font-extrabold uppercase text-[var(--text-muted)] tracking-wider">Students</div>
+                    <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Athletes</div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button 
                       onClick={() => setEditing(ev)} 
                       disabled={loadingAction}
-                      className="p-2 rounded-xl text-[var(--text-muted)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-[var(--border)] transition-colors disabled:opacity-50" 
-                      title="Edit / Update Result"
+                      className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50" 
+                      title="Edit Event"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={15} />
                     </button>
                     <button 
                       onClick={() => setDeletingId(ev.id)} 
                       disabled={loadingAction}
-                      className="p-2 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/25 border border-[var(--border)] transition-colors disabled:opacity-50" 
-                      title="Delete"
+                      className="p-2 rounded-xl text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors disabled:opacity-50" 
+                      title="Delete Event"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
@@ -465,46 +526,43 @@ export default function SportsConductedPage() {
             ))}
 
             {loaded && paginatedEvents.length === 0 && (
-              <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
-                <AlertTriangle size={36} className="text-slate-350 dark:text-slate-650" />
-                <h4 className="font-extrabold text-[var(--text-heading)]">No events match the current filter.</h4>
-                <p className="text-xs text-[var(--text-muted)] font-bold max-w-md">
-                  Try adjusting your search query, or clear some filters to discover the sports event calendar.
+              <div className="p-12 text-center space-y-3">
+                <Trophy size={36} className="mx-auto text-slate-400" />
+                <h4 className="font-bold text-sm text-slate-800 dark:text-white">No sports events recorded yet.</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Log your school sports competitions, tournaments, and events manually.
                 </p>
-                {events.length === 0 && (
-                  <button 
-                    onClick={handleImportDefaults}
-                    disabled={loadingAction}
-                    className="mt-2 px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-[var(--border)] rounded-xl transition-all"
-                  >
-                    Import standard TN School calendar
-                  </button>
-                )}
+                <button 
+                  onClick={() => setShowAdd(true)}
+                  disabled={loadingAction}
+                  className="mt-2 px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-sm inline-flex items-center gap-2"
+                >
+                  <Plus size={14} /> Log New Event
+                </button>
               </div>
             )}
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {filteredEvents.length > itemsPerPage && (
-            <div className="p-4 border-t border-[var(--border)] bg-slate-50/25 dark:bg-slate-800/20 flex items-center justify-between flex-wrap gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex items-center justify-between flex-wrap gap-3">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || loadingAction}
-                className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold flex items-center gap-1 text-[var(--text-heading)] hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40 transition-all shadow-sm"
               >
                 <ChevronLeft size={14} /> Previous
               </button>
 
-              {/* Page indicators */}
               <div className="flex items-center gap-1.5">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                   <button
                     key={p}
                     onClick={() => setCurrentPage(p)}
-                    className={`w-7.5 h-7.5 text-xs font-extrabold rounded-lg border transition-all ${
+                    className={`w-7.5 h-7.5 text-xs font-bold rounded-xl border transition-all ${
                       currentPage === p
                         ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "border-[var(--border)] text-[var(--text-muted)] hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700"
                     }`}
                   >
                     {p}
@@ -515,7 +573,7 @@ export default function SportsConductedPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages || loadingAction}
-                className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold flex items-center gap-1 text-[var(--text-heading)] hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40 transition-all shadow-sm"
               >
                 Next <ChevronRight size={14} />
               </button>
@@ -523,37 +581,95 @@ export default function SportsConductedPage() {
           )}
 
         </div>
-
       </div>
 
       {/* Delete Confirmation Modal */}
       {deletingId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 text-center space-y-4">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                <AlertTriangle size={32} />
-              </div>
-              <h3 className="text-lg font-black text-[var(--text-heading)]">Delete Event Log</h3>
-              <p className="text-sm font-semibold text-[var(--text-muted)] leading-relaxed">
-                Are you sure you want to delete this event from the log? This action cannot be undone.
-              </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="w-14 h-14 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
+              <AlertTriangle size={28} />
             </div>
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-[var(--border)] flex items-center gap-3">
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Delete Event Log</h3>
+              <p className="text-xs text-slate-500">Are you sure you want to delete this event log from the calendar?</p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => setDeletingId(null)}
                 disabled={loadingAction}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold border border-[var(--border)] hover:bg-slate-100 dark:hover:bg-slate-700 text-[var(--text-heading)] transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => removeEvent(deletingId)}
                 disabled={loadingAction}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-colors flex items-center justify-center gap-2"
               >
-                {loadingAction ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                Delete
+                {loadingAction ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />} Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="w-14 h-14 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Trash2 size={28} />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Clear All Events</h3>
+              <p className="text-xs text-slate-500">Are you sure you want to clear all events from the calendar? You can re-seed standard events anytime.</p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeClearAll}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                {loadingAction ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />} Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Seed Calendar Confirmation Modal */}
+      {showSeedConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="w-14 h-14 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Database size={28} />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Seed Standard Calendar</h3>
+              <p className="text-xs text-slate-500">This will add the standard Tamil Nadu school sports calendar events alongside your existing events. Proceed?</p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setShowSeedConfirm(false)}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeImportDefaults}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                {loadingAction ? <RefreshCw size={14} className="animate-spin" /> : <Database size={14} />} Seed Events
               </button>
             </div>
           </div>
@@ -604,7 +720,6 @@ function EventModal({
   const [result, setResult] = useState(initial?.result || "");
   const [notes, setNotes] = useState(initial?.notes || "");
   
-  // Section/standards and age category fields
   const [targetClasses, setTargetClasses] = useState(initial?.targetClasses || "All Classes");
   const [ageGroup, setAgeGroup] = useState(initial?.ageGroup || "Open");
 
@@ -655,20 +770,20 @@ function EventModal({
   };
 
   return (
-    <ModalShell title={initial ? "Update Event" : "Log New Event"} onClose={onClose} wide={true}>
-      <form onSubmit={submit} className="space-y-4">
+    <ModalShell title={initial ? "Update Sports Event Log" : "Log New Sports Event"} onClose={onClose} wide={true}>
+      <form onSubmit={submit} className="space-y-4 text-xs">
         
         <Field label="Event / Competition Name">
           <input 
             required 
             value={name} 
             onChange={(e) => setName(e.target.value)} 
-            placeholder="e.g. District Kabaddi Championship" 
+            placeholder="e.g. Zonal Athletics Meet 2026" 
             className={inputCls} 
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Type">
             <select value={kind} onChange={(e) => setKind(e.target.value as EventKind)} className={inputCls}>
               <option value="Event">Sports Event</option>
@@ -689,7 +804,7 @@ function EventModal({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Level">
             <select value={level} onChange={(e) => setLevel(e.target.value as EventLevel)} className={inputCls}>
               {LEVELS.map((l) => (
@@ -703,7 +818,7 @@ function EventModal({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Eligible Standards (Target)">
             <select value={targetClasses} onChange={(e) => setTargetClasses(e.target.value)} className={inputCls}>
               <option value="All Classes">All Classes (General)</option>
@@ -717,8 +832,8 @@ function EventModal({
             <select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className={inputCls}>
               <option value="Open">Open (All Ages)</option>
               <option value="Under-14">Under-14 (Sub-Junior)</option>
-              <option value="Under-17">Under-17 (Junior)</option>
-              <option value="Under-19">Under-19 (Senior)</option>
+              <option value="Under-17">Junior (Under-17)</option>
+              <option value="Under-19">Senior (Under-19)</option>
             </select>
           </Field>
         </div>
@@ -728,13 +843,13 @@ function EventModal({
             required 
             value={venue} 
             onChange={(e) => setVenue(e.target.value)} 
-            placeholder="e.g. School Main Ground" 
+            placeholder="e.g. SDAT Stadium, District Main Field" 
             className={inputCls} 
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Participants">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Participants (Athletes Count)">
             <input 
               required 
               type="number" 
@@ -763,11 +878,10 @@ function EventModal({
           />
         </Field>
 
-        {/* Student Search & Multi-Select by Class */}
-        <Field label="Select Participating Students (Optional)">
+        {/* Student Selection */}
+        <Field label="Map Participating Students from Class Roster (Optional)">
           <div className="space-y-3">
-            {/* Class Pill Selectors */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {["6", "7", "8", "9", "10", "11", "12"].map((clsNum) => {
                 const isActive = activeClassTab === clsNum;
                 const count = allStudents.filter(s => {
@@ -780,15 +894,15 @@ function EventModal({
                     key={clsNum}
                     type="button"
                     onClick={() => setActiveClassTab(isActive ? null : clsNum)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-sm ${
+                    className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
                       isActive
-                        ? "bg-blue-600 text-white border-blue-600 shadow-blue-500/10"
-                        : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)] hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     Class {clsNum}
-                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                      isActive ? "bg-blue-500 text-white" : "bg-slate-100 dark:bg-slate-850 text-[var(--text-muted)]"
+                    <span className={`px-1.5 py-0.5 rounded-md text-[9px] ${
+                      isActive ? "bg-blue-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                     }`}>
                       {count}
                     </span>
@@ -797,23 +911,16 @@ function EventModal({
               })}
             </div>
 
-            {/* Students List in Active Class */}
             {activeClassTab && (
-              <div className="border border-[var(--border)] rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/10 max-h-52 overflow-y-auto space-y-2 transition-all">
-                <div className="text-xs text-[var(--text-muted)] font-bold mb-2 flex justify-between items-center">
+              <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-800/40 max-h-48 overflow-y-auto space-y-2">
+                <div className="text-[11px] font-bold text-slate-500 flex justify-between items-center">
                   <span>Students in Class {activeClassTab}:</span>
-                  <button 
-                    type="button" 
-                    onClick={() => setActiveClassTab(null)}
-                    className="text-[var(--text-muted)] hover:text-red-500 font-bold"
-                  >
+                  <button type="button" onClick={() => setActiveClassTab(null)} className="text-slate-400 hover:text-rose-500 font-bold">
                     Close Roster
                   </button>
                 </div>
                 {studentsInActiveClass.length === 0 ? (
-                  <div className="text-xs text-[var(--text-muted)] italic p-2">
-                    No students registered in Class {activeClassTab}.
-                  </div>
+                  <div className="text-xs text-slate-400 italic p-1">No students found in Class {activeClassTab}.</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {studentsInActiveClass.map((student) => {
@@ -821,10 +928,10 @@ function EventModal({
                       return (
                         <label
                           key={student.id}
-                          className={`flex items-center gap-3 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-slate-850 ${
+                          className={`flex items-center gap-2.5 p-2 rounded-xl border text-xs font-medium cursor-pointer transition-all ${
                             isChecked
-                              ? "bg-blue-50/40 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-450 dark:border-blue-900/50"
-                              : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-main)]"
+                              ? "bg-blue-50 dark:bg-blue-900/30 border-blue-400 text-blue-700 dark:text-blue-300"
+                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"
                           }`}
                         >
                           <input
@@ -837,11 +944,11 @@ function EventModal({
                                 setSelectedStudentIds(prev => [...prev, student.id]);
                               }
                             }}
-                            className="w-3.5 h-3.5 rounded text-blue-600 border-slate-350 focus:ring-blue-500"
+                            className="w-3.5 h-3.5 rounded text-blue-600"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="truncate">{student.user.name}</p>
-                            <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase">Section {student.section} · Roll {student.rollNumber}</p>
+                            <p className="truncate font-bold">{student.user.name}</p>
+                            <p className="text-[9px] text-slate-400">Sec {student.section} · Roll {student.rollNumber}</p>
                           </div>
                         </label>
                       );
@@ -851,45 +958,35 @@ function EventModal({
               </div>
             )}
 
-            {/* Selected Students Badges */}
             {selectedStudentIds.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="text-xs text-[var(--text-muted)] font-bold">
-                  Selected Athletes ({selectedStudentIds.length}):
-                </div>
-                <div className="flex flex-wrap gap-1.5 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-[var(--border)] max-h-28 overflow-y-auto">
-                  {selectedStudentIds.map(id => {
-                    const s = allStudents.find(x => x.id === id);
-                    if (!s) return null;
-                    return (
-                      <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50 shadow-sm transition-all">
-                        {s.user.name} (Class {s.class}-{s.section})
-                        <button
-                          type="button"
-                          onClick={() => setSelectedStudentIds(prev => prev.filter(x => x !== id))}
-                          className="hover:text-red-500 hover:scale-110 transition-all ml-0.5"
-                        >
-                          <X size={11} />
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap gap-1.5 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                {selectedStudentIds.map(id => {
+                  const s = allStudents.find(x => x.id === id);
+                  if (!s) return null;
+                  return (
+                    <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20 dark:text-blue-400">
+                      {s.user.name} (Class {s.class}-{s.section})
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStudentIds(prev => prev.filter(x => x !== id))}
+                        className="hover:text-rose-500"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>
         </Field>
 
         <Field label="Notes (optional)">
-          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
+          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} placeholder="Additional tournament details..." />
         </Field>
 
-        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-          {isLoading ? (
-            <><RefreshCw size={16} className="animate-spin" /> Saving...</>
-          ) : (
-            initial ? "Save Changes" : "Add to Event Log"
-          )}
+        <button type="submit" disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          {isLoading ? <><RefreshCw size={14} className="animate-spin" /> Saving...</> : (initial ? "Save Changes" : "Log Event")}
         </button>
       </form>
     </ModalShell>

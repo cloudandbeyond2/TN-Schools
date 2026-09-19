@@ -155,6 +155,31 @@ router.post('/requests', async (req: Request, res: Response) => {
     if (!data.qty || Number(data.qty) < 1) data.qty = 1;
     data.status = 'Pending'; // requests always start pending
     const created = await prisma.petEquipmentRequest.create({ data: data as any });
+
+    // Dispatch notification to Headmaster for approval
+    if (created.schoolId) {
+      Promise.resolve().then(async () => {
+        try {
+          const hmUser = await prisma.user.findFirst({
+            where: { schoolId: created.schoolId, role: 'HEADMASTER' }
+          });
+          if (hmUser) {
+            await prisma.notification.create({
+              data: {
+                userId: hmUser.id,
+                type: 'EQUIPMENT_REQUEST',
+                title: `New Equipment ${created.type} Request`,
+                message: `PET staff submitted a ${created.type.toLowerCase()} request for ${created.qty}x "${created.item}" (${created.purpose}). Pending HM approval.`,
+                read: false,
+              }
+            });
+          }
+        } catch (err) {
+          console.error('Error sending HM equipment request notification:', err);
+        }
+      });
+    }
+
     res.json({ success: true, data: created });
   } catch (err) {
     console.error('Error creating PET equipment request:', err);

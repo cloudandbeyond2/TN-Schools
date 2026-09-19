@@ -85,6 +85,8 @@ export default function InventoryPage() {
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
+  const [deletingRequest, setDeletingRequest] = useState<EquipmentRequest | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -149,8 +151,7 @@ export default function InventoryPage() {
     }
   };
 
-  const removeItem = async (item: InventoryItem) => {
-    if (!confirm(`Remove "${item.item}" from the inventory?`)) return;
+  const executeRemoveItem = async (item: InventoryItem) => {
     if (source === "server") {
       try {
         await deleteInventoryItem(item.id);
@@ -226,8 +227,7 @@ export default function InventoryPage() {
     }
   };
 
-  const removeRequest = async (req: EquipmentRequest) => {
-    if (!confirm(`Delete the request for "${req.item}"?`)) return;
+  const executeRemoveRequest = async (req: EquipmentRequest) => {
     if (source === "server") {
       try {
         await deleteEquipmentRequest(req.id);
@@ -274,72 +274,115 @@ export default function InventoryPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 w-full mx-auto space-y-6">
-        {/* ── Header ─────────────────────────────────────────────── */}
-        <PETPortalBanner
-          pageKey="inventory"
-          rightElement={
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={importDefaults}
-                title={source === "server" ? "Import the default TN school stock list" : "Reset to default stock list"}
-                className="px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-[var(--text-muted)]"
-              >
-                {source === "server" ? <Download size={15} /> : <RotateCcw size={15} />}
-                {source === "server" ? "Import Defaults" : "Reset"}
-              </button>
+      <div className="p-4 sm:p-6 w-full space-y-6 text-slate-800 dark:text-slate-100">
+        
+        {/* ── Top Hero Header Banner ──────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/20">
+                  <Package size={20} />
+                </span>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  Inventory & Sports Equipments
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
+                Track sports items, equipment stock balance, audit history, and damaged logs ({stats.available} available · {stats.issued} issued).
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <button
                 onClick={() => setShowRequest(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+                className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-emerald-900/40 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Send size={15} /> New Request
               </button>
               <button
                 onClick={() => setShowAdd(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-900/40 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Plus size={16} /> Add Item
               </button>
             </div>
-          }
-        />
-
-
-
-        {/* ── Stat cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            icon={CheckCircle2} color="text-green-500" bg="bg-green-50 dark:bg-green-900/20"
-            label="Available Units" value={String(stats.available)} sub={`of ${stats.totalUnits} total`}
-          />
-          <StatCard
-            icon={ArrowRightLeft} color="text-blue-500" bg="bg-blue-50 dark:bg-blue-900/20"
-            label="Issued Out" value={String(stats.issued)} sub="units in use"
-          />
-          <StatCard
-            icon={Wrench} color="text-red-500" bg="bg-red-50 dark:bg-red-900/20"
-            label="Damaged Units" value={String(stats.damagedUnits)} sub={`${damagedItems.length} items affected`}
-          />
-          <StatCard
-            icon={ClipboardList} color="text-amber-500" bg="bg-amber-50 dark:bg-amber-900/20"
-            label="Pending Requests" value={String(stats.pending)} sub={`${stats.alerts} stock alerts`}
-          />
+          </div>
         </div>
 
-        {/* ── Tabs ───────────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-2">
+        {/* ── Stat Metric Grid ───────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Available Units</div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                {stats.available}
+              </div>
+            </div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <CheckCircle2 size={13} className="text-emerald-500" /> of {stats.totalUnits} total units
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Issued Out</div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                {stats.issued}
+              </div>
+            </div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <ArrowRightLeft size={13} className="text-blue-500" /> units in active use
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-600" />
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Damaged Units</div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                {stats.damagedUnits}
+              </div>
+            </div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <Wrench size={13} className="text-rose-500" /> {damagedItems.length} items affected
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-600" />
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending Requests</div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+                {stats.pending}
+              </div>
+            </div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <ClipboardList size={13} className="text-amber-500" /> {stats.alerts} stock alerts
+            </div>
+          </div>
+        </div>
+
+        {/* ── Glassmorphic Segmented Tabs ───────────────────────────── */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm flex flex-wrap gap-2">
           {tabs.map(({ key, label, icon: Icon, count }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 transition-colors ${
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all ${
                 tab === key
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
             >
-              <Icon size={15} /> {label}
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${tab === key ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"}`}>
+              <Icon size={16} /> {label}
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${tab === key ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>
                 {count}
               </span>
             </button>
@@ -453,7 +496,7 @@ export default function InventoryPage() {
                             {status === "critical" && <AlertCircle size={18} className="text-red-500 inline-block" />}
                           </td>
                           <td className="p-4 text-right">
-                            <button onClick={() => removeItem(item)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Remove item">
+                            <button onClick={() => setDeletingItem(item)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Remove item">
                               <Trash2 size={14} />
                             </button>
                           </td>
@@ -625,7 +668,7 @@ export default function InventoryPage() {
                             {STATUS_ACTION[s]}
                           </button>
                         ))}
-                        <button onClick={() => removeRequest(req)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete request">
+                        <button onClick={() => setDeletingRequest(req)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete request">
                           <Trash2 size={14} />
                         </button>
                       </td>
@@ -722,6 +765,70 @@ export default function InventoryPage() {
             setTab("requests");
           }}
         />
+      )}
+
+      {/* Delete Item Confirmation Modal */}
+      {deletingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="w-14 h-14 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Trash2 size={28} />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Remove Inventory Item</h3>
+              <p className="text-xs text-slate-500">Are you sure you want to remove &quot;{deletingItem.item}&quot; from the inventory?</p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setDeletingItem(null)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  executeRemoveItem(deletingItem);
+                  setDeletingItem(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={14} /> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Request Confirmation Modal */}
+      {deletingRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="w-14 h-14 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Trash2 size={28} />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Delete Equipment Request</h3>
+              <p className="text-xs text-slate-500">Are you sure you want to delete the request for &quot;{deletingRequest.item}&quot;?</p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setDeletingRequest(null)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  executeRemoveRequest(deletingRequest);
+                  setDeletingRequest(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </PortalLayout>
   );
