@@ -1,6 +1,17 @@
 "use client";
 import React from "react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import {
+  LayoutGrid,
+  Activity,
+  Trophy,
+  Package,
+  Medal,
+  MapPin,
+  Users,
+  MessageSquare,
+  LucideIcon,
+} from "lucide-react";
 
 export type PETPageKey =
   | "dashboard"
@@ -13,7 +24,9 @@ export type PETPageKey =
   | "messages";
 
 interface BannerDetail {
-  icon: string;
+  icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
   en: {
     title: string;
     desc: string;
@@ -28,20 +41,24 @@ interface BannerDetail {
 
 const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   dashboard: {
-    icon: "fi-sr-apps",
+    icon: LayoutGrid,
+    iconBg: "bg-blue-500/20 border-blue-400/20",
+    iconColor: "text-blue-400",
     en: {
-      title: "Dashboard",
+      title: "Physical Education Teacher Dashboard",
       desc: "Overview of sports status, ground conditions, active clubs, and quick stats.",
       rightPill: "Ecosystem Hub",
     },
     ta: {
-      title: "டாஷ்போர்டு",
+      title: "உடற்கல்வி ஆசிரியர் டாஷ்போர்டு",
       desc: "விளையாட்டு நிலை, மைதான நிலவரம், செயலில் உள்ள மன்றங்கள் மற்றும் புள்ளிவிவரங்களின் கண்ணோட்டம்.",
       rightPill: "சூழல் அமைப்பு",
     },
   },
   records: {
-    icon: "fi-sr-clipboard-list",
+    icon: Activity,
+    iconBg: "bg-blue-500/20 border-blue-400/20",
+    iconColor: "text-blue-400",
     en: {
       title: "Student Records & Health",
       desc: "Height, weight, BMI, fitness assessments, physical activity and health indicators.",
@@ -54,7 +71,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   sports: {
-    icon: "fi-sr-running",
+    icon: Trophy,
+    iconBg: "bg-amber-500/20 border-amber-400/20",
+    iconColor: "text-amber-400",
     en: {
       title: "Sports Events & Competitions",
       desc: "Manage school level tournaments, games, annual athletics meet, and event registrations.",
@@ -67,7 +86,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   inventory: {
-    icon: "fi-sr-box",
+    icon: Package,
+    iconBg: "bg-emerald-500/20 border-emerald-400/20",
+    iconColor: "text-emerald-400",
     en: {
       title: "Inventory & Equipments",
       desc: "Track sports items, equipment stock balance, audit history, and damaged logs.",
@@ -80,7 +101,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   awards: {
-    icon: "fi-sr-trophy",
+    icon: Medal,
+    iconBg: "bg-amber-500/20 border-amber-400/20",
+    iconColor: "text-amber-400",
     en: {
       title: "Awards & Certifications",
       desc: "Log student sports achievements, state/district awards, and medals list.",
@@ -93,7 +116,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   ground: {
-    icon: "fi-sr-map-marker",
+    icon: MapPin,
+    iconBg: "bg-emerald-500/20 border-emerald-400/20",
+    iconColor: "text-emerald-400",
     en: {
       title: "Ground Condition",
       desc: "Monitor playground readiness, maintenance request status, and track logs.",
@@ -106,7 +131,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   clubs: {
-    icon: "fi-sr-users",
+    icon: Users,
+    iconBg: "bg-indigo-500/20 border-indigo-400/20",
+    iconColor: "text-indigo-400",
     en: {
       title: "Clubs & Activities",
       desc: "Manage sports clubs, student registrations, active attendance, and training schedules.",
@@ -119,7 +146,9 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
     },
   },
   messages: {
-    icon: "fi-sr-comment",
+    icon: MessageSquare,
+    iconBg: "bg-teal-500/20 border-teal-400/20",
+    iconColor: "text-teal-400",
     en: {
       title: "Parent Messages",
       desc: "Read and reply to parents about physical education, fitness, and sports progress.",
@@ -149,24 +178,35 @@ export default function PETPortalBanner({
   if (!config) return null;
 
   const data = isTa ? config.ta : config.en;
+  const Icon = config.icon;
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 mb-4 glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md w-full animate-fade-in">
-      {/* Left */}
-      <div>
-        <h2 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
-          <i className={`fi ${config.icon} text-lime-600 dark:text-lime-400 flex items-center text-sm sm:text-base`} />
-          {data.title}
-        </h2>
-        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
-          {customDesc || data.desc}
-        </p>
-      </div>
-      {rightElement && (
-        <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0">
-          {rightElement}
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800 w-full mb-6 animate-fade-in">
+      {/* Glow Blur Circles */}
+      <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <span className={`p-2 rounded-xl border ${config.iconBg} ${config.iconColor}`}>
+              <Icon size={20} />
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+              {data.title}
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
+            {customDesc || data.desc}
+          </p>
         </div>
-      )}
+
+        {rightElement && (
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {rightElement}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

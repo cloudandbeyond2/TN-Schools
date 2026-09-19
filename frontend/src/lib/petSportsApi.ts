@@ -50,6 +50,10 @@ export async function deleteSportsEvent(id: string): Promise<void> {
   await request(`/${id}`, { method: "DELETE" });
 }
 
+export async function clearAllSportsEvents(): Promise<void> {
+  await request("/all/clear", { method: "DELETE" });
+}
+
 export async function fetchStudents(schoolId: string): Promise<any[]> {
   const res = await apiFetch(`/api/students?schoolId=${schoolId}`, {
     signal: AbortSignal.timeout(TIMEOUT_MS),
