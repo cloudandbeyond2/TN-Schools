@@ -173,9 +173,9 @@ function ParentMessagesContent() {
     >
       <ParentPortalBanner pageKey="messages" />
  
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6 h-[calc(100vh-420px)] lg:h-[calc(100vh-370px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6 min-h-[500px] lg:h-[calc(100vh-310px)]">
         {/* Sidebar: Class Teachers list */}
-        <div className={`lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
+        <div className={`lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
           <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
             <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1">
               <User className="w-4 h-4 text-[var(--portal-color,#10b981)]" /> 
@@ -244,7 +244,7 @@ function ParentMessagesContent() {
           {activeTeacher ? (
             <>
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 md:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--bg-main)] gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 md:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--bg-main)] gap-2 shrink-0">
                 <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full sm:w-auto">
                   {/* Mobile Back Button */}
                   <button
@@ -270,7 +270,7 @@ function ParentMessagesContent() {
               </div>
 
               {/* Chat history */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[var(--bg-card)]">
+              <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 bg-[var(--bg-card)] custom-scrollbar">
                 {loadingMessages ? (
                   <div className="text-center py-12 text-xs text-[var(--text-muted)]">
                     {lang === "தமிழ்" ? "செய்திகளை ஏற்றுகிறது..." : "Loading conversation history..."}

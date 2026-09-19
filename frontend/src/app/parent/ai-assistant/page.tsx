@@ -440,7 +440,7 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
 
       <ParentPortalBanner pageKey="ai-assistant" />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch w-full min-h-[calc(100vh-220px)] lg:h-[calc(100vh-220px)] relative overflow-hidden">
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch w-full min-h-[550px] lg:h-[calc(100vh-310px)] relative">
         
         {/* Backdrop for mobile drawer */}
         {isSidebarOpen && (
@@ -452,10 +452,10 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
 
         {/* Left Side Panel (Scope & Settings) - Mobile Drawer overlay / Desktop static side-by-side */}
         <div className={`
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          fixed lg:static inset-y-0 left-0 z-40 w-80 max-w-[85vw] p-5 lg:p-0 
+          ${isSidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-full lg:translate-x-0 opacity-0 lg:opacity-100"}
+          fixed lg:static inset-y-0 left-0 z-40 w-80 lg:w-72 xl:w-80 max-w-[85vw] p-5 lg:p-0 
           bg-[var(--bg-card)] lg:bg-transparent border-r lg:border-r-0 border-[var(--border)]
-          transition-transform duration-300 ease-in-out flex flex-col gap-4 overflow-y-auto lg:overflow-visible shrink-0
+          transition-all duration-300 ease-in-out flex flex-col gap-4 overflow-y-auto custom-scrollbar shrink-0 lg:h-full
         `}>
           
           {/* Limitations and Scope Panel - Flat Icons Only */}
@@ -558,21 +558,21 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
         </div>
 
         {/* Chat Interface Column - Takes remaining width and fits height */}
-        <div className="flex flex-col glass rounded-2xl overflow-hidden border border-[var(--border)] shadow-2xl relative flex-1 bg-[var(--bg-card)]">
+        <div className="flex flex-col glass rounded-2xl overflow-hidden border border-[var(--border)] shadow-2xl relative flex-1 bg-[var(--bg-card)] min-w-0 h-full">
           
           {/* Chat Workspace Header - Flat Icons Only */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-card)] backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg text-white">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-card)] backdrop-blur-md shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg text-white shrink-0">
                 <i className="fi fi-rr-sparkles text-lg"></i>
               </div>
-              <div className="text-left">
-                <div className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <div className="text-left min-w-0">
+                <div className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2 truncate">
                   Parent AI Assistant
-                  <span className="badge badge-green text-[8px] tracking-wider font-extrabold select-none">Official</span>
+                  <span className="badge badge-green text-[8px] tracking-wider font-extrabold select-none shrink-0">Official</span>
                 </div>
-                <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
-                  <span className="relative flex h-1.5 w-1.5">
+                <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5 truncate">
+                  <span className="relative flex h-1.5 w-1.5 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                   </span>
@@ -580,7 +580,7 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="lg:hidden text-[var(--text-muted)] hover:text-emerald-500 p-2 rounded-xl bg-[var(--bg-main)] hover:bg-[var(--sidebar-item-hover-bg)] active:scale-95 transition-all text-xs flex items-center gap-1 border border-[var(--border)] font-bold"
@@ -589,15 +589,15 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
                 <i className="fi fi-rr-info"></i>
                 <span>Info</span>
               </button>
-              <span className="text-[10px] bg-[var(--sidebar-item-hover-bg)] border border-[var(--border)] text-emerald-600 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-xl shadow-inner flex items-center gap-1.5">
-                <i className="fi fi-rr-user text-emerald-500 text-xs"></i>
-                {childLabel}
+              <span className="text-[10px] bg-[var(--sidebar-item-hover-bg)] border border-[var(--border)] text-emerald-600 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-xl shadow-inner flex items-center gap-1.5 truncate max-w-[160px] sm:max-w-xs">
+                <i className="fi fi-rr-user text-emerald-500 text-xs shrink-0"></i>
+                <span className="truncate">{childLabel}</span>
               </span>
             </div>
           </div>
 
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 max-h-[calc(100vh-380px)] lg:max-h-none lg:flex-1 bg-[var(--bg-main)]/30">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[var(--bg-main)]/30 custom-scrollbar">
             {messages.map((msg, i) => {
               const isAssistant = msg.role === "assistant";
               return (
@@ -608,7 +608,7 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-xs leading-relaxed transition-all shadow-sm ${
+                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-xs leading-relaxed transition-all shadow-sm ${
                       isAssistant
                         ? msg.isWarning
                           ? "bg-amber-500/5 text-[var(--text-main)] border border-amber-500/20 rounded-tl-none shadow-amber-500/5"
@@ -688,16 +688,16 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
           </div>
 
           {/* Suggested Quick Queries - Flat Icons Only */}
-          <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-card-hover)] flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+          <div className="px-4 sm:px-5 py-2.5 sm:py-3 border-t border-[var(--border)] bg-[var(--bg-card-hover)] flex flex-col sm:flex-row gap-2 items-start sm:items-center shrink-0">
             <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
               <i className="fi fi-rr-comment-alt text-emerald-500"></i> Suggestions:
             </span>
-            <div className="flex flex-wrap gap-2 w-full">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
               {suggestedChips.map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(chip.query)}
-                  className="flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-emerald-500/30 text-[var(--text-main)] hover:text-emerald-500 hover:bg-emerald-650/5 transition-all flex-shrink-0 shadow-sm"
+                  className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 sm:px-3 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-emerald-500/30 text-[var(--text-main)] hover:text-emerald-500 hover:bg-emerald-500/5 transition-all flex-shrink-0 shadow-sm"
                 >
                   <i className={chip.icon}></i>
                   {chip.label}
@@ -707,8 +707,8 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
           </div>
 
           {/* Message Input Form - Flat Icons Only */}
-          <div className="px-5 py-4 border-t border-[var(--border)] bg-[var(--bg-card)] backdrop-blur-md">
-            <div className="flex gap-3">
+          <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-[var(--border)] bg-[var(--bg-card)] backdrop-blur-md shrink-0">
+            <div className="flex gap-2 sm:gap-3">
               <input
                 id="ai-assistant-input"
                 type="text"
@@ -716,21 +716,21 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder={activeLanguage === "tamil" ? `கேள்விகளைக் கேளுங்கள்...` : `Ask about ${childName}'s performance, attendance, homework, exams, activities, or schemes...`}
-                className="flex-1 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-3.5 text-xs text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-emerald-500 transition-colors"
+                className="flex-1 min-w-0 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3.5 text-xs text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-emerald-500 transition-colors"
               />
               <button
                 id="ai-assistant-send-btn"
                 onClick={() => handleSendMessage()}
-                className="px-5 py-3 rounded-xl text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-all active:scale-95 flex-shrink-0 flex items-center gap-2 shadow-lg shadow-emerald-500/10"
+                className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-all active:scale-95 flex-shrink-0 flex items-center gap-2 shadow-lg shadow-emerald-500/10"
               >
                 <span>{activeLanguage === "tamil" ? "அனுப்பு" : "Send"}</span>
                 <i className="fi fi-rr-paper-plane text-xs"></i>
               </button>
             </div>
             
-            <div className="flex justify-between items-center mt-2.5 text-[10px] text-[var(--text-muted)]">
-              <div className="flex gap-3">
-                <button id="ai-assistant-voice-btn" className="hover:text-emerald-550 transition-colors flex items-center gap-1 font-semibold">
+            <div className="flex flex-wrap justify-between items-center gap-2 mt-2.5 text-[10px] text-[var(--text-muted)]">
+              <div className="flex items-center gap-3">
+                <button id="ai-assistant-voice-btn" className="hover:text-emerald-500 transition-colors flex items-center gap-1 font-semibold">
                   <i className="fi fi-rr-microphone"></i> {activeLanguage === "tamil" ? "குரல் வழி" : "Voice Input"}
                 </button>
                 <span>·</span>
