@@ -55,10 +55,19 @@ export default function HomeworkPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Helper for today's date in YYYY-MM-DD
+  const getTodayString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   // New Homework Form State
   const [newTitle, setNewTitle] = useState("");
   const [newClass, setNewClass] = useState("");
-  const [newDueDate, setNewDueDate] = useState("2026-07-16");
+  const [newDueDate, setNewDueDate] = useState(getTodayString());
   const [newDesc, setNewDesc] = useState("");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
@@ -175,6 +184,7 @@ export default function HomeworkPage() {
         setShowCreateModal(false);
         setNewTitle("");
         setNewDesc("");
+        setNewDueDate(getTodayString());
         Swal.fire({
           icon: "success",
           title: "Created!",
@@ -512,7 +522,10 @@ export default function HomeworkPage() {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setNewDueDate(getTodayString());
+              setShowCreateModal(true);
+            }}
             className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[var(--primary)] hover:bg-amber-600 transition-colors"
           >
             <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பணி உருவாக்கு" : "Create Assignment"}
@@ -801,6 +814,7 @@ export default function HomeworkPage() {
                   <input
                     type="date"
                     required
+                    min={getTodayString()}
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
                     className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]"

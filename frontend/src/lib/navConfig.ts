@@ -619,6 +619,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/parent", icon: "Home" },
       { label: "Child Performance", href: "/parent/performance", icon: "Activity" },
+      { label: "Screen Time & Usage", href: "/parent/screen-time", icon: "Clock" },
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
       { label: "Homework Status", href: "/parent/homework", icon: "BookMarked" },
       { label: "Notifications", href: "/parent/notifications", icon: "Bell" },

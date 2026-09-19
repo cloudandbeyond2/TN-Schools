@@ -48,12 +48,22 @@ function ParentMessagesContent() {
   const [sending, setSending] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
-  // Fetch teachers of the school
+  // Fetch class teachers for the active child
   const fetchTeachers = useCallback(async () => {
     if (!schoolId) return;
     setLoadingTeachers(true);
     try {
-      const res = await fetch(`${API_URL}/api/parent/teachers?schoolId=${schoolId}`);
+      const childClass = activeChild?.class;
+      const childSection = activeChild?.section;
+
+      const params = new URLSearchParams({
+        schoolId: String(schoolId),
+        onlyClassTeacher: "true",
+      });
+      if (childClass) params.append("class", String(childClass));
+      if (childSection) params.append("section", String(childSection));
+
+      const res = await fetch(`${API_URL}/api/parent/teachers?${params.toString()}`);
       const json = await res.json();
       if (json.success && json.data) {
         const unique: Teacher[] = [];
@@ -71,11 +81,11 @@ function ParentMessagesContent() {
         }
       }
     } catch (err) {
-      console.error("Failed to load teachers", err);
+      console.error("Failed to load class teachers", err);
     } finally {
       setLoadingTeachers(false);
     }
-  }, [schoolId, API_URL]);
+  }, [schoolId, activeChild, API_URL]);
 
   // Fetch chat messages
   const fetchMessages = useCallback(async () => {
@@ -158,18 +168,18 @@ function ParentMessagesContent() {
 
   return (
     <PortalLayout 
-      title={lang === "தமிழ்" ? "ஆசிரியர் தொடர்பு" : "Teacher Communication"} 
-      subtitle={lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்கள் மற்றும் பள்ளி பணியாளர்களுடன் நேரடி அரட்டை" : "Direct messaging with your child's teachers and school staff"}
+      title={lang === "தமிழ்" ? "வகுப்பு ஆசிரியர் தொடர்பு" : "Class Teacher Messaging"} 
+      subtitle={lang === "தமிழ்" ? "உங்கள் குழந்தையின் வகுப்பு ஆசிரியருடன் நேரடி அரட்டை" : "Direct messaging with your child's assigned Class Teacher"}
     >
       <ParentPortalBanner pageKey="messages" />
  
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6 h-[calc(100vh-420px)] lg:h-[calc(100vh-370px)]">
-        {/* Sidebar: Teachers list */}
+        {/* Sidebar: Class Teachers list */}
         <div className={`lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
           <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
             <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1">
               <User className="w-4 h-4 text-[var(--portal-color,#10b981)]" /> 
-              {lang === "தமிழ்" ? "ஆசிரியர்கள்" : "Teachers List"}
+              {lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்கள்" : "Class Teachers"}
             </h3>
             <button 
               onClick={fetchTeachers}
@@ -179,10 +189,17 @@ function ParentMessagesContent() {
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          {activeChild && (
+            <div className="px-2.5 py-1.5 rounded-lg bg-[var(--portal-color,#10b981)]/10 text-[var(--portal-color,#10b981)] text-[11px] font-semibold flex items-center gap-1.5 border border-[var(--portal-color,#10b981)]/20">
+              <span>🏫</span>
+              <span>{activeChild.name} • Class {activeChild.class}-{activeChild.section}</span>
+            </div>
+          )}
  
           {loadingTeachers ? (
             <div className="text-center py-6 text-xs text-[var(--text-muted)]">
-              {lang === "தமிழ்" ? "ஏற்றப்படுகிறது..." : "Loading teachers..."}
+              {lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்களை ஏற்றுகிறது..." : "Loading class teachers..."}
             </div>
           ) : teachers.length > 0 ? (
             <div className="space-y-2">
@@ -201,8 +218,11 @@ function ParentMessagesContent() {
                         : "border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
                     }`}
                   >
-                    <div className="font-semibold text-[var(--text-heading)] mb-1 truncate">
-                      {t.user.name}
+                    <div className="font-semibold text-[var(--text-heading)] mb-1 truncate flex items-center justify-between">
+                      <span>{t.user.name}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--portal-color,#10b981)]/10 text-[var(--portal-color,#10b981)] font-bold">
+                        {lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்" : "Class Teacher"}
+                      </span>
                     </div>
                     <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
                       <BookOpen className="w-3 h-3 text-[var(--portal-color,#10b981)]" />
@@ -214,7 +234,7 @@ function ParentMessagesContent() {
             </div>
           ) : (
             <div className="text-center py-6 text-xs text-[var(--text-muted)] italic">
-              {lang === "தமிழ்" ? "ஆசிரியர்கள் விவரங்கள் இல்லை" : "No teachers registered."}
+              {lang === "தமிழ்" ? "வகுப்பு ஆசிரியர் விவரங்கள் கிடைக்கவில்லை" : "No Class Teacher found for this class."}
             </div>
           )}
         </div>
@@ -261,16 +281,25 @@ function ParentMessagesContent() {
                     return (
                       <div key={i} className={`flex ${isParent ? "justify-end" : "justify-start"}`}>
                         <div
-                          className={`max-w-[80%] rounded-xl px-4 py-2.5 text-xs leading-relaxed ${
+                          className={`max-w-[80%] rounded-xl px-4 py-2.5 text-xs leading-relaxed font-medium ${
                             isParent
-                              ? "bg-[var(--portal-color,#10b981)] text-white shadow-md rounded-tr-none"
+                              ? "bg-[#10b981] !text-white shadow-md rounded-tr-none"
                               : "bg-[var(--bg-main)] text-[var(--text-heading)] rounded-tl-none border border-[var(--border-light)]"
                           }`}
+                          style={isParent ? { backgroundColor: "#10b981", color: "#ffffff" } : undefined}
                         >
-                          <div>{msg.text}</div>
-                          <div className={`text-[8px] text-right mt-1.5 ${isParent ? "text-emerald-100" : "text-[var(--text-muted)]"}`}>
+                          <p
+                            style={isParent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                            className={isParent ? "!text-white font-semibold text-white" : "text-[var(--text-heading)]"}
+                          >
+                            {msg.text}
+                          </p>
+                          <span
+                            className={`block text-[9px] text-right mt-1.5 ${isParent ? "!text-white font-medium opacity-90" : "text-[var(--text-muted)]"}`}
+                            style={isParent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                          >
                             {msg.time || "Just now"}
-                          </div>
+                          </span>
                         </div>
                       </div>
                     );

@@ -94,6 +94,18 @@ function CommunicationContent() {
         }];
       }
 
+      // 2. Fetch parents from backend and active conversations
+      let convParents: Parent[] = [];
+      if (teacherId) {
+        try {
+          const convRes = await fetch(`${API_URL}/api/teacher/conversations?teacherId=${teacherId}`);
+          const convJson = await convRes.json();
+          if (convJson.success && Array.isArray(convJson.data)) {
+            convParents = convJson.data;
+          }
+        } catch {}
+      }
+
       const res = await fetch(`${API_URL}/api/headmaster/parents?schoolId=${activeSchoolId}`);
       const data = await res.json();
       if (data.success && data.data) {
@@ -118,6 +130,22 @@ function CommunicationContent() {
 
             return (classMatches && secMatches) || linkedMatches;
           });
+        });
+
+        // Merge active conversation parents at top
+        const seenIds = new Set(filteredParents.map((p: any) => p.id));
+        convParents.forEach(cp => {
+          if (!seenIds.has(cp.id)) {
+            filteredParents.unshift(cp);
+            seenIds.add(cp.id);
+          } else {
+            // Update lastMessage snippet
+            const idx = filteredParents.findIndex((p: any) => p.id === cp.id);
+            if (idx >= 0 && cp.lastMessage) {
+              filteredParents[idx].lastMessage = cp.lastMessage;
+              filteredParents[idx].unreadCount = cp.unreadCount;
+            }
+          }
         });
 
         // If no parents are assigned to this class yet, link to the student in teacher's class
@@ -336,16 +364,25 @@ function CommunicationContent() {
                     return (
                       <div key={i} className={`flex ${isTeacher ? "justify-end" : "justify-start"}`}>
                         <div
-                          className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
+                          className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed font-medium ${
                             isTeacher
-                              ? "bg-[var(--primary)] text-white shadow-md rounded-tr-none"
+                              ? "bg-emerald-600 !text-white shadow-md rounded-tr-none"
                               : "bg-[var(--bg-main)] text-[var(--text-heading)] rounded-tl-none border border-[var(--border-light)]"
                           }`}
+                          style={isTeacher ? { backgroundColor: "#059669", color: "#ffffff" } : undefined}
                         >
-                          <div>{msg.text}</div>
-                          <div className={`text-[8px] text-right mt-1.5 ${isTeacher ? "text-indigo-100" : "text-[var(--text-muted)]"}`}>
+                          <p
+                            style={isTeacher ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                            className={isTeacher ? "!text-white font-semibold text-white" : "text-[var(--text-heading)]"}
+                          >
+                            {msg.text}
+                          </p>
+                          <span
+                            className={`block text-[9px] text-right mt-1.5 ${isTeacher ? "!text-white font-medium opacity-90" : "text-[var(--text-muted)]"}`}
+                            style={isTeacher ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : undefined}
+                          >
                             {msg.time}
-                          </div>
+                          </span>
                         </div>
                       </div>
                     );
