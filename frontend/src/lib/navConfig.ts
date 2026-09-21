@@ -256,7 +256,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Prep Plans", href: "/student/high-school/prep-plans", icon: "BookOpen" },
       // { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
       { label: "Performance Predictions", href: "/student/high-school/predictions", icon: "TrendingUp" },
-      { label: "Study Boost", href: "/student/high-school/study-boost", icon: "Zap" },
+      // { label: "Study Boost", href: "/student/high-school/study-boost", icon: "Zap" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
