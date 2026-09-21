@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { useSearchParams } from "next/navigation";
@@ -48,7 +48,7 @@ import { fetchSportsEvents } from "@/lib/petSportsApi";
 
 type TabType = "requests" | "events" | "ground" | "fitness";
 
-export default function HeadmasterSportsDesk() {
+function HeadmasterSportsDeskContent() {
   const { lang } = usePortalLanguage();
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as TabType) || "requests";
@@ -578,3 +578,12 @@ export default function HeadmasterSportsDesk() {
     </PortalLayout>
   );
 }
+
+export default function HeadmasterSportsDesk() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500 font-bold">Loading Sports Desk...</div>}>
+      <HeadmasterSportsDeskContent />
+    </Suspense>
+  );
+}
+
