@@ -406,23 +406,37 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
       select: { userId: true }
     });
 
-    if (!parent?.userId) {
-      return res.json({ success: true, unreadCount: 0, data: [] });
-    }
+    const targetUserId = parent?.userId || parentId;
 
-    const notifications = await prisma.notification.findMany({
-      where: {
-        userId: parent.userId,
-        ...(unreadOnly === 'true' ? { read: false } : {}),
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [dbNotifs, petAwards] = await Promise.all([
+      prisma.notification.findMany({
+        where: {
+          userId: targetUserId,
+          ...(unreadOnly === 'true' ? { read: false } : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.petAward.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 15
+      }).catch(() => [])
+    ]);
 
-    const unreadCount = await prisma.notification.count({
-      where: { userId: parent.userId, read: false }
-    });
+    const formattedPetAwards = petAwards.map((pa: any) => ({
+      id: `pet_notif_${pa.id}`,
+      userId: targetUserId,
+      type: 'sports',
+      title: `🏆 Sports Award: ${pa.medal} Medal Victory!`,
+      message: `Congratulations! ${pa.student} (${pa.class || ''}) won ${pa.medal} medal in ${pa.sport} at ${pa.event} (${pa.level} level). Certificate: ${pa.certificateIssued ? 'Issued' : 'Pending'}.`,
+      read: false,
+      createdAt: pa.createdAt,
+    }));
 
-    const mapped = notifications.map(({ read, ...rest }) => ({
+    const combined = [...formattedPetAwards, ...dbNotifs];
+
+    const unreadCount = combined.filter((n: any) => !n.read).length;
+
+    const mapped = combined.map(({ read, ...rest }: any) => ({
       ...rest,
       isRead: read,
     }));

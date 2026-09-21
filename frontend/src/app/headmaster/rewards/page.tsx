@@ -31,6 +31,7 @@ export default function RewardsPage() {
 
   const [honors, setHonors] = useState<HonorRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [honorToDelete, setHonorToDelete] = useState<HonorRecord | null>(null);
 
   // Honor register Form State
   const [honorTitle, setHonorTitle] = useState("");
@@ -245,7 +246,7 @@ export default function RewardsPage() {
 
                   <div className="sm:self-center shrink-0">
                     <button
-                      onClick={() => handleDelete(hn.id)}
+                      onClick={() => setHonorToDelete(hn)}
                       title="Delete citation"
                       className="w-8 h-8 rounded-lg bg-slate-950 hover:bg-red-950/20 border border-slate-800 hover:border-red-900/50 flex items-center justify-center text-slate-400 hover:text-red-450 transition-all cursor-pointer shadow-inner"
                     >
@@ -336,6 +337,74 @@ export default function RewardsPage() {
           )}
         </div>
       </div>
+
+      {/* Centered Delete Confirmation Modal */}
+      {honorToDelete && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setHonorToDelete(null)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4 text-slate-800 dark:text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                <i className="fi fi-rr-trash text-lg" />
+              </div>
+              <div className="space-y-1 min-w-0 flex-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {lang === "தமிழ்" ? "மரியாதை பதிவை நீக்கவா?" : "Delete Honor Record?"}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {lang === "தமிழ்" 
+                    ? "இந்த பதிவை நீக்க நிச்சயமாக விரும்புகிறீர்களா? இந்த செயலை ரத்து செய்ய முடியாது." 
+                    : `Are you sure you want to delete '${honorToDelete.title}'? This action cannot be undone.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-100 dark:bg-slate-800/70 rounded-xl text-xs space-y-1.5 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/60">
+              <div><span className="font-semibold text-slate-500 dark:text-slate-400">Recipient:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{honorToDelete.recipient}</span></div>
+              <div><span className="font-semibold text-slate-500 dark:text-slate-400">Category:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{honorToDelete.category}</span></div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                onClick={() => setHonorToDelete(null)}
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                {lang === "தமிழ்" ? "ரத்து" : "Cancel"}
+              </button>
+              <button
+                onClick={async () => {
+                  const id = honorToDelete.id;
+                  setHonorToDelete(null);
+                  try {
+                    const res = await fetch(`${API_BASE}/api/headmaster/rewards/${id}`, {
+                      method: "DELETE"
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                      setRewardToast("✓ Honor record deleted successfully.");
+                      fetchHonors();
+                      setTimeout(() => setRewardToast(null), 4000);
+                    } else {
+                      alert("Failed to delete record: " + (json.error || "Unknown error"));
+                    }
+                  } catch (err) {
+                    console.error("Error deleting reward:", err);
+                    alert("Server error occurred.");
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+              >
+                {lang === "தமிழ்" ? "நீக்குக" : "Delete Honor"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }

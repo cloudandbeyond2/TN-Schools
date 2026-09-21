@@ -4,18 +4,19 @@ import { requireMinRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.use(requireMinRole('PET'));
-
 function schoolScope(req: Request) {
-  return req.user?.schoolId ? { schoolId: req.user.schoolId } : {};
+  const sId = (req.query.schoolId as string) || req.user?.schoolId;
+  return sId ? { schoolId: sId } : {};
 }
 
 function stampSchool(req: Request, data: any) {
-  if (!data.schoolId && req.user?.schoolId) data.schoolId = req.user.schoolId;
+  if (!data.schoolId) {
+    data.schoolId = req.body?.schoolId || req.user?.schoolId || '321654987';
+  }
   return data;
 }
 
-// GET /api/pet/awards - Fetch all awards for the school
+// GET /api/pet/awards - Fetch awards (Accessible by Parents, Students, HMs, PETs)
 router.get('/', async (req: Request, res: Response) => {
   try {
     const awards = await prisma.petAward.findMany({
@@ -28,6 +29,47 @@ router.get('/', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+
+// Require PET role for creating/updating/deleting awards
+router.use(requireMinRole('PET'));
+
+async function dispatchAwardNotification(award: any, isCertificateUpdate: boolean = false) {
+  try {
+    let parentUsers = await prisma.user.findMany({
+      where: { role: 'PARENT' }
+    });
+
+    if (parentUsers.length === 0) {
+      parentUsers = await prisma.user.findMany({
+        take: 50
+      });
+    }
+
+    if (parentUsers.length === 0) return;
+
+    const title = isCertificateUpdate 
+      ? `📜 Certificate ${award.certificateIssued ? 'Issued' : 'Updated'}`
+      : `🏆 Sports Award: ${award.medal} Medal Victory!`;
+
+    const message = isCertificateUpdate
+      ? `Official certificate for ${award.student} (${award.sport} - ${award.event}) is now ${award.certificateIssued ? 'Issued' : 'Pending'}.`
+      : `Congratulations! ${award.student} (${award.class || ''}) won ${award.medal} medal in ${award.sport} at ${award.event} (${award.level} level).`;
+
+    const notificationsData = parentUsers.map((p) => ({
+      userId: p.id,
+      title,
+      message,
+      type: 'sports',
+      read: false
+    }));
+
+    await prisma.notification.createMany({
+      data: notificationsData,
+    });
+  } catch (err) {
+    console.error('Error dispatching award notification:', err);
+  }
+}
 
 // POST /api/pet/awards - Log a new award
 router.post('/', async (req: Request, res: Response) => {
@@ -49,6 +91,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const created = await prisma.petAward.create({ data });
+    dispatchAwardNotification(created, false).catch(() => {});
     res.json({ success: true, data: created });
   } catch (err) {
     console.error('Error creating PET award:', err);
@@ -73,6 +116,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         certificateIssued: body.certificateIssued,
       },
     });
+    dispatchAwardNotification(updated, true).catch(() => {});
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error('Error updating PET award:', err);
