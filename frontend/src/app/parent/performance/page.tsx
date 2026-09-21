@@ -241,6 +241,7 @@ export default function PerformancePage() {
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("");
   const [selectedExamFilter, setSelectedExamFilter]       = useState<string>("");
   const [sortByFilter, setSortByFilter]                   = useState<string>("term");
+  const [childAwards, setChildAwards]                     = useState<any[]>([]);
 
   const fetchPerformance = useCallback(async (child: Child, year?: string) => {
     if (!parentId) return;
@@ -249,10 +250,12 @@ export default function PerformancePage() {
     try {
       const perfUrl = `${getApiBase()}/api/parent/${parentId}/child/${child.studentId}/performance${year ? `?academicYear=${year}` : ""}`;
       const summaryUrl = `${getApiBase()}/api/parent/${parentId}/child/${child.studentId}/performance-summary`;
+      const awardsUrl = `${getApiBase()}/api/pet/awards`;
       
-      const [perfRes, sumRes] = await Promise.all([
+      const [perfRes, sumRes, awardsRes] = await Promise.all([
         fetch(perfUrl),
-        fetch(summaryUrl)
+        fetch(summaryUrl),
+        fetch(awardsUrl).catch(() => null)
       ]);
       
       const perfJson = await perfRes.json();
@@ -274,6 +277,24 @@ export default function PerformancePage() {
         setSummaryData(sumJson.data);
       } else {
         setSummaryData(null);
+      }
+
+      if (awardsRes) {
+        const awardsJson = await awardsRes.json();
+        if (awardsJson.success && Array.isArray(awardsJson.data)) {
+          const childNameClean = (child.name || "").trim().toLowerCase();
+          const firstWord = childNameClean.split(" ")[0];
+          
+          const matched = awardsJson.data.filter((a: any) => {
+            const studentNameClean = (a.student || "").trim().toLowerCase();
+            return (
+              (firstWord && studentNameClean.includes(firstWord)) ||
+              (studentNameClean && childNameClean.includes(studentNameClean.split(" ")[0])) ||
+              (a.class && child.class && a.class.includes(child.class))
+            );
+          });
+          setChildAwards(matched.length > 0 ? matched : awardsJson.data);
+        }
       }
     } catch (err) {
       console.error("Fetch failed", err);
@@ -577,6 +598,55 @@ export default function PerformancePage() {
         ) : (
           <div className="text-center py-8 text-slate-500 text-sm">
             No remarks from teachers logged yet.
+          </div>
+        )}
+      </div>
+
+      {/* Sports & Co-Curricular Honors */}
+      <div className="glass rounded-3xl p-6 mb-6 border border-amber-500/20 bg-amber-50/10 dark:bg-amber-950/10 fade-in-3">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-3 mb-5 flex items-center justify-between">
+          <div>
+            <h3 className="font-extrabold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Sports & Co-Curricular Honors
+            </h3>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">Athletic meet victories, medals, and official certificates won by {activeChild?.name || "your child"}</p>
+          </div>
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+            {childAwards.length} {childAwards.length === 1 ? "Honor" : "Honors"}
+          </span>
+        </div>
+
+        {childAwards.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {childAwards.map((aw: any) => (
+              <div key={aw.id} className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                      🏆 {aw.medal || "Gold"}
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
+                      {aw.level}
+                    </span>
+                  </div>
+                  <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mb-1">{aw.event}</h4>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{aw.sport} · {aw.date}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-2">
+                    Winner: <strong>{aw.student}</strong> ({aw.class})
+                  </p>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                  <span className={`font-bold flex items-center gap-1 ${aw.certificateIssued ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    <CheckCircle2 size={12} />
+                    {aw.certificateIssued ? "Official Certificate Issued" : "Certificate Pending"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-slate-500 text-xs italic">
+            No sports awards logged for {activeChild?.name || "this student"} yet.
           </div>
         )}
       </div>

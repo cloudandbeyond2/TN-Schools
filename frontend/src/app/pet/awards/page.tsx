@@ -22,6 +22,7 @@ export default function AwardsPage() {
   const [loaded, setLoaded] = useState(false);
   const [levelFilter, setLevelFilter] = useState<"All" | EventLevel>("All");
   const [showAdd, setShowAdd] = useState(false);
+  const [awardToDelete, setAwardToDelete] = useState<AwardRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -199,16 +200,7 @@ export default function AwardsPage() {
                     </td>
                     <td className="p-4 text-right">
                       <button
-                        onClick={async () => {
-                          if (confirm(`Delete award for ${a.student}?`)) {
-                            setAwards(awards.filter((x) => x.id !== a.id));
-                            try {
-                              await fetch(`${PET_API_BASE}/api/pet/awards/${a.id}`, { method: "DELETE" });
-                            } catch (err) {
-                              console.error("Failed to delete award", err);
-                            }
-                          }
-                        }}
+                        onClick={() => setAwardToDelete(a)}
                         className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         title="Delete"
                       >
@@ -276,7 +268,7 @@ export default function AwardsPage() {
               const res = await fetch(`${PET_API_BASE}/api/pet/awards`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(a),
+                body: JSON.stringify({ ...a, schoolId: schoolId || '321654987' }),
               });
               const json = await res.json();
               if (json.success) {
@@ -288,6 +280,56 @@ export default function AwardsPage() {
             setShowAdd(false);
           }}
         />
+      )}
+
+      {awardToDelete && (
+        <ModalShell title="Confirm Deletion" onClose={() => setAwardToDelete(null)}>
+          <div className="space-y-4 py-2">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center shrink-0">
+                <Trash2 size={22} />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-[var(--text-heading)]">
+                  Delete Award Record?
+                </h4>
+                <p className="text-sm text-[var(--text-muted)] mt-1">
+                  Are you sure you want to delete the award record for <strong className="text-[var(--text-heading)]">{awardToDelete.student}</strong>? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-[var(--border)] text-xs text-[var(--text-muted)] space-y-1">
+              <div><strong className="text-[var(--text-heading)]">Sport:</strong> {awardToDelete.sport}</div>
+              <div><strong className="text-[var(--text-heading)]">Event:</strong> {awardToDelete.event}</div>
+              <div><strong className="text-[var(--text-heading)]">Level:</strong> {awardToDelete.level}</div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border)]">
+              <button
+                onClick={() => setAwardToDelete(null)}
+                className="px-4 py-2 rounded-xl border border-[var(--border)] text-sm font-semibold hover:bg-[var(--bg-hover)] transition-colors text-[var(--text-heading)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const id = awardToDelete.id;
+                  setAwards(awards.filter((x) => x.id !== id));
+                  setAwardToDelete(null);
+                  try {
+                    await fetch(`${PET_API_BASE}/api/pet/awards/${id}`, { method: "DELETE" });
+                  } catch (err) {
+                    console.error("Failed to delete award", err);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
+              >
+                Delete Award
+              </button>
+            </div>
+          </div>
+        </ModalShell>
       )}
     </PortalLayout>
   );

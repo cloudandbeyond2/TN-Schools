@@ -659,14 +659,14 @@ router.post('/heartbeat', async (req: Request, res: Response) => {
     const now = new Date();
 
     if (userId) {
-      await prisma.user.update({
+      await prisma.user.updateMany({
         where: { id: String(userId) },
         data: { updatedAt: now }
       }).catch(() => {});
     }
 
     if (studentId) {
-      await prisma.student.update({
+      await prisma.student.updateMany({
         where: { id: String(studentId) },
         data: { updatedAt: now }
       }).catch(() => {});

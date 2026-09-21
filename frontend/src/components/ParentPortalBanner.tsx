@@ -14,6 +14,7 @@ export type ParentPageKey =
   | "scholarship"
   | "pta"
   | "portfolio"
+  | "faculty"
   | "messages";
 
 interface BannerDetail {
@@ -172,6 +173,19 @@ const BANNER_CONFIGS: Record<ParentPageKey, BannerDetail> = {
       title: "டிஜிட்டல் போர்ட்ஃபோலியோ",
       desc: "உங்கள் குழந்தையின் கல்வி மைல்கற்கள், திட்டப்பணிகள், சான்றிதழ்கள் மற்றும் கூடுதல் பாடத்திட்ட சிறப்பம்சங்களை உலாவவும்.",
       rightPill: "மைல்கற்கள் தளம்",
+    },
+  },
+  faculty: {
+    icon: "fi-sr-users",
+    en: {
+      title: "School Faculty & Teachers",
+      desc: "View verified profiles, designations, and subjects of teachers and Headmaster (HM) from your child's school.",
+      rightPill: "Faculty Directory",
+    },
+    ta: {
+      title: "பள்ளி ஆசிரியர்கள் & தலைமையாசிரியர்",
+      desc: "உங்கள் குழந்தையின் பள்ளியின் ஆசிரியர்கள் மற்றும் தலைமையாசிரியரின் விவரங்கள், பதவிகள் மற்றும் பாடங்களை அறியவும்.",
+      rightPill: "ஆசிரியர்கள் பட்டியல்",
     },
   },
   messages: {

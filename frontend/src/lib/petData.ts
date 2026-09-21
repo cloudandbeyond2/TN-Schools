@@ -13,9 +13,12 @@ export const PET_API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost
 // Persistence helpers
 // ---------------------------------------------------------------------------
 
+export function isSeedEvent(name?: string): boolean {
+  return false;
+}
+
 export function isSeedId(id: string): boolean {
-  if (!id || typeof id !== "string") return false;
-  return /^(ev|fr|inv|aw|fc|cl|rq|ml|im)-\d+$/.test(id);
+  return false;
 }
 
 export function petLoad<T>(key: string, defaults: T): T {
@@ -25,7 +28,9 @@ export function petLoad<T>(key: string, defaults: T): T {
     if (!raw) return defaults;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      const cleaned = parsed.filter((item: any) => !item || !item.id || !isSeedId(String(item.id)));
+      const cleaned = parsed.filter(
+        (item: any) => item && item.id && !isSeedId(String(item.id))
+      );
       return cleaned as unknown as T;
     }
     return parsed as T;
@@ -94,7 +99,7 @@ export function expiresSoon(item: InventoryItem): boolean {
 /** Fill availability fields missing from older localStorage snapshots. */
 export function normalizeInventoryItem(raw: Partial<InventoryItem> & { id: string; item: string }): InventoryItem {
   return {
-    category: "Ball Games",
+    category: raw.category || inferCategory(raw.item),
     qty: 0,
     minQty: 0,
     condition: "Good",
@@ -131,6 +136,7 @@ export interface EquipmentRequest {
   type: RequestType;
   item: string; // free text for purchases; equipment name for issues
   itemId?: string; // linked inventory item (Issue requests)
+  category?: StockCategory | string;
   qty: number;
   requestedBy: string; // teacher / class / house / team
   purpose: string;
@@ -138,6 +144,18 @@ export interface EquipmentRequest {
   neededBy?: string; // ISO date
   status: RequestStatus;
   notes?: string;
+}
+
+export function inferCategory(item: string, existingCategory?: string): StockCategory {
+  if (existingCategory && ["Ball Games", "Athletics", "Indoor Games", "Fitness & Training", "First Aid"].includes(existingCategory)) {
+    return existingCategory as StockCategory;
+  }
+  const name = (item || "").toLowerCase();
+  if (name.includes("first aid") || name.includes("medical") || name.includes("bandage")) return "First Aid";
+  if (name.includes("run") || name.includes("jump") || name.includes("javelin") || name.includes("shot put") || name.includes("track") || name.includes("athletic")) return "Athletics";
+  if (name.includes("chess") || name.includes("carrom") || name.includes("table tennis")) return "Indoor Games";
+  if (name.includes("rope") || name.includes("dumb") || name.includes("mat") || name.includes("gym") || name.includes("fit")) return "Fitness & Training";
+  return "Ball Games";
 }
 
 export const REQUESTS_KEY = "pet-equipment-requests";

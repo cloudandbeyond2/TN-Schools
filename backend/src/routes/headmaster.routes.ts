@@ -2478,11 +2478,43 @@ router.get('/rewards', async (req: Request, res: Response) => {
     if (!schoolId) {
       return res.status(400).json({ success: false, error: 'schoolId parameter is required' });
     }
-    const rewards = await prisma.reward.findMany({
-      where: { schoolId: String(schoolId) },
-      orderBy: { createdAt: 'desc' }
+    const targetSchoolId = String(schoolId);
+
+    const [rewards, petAwards] = await Promise.all([
+      prisma.reward.findMany({
+        where: { schoolId: targetSchoolId },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.petAward.findMany({
+        where: {
+          OR: [
+            { schoolId: targetSchoolId },
+            { schoolId: '' }
+          ]
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
+
+    // Format PET Awards so they seamlessly render in the Headmaster Rewards & Honors Hub
+    const formattedPetAwards = petAwards.map((pa: any) => ({
+      id: `pet_${pa.id}`,
+      title: `${pa.event} - ${pa.medal} (${pa.sport})`,
+      recipient: `${pa.student} (${pa.class})`,
+      category: 'Student Medal' as const,
+      date: pa.date,
+      citation: `Awarded ${pa.medal} in ${pa.sport} at ${pa.event} (${pa.level} level). Certificate: ${pa.certificateIssued ? 'Issued' : 'Pending'}.`,
+      createdAt: pa.createdAt,
+      source: 'PET Portal'
+    }));
+
+    const allRewards = [...rewards, ...formattedPetAwards].sort((a: any, b: any) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
     });
-    res.json({ success: true, data: rewards });
+
+    res.json({ success: true, data: allRewards });
   } catch (err) {
     console.error('Error fetching rewards:', err);
     res.status(500).json({ success: false, error: String(err) });
@@ -2517,6 +2549,12 @@ router.post('/rewards', async (req: Request, res: Response) => {
 router.delete('/rewards/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (id.startsWith('pet_')) {
+      const petId = id.replace('pet_', '');
+      await prisma.petAward.delete({ where: { id: petId } });
+      return res.json({ success: true, message: 'PET Award record deleted successfully' });
+    }
+
     const existing = await prisma.reward.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ success: false, error: 'Reward record not found' });

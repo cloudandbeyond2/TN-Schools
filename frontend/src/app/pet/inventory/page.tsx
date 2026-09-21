@@ -4,7 +4,7 @@ import PETPortalBanner from "@/components/PETPortalBanner";
 import {
   Package, Plus, AlertCircle, CheckCircle2, Search, Trash2, Minus, RotateCcw,
   Wrench, ClipboardList, Cross, Cloud, WifiOff, Boxes, ArrowRightLeft,
-  CalendarClock, Download, Send,
+  CalendarClock, Download, Send, Clock,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
@@ -26,6 +26,7 @@ import {
   expiresSoon,
   normalizeInventoryItem,
   nextRequestStatuses,
+  isSeedId,
 } from "@/lib/petData";
 import {
   fetchInventoryItems,
@@ -42,6 +43,24 @@ import {
 const CATEGORIES: ("All" | StockCategory)[] = ["All", "Ball Games", "Athletics", "Indoor Games", "Fitness & Training", "First Aid"];
 const CONDITIONS: InventoryItem["condition"][] = ["New", "Good", "Fair", "Needs Repair", "Damaged"];
 
+const STANDARD_EQUIPMENT_LIST = [
+  "Football (Size 5)",
+  "Volleyball (Synthetic)",
+  "Cricket Bat & Leather Balls",
+  "Badminton Rackets & Shuttles",
+  "Basketball (Size 7)",
+  "Carrom Board with Coins",
+  "Chess Set (Tournament Board)",
+  "Shot Put Ball (4kg/7.26kg)",
+  "Medical First Aid Kit",
+  "Sports Uniform / Jerseys",
+  "Table Tennis Rackets & Balls",
+  "Throwball",
+  "Handball",
+  "Skipping Ropes",
+  "Cones & Markers",
+];
+
 type Tab = "equipment" | "damaged" | "requests" | "firstaid";
 
 const TONES: Record<"green" | "blue" | "amber" | "red" | "slate", string> = {
@@ -54,12 +73,12 @@ const TONES: Record<"green" | "blue" | "amber" | "red" | "slate", string> = {
 
 // Button labels for advancing a request to a given status.
 const STATUS_ACTION: Record<RequestStatus, string> = {
-  Pending: "Pend",
+  Pending: "Pending",
   Approved: "Approve",
   Rejected: "Reject",
-  Issued: "Issue",
-  Returned: "Return",
-  Received: "Receive",
+  Issued: "Issue Equipment",
+  Returned: "Return to Stock",
+  Received: "Mark Received",
 };
 
 const STATUS_TONE: Record<RequestStatus, keyof typeof TONES> = {
@@ -90,16 +109,25 @@ export default function InventoryPage() {
 
   useEffect(() => {
     (async () => {
+      const localReqs = petLoad<EquipmentRequest[]>(REQUESTS_KEY, DEFAULT_REQUESTS);
       try {
         const [srvItems, srvRequests] = await Promise.all([fetchInventoryItems(), fetchEquipmentRequests()]);
+        
+        const map = new Map<string, EquipmentRequest>();
+        localReqs.filter((r) => r && r.id && !isSeedId(r.id)).forEach((r) => map.set(r.id, r));
+        if (Array.isArray(srvRequests)) {
+          srvRequests.filter((r) => r && r.id && !isSeedId(r.id)).forEach((r) => map.set(r.id, r));
+        }
+        const mergedRequests = Array.from(map.values());
+
         setItems(srvItems);
-        setRequests(srvRequests);
+        setRequests(mergedRequests);
         petSave(INVENTORY_KEY, srvItems);
-        petSave(REQUESTS_KEY, srvRequests);
+        petSave(REQUESTS_KEY, mergedRequests);
         setSource("server");
       } catch {
         setItems(petLoad(INVENTORY_KEY, DEFAULT_INVENTORY).map(normalizeInventoryItem));
-        setRequests(petLoad(REQUESTS_KEY, DEFAULT_REQUESTS));
+        setRequests(localReqs.filter((r) => r && r.id && !isSeedId(r.id)));
         setSource("local");
       } finally {
         setLoaded(true);
@@ -139,29 +167,26 @@ export default function InventoryPage() {
   };
 
   const addItem = async (item: Omit<InventoryItem, "id">) => {
-    if (source === "server") {
-      try {
-        const created = await createInventoryItem(item);
-        persistItems([created, ...items]);
-      } catch (err) {
-        syncFailed("add the item", err);
+    try {
+      const created = await createInventoryItem(item);
+      if (created && created.id) {
+        persistItems([created, ...items.filter((i) => i.id !== created.id)]);
+        setSource("server");
+        return;
       }
-    } else {
-      persistItems([{ ...item, id: petId() }, ...items]);
+    } catch (err) {
+      console.warn("API add item failed, saving local fallback:", err);
     }
+    persistItems([{ ...item, id: petId() }, ...items]);
   };
 
   const executeRemoveItem = async (item: InventoryItem) => {
-    if (source === "server") {
-      try {
-        await deleteInventoryItem(item.id);
-        persistItems(items.filter((i) => i.id !== item.id));
-      } catch (err) {
-        syncFailed("remove the item", err);
-      }
-    } else {
-      persistItems(items.filter((i) => i.id !== item.id));
+    try {
+      await deleteInventoryItem(item.id);
+    } catch (err) {
+      console.warn("Could not delete item on server API:", err);
     }
+    persistItems(items.filter((i) => i.id !== item.id));
   };
 
   const importDefaults = async () => {
@@ -183,16 +208,17 @@ export default function InventoryPage() {
   // ── Request mutations ────────────────────────────────────────────
 
   const addRequest = async (req: Omit<EquipmentRequest, "id" | "status">) => {
-    if (source === "server") {
-      try {
-        const created = await createEquipmentRequest(req);
+    try {
+      const created = await createEquipmentRequest(req);
+      if (created && created.id) {
         persistRequests([created, ...requests]);
-      } catch (err) {
-        syncFailed("submit the request", err);
+        setSource("server");
+        return;
       }
-    } else {
-      persistRequests([{ ...req, id: petId(), status: "Pending" }, ...requests]);
+    } catch (err) {
+      console.warn("API submit failed, saving to local fallback:", err);
     }
+    persistRequests([{ ...req, id: petId(), status: "Pending" }, ...requests]);
   };
 
   // Advance a request through the workflow. Issue/Return/Receive also move
@@ -212,32 +238,43 @@ export default function InventoryPage() {
       }
     } else {
       persistRequests(requests.map((r) => (r.id === req.id ? { ...r, status } : r)));
-      if (req.itemId) {
+      if (status === "Issued" && req.type === "Issue" && req.itemId) {
         const item = items.find((i) => i.id === req.itemId);
-        if (item) {
-          if (status === "Issued" && req.type === "Issue") {
-            persistItems(items.map((i) => (i.id === item.id ? { ...i, qtyIssued: i.qtyIssued + req.qty } : i)));
-          } else if (status === "Returned" && req.type === "Issue") {
-            persistItems(items.map((i) => (i.id === item.id ? { ...i, qtyIssued: Math.max(0, i.qtyIssued - req.qty) } : i)));
-          } else if (status === "Received" && req.type === "Purchase") {
-            persistItems(items.map((i) => (i.id === item.id ? { ...i, qty: i.qty + req.qty } : i)));
-          }
+        if (item) persistItems(items.map((i) => (i.id === item.id ? { ...i, qtyIssued: i.qtyIssued + req.qty } : i)));
+      } else if (status === "Returned" && req.type === "Issue" && req.itemId) {
+        const item = items.find((i) => i.id === req.itemId);
+        if (item) persistItems(items.map((i) => (i.id === item.id ? { ...i, qtyIssued: Math.max(0, i.qtyIssued - req.qty) } : i)));
+      } else if (status === "Received" && req.type === "Purchase") {
+        const existingItem = items.find((i) => (req.itemId && i.id === req.itemId) || i.item.toLowerCase() === req.item.toLowerCase());
+        if (existingItem) {
+          persistItems(items.map((i) => (i.id === existingItem.id ? { ...i, qty: i.qty + req.qty } : i)));
+        } else {
+          const newItem: InventoryItem = {
+            id: petId(),
+            item: req.item,
+            category: (req.category as StockCategory) || "Ball Games",
+            qty: req.qty,
+            qtyIssued: 0,
+            qtyDamaged: 0,
+            minQty: 1,
+            condition: "New",
+            location: "Sports Room A",
+            lastChecked: today(),
+            remarks: req.notes || req.purpose,
+          };
+          persistItems([newItem, ...items]);
         }
       }
     }
   };
 
   const executeRemoveRequest = async (req: EquipmentRequest) => {
-    if (source === "server") {
-      try {
-        await deleteEquipmentRequest(req.id);
-        persistRequests(requests.filter((r) => r.id !== req.id));
-      } catch (err) {
-        syncFailed("delete the request", err);
-      }
-    } else {
-      persistRequests(requests.filter((r) => r.id !== req.id));
+    try {
+      await deleteEquipmentRequest(req.id);
+    } catch (err) {
+      console.warn("Could not delete request on server API:", err);
     }
+    persistRequests(requests.filter((r) => r.id !== req.id));
   };
 
   // ── Derived data ─────────────────────────────────────────────────
@@ -268,7 +305,7 @@ export default function InventoryPage() {
   const tabs: { key: Tab; label: string; icon: React.ElementType; count: number }[] = [
     { key: "equipment", label: "Equipment", icon: Boxes, count: items.length },
     { key: "damaged", label: "Damaged & Repairs", icon: Wrench, count: damagedItems.length },
-    { key: "requests", label: "Requests", icon: ClipboardList, count: requests.filter((r) => r.status === "Pending" || r.status === "Approved").length },
+    { key: "requests", label: "Requests", icon: ClipboardList, count: requests.filter((r) => !isSeedId(r.id)).length },
     { key: "firstaid", label: "First Aid", icon: Cross, count: firstAidItems.length },
   ];
 
@@ -649,25 +686,31 @@ export default function InventoryPage() {
                         </span>
                       </td>
                       <td className="p-4 text-right whitespace-nowrap space-x-1.5">
-                        {nextRequestStatuses(req).map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => advanceRequest(req, s)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white ${
-                              s === "Rejected" ? "bg-red-600 hover:bg-red-700"
-                              : s === "Approved" ? "bg-blue-600 hover:bg-blue-700"
-                              : "bg-emerald-600 hover:bg-emerald-700"
-                            }`}
-                            title={
-                              s === "Issued" ? "Hand over the equipment (marks units as issued)"
-                              : s === "Returned" ? "Equipment returned to stock"
-                              : s === "Received" ? "Purchase received (adds units to stock)"
-                              : `Mark request as ${s.toLowerCase()}`
-                            }
-                          >
-                            {STATUS_ACTION[s]}
-                          </button>
-                        ))}
+                        {req.status === "Pending" ? (
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5">
+                            <Clock size={12} className="text-amber-500" /> Awaiting HM Approval
+                          </span>
+                        ) : (
+                          nextRequestStatuses(req)
+                            .filter((s) => s !== "Approved" && s !== "Rejected")
+                            .map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => advanceRequest(req, s)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white ${
+                                  s === "Issued" || s === "Received" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                                title={
+                                  s === "Issued" ? "Hand over the equipment (marks units as issued)"
+                                  : s === "Returned" ? "Equipment returned to stock"
+                                  : s === "Received" ? "Purchase received (adds units to stock)"
+                                  : `Mark request as ${s.toLowerCase()}`
+                                }
+                              >
+                                {STATUS_ACTION[s]}
+                              </button>
+                            ))
+                        )}
                         <button onClick={() => setDeletingRequest(req)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete request">
                           <Trash2 size={14} />
                         </button>
@@ -749,8 +792,18 @@ export default function InventoryPage() {
         <AddItemModal
           onClose={() => setShowAdd(false)}
           onAdd={(item) => {
-            addItem({ ...item, qtyIssued: 0, qtyDamaged: 0, lastChecked: today() });
+            addRequest({
+              type: "Purchase",
+              item: item.item,
+              category: item.category,
+              qty: item.qty,
+              requestedBy: "PET Staff",
+              purpose: `Stock Addition - ${item.location}${item.remarks ? ` (${item.remarks})` : ""}`,
+              date: today(),
+              notes: item.remarks,
+            });
             setShowAdd(false);
+            setTab("requests");
           }}
         />
       )}
@@ -915,7 +968,7 @@ function AddItemModal({
   };
 
   return (
-    <ModalShell title="Add Inventory Item" onClose={onClose}>
+    <ModalShell title="Add New Equipment Item (Requires HM Approval)" onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <Field label="Item Name">
           <input required value={item} onChange={(e) => setItem(e.target.value)} placeholder="e.g. Hockey Stick" className={inputCls} />
@@ -938,7 +991,7 @@ function AddItemModal({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Quantity">
-            <input required type="number" min={0} value={qty} onChange={(e) => setQty(Number(e.target.value))} className={inputCls} />
+            <input required type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} className={inputCls} />
           </Field>
           <Field label="Low-stock Threshold">
             <input required type="number" min={0} value={minQty} onChange={(e) => setMinQty(Number(e.target.value))} className={inputCls} />
@@ -956,7 +1009,7 @@ function AddItemModal({
           <input value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. Reorder before Sports Day" className={inputCls} />
         </Field>
         <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
-          Add to Stock
+          Submit Request for Approval
         </button>
       </form>
     </ModalShell>
@@ -988,14 +1041,17 @@ function NewRequestModal({
   const linked = items.find((i) => i.id === itemId);
   const maxIssue = linked ? availableQty(linked) : undefined;
 
+  const [reqCategory, setReqCategory] = useState<StockCategory>("Ball Games");
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const name = type === "Issue" ? linked?.item || "" : itemName;
+    const name = type === "Issue" ? (linked?.item || itemName || itemId) : itemName;
     if (!name) return;
     onAdd({
       type,
       item: name,
-      itemId: type === "Issue" ? itemId || undefined : undefined,
+      itemId: type === "Issue" && linked ? itemId : undefined,
+      category: linked?.category || reqCategory,
       qty,
       requestedBy,
       purpose,
@@ -1029,13 +1085,34 @@ function NewRequestModal({
 
         {type === "Issue" ? (
           <Field label="Equipment">
-            <select required value={itemId} onChange={(e) => setItemId(e.target.value)} className={inputCls}>
+            <select
+              required
+              value={itemId}
+              onChange={(e) => {
+                const val = e.target.value;
+                setItemId(val);
+                const linkedItem = items.find((i) => i.id === val);
+                if (linkedItem) {
+                  setItemName(linkedItem.item);
+                  if (linkedItem.category) setReqCategory(linkedItem.category);
+                } else {
+                  setItemName(val);
+                }
+              }}
+              className={inputCls}
+            >
               <option value="" disabled>Select equipment...</option>
-              {items.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.item} — {availableQty(i)} available
-                </option>
-              ))}
+              {items.length > 0
+                ? items.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.item} ({i.category}) — {availableQty(i)} available
+                    </option>
+                  ))
+                : STANDARD_EQUIPMENT_LIST.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
             </select>
           </Field>
         ) : (
@@ -1043,6 +1120,14 @@ function NewRequestModal({
             <input required value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="e.g. Hockey Sticks (Junior)" className={inputCls} />
           </Field>
         )}
+
+        <Field label="Category">
+          <select value={reqCategory} onChange={(e) => setReqCategory(e.target.value as StockCategory)} className={inputCls}>
+            {CATEGORIES.filter((c) => c !== "All").map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
 
         <div className="grid grid-cols-2 gap-4">
           <Field label={`Quantity${maxIssue !== undefined ? ` (max ${maxIssue})` : ""}`}>

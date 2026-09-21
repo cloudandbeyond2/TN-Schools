@@ -627,6 +627,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Leave Reports", href: "/parent/leave", icon: "FileText" },
       { label: "AI Assistant", href: "/parent/ai-assistant", icon: "Bot" },
       { label: "Scholarship", href: "/parent/scholarship", icon: "GraduationCap" },
+      { label: "School Faculty", href: "/parent/faculty", icon: "Users" },
       { label: "PTA Meetings", href: "/parent/pta", icon: "Users" },
       { label: "Teacher Messages", href: "/parent/messages", icon: "MessageSquare" },
     ],
@@ -670,6 +671,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Science Lab Support", href: "/headmaster/science-lab-support", icon: "fi fi-rr-flask" },
 
       { label: "Extra Curricular & Info", href: "#", icon: "" },
+      { label: "Sports Desk", href: "/headmaster/sports", icon: "fi fi-rr-running" },
       { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-calendar-star" },
       { label: "Clubs & Activities", href: "/headmaster/clubs", icon: "fi fi-rr-smile" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "fi fi-rr-globe" },

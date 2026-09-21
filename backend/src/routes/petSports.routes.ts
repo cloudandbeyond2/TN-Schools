@@ -22,7 +22,8 @@ router.get('/', async (req: Request, res: Response) => {
       where: schoolScope(req),
       orderBy: { date: 'asc' },
     });
-    res.json({ success: true, data: events });
+    const realEvents = events.filter(e => e.id && !/^(ev|se|seed|event)[-_]/i.test(e.id));
+    res.json({ success: true, data: realEvents });
   } catch (err) {
     console.error('Error fetching PET sports events:', err);
     res.status(500).json({ success: false, error: String(err) });

@@ -10,7 +10,6 @@ router.use(authenticate);
 // ─── GET /api/notifications?userId=[userId] ──────────────────────
 router.get('/', async (req: Request, res: Response) => {
   try {
-    // Restrict query to authenticated user's ID unless caller is SuperAdmin
     const targetUserId = (req.user?.role !== 'SUPERADMIN' ? req.user?.id : (req.query.userId as string)) || req.user?.id;
     if (!targetUserId) {
       return res.status(400).json({ success: false, error: 'userId is required' });
@@ -21,15 +20,33 @@ router.get('/', async (req: Request, res: Response) => {
       return res.json({ success: true, data: [] });
     }
 
-    const notifications: any[] = await prisma.$queryRaw`
-      SELECT id, "userId", message, "read", "createdAt"
-      FROM "Notification"
-      WHERE "userId" = ${resolvedId}
-      ORDER BY "createdAt" DESC
-      LIMIT 20
-    `;
+    const [dbNotifs, petAwards] = await Promise.all([
+      prisma.$queryRaw<any[]>`
+        SELECT id, "userId", message, title, type, "read", "createdAt"
+        FROM "Notification"
+        WHERE "userId" = ${resolvedId}
+        ORDER BY "createdAt" DESC
+        LIMIT 20
+      `.catch(() => []),
+      prisma.petAward.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      }).catch(() => [])
+    ]);
 
-    return res.json({ success: true, data: notifications });
+    const formattedPetAwards = petAwards.map((pa: any) => ({
+      id: `pet_notif_${pa.id}`,
+      userId: resolvedId,
+      type: 'sports',
+      title: `🏆 Sports Award: ${pa.medal} Medal Victory!`,
+      message: `Congratulations! ${pa.student} (${pa.class || ''}) won ${pa.medal} medal in ${pa.sport} at ${pa.event} (${pa.level} level). Certificate: ${pa.certificateIssued ? 'Issued' : 'Pending'}.`,
+      read: false,
+      createdAt: pa.createdAt,
+    }));
+
+    const combined = [...formattedPetAwards, ...dbNotifs];
+
+    return res.json({ success: true, data: combined });
   } catch (err) {
     console.error('[GET /api/notifications]', err);
     return res.status(500).json({ success: false, error: String(err) });
