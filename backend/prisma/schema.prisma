@@ -1036,6 +1036,7 @@ model PetEquipmentRequest {
   type        String   @default("Issue")
   item        String
   itemId      String?
+  category    String   @default("Ball Games")
   qty         Int      @default(1)
   requestedBy String   @default("")
   purpose     String   @default("")

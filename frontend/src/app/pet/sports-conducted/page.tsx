@@ -113,7 +113,7 @@ export default function SportsConductedPage() {
   const loadData = async () => {
     try {
       const srvEvents = await fetchSportsEvents();
-      if (srvEvents && srvEvents.length > 0) {
+      if (Array.isArray(srvEvents)) {
         setEvents(srvEvents);
         petSave(EVENTS_KEY, srvEvents);
         setSource("server");
@@ -135,12 +135,10 @@ export default function SportsConductedPage() {
     setLoadingAction(true);
     try {
       persist([]);
-      if (source === "server") {
-        try {
-          await clearAllSportsEvents();
-        } catch (err) {
-          console.warn("Could not clear events on server API:", err);
-        }
+      try {
+        await clearAllSportsEvents();
+      } catch (err) {
+        console.warn("Could not clear events on server API:", err);
       }
     } finally {
       setLoadingAction(false);

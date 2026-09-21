@@ -51,6 +51,7 @@ function rowToRequest(row: any): EquipmentRequest {
     type: row.type,
     item: row.item,
     itemId: row.itemId || undefined,
+    category: row.category || undefined,
     qty: row.qty,
     requestedBy: row.requestedBy,
     purpose: row.purpose,
@@ -66,6 +67,7 @@ function requestToBody(req: Partial<EquipmentRequest>) {
   if (req.type !== undefined) body.type = req.type;
   if (req.item !== undefined) body.item = req.item;
   if (req.itemId !== undefined) body.itemId = req.itemId;
+  if (req.category !== undefined) body.category = req.category;
   if (req.qty !== undefined) body.qty = req.qty;
   if (req.requestedBy !== undefined) body.requestedBy = req.requestedBy;
   if (req.purpose !== undefined) body.purpose = req.purpose;

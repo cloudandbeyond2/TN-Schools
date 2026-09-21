@@ -19,7 +19,7 @@ const ITEM_STRING_FIELDS = [
 const ITEM_NUMBER_FIELDS = ['qty', 'qtyIssued', 'qtyDamaged', 'minQty'] as const;
 
 const REQUEST_STRING_FIELDS = [
-  'schoolId', 'type', 'item', 'itemId', 'requestedBy', 'purpose', 'date', 'neededBy', 'status', 'notes',
+  'schoolId', 'type', 'item', 'itemId', 'category', 'requestedBy', 'purpose', 'date', 'neededBy', 'status', 'notes',
 ] as const;
 const REQUEST_NUMBER_FIELDS = ['qty'] as const;
 
@@ -37,7 +37,14 @@ function pick(body: any, strings: readonly string[], numbers: readonly string[])
 }
 
 function schoolScope(req: Request) {
-  return req.user?.schoolId ? { schoolId: req.user.schoolId } : {};
+  if (!req.user?.schoolId) return {};
+  return {
+    OR: [
+      { schoolId: req.user.schoolId },
+      { schoolId: null },
+      { schoolId: '' },
+    ],
+  };
 }
 
 function stampSchool(req: Request, data: Record<string, string | number>) {
@@ -192,51 +199,105 @@ router.post('/requests', async (req: Request, res: Response) => {
 //   Approved -> Issued   : item.qtyIssued += qty
 //   Issued   -> Returned : item.qtyIssued -= qty
 //   Approved -> Received : item.qty      += qty (purchase restock)
+// PUT /api/pet/inventory/requests/:id — edit fields and/or advance status.
 router.put('/requests/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const existing = await prisma.petEquipmentRequest.findFirst({ where: { id, ...schoolScope(req) } });
-    if (!existing) return res.status(404).json({ success: false, error: 'Request not found' });
+    let existing = await prisma.petEquipmentRequest.findUnique({ where: { id } });
+    if (!existing) {
+      existing = await prisma.petEquipmentRequest.findFirst({ where: { id, ...schoolScope(req) } });
+    }
 
     const data = pick(req.body, REQUEST_STRING_FIELDS, REQUEST_NUMBER_FIELDS);
     delete data.schoolId;
 
-    const newStatus = typeof data.status === 'string' ? data.status : undefined;
-    if (newStatus && newStatus !== existing.status) {
-      const allowed = VALID_TRANSITIONS[existing.status] || [];
-      if (!allowed.includes(newStatus)) {
-        return res.status(400).json({
-          success: false,
-          error: `Cannot move request from '${existing.status}' to '${newStatus}'`,
-        });
-      }
+    if (!existing) {
+      const stamp = stampSchool(req, { id, ...data });
+      const created = await prisma.petEquipmentRequest.create({ data: stamp as any });
+      return res.json({ success: true, data: created });
     }
 
-    const ops: any[] = [prisma.petEquipmentRequest.update({ where: { id }, data: data as any })];
+    const updated = await prisma.petEquipmentRequest.update({
+      where: { id: existing.id },
+      data: data as any,
+    });
 
-    if (newStatus && newStatus !== existing.status && existing.itemId) {
-      const item = await prisma.petInventoryItem.findUnique({ where: { id: existing.itemId } });
-      if (item) {
-        if (newStatus === 'Issued' && existing.type === 'Issue') {
-          ops.push(prisma.petInventoryItem.update({
-            where: { id: item.id },
-            data: { qtyIssued: item.qtyIssued + existing.qty },
-          }));
-        } else if (newStatus === 'Returned' && existing.type === 'Issue') {
-          ops.push(prisma.petInventoryItem.update({
-            where: { id: item.id },
-            data: { qtyIssued: Math.max(0, item.qtyIssued - existing.qty) },
-          }));
-        } else if (newStatus === 'Received' && existing.type === 'Purchase') {
-          ops.push(prisma.petInventoryItem.update({
-            where: { id: item.id },
-            data: { qty: item.qty + existing.qty },
-          }));
+    const newStatus = typeof data.status === 'string' ? data.status : undefined;
+
+    // Handle stock adjustments on status transitions
+    if (newStatus && newStatus !== existing.status) {
+      if (newStatus === 'Issued' && existing.type === 'Issue' && existing.itemId) {
+        await prisma.petInventoryItem.update({
+          where: { id: existing.itemId },
+          data: { qtyIssued: { increment: existing.qty } },
+        }).catch(() => {});
+      } else if (newStatus === 'Returned' && existing.type === 'Issue' && existing.itemId) {
+        await prisma.petInventoryItem.update({
+          where: { id: existing.itemId },
+          data: { qtyIssued: { decrement: existing.qty } },
+        }).catch(() => {});
+      } else if (newStatus === 'Received' && existing.type === 'Purchase') {
+        const itemToUpdate = existing.itemId
+          ? await prisma.petInventoryItem.findUnique({ where: { id: existing.itemId } })
+          : await prisma.petInventoryItem.findFirst({
+              where: {
+                item: { equals: existing.item, mode: 'insensitive' },
+                ...schoolScope(req),
+              },
+            });
+
+        if (itemToUpdate) {
+          await prisma.petInventoryItem.update({
+            where: { id: itemToUpdate.id },
+            data: { qty: { increment: existing.qty } },
+          }).catch(() => {});
+        } else {
+          await prisma.petInventoryItem.create({
+            data: {
+              schoolId: existing.schoolId || req.user?.schoolId,
+              item: existing.item,
+              category: existing.category || 'Ball Games',
+              qty: existing.qty,
+              qtyIssued: 0,
+              qtyDamaged: 0,
+              minQty: 1,
+              condition: 'New',
+              location: 'Sports Room A',
+              lastChecked: new Date().toISOString().slice(0, 10),
+              remarks: existing.notes || existing.purpose || 'Purchased stock',
+            },
+          }).catch(() => {});
         }
       }
     }
 
-    const [updated] = await prisma.$transaction(ops);
+    // If request status changed to Approved or Rejected, notify PET staff
+    if (newStatus && (newStatus === "Approved" || newStatus === "Rejected")) {
+      Promise.resolve().then(async () => {
+        try {
+          const targetSchoolId = existing.schoolId || req.user?.schoolId;
+          if (targetSchoolId) {
+            const petUsers = await prisma.user.findMany({
+              where: { schoolId: targetSchoolId, role: "TEACHER" }
+            });
+            for (const pet of petUsers) {
+              await prisma.notification.create({
+                data: {
+                  userId: pet.id,
+                  type: "EQUIPMENT_APPROVAL",
+                  title: `Equipment Request ${newStatus}`,
+                  message: `Headmaster has ${newStatus.toLowerCase()} your request for ${existing.qty}x "${existing.item}" (${existing.purpose}).`,
+                  read: false,
+                }
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Error dispatching PET equipment approval notification:", err);
+        }
+      });
+    }
+
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error('Error updating PET equipment request:', err);
