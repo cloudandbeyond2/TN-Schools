@@ -611,8 +611,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
   },
   PARENT: {
     title: "Parent Portal",
-    subtitle: "Rajesh Kumar · Parent of Priya · Class 9B",
-    avatarLetter: "R",
+    subtitle: "Tamil Nadu Schools · Parent & Guardian Portal",
+    avatarLetter: "P",
     avatarColor: "#10b981",
     themeClass: "theme-parent",
     accentColor: "#10b981",
