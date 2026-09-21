@@ -175,6 +175,7 @@ const translations = {
       "Child Health Report": "குழந்தை சுகாதார அறிக்கை",
       "AI Assistant": "AI உதவியாளர்",
       "Scholarship": "உதவித்தொகை",
+      "School Faculty": "பள்ளி ஆசிரியர்கள்",
       "PTA Meetings": "PTA கூட்டங்கள்",
       "People & Staff": "பணியாளர்கள்",
       "Student Monitoring": "மாணவர் கண்காணிப்பு",

@@ -5,6 +5,7 @@ import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import Link from "next/link";
 import ParentPortalBanner from "@/components/ParentPortalBanner";
+import TeacherProfilesModal from "@/components/TeacherProfilesModal";
 
 const API = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -101,6 +102,7 @@ export default function ParentDashboard() {
   const [subPage, setSubPage] = useState(1);
   const [notifFilter, setNotifFilter] = useState<string>("ALL");
   const [notifPage, setNotifPage] = useState(1);
+  const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
 
   const subItemsPerPage = 5;
   const notifItemsPerPage = 4;
@@ -447,6 +449,44 @@ export default function ParentDashboard() {
             <span>Monitor Screen Timing</span>
             <i className="fi fi-rr-arrow-right text-xs"></i>
           </Link>
+        </div>
+      )}
+
+      {/* ── School Faculty & Teachers Directory Banner ── */}
+      {activeChild && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-amber-700/10 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-slate-900 border border-amber-500/30 rounded-2xl p-5 md:p-6 mb-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0 border border-amber-500/30">
+              <i className="fi fi-rr-users text-xl"></i>
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                School Faculty & Teacher Profiles
+                <span className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-500/30">
+                  STAFF DIRECTORY
+                </span>
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                View verified profiles, designations, and subjects of teachers and Headmaster (HM) from your child&apos;s school.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+            <button
+              onClick={() => setIsFacultyModalOpen(true)}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-amber-500/30 shrink-0"
+            >
+              <i className="fi fi-rr-user text-sm"></i>
+              <span>Quick View Profiles</span>
+            </button>
+            <Link
+              href="/parent/faculty"
+              className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+            >
+              <span>Full Directory</span>
+              <i className="fi fi-rr-arrow-right text-xs"></i>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -1019,6 +1059,17 @@ export default function ParentDashboard() {
         </div>
       </>
     )}
+
+    {/* Teacher Profiles & Faculty Modal */}
+    <TeacherProfilesModal
+      isOpen={isFacultyModalOpen}
+      onClose={() => setIsFacultyModalOpen(false)}
+      schoolId={activeChild?.schoolId}
+      parentId={parentId}
+      childName={activeChild?.name}
+      childClass={activeChild?.class}
+      childSection={activeChild?.section}
+    />
   </PortalLayout>
 );
 }

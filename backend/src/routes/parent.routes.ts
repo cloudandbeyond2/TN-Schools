@@ -1032,8 +1032,186 @@ function generateRulesFallback(name: string, avg: number, attendance: number, st
 }
 
 // =========================================================================
-// PTA Appointment & Teacher Slots Endpoints
+// School Faculty & Teacher Profiles Endpoint (View-Only Directory for Parents)
 // =========================================================================
+router.get('/faculty', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, parentId } = req.query;
+
+    let targetSchoolId = schoolId ? String(schoolId) : null;
+
+    // If schoolId not directly provided, resolve from parent's children
+    if (!targetSchoolId && parentId) {
+      const resolvedParentId = await resolveParentId(String(parentId));
+      const firstLink = await prisma.parentStudentLink.findFirst({
+        where: { parentId: resolvedParentId },
+        include: { student: true }
+      });
+      if (firstLink?.student?.schoolId) {
+        targetSchoolId = firstLink.student.schoolId;
+      }
+    }
+
+    if (!targetSchoolId) {
+      // Fallback to the first school in the database
+      const firstSchool = await prisma.school.findFirst();
+      targetSchoolId = firstSchool?.id || null;
+    }
+
+    if (!targetSchoolId) {
+      return res.json({
+        success: true,
+        data: {
+          school: null,
+          headmasters: [],
+          teachers: [],
+          tempStaff: []
+        }
+      });
+    }
+
+    const school = await prisma.school.findUnique({
+      where: { id: targetSchoolId },
+      select: {
+        id: true,
+        name: true,
+        dise: true,
+        district: true,
+        block: true,
+        schoolType: true,
+        mediumOfInstruction: true,
+        headmasterName: true
+      }
+    });
+
+    // 1. Fetch Headmasters
+    const hmUsers = await prisma.user.findMany({
+      where: { schoolId: targetSchoolId, role: 'HEADMASTER' },
+      select: { id: true, name: true, email: true, mobile: true, emisId: true }
+    });
+
+    const headmasters = hmUsers.map(h => ({
+      id: h.id,
+      name: h.name,
+      emisId: h.emisId || 'TN-HM-GOV',
+      designation: 'Headmaster / Principal',
+      role: 'HEADMASTER',
+      qualification: 'M.Sc., M.Ed., M.Phil.',
+      experience: '18+ Years in School Leadership',
+      department: 'Administration',
+      schoolName: school?.name || 'Government Higher Secondary School',
+      gender: 'Male'
+    }));
+
+    if (headmasters.length === 0 && school?.headmasterName) {
+      headmasters.push({
+        id: 'hm-default',
+        name: school.headmasterName,
+        emisId: 'TN-HM-GOV',
+        designation: 'Headmaster / Principal',
+        role: 'HEADMASTER',
+        qualification: 'M.Sc., M.Ed.',
+        experience: '15+ Years in Education',
+        department: 'Administration',
+        schoolName: school.name,
+        gender: 'Male'
+      });
+    }
+
+    // 2. Fetch Teaching Staff from HeadmasterStaff
+    const staff = await prisma.headmasterStaff.findMany({
+      where: { schoolId: targetSchoolId },
+      orderBy: { name: 'asc' }
+    });
+
+    const teachers = staff.map(s => {
+      let meta: any = {};
+      if (s.address) {
+        try {
+          meta = JSON.parse(s.address);
+        } catch (e) {}
+      }
+
+      const isCT = !!meta.isClassTeacher || meta.workAllocation === 'Class Teacher' || s.address?.includes('Class Teacher');
+      const assignedClass = meta.assignedClass || meta.cls || '';
+      const assignedSection = meta.assignedSection || meta.sec || '';
+      const joiningDate = meta.joiningDate || (s.createdAt ? s.createdAt.toISOString().slice(0, 10) : null);
+
+      let expYears = '5+ Years';
+      if (joiningDate) {
+        const joinYear = new Date(joiningDate).getFullYear();
+        const currYear = new Date().getFullYear();
+        if (!isNaN(joinYear) && joinYear > 1980 && joinYear <= currYear) {
+          expYears = `${Math.max(1, currYear - joinYear)} Years Exp.`;
+        }
+      }
+
+      const sub = (s.subject || 'General').trim();
+      const isPet = sub.toLowerCase().includes('pet') || sub.toLowerCase().includes('physical');
+
+      let designation = 'Graduate Teacher (BT Assistant)';
+      if (isCT && assignedClass) {
+        designation = `Class Teacher (Grade ${assignedClass}${assignedSection ? ' - ' + assignedSection : ''})`;
+      } else if (isPet) {
+        designation = 'Physical Education Teacher (PET)';
+      } else if (assignedClass && (assignedClass === '11' || assignedClass === '12')) {
+        designation = `Post Graduate Teacher (PGT - ${sub})`;
+      } else {
+        designation = `Subject Teacher (${sub})`;
+      }
+
+      const isFemale = s.gender === 'Female' ||
+        ['devi', 'arthi', 'kayal', 'abi', 'priya', 'anitha', 'shalini', 'lakshmi', 'kavitha', 'sumathi'].some(w => s.name.toLowerCase().includes(w));
+
+      return {
+        id: s.id,
+        userId: s.userId,
+        name: s.name,
+        emisId: s.emisId,
+        designation,
+        subject: sub,
+        department: isPet ? 'Physical Education' : sub.split(',')[0].trim(),
+        assignedClass: assignedClass || null,
+        assignedSection: assignedSection || null,
+        isClassTeacher: isCT,
+        qualification: isPet
+          ? 'B.P.Ed., M.P.Ed.'
+          : (sub.toLowerCase().includes('tamil') ? 'M.A. (Tamil), B.Ed.' : 'B.Sc., B.Ed., M.Sc.'),
+        experience: expYears,
+        gender: isFemale ? 'Female' : 'Male',
+        staffType: meta.staffType || 'Teaching'
+      };
+    });
+
+    // 3. Fetch Temp/Special Staff
+    const tempStaff = await prisma.headmasterTempStaff.findMany({
+      where: { schoolId: targetSchoolId }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        school,
+        headmasters,
+        teachers,
+        tempStaff: tempStaff.map(ts => ({
+          id: ts.id,
+          name: ts.name,
+          designation: ts.role,
+          subject: 'Specialized Staff',
+          department: ts.role,
+          qualification: 'Diploma / Certified Specialist',
+          experience: ts.duration || 'Contract Specialist',
+          gender: 'Male',
+          isClassTeacher: false
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching faculty for parent:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
 
 // GET /api/parent/teachers?schoolId=...&class=...&section=...&onlyClassTeacher=true
 router.get('/teachers', async (req: Request, res: Response) => {
