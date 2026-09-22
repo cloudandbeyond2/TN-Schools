@@ -128,8 +128,11 @@ export default function PETDashboard() {
               </div>
               <div className="h-48 flex items-end justify-between px-4 pb-4 border-b border-[var(--border-light)] gap-2">
                 {[65, 72, 68, 85, 78, 82, 90].map((h, i) => (
-                  <div key={i} className="w-full bg-blue-100 dark:bg-blue-900/20 rounded-t-lg relative group">
+                  <div key={i} className="w-full h-full bg-blue-100 dark:bg-blue-900/20 rounded-t-lg relative group">
                     <div className="absolute bottom-0 w-full bg-blue-500 rounded-t-lg transition-all" style={{ height: `${h}%` }} />
+                    <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity -top-8 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-700 text-white text-xs font-bold py-1 px-2 rounded pointer-events-none z-10">
+                      {h}%
+                    </div>
                   </div>
                 ))}
               </div>
