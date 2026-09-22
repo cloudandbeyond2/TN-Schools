@@ -720,7 +720,6 @@ export default function StudentSportsPortal() {
       <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full mb-8 overflow-x-auto gap-1">
         {[
           { id: "overview", label: dict.tabOverview, iconClass: "fi fi-sr-heart" },
-          { id: "teams", label: dict.tabTeams, iconClass: "fi fi-sr-users" },
           { id: "events", label: dict.tabEvents, iconClass: "fi fi-sr-calendar" },
           { id: "awards", label: dict.tabAwards, iconClass: "fi fi-sr-trophy" }
         ].map(tab => {
