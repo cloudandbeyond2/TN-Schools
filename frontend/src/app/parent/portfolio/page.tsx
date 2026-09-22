@@ -8,6 +8,8 @@ import ParentPortalBanner from "@/components/ParentPortalBanner";
 import Link from "next/link";
 import Swal from "sweetalert2";
 
+import { useParentChildren, Child } from "@/lib/useParentChildren";
+
 interface StudentPortfolioData {
   id: string;
   studentId: string;
@@ -31,10 +33,35 @@ interface StudentPortfolioData {
   };
 }
 
+function ChildSwitcher({ childList, active, onChange }: { childList: Child[]; active: Child | null; onChange: (c: Child) => void }) {
+  if (childList.length <= 1) return null;
+  return (
+    <div className="flex items-center gap-3 p-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex-wrap backdrop-blur-md">
+      <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 px-2">
+        <i className="fi fi-rr-portrait text-purple-400 text-xs"></i> Portfolio For:
+      </span>
+      {childList.map(c => (
+        <button
+          key={c.studentId}
+          onClick={() => onChange(c)}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+            active?.studentId === c.studentId
+              ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-950/20 scale-105"
+              : "bg-slate-800/70 text-slate-300 border border-slate-700/40 hover:bg-slate-750 hover:text-white"
+          }`}
+        >
+          {c.name.split(" ")[0]} · Class {c.class}{c.section}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ParentPortfolioContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const urlStudentId = searchParams.get("studentId");
+  const { parentId, children, activeChild, setActiveChild, childrenLoading } = useParentChildren();
 
   const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<StudentPortfolioData | null>(null);
@@ -52,10 +79,10 @@ function ParentPortfolioContent() {
     const fetchChildPortfolio = async () => {
       try {
         setLoading(true);
-        let targetStudentId = urlStudentId;
+        let targetStudentId = activeChild?.studentId || urlStudentId;
 
         // If no studentId passed in query string, try fetching parent's linked children
-        const parentUserId = (session?.user as any)?.id;
+        const parentUserId = (session?.user as any)?.id || parentId;
         if (!targetStudentId && parentUserId) {
           try {
             const childRes = await fetch(`${API_BASE}/api/parent/${parentUserId}/children`);
@@ -87,8 +114,8 @@ function ParentPortfolioContent() {
         if (json.success && json.data) {
           setPortfolio(json.data);
           setParentForm({
-            parentEndorsement: json.data.profile.parentEndorsement || "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
-            parentName: json.data.profile.parentName || session?.user?.name || ""
+            parentEndorsement: json.data.profile?.parentEndorsement || "",
+            parentName: json.data.profile?.parentName || session?.user?.name || ""
           });
         }
       } catch (err) {
@@ -98,8 +125,10 @@ function ParentPortfolioContent() {
       }
     };
 
-    fetchChildPortfolio();
-  }, [session, urlStudentId]);
+    if (!childrenLoading) {
+      fetchChildPortfolio();
+    }
+  }, [session, urlStudentId, activeChild?.studentId, parentId, childrenLoading, API_BASE]);
 
   const handleSaveParentEndorsement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +173,6 @@ function ParentPortfolioContent() {
 
   return (
     <div className="space-y-6 pt-4 pb-16">
-      
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -159,6 +187,9 @@ function ParentPortfolioContent() {
         </span>
       </div>
 
+      {/* Child Switcher */}
+      <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
       <ParentPortalBanner pageKey="portfolio" />
 
       {/* Hero Card */}
@@ -170,7 +201,7 @@ function ParentPortfolioContent() {
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white">Digital Portfolio — Parent Reflection</h1>
             <p className="text-xs text-purple-200 mt-0.5">
-              View your child's 360° school progress and log official home learning remarks & verified parent signature stamps.
+              View your child&apos;s 360° school progress and log official home learning remarks & verified parent signature stamps.
             </p>
           </div>
         </div>

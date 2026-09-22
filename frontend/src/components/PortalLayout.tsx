@@ -45,9 +45,9 @@ const translations = {
         "Upcoming Mock Test: Mathematics on Monday. 📅",
       ],
       PARENT: [
-        "Arjun's attendance today marked Present (98% overall). 🟢",
+        "Daily attendance status marked for today. 🟢",
         "New teacher note: Please check homework submission. 💬",
-        "Upcoming PTA Meeting scheduled for June 24th. 🤝",
+        "Upcoming PTA Meeting scheduled. Please check timings. 🤝",
       ],
       DEFAULT: [
         "Welcome to the Tamil Nadu Smart Education Portal. 🏛️",
@@ -328,9 +328,9 @@ const translations = {
         "வரவிருக்கும் மாதிரித் தேர்வு: திங்கள் அன்று கணிதம். 📅",
       ],
       PARENT: [
-        "அர்ஜுனின் இன்றைய வருகை பதிவு செய்யப்பட்டுள்ளது (ஒட்டுமொத்தமாக 98%). 🟢",
+        "அன்றாட வருகைப்பதிவு வெற்றிகரமாக பதிவு செய்யப்பட்டுள்ளது. 🟢",
         "புதிய ஆசிரியர் குறிப்பு: வீட்டுப்பாடச் சமர்ப்பிப்பைச் சரிபார்க்கவும். 💬",
-        "ஜூன் 24-ஆம் தேதி திட்டமிடப்பட்ட பெற்றோர் ஆசிரியர் கூட்டத்தில் பங்கேற்கவும். 🤝",
+        "பெற்றோர் ஆசிரியர் சங்க கூட்ட அட்டவணை புதுப்பிக்கப்பட்டுள்ளது. 🤝",
       ],
       DEFAULT: [
         "தமிழ்நாடு ஸ்மார்ட் கல்விப் போர்ட்டலுக்கு உங்களை வரவேற்கிறோம். 🏛️",
@@ -1274,9 +1274,11 @@ export default function PortalLayout({
       // Fallback if no school info
       const subject = s.subject || "General";
       resolvedSubtitle = `${s.name} · ${subject}`;
+    } else if (userRole === "PARENT") {
+      resolvedSubtitle = `${s.name} · Parent Portal`;
     }
   }
-  const resolvedAvatarLetter = avatarLetter || currentConfig?.avatarLetter || "P";
+  const resolvedAvatarLetter = avatarLetter || (session?.user?.name ? session.user.name.charAt(0).toUpperCase() : currentConfig?.avatarLetter || "P");
 
   // Enforce access mapping rules
   let isAuthorized = true;
