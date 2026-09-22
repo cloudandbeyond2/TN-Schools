@@ -6,25 +6,13 @@ import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import Link from "next/link";
 import ParentPortalBanner from "@/components/ParentPortalBanner";
 import TeacherProfilesModal from "@/components/TeacherProfilesModal";
+import { useParentChildren, Child, getApiBase } from "@/lib/useParentChildren";
 
 const API = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   if (url && !url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
   return url;
 };
-
-interface Child {
-  linkId: string;
-  isPrimary: boolean;
-  studentId: string;
-  name: string;
-  class: string;
-  section: string;
-  rollNumber: string | null;
-  gender: string | null;
-  schoolId: string;
-  community?: string | null;
-}
 
 interface KPI {
   value: string;
@@ -83,10 +71,15 @@ const formatSubjName = (name: string): string => {
 
 export default function ParentDashboard() {
   const { data: session } = useSession();
-  const parentId = (session?.user as any)?.id;
+  const { 
+    parentId, 
+    children, 
+    activeChild, 
+    setActiveChild, 
+    childrenLoading, 
+    refetchChildren 
+  } = useParentChildren();
 
-  const [children, setChildren]       = useState<Child[]>([]);
-  const [activeChild, setActiveChild] = useState<Child | null>(null);
   const [summary, setSummary]         = useState<Summary | null>(null);
   const [subjects, setSubjects]       = useState<SubjectMark[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -106,23 +99,6 @@ export default function ParentDashboard() {
 
   const subItemsPerPage = 5;
   const notifItemsPerPage = 4;
-
-  // ── Load children list ──────────────────────────────────────────
-  const fetchChildren = useCallback(async () => {
-    if (!parentId) return;
-    try {
-      const res = await fetch(`${API()}/api/parent/${parentId}/children`);
-      const json = await res.json();
-      if (json.success && json.data.length > 0) {
-        setChildren(json.data);
-        setActiveChild(json.data[0]);
-      } else {
-        setLoading(false);
-      }
-    } catch {
-      setLoading(false);
-    }
-  }, [parentId]);
 
   // ── Load notifications ──────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
@@ -152,9 +128,8 @@ export default function ParentDashboard() {
   }, [parentId]);
 
   useEffect(() => {
-    fetchChildren();
     fetchNotifications();
-  }, [fetchChildren, fetchNotifications]);
+  }, [fetchNotifications]);
 
   // Dynamic child context filter reset to ensure correct synchronization
   useEffect(() => {
@@ -164,15 +139,17 @@ export default function ParentDashboard() {
       setNotifPage(1);
       setNotifFilter("ALL");
       setSelectedExam("ALL"); // Resets exam state to recalculate available exam terms for the new child
+    } else if (!childrenLoading && children.length === 0) {
+      setLoading(false);
     }
-  }, [activeChild, fetchChildData]);
+  }, [activeChild, childrenLoading, children.length, fetchChildData]);
 
   // Sync data dynamically in background
   const handleRefresh = async () => {
     if (!parentId) return;
     setRefreshing(true);
     try {
-      await fetchChildren();
+      await refetchChildren();
       await fetchNotifications();
       if (activeChild) {
         await fetchChildData(activeChild);
