@@ -20,6 +20,34 @@ router.get('/', async (req: Request, res: Response) => {
       return res.json({ success: true, data: [] });
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: resolvedId },
+      select: { name: true, role: true }
+    });
+    const userName = targetUser?.name || '';
+    const isStudent = targetUser?.role === 'STUDENT';
+
+    let petAwardsQuery = undefined;
+    if (isStudent && userName) {
+      petAwardsQuery = prisma.petAward.findMany({
+        where: {
+          student: {
+            contains: userName,
+            mode: 'insensitive'
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      });
+    } else if (!isStudent) {
+      // If it's a teacher or headmaster, they might want to see recent awards, or we just don't show them here.
+      // We will skip pet awards for non-students in their personal notification feed, or we could fetch all.
+      // Let's keep it simple: no pet awards in the general feed unless you're the recipient.
+      petAwardsQuery = Promise.resolve([]);
+    } else {
+      petAwardsQuery = Promise.resolve([]);
+    }
+
     const [dbNotifs, petAwards] = await Promise.all([
       prisma.$queryRaw<any[]>`
         SELECT id, "userId", message, title, type, "read", "createdAt"
@@ -28,13 +56,10 @@ router.get('/', async (req: Request, res: Response) => {
         ORDER BY "createdAt" DESC
         LIMIT 20
       `.catch(() => []),
-      prisma.petAward.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10
-      }).catch(() => [])
+      petAwardsQuery.catch(() => [])
     ]);
 
-    const formattedPetAwards = petAwards.map((pa: any) => ({
+    const formattedPetAwards = (petAwards || []).map((pa: any) => ({
       id: `pet_notif_${pa.id}`,
       userId: resolvedId,
       type: 'sports',
