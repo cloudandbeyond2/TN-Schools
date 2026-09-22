@@ -17,7 +17,7 @@ export function isSeedEvent(name?: string): boolean {
   return false;
 }
 
-export function isSeedId(id: string): boolean {
+export function isSeedId(id?: string): boolean {
   return false;
 }
 
@@ -25,15 +25,12 @@ export function petLoad<T>(key: string, defaults: T): T {
   if (typeof window === "undefined") return defaults;
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      const cleaned = parsed.filter(
-        (item: any) => item && item.id && !isSeedId(String(item.id))
-      );
-      return cleaned as unknown as T;
+    if (raw === null) return defaults;
+    const parsed = JSON.parse(raw) as T;
+    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(defaults) && defaults.length > 0) {
+      return defaults;
     }
-    return parsed as T;
+    return parsed;
   } catch {
     return defaults;
   }
@@ -253,9 +250,52 @@ export interface MaintenanceLog {
 export const FACILITIES_KEY = "pet-facilities";
 export const MAINTENANCE_KEY = "pet-maintenance-log";
 
-export const DEFAULT_FACILITIES: Facility[] = [];
+export const DEFAULT_FACILITIES: Facility[] = [
+  {
+    id: "fac-1",
+    name: "Kabaddi Mud Court",
+    type: "Outdoor Court",
+    surface: "Compact Red Mud & Clay",
+    status: "Ready for Use",
+    lastMaintained: "2026-08-22",
+    notes: "Standard 13m x 10m court for senior boys & girls. Soft red clay ground with lime powder markings and safety corner zones.",
+  },
+  {
+    id: "fac-2",
+    name: "200m Athletics Track & Football Field",
+    type: "Track",
+    surface: "Natural Grass & Cinder",
+    status: "Ready for Use",
+    lastMaintained: "2026-09-10",
+    notes: "6-lane standard running track surrounding sub-divisional soccer field. Regular mowing & line markings completed.",
+  },
+  {
+    id: "fac-3",
+    name: "Volleyball Court",
+    type: "Outdoor Court",
+    surface: "Hard Clay",
+    status: "Ready for Use",
+    lastMaintained: "2026-09-05",
+    notes: "18m x 9m court with adjustable net posts and referee chair.",
+  },
+];
 
-export const DEFAULT_MAINTENANCE: MaintenanceLog[] = [];
+export const DEFAULT_MAINTENANCE: MaintenanceLog[] = [
+  {
+    id: "log-1",
+    facilityId: "fac-1",
+    date: "2026-08-22",
+    work: "Surface weeding, clay compacting, lime powder markings renew for zonal trials",
+    by: "P. E. Teacher & Ground Staff",
+  },
+  {
+    id: "log-2",
+    facilityId: "fac-2",
+    date: "2026-09-10",
+    work: "Grass trimming, track rolling, corner flag installation",
+    by: "School Maintenance Team",
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Student fitness & health records
@@ -385,7 +425,24 @@ export interface ImprovementPlan {
 
 export const IMPROVEMENTS_KEY = "pet-improvement-plans";
 
-export const DEFAULT_IMPROVEMENTS: ImprovementPlan[] = [];
+export const DEFAULT_IMPROVEMENTS: ImprovementPlan[] = [
+  {
+    id: "imp-1",
+    title: "EVA Interlocking Mats & Solar Floodlight Upgrade for Kabaddi Court",
+    scheme: "CM's Anaivarukkum Viliyattu (Sports for All)",
+    estimate: "Est. ₹2,50,000",
+    status: "Proposed",
+    notes: "Procurement of 30mm Pro-Kabaddi competition mats and 2 solar LED lights for evening zonal tournament practice.",
+  },
+  {
+    id: "imp-2",
+    title: "Synthetic Volleyball Court & Boundary Fencing",
+    scheme: "SDAT Infrastructure Grant",
+    estimate: "Est. ₹4,00,000",
+    status: "Submitted",
+    notes: "All-weather acrylic synthetic flooring and protective chain-link mesh around the court.",
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Standard school-level activity units (Tamil Nadu government schools)
