@@ -435,6 +435,36 @@ export default function StudentSportsPortal() {
     if (status === "loading") return;
     const targetStudentId = (session?.user as any)?.id || "demo-student";
     const userSessGender = (session?.user as any)?.gender || (session?.user as any)?.sex;
+    const schoolId = (session?.user as any)?.schoolId || "";
+
+    let externalAwards: any[] = [];
+    try {
+      const [hmRes, petRes] = await Promise.all([
+        fetch(`${API_BASE}/api/headmaster/rewards?schoolId=${schoolId}`).catch(() => null),
+        fetch(`${API_BASE}/api/pet/awards`).catch(() => null)
+      ]);
+      const hmJson = hmRes ? await hmRes.json().catch(()=>null) : null;
+      const petJson = petRes ? await petRes.json().catch(()=>null) : null;
+      
+      if (hmJson?.success && Array.isArray(hmJson.data)) {
+        externalAwards = [...externalAwards, ...hmJson.data.map((h: any) => ({
+          id: h.id,
+          student: h.recipient,
+          event: h.title,
+          sport: h.category,
+          medal: "Certificate",
+          level: "School",
+          date: h.date,
+          certificateIssued: true
+        }))];
+      }
+      
+      if (petJson?.success && Array.isArray(petJson.data)) {
+        externalAwards = [...externalAwards, ...petJson.data];
+      }
+    } catch (err) {
+      console.error("Failed to fetch external awards", err);
+    }
 
     try {
       setIsLoading(true);
@@ -457,7 +487,13 @@ export default function StudentSportsPortal() {
           stats: enrichStatsWithIcons(json.data?.stats?.length ? json.data.stats : generated.stats),
         };
         setData(initialData);
-        setAwardsPageData(initialData.awards || DEFAULT_AWARDS);
+        
+        const myName = (session?.user?.name || initialData.studentName || "").toLowerCase();
+        const filteredExternal = externalAwards.filter(
+          (a) => a.student && a.student.toLowerCase().includes(myName)
+        );
+        
+        setAwardsPageData([...filteredExternal, ...(initialData.awards || DEFAULT_AWARDS)]);
         return;
       }
     } catch (err) {
@@ -469,7 +505,13 @@ export default function StudentSportsPortal() {
     const detectedGender: StudentGender = userSessGender && String(userSessGender).toLowerCase() === "female" ? "Female" : selectedGender;
     const generated = generateStudentProfile(detectedGender, selectedClassLevel);
     setData(generated);
-    setAwardsPageData(generated.awards || DEFAULT_AWARDS);
+    
+    const myName = (session?.user?.name || generated.studentName || "").toLowerCase();
+    const filteredExternal = externalAwards.filter(
+      (a) => a.student && a.student.toLowerCase().includes(myName)
+    );
+    
+    setAwardsPageData([...filteredExternal, ...(generated.awards || DEFAULT_AWARDS)]);
   }
 
   useEffect(() => {
