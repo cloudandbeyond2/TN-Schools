@@ -1320,7 +1320,7 @@ function DigitalPortfolioContent() {
               <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
                 <i className="fi fi-rr-volleyball text-amber-400 text-sm flex items-center" /> Sports & Athletics
               </h3>
-              {data.sports ? (
+              {data.sports && data.sports.teams.length > 0 ? (
                 <div className="space-y-3">
                   {data.sports.teams.map((t, idx) => (
                     <div key={idx} className="bg-slate-900/50 p-3 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
@@ -1334,6 +1334,53 @@ function DigitalPortfolioContent() {
                 </div>
               ) : (
                 <p className="text-xs text-slate-500 italic">No athletic records logged.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Social & Extracurricular Activities */}
+          <div className="glass rounded-3xl p-6 border border-slate-700/60 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <i className="fi fi-rr-hands-heart text-pink-400 text-lg flex items-center" /> Social & Community Activities
+                </h3>
+                <p className="text-xs text-slate-400">Volunteering, tree plantation, and other verified activities</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {data.socialActivities && data.socialActivities.length > 0 ? (
+                data.socialActivities.map((sa, idx) => (
+                  <div key={idx} className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2.5 bg-pink-500/10 rounded-xl border border-pink-500/20 text-pink-400 shrink-0">
+                        <i className="fi fi-rr-heart text-lg flex items-center" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{sa.activityType}</h4>
+                        <p className="text-[11px] text-slate-400 mt-1">{sa.description}</p>
+                        <span className="text-[10px] text-slate-500 mt-1 block">Date: {new Date(sa.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+                      <span className="text-xs font-black text-pink-400 bg-pink-500/10 px-3 py-1 rounded-xl border border-pink-500/20">
+                        {sa.points} Pts
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                        sa.status === 'Verified' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' :
+                        sa.status === 'Approved' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' :
+                        'text-amber-400 border-amber-500/20 bg-amber-500/10'
+                      }`}>
+                        {sa.status || 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500 text-center py-6 italic border border-slate-800/50 rounded-2xl border-dashed">
+                  No social or community activities logged yet.
+                </p>
               )}
             </div>
           </div>

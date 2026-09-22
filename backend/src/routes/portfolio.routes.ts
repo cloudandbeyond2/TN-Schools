@@ -227,7 +227,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       },
       skills: portfolio.skills,
       projects: portfolio.projects,
-      achievements: portfolio.achievements,
+      // achievements: will be merged below
       clubs: portfolio.student.clubMembers.map((cm: any) => ({
         name: cm.club.name,
         role: cm.role,
@@ -273,6 +273,50 @@ router.get('/:studentId', async (req: Request, res: Response) => {
         date: sp.createdAt
       }))
     };
+
+    // Fetch Headmaster Rewards and PET Awards for this student by name
+    const studentName = user?.name || '';
+    let externalRewards: any[] = [];
+    let petAwards: any[] = [];
+
+    if (studentName) {
+      [externalRewards, petAwards] = await Promise.all([
+        prisma.reward.findMany({
+          where: {
+            recipient: { contains: studentName, mode: 'insensitive' }
+          }
+        }).catch(() => []),
+        prisma.petAward.findMany({
+          where: {
+            student: { contains: studentName, mode: 'insensitive' }
+          }
+        }).catch(() => [])
+      ]);
+    }
+
+    const mappedRewards = externalRewards.map((r: any) => ({
+      id: `reward_${r.id}`,
+      title: r.title,
+      year: r.date || new Date(r.createdAt).getFullYear().toString(),
+      icon: 'star',
+      color: 'text-emerald-400',
+      bg: 'border-emerald-500/30 bg-emerald-500/10'
+    }));
+
+    const mappedPetAwards = petAwards.map((pa: any) => ({
+      id: `pet_${pa.id}`,
+      title: `${pa.medal} in ${pa.sport}`,
+      year: pa.date || new Date(pa.createdAt).getFullYear().toString(),
+      icon: 'trophy',
+      color: 'text-amber-400',
+      bg: 'border-amber-500/30 bg-amber-500/10'
+    }));
+
+    (formattedData as any).achievements = [
+      ...(portfolio.achievements || []),
+      ...mappedRewards,
+      ...mappedPetAwards
+    ];
 
     res.json({ success: true, data: formattedData });
   } catch (err) {
