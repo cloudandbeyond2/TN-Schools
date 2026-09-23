@@ -279,12 +279,25 @@ export default function InventoryPage() {
 
   // ── Derived data ─────────────────────────────────────────────────
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return items
       .filter((i) => category === "All" || i.category === category)
       .filter((i) => !q || i.item.toLowerCase().includes(q) || i.location.toLowerCase().includes(q));
   }, [items, category, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, search, tab]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   const damagedItems = useMemo(
     () => items.filter((i) => i.qtyDamaged > 0 || i.condition === "Needs Repair" || i.condition === "Damaged"),
@@ -314,42 +327,25 @@ export default function InventoryPage() {
       <div className="p-4 sm:p-6 w-full space-y-6 text-slate-800 dark:text-slate-100">
         
         {/* ── Top Hero Header Banner ──────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/20">
-                  <Package size={20} />
-                </span>
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  Inventory & Sports Equipments
-                </h1>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
-                Track sports items, equipment stock balance, audit history, and damaged logs ({stats.available} available · {stats.issued} issued).
-              </p>
-            </div>
-
-            {/* Actions */}
+        <PETPortalBanner
+          pageKey="inventory"
+          rightElement={
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <button
                 onClick={() => setShowRequest(true)}
-                className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-emerald-900/40 hover:scale-[1.02] active:scale-[0.98]"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-600/10"
               >
                 <Send size={15} /> New Request
               </button>
               <button
                 onClick={() => setShowAdd(true)}
-                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-900/40 hover:scale-[1.02] active:scale-[0.98]"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10"
               >
                 <Plus size={16} /> Add Item
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* ── Stat Metric Grid ───────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -451,14 +447,14 @@ export default function InventoryPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search item or location..."
-                  className="pl-9 pr-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-blue-500 w-64"
+                  className="pl-9 pr-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full sm:w-64"
                 />
               </div>
             </div>
 
             <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+                <table className="w-full min-w-[700px] text-left text-sm">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-[var(--border)] text-[var(--text-muted)] uppercase text-[10px] tracking-wider">
                     <tr>
                       <th className="p-4 font-bold">Item</th>
@@ -473,7 +469,7 @@ export default function InventoryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border-light)]">
-                    {filtered.map((item) => {
+                    {paginatedItems.map((item) => {
                       const status = stockStatus(item);
                       const avail = availableQty(item);
                       return (
@@ -509,31 +505,32 @@ export default function InventoryPage() {
                               value={item.qtyDamaged}
                               min={0}
                               max={item.qty - (item.qtyIssued || 0)}
-                              tone="red"
                               onChange={(qtyDamaged) => patchItem(item.id, { qtyDamaged })}
                             />
                           </td>
-                          <td className="p-4 text-center">
-                            <span className={`font-black ${avail < item.minQty ? "text-red-500" : "text-[var(--text-heading)]"}`}>{avail}</span>
-                          </td>
+                          <td className="p-4 text-center font-bold text-[var(--text-heading)]">{avail}</td>
                           <td className="p-4">
                             <select
                               value={item.condition}
-                              onChange={(e) => patchItem(item.id, { condition: e.target.value as InventoryItem["condition"] })}
-                              className="px-2 py-1 rounded-lg border border-[var(--border)] bg-transparent text-xs font-semibold focus:outline-none focus:border-blue-500"
+                              onChange={(e) => patchItem(item.id, { condition: e.target.value as any })}
+                              className="px-2.5 py-1 text-xs font-semibold bg-[var(--bg-card)] border border-[var(--border)] rounded-lg focus:outline-none"
                             >
                               {CONDITIONS.map((c) => (
-                                <option key={c} value={c}>{c}</option>
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
                               ))}
                             </select>
                           </td>
-                          <td className="p-4 text-center">
                             {status === "ok" && <CheckCircle2 size={18} className="text-green-500 inline-block" />}
                             {status === "warning" && <AlertCircle size={18} className="text-amber-500 inline-block" />}
                             {status === "critical" && <AlertCircle size={18} className="text-red-500 inline-block" />}
-                          </td>
-                          <td className="p-4 text-right">
-                            <button onClick={() => setDeletingItem(item)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title="Remove item">
+                          <td className="p-4 text-right whitespace-nowrap">
+                            <button
+                              onClick={() => setDeletingItem(item)}
+                              className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                              title="Delete item"
+                            >
                               <Trash2 size={14} />
                             </button>
                           </td>
@@ -551,6 +548,43 @@ export default function InventoryPage() {
                 </table>
               </div>
             </div>
+
+            {filtered.length > 0 && totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm text-xs font-semibold mt-4">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        currentPage === i + 1
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -558,7 +592,7 @@ export default function InventoryPage() {
         {tab === "damaged" && (
           <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[700px] text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-[var(--border)] text-[var(--text-muted)] uppercase text-[10px] tracking-wider">
                   <tr>
                     <th className="p-4 font-bold">Item</th>
@@ -645,7 +679,7 @@ export default function InventoryPage() {
         {tab === "requests" && (
           <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[700px] text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-[var(--border)] text-[var(--text-muted)] uppercase text-[10px] tracking-wider">
                   <tr>
                     <th className="p-4 font-bold">Request</th>

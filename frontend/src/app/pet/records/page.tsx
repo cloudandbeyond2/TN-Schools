@@ -199,6 +199,9 @@ export default function StudentRecordsPage() {
     }
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const classes = useMemo(() => ["All", ...Array.from(new Set(records.map((r) => r.class))).sort()], [records]);
 
   const filtered = useMemo(() => {
@@ -213,6 +216,17 @@ export default function StudentRecordsPage() {
       })
       .filter((r) => !q || r.name.toLowerCase().includes(q) || r.sport.toLowerCase().includes(q));
   }, [records, search, classFilter, bmiFilter]);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, classFilter, bmiFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   // Statistics calculations
   const measured = records.filter((r) => r.heightCm > 0 && r.weightKg > 0);
@@ -368,13 +382,12 @@ export default function StudentRecordsPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Filter size={15} className="text-slate-400 hidden sm:block" />
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
               <select
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
-                className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
               >
                 {classes.map((c) => (
                   <option key={c} value={c}>{c === "All" ? "All Classes" : `Class ${c}`}</option>
@@ -384,7 +397,7 @@ export default function StudentRecordsPage() {
               <select
                 value={bmiFilter}
                 onChange={(e) => setBmiFilter(e.target.value)}
-                className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-semibold focus:outline-none focus:border-blue-500 text-slate-800 dark:text-slate-100"
               >
                 {["All", "Underweight", "Healthy", "Overweight", "Obese", "Pending"].map((c) => (
                   <option key={c} value={c}>{c === "All" ? "All BMI Status" : c === "Pending" ? "Pending Measurements" : c}</option>
@@ -393,10 +406,10 @@ export default function StudentRecordsPage() {
             </div>
 
             {/* Segmented View Switcher */}
-            <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full sm:w-auto justify-center">
               <button
                 onClick={() => setView("table")}
-                className={`px-4 py-1.5 flex items-center gap-2 text-xs font-bold rounded-xl transition-all ${
+                className={`flex-1 sm:flex-initial px-4 py-1.5 flex items-center justify-center gap-2 text-xs font-bold rounded-xl transition-all ${
                   view === "table"
                     ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-md"
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -406,7 +419,7 @@ export default function StudentRecordsPage() {
               </button>
               <button
                 onClick={() => setView("cards")}
-                className={`px-4 py-1.5 flex items-center gap-2 text-xs font-bold rounded-xl transition-all ${
+                className={`flex-1 sm:flex-initial px-4 py-1.5 flex items-center justify-center gap-2 text-xs font-bold rounded-xl transition-all ${
                   view === "cards"
                     ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-md"
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -421,7 +434,7 @@ export default function StudentRecordsPage() {
         {/* ── Main Data View (Table / Cards) ─────────────────────── */}
         {view === "table" ? (
           <ModernTable
-            records={filtered}
+            records={paginatedRecords}
             loaded={loaded}
             onView={setViewing}
             onEdit={setEditing}
@@ -429,7 +442,7 @@ export default function StudentRecordsPage() {
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((s) => (
+            {paginatedRecords.map((s) => (
               <ModernCard
                 key={s.id}
                 record={s}
@@ -445,6 +458,44 @@ export default function StudentRecordsPage() {
                 <div className="text-xs text-slate-500 mt-1">Try resetting filters or adding new student records.</div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Pagination Footer ────────────────────────────────────── */}
+        {filtered.length > 0 && totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm text-xs font-semibold">
+            <span className="text-slate-500 dark:text-slate-400">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                    currentPage === i + 1
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -546,7 +597,7 @@ function ModernTable({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[750px] text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider font-bold">
               <th className="py-4 px-5">Student</th>

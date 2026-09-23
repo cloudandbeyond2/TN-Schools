@@ -165,6 +165,10 @@ export default function ClubsPage() {
     petSave(LOCAL_CLUBS_KEY, next);
   };
 
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   // Unified view over both modes for the club cards
   const cards = useMemo(() => {
     const list =
@@ -190,8 +194,20 @@ export default function ClubsPage() {
             memberCount: c.members.length as number | undefined,
           }));
     const q = searchTerm.toLowerCase();
-    return q ? list.filter((c) => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)) : list;
-  }, [mode, apiClubs, apiMemberCounts, localClubs, searchTerm, session]);
+    return list
+      .filter((c) => categoryFilter === "All" || c.category === categoryFilter)
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+  }, [mode, apiClubs, apiMemberCounts, localClubs, searchTerm, categoryFilter, session]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(cards.length / itemsPerPage));
+  const paginatedCards = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return cards.slice(start, start + itemsPerPage);
+  }, [cards, currentPage]);
 
   const totalMembers = useMemo(() => {
     if (mode === "api") return Object.values(apiMemberCounts).reduce((a, b) => a + b, 0);
@@ -318,7 +334,7 @@ export default function ClubsPage() {
         <PETPortalBanner
           pageKey="clubs"
           rightElement={
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
@@ -326,9 +342,19 @@ export default function ClubsPage() {
                   placeholder="Search clubs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full sm:w-56 pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl text-sm font-semibold focus:outline-none"
+              >
+                <option value="All">All Categories</option>
+                {CLUB_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
               <button
                 onClick={handleAddSchoolUnits}
                 disabled={seedingUnits || mode === "loading" || !schoolId}
@@ -389,79 +415,120 @@ export default function ClubsPage() {
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cards.map((club) => {
-              const eligibility = getClubEligibility(club.name);
-              return (
-                <div key={club.id} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 duration-300 flex flex-col h-full overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  <div className="flex justify-between items-start mb-5 relative z-10">
-                    <div className="flex items-start gap-4 min-w-0">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 flex items-center justify-center shrink-0 border border-blue-100 dark:border-slate-700 shadow-sm group-hover:shadow-md transition-shadow group-hover:scale-105 duration-300">
-                        {renderPetClubIcon(club.icon)}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedCards.map((club) => {
+                const eligibility = getClubEligibility(club.name);
+                return (
+                  <div key={club.id} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 duration-300 flex flex-col h-full overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="flex justify-between items-start mb-5 relative z-10">
+                      <div className="flex items-start gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 flex items-center justify-center shrink-0 border border-blue-100 dark:border-slate-700 shadow-sm group-hover:shadow-md transition-shadow group-hover:scale-105 duration-300">
+                          {renderPetClubIcon(club.icon)}
+                        </div>
+                        <div className="min-w-0 pt-1">
+                          <h3 className="text-base font-black text-slate-800 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{club.name}</h3>
+                          <div className="text-xs text-slate-500 font-semibold mt-1 truncate">Coordinator: {club.coordinator}</div>
+                        </div>
                       </div>
-                      <div className="min-w-0 pt-1">
-                        <h3 className="text-base font-black text-slate-800 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{club.name}</h3>
-                        <div className="text-xs text-slate-500 font-semibold mt-1 truncate">Coordinator: {club.coordinator}</div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4 relative z-10">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
+                        {club.category}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        {eligibility.label}
+                      </span>
+                    </div>
+
+                  {club.description && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed line-clamp-3 relative z-10 flex-grow">{club.description}</p>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 mb-5 mt-auto relative z-10">
+                    <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 group-hover:border-blue-200 dark:group-hover:border-blue-900/50 transition-colors">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <Users size={12} className="text-slate-400" /> Members
+                      </div>
+                      <div className="text-lg font-black text-slate-800 dark:text-slate-200">
+                        {club.memberCount ?? 0}
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-4 relative z-10">
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
-                      {club.category}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                      {eligibility.label}
-                    </span>
-                  </div>
-
-                {club.description && (
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed line-clamp-3 relative z-10 flex-grow">{club.description}</p>
-                )}
-
-                <div className="grid grid-cols-2 gap-3 mb-5 mt-auto relative z-10">
-                  <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 group-hover:border-blue-200 dark:group-hover:border-blue-900/50 transition-colors">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                      <Users size={12} className="text-slate-400" /> Members
-                    </div>
-                    <div className="text-lg font-black text-slate-800 dark:text-slate-200">
-                      {club.memberCount ?? 0}
+                    <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 group-hover:border-blue-200 dark:group-hover:border-blue-900/50 transition-colors">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <Clock size={12} className="text-slate-400" /> Meeting
+                      </div>
+                      <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate mt-1">{club.meetingTime}</div>
                     </div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 group-hover:border-blue-200 dark:group-hover:border-blue-900/50 transition-colors">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                      <Clock size={12} className="text-slate-400" /> Meeting
-                    </div>
-                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate mt-1">{club.meetingTime}</div>
+
+                  <div className="flex gap-2 relative z-10">
+                    <button
+                      onClick={() => setManageClubId(club.id)}
+                      className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 group-hover:border-transparent border border-slate-200 dark:border-slate-700 shadow-sm"
+                    >
+                      <UserPlus size={14} /> Manage
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClub(club.id, club.name)}
+                      className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all shadow-sm"
+                      title="Delete club"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
+                );
+              })}
+              {cards.length === 0 && (
+                <div className="col-span-full p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                  <Search size={36} className="mx-auto mb-3 text-slate-400" />
+                  <div className="text-base font-bold text-slate-800 dark:text-white">No matching clubs</div>
+                  <div className="text-xs text-slate-500 mt-1">Try resetting filters or click New Club to create one.</div>
+                </div>
+              )}
+            </div>
 
-                <div className="flex gap-2 relative z-10">
+            {cards.length > 0 && totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm text-xs font-semibold">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, cards.length)} of {cards.length} entries
+                </span>
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => setManageClubId(club.id)}
-                    className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 group-hover:border-transparent border border-slate-200 dark:border-slate-700 shadow-sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    <UserPlus size={14} /> Manage
+                    Previous
                   </button>
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        currentPage === i + 1
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
                   <button
-                    onClick={() => handleDeleteClub(club.id, club.name)}
-                    className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all shadow-sm"
-                    title="Delete club"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    <Trash2 size={14} />
+                    Next
                   </button>
                 </div>
-              </div>
-              );
-            })}
-            {cards.length === 0 && (
-              <div className="col-span-2 text-center py-16 text-slate-500 italic text-xs">
-                No clubs found. Click <span className="font-bold">New Club</span> to create one.
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 

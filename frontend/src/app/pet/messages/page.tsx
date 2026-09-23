@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import PETPortalBanner from "@/components/PETPortalBanner";
@@ -35,7 +35,15 @@ export default function PetMessagesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
+  const [parentSearch, setParentSearch] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+
+  const filteredParents = useMemo(() => {
+    const q = parentSearch.toLowerCase().trim();
+    return parents.filter(
+      (p: Parent) => !q || p.name.toLowerCase().includes(q) || p.studentName.toLowerCase().includes(q) || p.studentClass.toLowerCase().includes(q)
+    );
+  }, [parents, parentSearch]);
 
   // Fetch parents in the school
   const fetchParents = useCallback(async () => {
@@ -157,13 +165,20 @@ export default function PetMessagesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-260px)] lg:h-[calc(100vh-190px)]">
             {/* Contacts list */}
             <div className={`lg:col-span-1 bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex flex-col gap-4 overflow-y-auto ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
-              <div className="border-b border-[var(--border-light)] pb-3">
+              <div className="border-b border-[var(--border-light)] pb-3 space-y-2">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <User size={16} /> Parent Inbox
+                  <User size={16} /> Parent Inbox ({filteredParents.length})
                 </h3>
+                <input
+                  type="text"
+                  placeholder="Search parent or student..."
+                  value={parentSearch}
+                  onChange={(e) => setParentSearch(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] focus:outline-none focus:border-blue-500"
+                />
               </div>
-              <div className="space-y-2">
-                {parents.map((p) => {
+              <div className="space-y-2 overflow-y-auto">
+                {filteredParents.map((p) => {
                   const isSelected = p.id === selectedParentId;
                   return (
                     <button

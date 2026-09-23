@@ -42,8 +42,8 @@ interface BannerDetail {
 const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   dashboard: {
     icon: LayoutGrid,
-    iconBg: "bg-blue-500/20 border-blue-400/20",
-    iconColor: "text-blue-400",
+    iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40",
+    iconColor: "text-blue-600 dark:text-blue-400",
     en: {
       title: "Physical Education Teacher Dashboard",
       desc: "Overview of sports status, ground conditions, active clubs, and quick stats.",
@@ -57,8 +57,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   records: {
     icon: Activity,
-    iconBg: "bg-blue-500/20 border-blue-400/20",
-    iconColor: "text-blue-400",
+    iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40",
+    iconColor: "text-blue-600 dark:text-blue-400",
     en: {
       title: "Student Records & Health",
       desc: "Height, weight, BMI, fitness assessments, physical activity and health indicators.",
@@ -72,8 +72,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   sports: {
     icon: Trophy,
-    iconBg: "bg-amber-500/20 border-amber-400/20",
-    iconColor: "text-amber-400",
+    iconBg: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40",
+    iconColor: "text-amber-600 dark:text-amber-400",
     en: {
       title: "Sports Events & Competitions",
       desc: "Manage school level tournaments, games, annual athletics meet, and event registrations.",
@@ -87,10 +87,10 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   inventory: {
     icon: Package,
-    iconBg: "bg-emerald-500/20 border-emerald-400/20",
-    iconColor: "text-emerald-400",
+    iconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
     en: {
-      title: "Inventory & Equipments",
+      title: "Inventory & Sports Equipments",
       desc: "Track sports items, equipment stock balance, audit history, and damaged logs.",
       rightPill: "Inventory Desk",
     },
@@ -102,8 +102,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   awards: {
     icon: Medal,
-    iconBg: "bg-amber-500/20 border-amber-400/20",
-    iconColor: "text-amber-400",
+    iconBg: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40",
+    iconColor: "text-amber-600 dark:text-amber-400",
     en: {
       title: "Awards & Certifications",
       desc: "Log student sports achievements, state/district awards, and medals list.",
@@ -117,8 +117,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   ground: {
     icon: MapPin,
-    iconBg: "bg-emerald-500/20 border-emerald-400/20",
-    iconColor: "text-emerald-400",
+    iconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
     en: {
       title: "Ground Condition",
       desc: "Monitor playground readiness, maintenance request status, and track logs.",
@@ -132,8 +132,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   clubs: {
     icon: Users,
-    iconBg: "bg-indigo-500/20 border-indigo-400/20",
-    iconColor: "text-indigo-400",
+    iconBg: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40",
+    iconColor: "text-indigo-600 dark:text-indigo-400",
     en: {
       title: "Clubs & Activities",
       desc: "Manage sports clubs, student registrations, active attendance, and training schedules.",
@@ -147,8 +147,8 @@ const BANNER_CONFIGS: Record<PETPageKey, BannerDetail> = {
   },
   messages: {
     icon: MessageSquare,
-    iconBg: "bg-teal-500/20 border-teal-400/20",
-    iconColor: "text-teal-400",
+    iconBg: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 border border-teal-200/60 dark:border-teal-800/40",
+    iconColor: "text-teal-600 dark:text-teal-400",
     en: {
       title: "Parent Messages",
       desc: "Read and reply to parents about physical education, fitness, and sports progress.",
@@ -181,28 +181,24 @@ export default function PETPortalBanner({
   const Icon = config.icon;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800 w-full mb-6 animate-fade-in">
-      {/* Glow Blur Circles */}
-      <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5">
-            <span className={`p-2 rounded-xl border ${config.iconBg} ${config.iconColor}`}>
-              <Icon size={20} />
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-sm text-slate-900 dark:text-white w-full mb-6 transition-all">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className={`p-3 rounded-2xl ${config.iconBg} shrink-0`}>
+            <Icon size={24} />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {data.title}
             </h1>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+              {data.desc}
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
-            {customDesc || data.desc}
-          </p>
         </div>
 
         {rightElement && (
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <div className="w-full lg:w-auto shrink-0">
             {rightElement}
           </div>
         )}
