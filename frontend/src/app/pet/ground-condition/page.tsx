@@ -1,7 +1,7 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
 import PETPortalBanner from "@/components/PETPortalBanner";
-import { Map, Plus, Wrench, ClipboardList, Trash2, Landmark, TrendingUp, Pencil } from "lucide-react";
+import { Map, Plus, Wrench, ClipboardList, Trash2, Landmark, TrendingUp, Pencil, Search } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
@@ -104,6 +104,28 @@ export default function GroundConditionPage() {
   const setStatus = (id: string, status: FacilityStatus) =>
     saveFacilities(facilities.map((f) => (f.id === id ? { ...f, status } : f)));
 
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | FacilityStatus>("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const filteredFacilities = useMemo(() => {
+    const q = search.toLowerCase();
+    return facilities
+      .filter((f) => statusFilter === "All" || f.status === statusFilter)
+      .filter((f) => !q || f.name.toLowerCase().includes(q) || f.type.toLowerCase().includes(q) || f.surface.toLowerCase().includes(q));
+  }, [facilities, search, statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFacilities.length / itemsPerPage));
+  const paginatedFacilities = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredFacilities.slice(start, start + itemsPerPage);
+  }, [filteredFacilities, currentPage]);
+
   const readyCount = facilities.filter((f) => f.status === "Ready for Use").length;
   const attention = facilities.length - readyCount;
 
@@ -116,86 +138,157 @@ export default function GroundConditionPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 w-full mx-auto space-y-6">
+      <div className="p-4 sm:p-6 w-full mx-auto space-y-6">
         <PETPortalBanner
           pageKey="ground"
-          customDesc={`${facilities.length} facilities · ${readyCount} ready for use · ${attention} need attention`}
           rightElement={
-            <button
-              onClick={() => setShowAddFacility(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-            >
-              <Plus size={16} /> Add Facility
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 sm:flex-initial min-w-[200px] w-full sm:w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search ground facility..."
+                  className="pl-9 pr-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+                />
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="flex-1 sm:flex-none px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-semibold focus:outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setShowAddFacility(true)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shrink-0 whitespace-nowrap shadow-sm"
+                >
+                  <Plus size={16} /> Add Facility
+                </button>
+              </div>
+            </div>
           }
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {facilities.map((f) => (
-            <div key={f.id} className="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border)] shadow-sm flex flex-col">
-              <div className="flex items-start justify-between mb-4 gap-2">
-                <h3 className="text-base font-bold flex items-center gap-2 text-[var(--text-heading)]">
-                  <Map className="text-green-500 shrink-0" size={18} /> {f.name}
-                </h3>
-                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full whitespace-nowrap ${statusStyles[f.status]}`}>
-                  {f.status}
-                </span>
+          {paginatedFacilities.map((f) => (
+            <div key={f.id} className="bg-[var(--bg-card)] rounded-2xl p-4 sm:p-5 border border-[var(--border)] shadow-sm flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-base font-bold flex items-center gap-2 text-[var(--text-heading)] min-w-0 flex-1 break-words">
+                    <Map className="text-green-500 shrink-0" size={18} />
+                    <span className="truncate">{f.name}</span>
+                  </h3>
+                  <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full shrink-0 ${statusStyles[f.status]}`}>
+                    {f.status}
+                  </span>
+                </div>
+                <div className="space-y-2.5 text-xs sm:text-sm">
+                  <Row label="Type" value={f.type} />
+                  <Row label="Surface" value={f.surface} />
+                  <Row label="Last Maintained" value={f.lastMaintained} />
+                  {f.notes && <div className="text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-light)] break-words">{f.notes}</div>}
+                </div>
               </div>
-              <div className="space-y-2.5 text-sm flex-1">
-                <Row label="Type" value={f.type} />
-                <Row label="Surface" value={f.surface} />
-                <Row label="Last Maintained" value={f.lastMaintained} />
-                {f.notes && <div className="text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-light)]">{f.notes}</div>}
-              </div>
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-[var(--border-light)]">
                 <select
                   value={f.status}
                   onChange={(e) => setStatus(f.id, e.target.value as FacilityStatus)}
-                  className="flex-1 px-2 py-2 rounded-xl border border-[var(--border)] bg-transparent text-xs font-semibold focus:outline-none focus:border-blue-500"
+                  className="flex-1 min-w-[120px] px-2.5 py-2 rounded-xl border border-[var(--border)] bg-transparent text-xs font-semibold focus:outline-none focus:border-blue-500"
                   title="Update status"
                 >
                   {STATUSES.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <button
-                  onClick={() => setLogFacility(f)}
-                  className="px-3 py-2 rounded-xl border border-[var(--border)] text-xs font-bold flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-[var(--text-heading)]"
-                  title="Log maintenance work"
-                >
-                  <Wrench size={13} /> Log Work
-                </button>
-                <button
-                  onClick={() => setEditingFacility(f)}
-                  className="px-2.5 py-2 rounded-xl border border-[var(--border)] text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  title="Edit facility"
-                >
-                  <Pencil size={13} />
-                </button>
-                <button
-                  onClick={() => setDeleteTarget({ id: f.id, name: f.name, type: "facility" })}
-                  className="px-2.5 py-2 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  title="Remove facility"
-                >
-                  <Trash2 size={13} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setLogFacility(f)}
+                    className="px-3 py-2 rounded-xl border border-[var(--border)] text-xs font-bold flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-[var(--text-heading)] transition-colors"
+                    title="Log maintenance work"
+                  >
+                    <Wrench size={13} /> Log Work
+                  </button>
+                  <button
+                    onClick={() => setEditingFacility(f)}
+                    className="p-2 rounded-xl border border-[var(--border)] text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    title="Edit facility"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget({ id: f.id, name: f.name, type: "facility" })}
+                    className="p-2 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Remove facility"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
+          {loaded && filteredFacilities.length === 0 && (
+            <div className="col-span-full p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+              <Search size={36} className="mx-auto mb-3 text-slate-400" />
+              <div className="text-base font-bold text-slate-800 dark:text-white">No matching ground facilities</div>
+              <div className="text-xs text-slate-500 mt-1">Try resetting filters or adding new facility records.</div>
+            </div>
+          )}
         </div>
+
+        {filteredFacilities.length > 0 && totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm text-xs font-semibold">
+            <span className="text-slate-500 dark:text-slate-400 text-center sm:text-left">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredFacilities.length)} of {filteredFacilities.length} entries
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                    currentPage === i + 1
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Facility improvement plans — TN sports development schemes */}
         <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="font-extrabold text-[var(--text-heading)] flex items-center gap-2 text-base">
-              <TrendingUp size={18} className="text-blue-500" /> Facility Improvement Plans
-              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider hidden md:inline">
+              <TrendingUp size={18} className="text-blue-500 shrink-0" /> Facility Improvement Plans
+              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider hidden lg:inline">
                 SDAT · Khelo India · Sports for All · MP/MLA Fund
               </span>
             </div>
             <button
               onClick={() => setShowAddImprovement(true)}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+              className="w-full sm:w-auto px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm shrink-0"
             >
               <Plus size={14} /> New Proposal
             </button>
@@ -203,10 +296,10 @@ export default function GroundConditionPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {improvements.map((p) => (
-              <div key={p.id} className="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border)] shadow-sm flex flex-col justify-between space-y-4">
+              <div key={p.id} className="bg-[var(--bg-card)] rounded-2xl p-4 sm:p-5 border border-[var(--border)] shadow-sm flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-base font-bold text-[var(--text-heading)] leading-snug">{p.title}</h4>
+                    <h4 className="text-base font-bold text-[var(--text-heading)] leading-snug break-words flex-1 min-w-0">{p.title}</h4>
                     <select
                       value={p.status}
                       onChange={async (e) => {
@@ -223,24 +316,24 @@ export default function GroundConditionPage() {
                     </select>
                   </div>
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-xs sm:text-sm">
                     <Row label="Funding Scheme" value={p.scheme} />
                     <Row label="Cost Estimate" value={`Est. ${p.estimate}`} />
-                    {p.notes && <div className="text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-light)]">{p.notes}</div>}
+                    {p.notes && <div className="text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-light)] break-words">{p.notes}</div>}
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border-light)]">
                   <button
                     onClick={() => setEditingImprovement(p)}
-                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1.5 transition-colors"
                     title="Edit proposal"
                   >
                     <Pencil size={13} /> Edit
                   </button>
                   <button
                     onClick={() => setDeleteTarget({ id: p.id, name: p.title, type: "proposal" })}
-                    className="px-2.5 py-1.5 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="p-1.5 px-2.5 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     title="Delete proposal"
                   >
                     <Trash2 size={13} />
@@ -258,19 +351,19 @@ export default function GroundConditionPage() {
 
         <div className="space-y-3 pt-2">
           <div className="font-extrabold text-[var(--text-heading)] flex items-center gap-2 text-base">
-            <ClipboardList size={18} className="text-amber-500" /> Recent Maintenance Log ({recentLogs.length})
+            <ClipboardList size={18} className="text-amber-500 shrink-0" /> Recent Maintenance Log ({recentLogs.length})
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {recentLogs.map((l) => (
-              <div key={l.id} className="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border)] shadow-sm flex flex-col justify-between space-y-3">
+              <div key={l.id} className="bg-[var(--bg-card)] rounded-2xl p-4 sm:p-5 border border-[var(--border)] shadow-sm flex flex-col justify-between space-y-3">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-base font-bold text-[var(--text-heading)] leading-snug">{l.work}</h4>
+                    <h4 className="text-base font-bold text-[var(--text-heading)] leading-snug break-words flex-1 min-w-0">{l.work}</h4>
                     <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 whitespace-nowrap shrink-0">
                       {l.date}
                     </span>
                   </div>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-xs sm:text-sm">
                     <Row label="Facility" value={facilityName(l.facilityId)} />
                     <Row label="Maintained By" value={l.by} />
                   </div>
@@ -279,14 +372,14 @@ export default function GroundConditionPage() {
                 <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border-light)]">
                   <button
                     onClick={() => setEditingLog(l)}
-                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1.5 transition-colors"
                     title="Edit maintenance log"
                   >
                     <Pencil size={13} /> Edit
                   </button>
                   <button
                     onClick={() => setDeleteTarget({ id: l.id, name: l.work, type: "log" })}
-                    className="px-2.5 py-1.5 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="p-1.5 px-2.5 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     title="Delete log"
                   >
                     <Trash2 size={13} />
@@ -425,9 +518,9 @@ export default function GroundConditionPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between items-center">
-      <span className="text-[var(--text-muted)]">{label}</span>
-      <span className="font-bold text-[var(--text-heading)]">{value}</span>
+    <div className="flex justify-between items-center gap-2">
+      <span className="text-[var(--text-muted)] shrink-0">{label}</span>
+      <span className="font-bold text-[var(--text-heading)] text-right truncate min-w-0">{value}</span>
     </div>
   );
 }

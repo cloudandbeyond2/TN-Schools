@@ -95,7 +95,6 @@ export default function AwardsPage() {
       <div className="p-6 w-full space-y-6">
         <PETPortalBanner
           pageKey="awards"
-          customDesc={`School wall of fame · ${awards.length} achievements · ${pendingCerts} certificates pending`}
           rightElement={
             <div className="flex gap-3">
               <select
@@ -153,7 +152,7 @@ export default function AwardsPage() {
             Achievements ({filtered.length})
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-[var(--border)] text-[var(--text-muted)] uppercase text-[10px] tracking-wider">
                 <tr>
                   <th className="p-4 font-bold">Student / Team</th>
