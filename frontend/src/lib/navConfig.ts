@@ -510,7 +510,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Awards & Certifications", href: "/pet/awards", icon: "fi fi-rr-trophy" },
       { label: "Ground Condition", href: "/pet/ground-condition", icon: "fi fi-rr-map" },
       { label: "Clubs & Activities", href: "/pet/clubs", icon: "fi fi-rr-users" },
-      { label: "Parent Messages", href: "/pet/messages", icon: "fi fi-rr-comment" },
+      // { label: "Parent Messages", href: "/pet/messages", icon: "fi fi-rr-comment" },
     ],
   },
   TEACHER: {
