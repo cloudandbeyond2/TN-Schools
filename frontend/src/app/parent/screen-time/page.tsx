@@ -43,8 +43,11 @@ interface SummaryData {
   recommendedDailyLimitHours: number;
 }
 
+import { getStoredChildId, saveStoredChildId } from "@/lib/useParentChildren";
+
 export default function ParentScreenTimePage() {
   const { data: session } = useSession();
+  const parentId = (session?.user as any)?.id;
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [childrenList, setChildrenList] = useState<ChildUsage[]>([]);
@@ -59,10 +62,28 @@ export default function ParentScreenTimePage() {
     fetchScreenTimeData();
   }, [session]);
 
+  // Listen for active child changes triggered elsewhere
+  useEffect(() => {
+    const handleChildChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<{ studentId: string; parentId?: string }>;
+      const newStudentId = customEvent.detail?.studentId;
+      if (newStudentId && newStudentId !== selectedChildId) {
+        setSelectedChildId(newStudentId);
+      }
+    };
+    window.addEventListener("tn_parent_active_child_changed", handleChildChanged);
+    return () => window.removeEventListener("tn_parent_active_child_changed", handleChildChanged);
+  }, [selectedChildId]);
+
+  const handleSelectChild = (studentId: string) => {
+    setSelectedChildId(studentId);
+    saveStoredChildId(studentId, parentId);
+  };
+
   const fetchScreenTimeData = async () => {
     setLoading(true);
     try {
-      let parentId = (session?.user as any)?.id || "demo-parent";
+      let pId = parentId || "demo-parent";
       const token = (session?.user as any)?.backendToken;
 
       const headers: Record<string, string> = {};
@@ -70,14 +91,19 @@ export default function ParentScreenTimePage() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${API_URL}/api/parent/${parentId}/screen-time`, { headers });
+      const res = await fetch(`${API_URL}/api/parent/${pId}/screen-time`, { headers });
       const json = await res.json();
 
       if (json.success) {
         setSummary(json.summary);
-        setChildrenList(json.data || []);
-        if (json.data && json.data.length > 0) {
-          setSelectedChildId(json.data[0].studentId);
+        const dataList: ChildUsage[] = json.data || [];
+        setChildrenList(dataList);
+        if (dataList.length > 0) {
+          const storedId = getStoredChildId(pId);
+          const matched = dataList.find((c) => c.studentId === storedId);
+          const selectedId = matched ? matched.studentId : dataList[0].studentId;
+          setSelectedChildId(selectedId);
+          if (selectedId) saveStoredChildId(selectedId, pId);
         }
       } else {
         // Fallback demo data if backend response is empty
@@ -297,7 +323,7 @@ export default function ParentScreenTimePage() {
               return (
                 <button
                   key={child.studentId}
-                  onClick={() => setSelectedChildId(child.studentId)}
+                  onClick={() => handleSelectChild(child.studentId)}
                   className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isSelected
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"

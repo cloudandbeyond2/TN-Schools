@@ -20,13 +20,16 @@ import {
   X,
   FileText,
   Calendar,
-  Sparkles
+  Sparkles,
+  Filter
 } from "lucide-react";
 import {
   EquipmentRequest,
   InventoryItem,
   SportsEvent,
   Facility,
+  ImprovementPlan,
+  MaintenanceLog,
   FitnessRecord,
   StockCategory,
   PET_API_BASE,
@@ -34,17 +37,25 @@ import {
   INVENTORY_KEY,
   EVENTS_KEY,
   FACILITIES_KEY,
+  IMPROVEMENTS_KEY,
+  MAINTENANCE_KEY,
   RECORDS_KEY,
+  DEFAULT_FACILITIES,
+  DEFAULT_IMPROVEMENTS,
+  DEFAULT_MAINTENANCE,
   petLoad,
   petSave,
   computeBmi,
   bmiCategory,
+  fitnessGrade,
   isSeedId,
   isSeedEvent,
   inferCategory,
 } from "@/lib/petData";
 import { fetchEquipmentRequests, fetchInventoryItems, updateEquipmentRequest } from "@/lib/petInventoryApi";
 import { fetchSportsEvents } from "@/lib/petSportsApi";
+import { fetchFacilities, fetchImprovements, fetchLogs, updateImprovementApi } from "@/lib/petGroundsApi";
+import { fetchFitnessRecords } from "@/lib/petFitnessApi";
 
 type TabType = "requests" | "events" | "ground" | "fitness";
 
@@ -57,18 +68,138 @@ function HeadmasterSportsDeskContent() {
   const [requests, setRequests] = useState<EquipmentRequest[]>([]);
   const [events, setEvents] = useState<SportsEvent[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [improvements, setImprovements] = useState<ImprovementPlan[]>([]);
+  const [logs, setLogs] = useState<MaintenanceLog[]>([]);
   const [records, setRecords] = useState<FitnessRecord[]>([]);
 
   const [requestFilter, setRequestFilter] = useState<"Pending" | "All" | "Approved" | "Rejected">("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [classFilter, setClassFilter] = useState("All");
+  const [fitnessSearch, setFitnessSearch] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [noteModal, setNoteModal] = useState<{ id: string; action: "Approved" | "Rejected"; note: string } | null>(null);
 
+  const saveImprovements = (next: ImprovementPlan[]) => {
+    setImprovements(next);
+    petSave(IMPROVEMENTS_KEY, next);
+  };
+
   // Load initial data — fetch ALL equipment requests and stock items added by PET staff for HM visibility
   const fetchData = async () => {
-    const localReqs = petLoad<EquipmentRequest[]>(REQUESTS_KEY, []);
-    const localItems = petLoad<InventoryItem[]>(INVENTORY_KEY, []);
+    // 1. Load local storage items first so local PET edits (e.g. Kabaddi Mud Court) appear instantly
+    const localFacs = petLoad<Facility[]>(FACILITIES_KEY, DEFAULT_FACILITIES);
+    setFacilities(Array.isArray(localFacs) && localFacs.length > 0 ? localFacs.filter((f) => f && f.id) : DEFAULT_FACILITIES);
 
+    const localImps = petLoad<ImprovementPlan[]>(IMPROVEMENTS_KEY, DEFAULT_IMPROVEMENTS);
+    setImprovements(Array.isArray(localImps) && localImps.length > 0 ? localImps.filter((i) => i && i.id) : DEFAULT_IMPROVEMENTS);
+
+    const localLogs = petLoad<MaintenanceLog[]>(MAINTENANCE_KEY, DEFAULT_MAINTENANCE);
+    setLogs(Array.isArray(localLogs) && localLogs.length > 0 ? localLogs.filter((l) => l && l.id) : DEFAULT_MAINTENANCE);
+
+    // 2. Sync with backend API
+    try {
+      const [apiFacs, apiImps, apiLogs] = await Promise.all([
+        fetchFacilities(),
+        fetchImprovements(),
+        fetchLogs(),
+      ]);
+      if (Array.isArray(apiFacs) && apiFacs.length > 0) {
+        const cleanFacs = apiFacs.filter((f) => f && f.id);
+        if (cleanFacs.length > 0) setFacilities(cleanFacs);
+      }
+      if (Array.isArray(apiImps) && apiImps.length > 0) {
+        const cleanImps = apiImps.filter((i) => i && i.id);
+        if (cleanImps.length > 0) setImprovements(cleanImps);
+      }
+      if (Array.isArray(apiLogs) && apiLogs.length > 0) {
+        const cleanLogs = apiLogs.filter((l) => l && l.id);
+        if (cleanLogs.length > 0) setLogs(cleanLogs);
+      }
+    } catch {
+      // Keep local
+    }
+
+    // Fetch student fitness records
+    const localRecs = petLoad<FitnessRecord[]>(RECORDS_KEY, []);
+    let cleanRecs: FitnessRecord[] = localRecs.filter((r) => r && r.id && !isSeedId(r.id));
+    try {
+      const apiRecs = await fetchFitnessRecords();
+      if (Array.isArray(apiRecs) && apiRecs.length > 0) {
+        cleanRecs = apiRecs.filter((r) => r && r.id && !isSeedId(r.id));
+        petSave(RECORDS_KEY, cleanRecs);
+      }
+    } catch {
+      // Keep localRecs
+    }
+    if (cleanRecs.length === 0) {
+      cleanRecs = [
+        {
+          id: "rec-1",
+          name: "Arjun K.",
+          class: "10A",
+          sport: "Athletics",
+          heightCm: 168,
+          weightKg: 58,
+          fitnessScore: 88,
+          assessment: { endurance: 90, strength: 85, flexibility: 85, speed: 92, lastAssessed: "2026-09-15" },
+          activityLevel: "Active",
+          weeklyActivityHrs: 8,
+          health: { restingHeartRate: 64, bloodGroup: "O+", vision: "Normal", lastCheckup: "2026-09-01" },
+          mentalHealth: "Excellent",
+          status: "Active Athlete",
+        },
+        {
+          id: "rec-2",
+          name: "Priya S.",
+          class: "9B",
+          sport: "Volleyball",
+          heightCm: 162,
+          weightKg: 52,
+          fitnessScore: 78,
+          assessment: { endurance: 75, strength: 78, flexibility: 82, speed: 76, lastAssessed: "2026-09-14" },
+          activityLevel: "Moderate",
+          weeklyActivityHrs: 6,
+          health: { restingHeartRate: 72, bloodGroup: "A+", vision: "Normal", lastCheckup: "2026-09-05" },
+          mentalHealth: "Good",
+          status: "Active Athlete",
+        },
+        {
+          id: "rec-3",
+          name: "Karthik V.",
+          class: "8A",
+          sport: "Football",
+          heightCm: 154,
+          weightKg: 46,
+          fitnessScore: 82,
+          assessment: { endurance: 85, strength: 80, flexibility: 78, speed: 84, lastAssessed: "2026-09-16" },
+          activityLevel: "Active",
+          weeklyActivityHrs: 7,
+          health: { restingHeartRate: 68, bloodGroup: "B+", vision: "Normal", lastCheckup: "2026-09-10" },
+          mentalHealth: "Excellent",
+          status: "Active Athlete",
+        },
+        {
+          id: "rec-4",
+          name: "Divya R.",
+          class: "11A",
+          sport: "Basketball",
+          heightCm: 171,
+          weightKg: 61,
+          fitnessScore: 84,
+          assessment: { endurance: 82, strength: 86, flexibility: 84, speed: 84, lastAssessed: "2026-09-12" },
+          activityLevel: "Active",
+          weeklyActivityHrs: 8,
+          health: { restingHeartRate: 66, bloodGroup: "AB+", vision: "Normal", lastCheckup: "2026-09-08" },
+          mentalHealth: "Good",
+          status: "Active Athlete",
+        },
+      ];
+      petSave(RECORDS_KEY, cleanRecs);
+    }
+    setRecords(cleanRecs);
+
+    // 2. Fetch network requests asynchronously
+    const localReqs = petLoad<EquipmentRequest[]>(REQUESTS_KEY, []);
     let allReqs: EquipmentRequest[] = [];
     try {
       const apiReqs = await fetchEquipmentRequests();
@@ -82,24 +213,8 @@ function HeadmasterSportsDeskContent() {
     } catch {
       allReqs = localReqs.filter((r) => r && r.id && !isSeedId(r.id));
     }
-
-    let allItems: InventoryItem[] = [];
-    try {
-      const apiItems = await fetchInventoryItems();
-      if (Array.isArray(apiItems)) {
-        const cleanItems = apiItems.filter((i) => i && i.id && !isSeedId(i.id));
-        allItems = cleanItems;
-        petSave(INVENTORY_KEY, cleanItems);
-      } else {
-        allItems = localItems.filter((i) => i && i.id && !isSeedId(i.id));
-      }
-    } catch {
-      allItems = localItems.filter((i) => i && i.id && !isSeedId(i.id));
-    }
-
     setRequests(allReqs);
 
-    // Fetch all live events logged by PET staff dynamically
     const localEvs = petLoad<SportsEvent[]>(EVENTS_KEY, []);
     try {
       const apiEvs = await fetchSportsEvents();
@@ -113,17 +228,14 @@ function HeadmasterSportsDeskContent() {
     } catch {
       setEvents(localEvs.filter((e) => e && e.id && !isSeedId(e.id)));
     }
-
-    const localFacs = petLoad<Facility[]>(FACILITIES_KEY, []);
-    setFacilities(localFacs.filter((f) => f && f.id && !isSeedId(f.id)));
-
-    const localRecs = petLoad<FitnessRecord[]>(RECORDS_KEY, []);
-    setRecords(localRecs.filter((r) => r && r.id && !isSeedId(r.id)));
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+    const handleStorage = () => fetchData();
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [activeTab]);
 
   const pendingRequestsCount = useMemo(() => requests.filter((r) => r.status === "Pending").length, [requests]);
   const approvedRequestsCount = useMemo(() => requests.filter((r) => r.status === "Approved" || r.status === "Received").length, [requests]);
@@ -183,6 +295,27 @@ function HeadmasterSportsDeskContent() {
     });
   }, [requests, requestFilter, searchQuery]);
 
+  const availableClasses = useMemo(() => {
+    const set = new Set<string>();
+    records.forEach((r) => {
+      if (r.class) set.add(r.class);
+    });
+    return ["All", ...Array.from(set).sort()];
+  }, [records]);
+
+  const filteredFitnessRecords = useMemo(() => {
+    return records.filter((r) => {
+      const matchClass = classFilter === "All" || r.class === classFilter;
+      const q = (fitnessSearch || "").toLowerCase();
+      const matchSearch =
+        !q ||
+        (r.name || "").toLowerCase().includes(q) ||
+        (r.class || "").toLowerCase().includes(q) ||
+        (r.sport && r.sport.toLowerCase().includes(q));
+      return matchClass && matchSearch;
+    });
+  }, [records, classFilter, fitnessSearch]);
+
   return (
     <PortalLayout>
       <div className="p-4 sm:p-6 w-full space-y-6 text-slate-800 dark:text-slate-100">
@@ -233,7 +366,7 @@ function HeadmasterSportsDeskContent() {
         </div>
 
         {/* ── Segmented Tabs Navigation ────────────────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm flex flex-wrap gap-2">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm flex overflow-x-auto gap-2 no-scrollbar">
           {[
             { key: "requests", label: "Equipment Requests", icon: Package, count: pendingRequestsCount > 0 ? pendingRequestsCount : requests.length },
             { key: "events", label: "Sports Events", icon: Trophy, count: events.length },
@@ -409,27 +542,25 @@ function HeadmasterSportsDeskContent() {
 
         {/* ── TAB 2: SPORTS EVENTS ────────────────────────────────────────── */}
         {activeTab === "events" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {events.map((ev) => (
               <div
                 key={ev.id}
                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 uppercase">
-                      {ev.level} Level
-                    </span>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">
-                      {ev.name}
-                    </h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-base">{ev.name}</h3>
+                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{ev.sport} • {ev.level}</span>
                   </div>
                   <span
-                    className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      ev.status === "Upcoming"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                      ev.status === "Completed"
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                         : ev.status === "Ongoing"
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+                        : ev.status === "Upcoming"
+                        ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
                         : "bg-slate-500/10 text-slate-500"
                     }`}
                   >
@@ -465,37 +596,153 @@ function HeadmasterSportsDeskContent() {
 
         {/* ── TAB 3: GROUND CONDITION ─────────────────────────────────────── */}
         {activeTab === "ground" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {facilities.map((fac) => (
-              <div
-                key={fac.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-base">{fac.name}</h3>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                      fac.status === "Ready for Use"
-                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                        : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                    }`}
+          <div className="space-y-6">
+            {/* Ground Facilities Overview */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <MapPin size={16} className="text-emerald-500" /> Ground Facilities & Courts ({facilities.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                {facilities.map((fac) => (
+                  <div
+                    key={fac.id}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 flex flex-col justify-between"
                   >
-                    {fac.status}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{fac.notes || "Regular sports maintenance and track safety inspections completed."}</p>
-                <div className="text-[11px] text-slate-400 font-semibold">Last inspected: {fac.lastMaintained || "2026-09-18"}</div>
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{fac.name}</h4>
+                        <span
+                          className={`self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold border ${
+                            fac.status === "Ready for Use"
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                              : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+                          }`}
+                        >
+                          {fac.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">Surface:</span> {fac.surface || "N/A"}</div>
+                        <div><span className="font-semibold text-slate-700 dark:text-slate-300">Type:</span> {fac.type || "Sports Ground"}</div>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{fac.notes || "Regular sports maintenance and track safety inspections completed."}</p>
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-semibold pt-2 border-t border-slate-100 dark:border-slate-800">Last inspected: {fac.lastMaintained || "2026-09-18"}</div>
+                  </div>
+                ))}
+                {facilities.length === 0 && (
+                  <div className="col-span-full bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 font-medium">
+                    No ground facilities logged.
+                  </div>
+                )}
               </div>
-            ))}
-            {facilities.length === 0 && (
-              <div className="col-span-full bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 font-medium">
-                No ground facilities logged.
+            </div>
+
+            {/* PET Infrastructure Improvement Proposals */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Sparkles size={16} className="text-indigo-500" /> Infrastructure Improvement Proposals ({improvements.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                {improvements.map((imp) => (
+                  <div
+                    key={imp.id}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div className="space-y-1">
+                          <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-snug">{imp.title}</h4>
+                          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Scheme: {imp.scheme}</p>
+                        </div>
+                        <select
+                          value={imp.status}
+                          onChange={async (e) => {
+                            const nextStatus = e.target.value as ImprovementPlan["status"];
+                            await updateImprovementApi(imp.id, { status: nextStatus });
+                            const updated = improvements.map((item) =>
+                              item.id === imp.id ? { ...item, status: nextStatus } : item
+                            );
+                            saveImprovements(updated);
+                          }}
+                          className={`self-start sm:self-auto text-xs font-bold px-3 py-1.5 rounded-xl border outline-none cursor-pointer transition-colors ${
+                            imp.status === "Approved"
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-400"
+                              : imp.status === "Completed"
+                              ? "bg-teal-50 border-teal-200 text-teal-700 dark:bg-teal-950/40 dark:border-teal-800 dark:text-teal-400"
+                              : imp.status === "In Progress"
+                              ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-400"
+                              : "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-400"
+                          }`}
+                        >
+                          <option value="Proposed">Proposed</option>
+                          <option value="Submitted">Submitted</option>
+                          <option value="Approved">Approved</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                        <div className="break-words"><span className="text-slate-400 font-semibold">Funding Scheme:</span> {imp.scheme || "General Fund"}</div>
+                        <div><span className="text-slate-400 font-semibold">Est. Cost:</span> {imp.estimate || "N/A"}</div>
+                      </div>
+
+                      {imp.notes && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">"{imp.notes}"</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {improvements.length === 0 && (
+                  <div className="col-span-full bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 font-medium">
+                    No infrastructure improvement proposals submitted yet.
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* Maintenance Activity Logs */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Clock size={16} className="text-amber-500" /> Recent Maintenance Logs ({logs.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                {logs.map((log) => {
+                  const facName = facilities.find((f) => f.id === log.facilityId)?.name || "Facility";
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                          <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-snug">{log.work}</h4>
+                          <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                            {log.date}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Facility:</span> {facName}
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-semibold pt-2 border-t border-slate-100 dark:border-slate-800">
+                        Logged by: {log.by}
+                      </div>
+                    </div>
+                  );
+                })}
+                {logs.length === 0 && (
+                  <div className="col-span-full bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 font-medium">
+                    No maintenance logs registered yet.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── TAB 4: STUDENT FITNESS SUMMARY ─────────────────────────────── */}
+        {/* ── TAB 4: STUDENT FITNESS SUMMARY & RECORDS ─────────────────────── */}
         {activeTab === "fitness" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -507,7 +754,7 @@ function HeadmasterSportsDeskContent() {
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
                 <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Average Fitness Score</div>
                 <div className="text-3xl font-black text-emerald-500">
-                  {records.length ? Math.round(records.reduce((a, b) => a + b.fitnessScore, 0) / records.length) : 85}%
+                  {records.length ? Math.round(records.reduce((a, b) => a + (b.fitnessScore || 0), 0) / records.length) : 85}%
                 </div>
                 <div className="text-xs text-slate-500 mt-1">State standard target: 75%</div>
               </div>
@@ -523,6 +770,142 @@ function HeadmasterSportsDeskContent() {
                     : 90}%
                 </div>
                 <div className="text-xs text-slate-500 mt-1">Normal category distribution</div>
+              </div>
+            </div>
+
+            {/* Class-wise Filter & Search Toolbar */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  <Filter size={14} className="text-blue-500" /> Class Filter:
+                </div>
+                <select
+                  value={classFilter}
+                  onChange={(e) => setClassFilter(e.target.value)}
+                  className="px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[150px]"
+                >
+                  <option value="All">All Classes ({records.length})</option>
+                  {availableClasses.filter(c => c !== "All").map((cls) => (
+                    <option key={cls} value={cls}>
+                      Class {cls} ({records.filter((r) => r.class === cls).length})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search student name or sport..."
+                  value={fitnessSearch}
+                  onChange={(e) => setFitnessSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Student Fitness Records Table */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                  <Activity size={16} className="text-emerald-500" /> Student Health & Fitness Profiles ({filteredFitnessRecords.length})
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 dark:bg-slate-800/60 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="p-4">Student Name</th>
+                      <th className="p-4">Class</th>
+                      <th className="p-4">Sport / Game</th>
+                      <th className="p-4">Height / Weight</th>
+                      <th className="p-4">BMI & Category</th>
+                      <th className="p-4">Fitness Score</th>
+                      <th className="p-4">Resting HR</th>
+                      <th className="p-4">Last Assessed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
+                    {filteredFitnessRecords.map((r) => {
+                      const bmi = computeBmi(r.heightCm, r.weightKg);
+                      const bmiCat = bmiCategory(bmi);
+                      const grade = fitnessGrade(r.fitnessScore || 0);
+                      return (
+                        <tr key={r.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="p-4">
+                            <div className="font-bold text-slate-900 dark:text-white text-sm">{r.name}</div>
+                            {r.health?.bloodGroup && (
+                              <span className="text-[10px] text-slate-400 font-semibold">Blood Group: {r.health.bloodGroup}</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-extrabold text-xs">
+                              {r.class || "N/A"}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">{r.sport || "General Fitness"}</span>
+                          </td>
+                          <td className="p-4 text-slate-600 dark:text-slate-300">
+                            {r.heightCm ? `${r.heightCm} cm` : "—"} / {r.weightKg ? `${r.weightKg} kg` : "—"}
+                          </td>
+                          <td className="p-4">
+                            {bmi > 0 ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-900 dark:text-white">{bmi}</span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    bmiCat.tone === "green"
+                                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                      : bmiCat.tone === "amber"
+                                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                      : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                  }`}
+                                >
+                                  {bmiCat.label}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-slate-900 dark:text-white text-xs">{r.fitnessScore || 70}%</span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  grade.tone === "green"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : grade.tone === "blue"
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                    : grade.tone === "amber"
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                }`}
+                              >
+                                {grade.label}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-slate-600 dark:text-slate-300 font-semibold">
+                            {r.health?.restingHeartRate ? `${r.health.restingHeartRate} bpm` : "72 bpm"}
+                          </td>
+                          <td className="p-4 text-slate-400 font-semibold">
+                            {r.assessment?.lastAssessed || "2026-09-18"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredFitnessRecords.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
+                          No student fitness records found for class filter "{classFilter}".
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

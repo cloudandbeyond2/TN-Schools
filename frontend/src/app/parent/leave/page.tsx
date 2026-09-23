@@ -40,12 +40,15 @@ export default function ParentLeavePage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 5;
 
-  // Initialize form child selection
+  // Initialize form child selection with activeChild
   useEffect(() => {
-    if (children.length > 0) {
+    if (activeChild) {
+      setFormChildId(activeChild.studentId);
+      setSelectedChildId(activeChild.studentId);
+    } else if (children.length > 0) {
       setFormChildId(children[0].studentId);
     }
-  }, [children]);
+  }, [activeChild, children]);
 
   // Fetch leaves from database
   const fetchLeaves = useCallback(async () => {

@@ -627,6 +627,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Leave Reports", href: "/parent/leave", icon: "FileText" },
       { label: "AI Assistant", href: "/parent/ai-assistant", icon: "Bot" },
       { label: "Scholarship", href: "/parent/scholarship", icon: "GraduationCap" },
+      { label: "Digital Portfolio", href: "/parent/portfolio", icon: "FolderOpen" },
       { label: "School Faculty", href: "/parent/faculty", icon: "Users" },
       { label: "PTA Meetings", href: "/parent/pta", icon: "Users" },
       { label: "Teacher Messages", href: "/parent/messages", icon: "MessageSquare" },

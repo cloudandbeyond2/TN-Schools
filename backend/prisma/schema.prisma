@@ -1089,6 +1089,49 @@ model PetAward {
   @@index([schoolId])
 }
 
+model PetFacility {
+  id             String   @id @default(uuid())
+  schoolId       String?
+  name           String
+  type           String   @default("Outdoor Field")
+  status         String   @default("Ready for Use")
+  surface        String   @default("")
+  lastMaintained String   @default("")
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+model PetImprovementPlan {
+  id        String   @id @default(uuid())
+  schoolId  String?
+  title     String
+  scheme    String   @default("General Fund")
+  estimate  String   @default("TBD")
+  status    String   @default("Proposed")
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+model PetMaintenanceLog {
+  id         String   @id @default(uuid())
+  schoolId   String?
+  facilityId String
+  date       String
+  work       String
+  by         String   @default("Ground Staff")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([facilityId])
+}
+
 model InjuryReport {
   id          String   @id @default(uuid())
   studentId   String
