@@ -393,8 +393,9 @@ router.get('/:parentId/child/:studentId/scholarship', async (req: Request, res: 
 });
 
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 // GET /api/parent/:parentId/notifications
-// All notifications for this parent
+// All notifications for this parent (filtered by parent's children)
 // ─────────────────────────────────────────────────────────────────
 router.get('/:parentId/notifications', async (req: Request, res: Response) => {
   try {
@@ -408,6 +409,20 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
 
     const targetUserId = parent?.userId || parentId;
 
+    // 1. Retrieve linked children for this parent
+    const parentLinks = await prisma.parentStudentLink.findMany({
+      where: { parentId },
+      include: {
+        student: {
+          include: { user: { select: { name: true } } },
+        },
+      },
+    });
+
+    const childrenStudentIds = parentLinks.map(l => l.student.id);
+    const childrenNames = parentLinks.map(l => (l.student.user?.name || "").trim().toLowerCase()).filter(Boolean);
+    const childrenFirstNames = childrenNames.map(n => n.split(" ")[0]).filter(Boolean);
+
     const [dbNotifs, petAwards] = await Promise.all([
       prisma.notification.findMany({
         where: {
@@ -418,11 +433,19 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
       }),
       prisma.petAward.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 15
+        take: 30
       }).catch(() => [])
     ]);
 
-    const formattedPetAwards = petAwards.map((pa: any) => ({
+    // Filter PET awards to only include awards for this parent's children
+    const relevantPetAwards = petAwards.filter((pa: any) => {
+      if (!pa.student) return false;
+      const studentClean = pa.student.trim().toLowerCase();
+      const studentFirst = studentClean.split(" ")[0];
+      return childrenFirstNames.some(cfn => studentFirst.includes(cfn) || cfn.includes(studentFirst));
+    });
+
+    const formattedPetAwards = relevantPetAwards.map((pa: any) => ({
       id: `pet_notif_${pa.id}`,
       userId: targetUserId,
       type: 'sports',
@@ -432,11 +455,42 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
       createdAt: pa.createdAt,
     }));
 
-    const combined = [...formattedPetAwards, ...dbNotifs];
+    // Filter DB notifications to ensure they belong to this parent's child or general parent announcements
+    const relevantDbNotifs = dbNotifs.filter((n: any) => {
+      if (n.studentId && childrenStudentIds.length > 0) {
+        if (!childrenStudentIds.includes(n.studentId)) return false;
+      }
+      
+      const combinedText = `${n.title || ''} ${n.message || ''}`.toLowerCase();
+      const congratMatch = combinedText.match(/congratulations!\s+([a-z0-9_\s]+?)\s+\(/i) ||
+                           combinedText.match(/congratulations!\s+([a-z0-9_\s]+?)\s+won/i) ||
+                           combinedText.match(/official certificate for\s+([a-z0-9_\s]+?)\s+\(/i);
+                           
+      if (congratMatch && congratMatch[1] && childrenFirstNames.length > 0) {
+        const mentionedName = congratMatch[1].trim().toLowerCase().split(" ")[0];
+        const isMyChild = childrenFirstNames.some(cfn => mentionedName.includes(cfn) || cfn.includes(mentionedName));
+        if (!isMyChild) return false;
+      }
 
-    const unreadCount = combined.filter((n: any) => !n.read).length;
+      return true;
+    });
 
-    const mapped = combined.map(({ read, ...rest }: any) => ({
+    const combined = [...formattedPetAwards, ...relevantDbNotifs];
+
+    // Deduplicate
+    const uniqueCombined: any[] = [];
+    const seenKeys = new Set<string>();
+    for (const n of combined) {
+      const key = `${n.title}_${n.message}_${new Date(n.createdAt).getTime()}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        uniqueCombined.push(n);
+      }
+    }
+
+    const unreadCount = uniqueCombined.filter((n: any) => !n.read).length;
+
+    const mapped = uniqueCombined.map(({ read, ...rest }: any) => ({
       ...rest,
       isRead: read,
     }));
