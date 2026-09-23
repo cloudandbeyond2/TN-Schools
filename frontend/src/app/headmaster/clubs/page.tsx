@@ -202,6 +202,39 @@ export default function HeadmasterClubsPage() {
     }
   };
 
+  const handleDeleteClub = async (id: string, name: string) => {
+    const confirmRes = await Swal.fire({
+      title: lang === "தமிழ்" ? `"${name}" நீக்கப்பட வேண்டுமா?` : `Delete "${name}"?`,
+      text: lang === "தமிழ்" ? "இந்த மன்றத்தின் உறுப்பினர்கள் மற்றும் நிகழ்வுகளும் நீக்கப்படும்." : "Members and events of this club will also be removed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: lang === "தமிழ்" ? "ஆம், நீக்கு" : "Yes, delete",
+      cancelButtonText: lang === "தமிழ்" ? "ரத்து செய்" : "Cancel"
+    });
+
+    if (!confirmRes.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/activities/clubs/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: lang === "தமிழ்" ? "நீக்கப்பட்டது!" : "Deleted!",
+          text: lang === "தமிழ்" ? `"${name}" மன்றம் வெற்றிகரமாக நீக்கப்பட்டது.` : `"${name}" has been removed.`,
+          icon: "success",
+          confirmButtonColor: "#3b82f6"
+        });
+        setClubs((prev) => prev.filter((c) => c.id !== id));
+      } else {
+        Swal.fire("Error", json.error || "Failed to delete club", "error");
+      }
+    } catch (err) {
+      console.error("Failed to delete club:", err);
+      Swal.fire("Error", "Network error. Failed to delete club.", "error");
+    }
+  };
+
   return (
     <PortalLayout 
       title={lang === "தமிழ்" ? "மன்றங்கள் & நடவடிக்கைகள் மேலாண்மை" : "Clubs & Activities Management"} 
@@ -364,7 +397,7 @@ export default function HeadmasterClubsPage() {
               {clubs.map(club => (
                 <div 
                   key={club.id} 
-                  className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex gap-3 hover:border-slate-300 dark:hover:border-slate-700 hover:scale-[1.01] transition-all duration-300 bg-slate-50/50 dark:bg-slate-900/40"
+                  className="relative p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex gap-3 hover:border-slate-300 dark:hover:border-slate-700 hover:scale-[1.01] transition-all duration-300 bg-slate-50/50 dark:bg-slate-900/40 group"
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${getCategoryThemeClass(club.category)}`}>
                     {club.icon && club.icon.startsWith("fi ") ? (
@@ -373,7 +406,7 @@ export default function HeadmasterClubsPage() {
                       <span className="text-lg">{club.icon || "🌱"}</span>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 pr-6">
                     <h3 className="font-bold leading-tight text-slate-800 dark:text-white text-xs truncate">{club.name}</h3>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                       {club.category === "Environment" ? (lang === "தமிழ்" ? "சுற்றுச்சூழல்" : "Environment") :
@@ -389,6 +422,14 @@ export default function HeadmasterClubsPage() {
                       <p className="mt-1 line-clamp-2 text-slate-400 leading-relaxed">{club.description}</p>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => handleDeleteClub(club.id, club.name)}
+                    title={lang === "தமிழ்" ? "மன்றத்தை நீக்கு" : "Delete club"}
+                    className="absolute top-3.5 right-3.5 p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200 dark:hover:border-red-900/50 transition-all"
+                  >
+                    <i className="fi fi-rr-trash text-xs" />
+                  </button>
                 </div>
               ))}
               {clubs.length === 0 && (
