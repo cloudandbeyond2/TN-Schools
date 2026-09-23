@@ -35,7 +35,7 @@ export default function ParentPtaManagementPage() {
   const { parentId, schoolId: sessionSchoolId, children, activeChild, setActiveChild, childrenLoading } = useParentChildren();
   const schoolId = activeChild?.schoolId || sessionSchoolId || (session?.user as any)?.schoolId as string | undefined;
 
-  const [activeView, setActiveView] = useState<"Upcoming" | "Completed" | "All">("All");
+  const [activeView, setActiveView] = useState<"All" | "Upcoming" | "Expired" | "Completed">("All");
   const [meetings, setMeetings] = useState<PTAMeeting[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingLists, setLoadingLists] = useState(true);
@@ -155,15 +155,25 @@ export default function ParentPtaManagementPage() {
     } catch { return d; }
   };
 
-  // KPIs — expired meetings still count as upcoming for display
+  // KPIs
   const upcomingCount = meetings.filter(m => m.status === "Upcoming" && !isExpiredMeeting(m)).length;
-  const completedCount = meetings.filter(m => m.status === "Completed").length;
   const expiredCount = meetings.filter(isExpiredMeeting).length;
+  const completedCount = meetings.filter(m => m.status === "Completed").length;
   const attendingCount = Object.values(rsvpStatus).filter(v => v === "Accept").length;
 
   const trimmedQuery = searchQuery.trim().toLowerCase();
   const filteredMeetings = meetings.filter(m => {
-    const matchesView = activeView === "All" || m.status === activeView;
+    const matchesView =
+      activeView === "All"
+        ? true
+        : activeView === "Upcoming"
+        ? m.status === "Upcoming" && !isExpiredMeeting(m)
+        : activeView === "Expired"
+        ? isExpiredMeeting(m)
+        : activeView === "Completed"
+        ? m.status === "Completed"
+        : true;
+
     const matchesSearch = !trimmedQuery ||
       m.title.toLowerCase().includes(trimmedQuery) ||
       (m.description && m.description.toLowerCase().includes(trimmedQuery)) ||
@@ -177,6 +187,7 @@ export default function ParentPtaManagementPage() {
   const tabs = [
     { key: "All" as const, label: "All Meetings", icon: "fi fi-rr-apps", count: meetings.length },
     { key: "Upcoming" as const, label: "Upcoming", icon: "fi fi-rr-calendar", count: upcomingCount },
+    { key: "Expired" as const, label: "Expired Meetings", icon: "fi fi-rr-time-past", count: expiredCount },
     { key: "Completed" as const, label: "Completed", icon: "fi fi-rr-badge-check", count: completedCount },
   ];
 
@@ -237,25 +248,36 @@ export default function ParentPtaManagementPage() {
       <ParentPortalBanner pageKey="pta" />
 
       {/* ─── KPI Row ─── */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           {
-            label: "Upcoming", value: upcomingCount, icon: "fi fi-rr-calendar-clock",
+            key: "Upcoming" as const, label: "Upcoming", value: upcomingCount, icon: "fi fi-rr-calendar-clock",
             gradient: "from-emerald-500 to-teal-400", shadow: "rgba(16,185,129,0.3)",
             bg: "bg-emerald-500/8 dark:bg-emerald-500/10", border: "border-emerald-500/20",
           },
           {
-            label: "Completed", value: completedCount, icon: "fi fi-rr-badge-check",
+            key: "Expired" as const, label: "Expired", value: expiredCount, icon: "fi fi-rr-time-past",
+            gradient: "from-amber-500 to-orange-400", shadow: "rgba(245,158,11,0.3)",
+            bg: "bg-amber-500/8 dark:bg-amber-500/10", border: "border-amber-500/20",
+          },
+          {
+            key: "Completed" as const, label: "Completed", value: completedCount, icon: "fi fi-rr-badge-check",
             gradient: "from-blue-500 to-cyan-400", shadow: "rgba(59,130,246,0.3)",
             bg: "bg-blue-500/8 dark:bg-blue-500/10", border: "border-blue-500/20",
           },
           {
-            label: "I'm Attending", value: attendingCount, icon: "fi fi-rr-user-check",
+            key: "All" as const, label: "I'm Attending", value: attendingCount, icon: "fi fi-rr-user-check",
             gradient: "from-violet-500 to-purple-400", shadow: "rgba(139,92,246,0.3)",
             bg: "bg-violet-500/8 dark:bg-violet-500/10", border: "border-violet-500/20",
           },
         ].map((k, idx) => (
-          <div key={idx} className={`kpi-shine relative p-5 rounded-2xl border ${k.border} ${k.bg} transition-all duration-300`}>
+          <div
+            key={idx}
+            onClick={() => setActiveView(k.key)}
+            className={`kpi-shine relative p-5 rounded-2xl border ${k.border} ${k.bg} transition-all duration-300 cursor-pointer hover:scale-[1.02] ${
+              activeView === k.key ? "ring-2 ring-emerald-500/40" : ""
+            }`}
+          >
             <div className="flex items-start justify-between mb-3">
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${k.gradient} flex items-center justify-center`}
                 style={{ boxShadow: `0 4px 14px ${k.shadow}` }}>
@@ -386,6 +408,8 @@ export default function ParentPtaManagementPage() {
               <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 max-w-xs mx-auto">
                 {activeView === "Upcoming"
                   ? "No upcoming PTA meetings have been scheduled by your school yet."
+                  : activeView === "Expired"
+                  ? "No expired PTA meetings found."
                   : activeView === "Completed"
                   ? "No meetings have been marked as completed yet."
                   : "No meetings match your search query."}
