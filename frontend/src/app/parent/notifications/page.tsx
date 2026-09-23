@@ -442,7 +442,26 @@ export default function NotificationsPage() {
 
   // ── Filtered & Sorted notifications list ────────────────────────
   const filteredNotifications = useMemo(() => {
+    const childrenFirstNames = children.map(c => c.name.split(" ")[0].toLowerCase()).filter(Boolean);
+    const childrenStudentIds = children.map(c => c.studentId).filter(Boolean);
+
     let result = notifications.filter(n => {
+      // 0. Ensure notification belongs to parent's children if studentId or student name is in notification
+      if (n.studentId && childrenStudentIds.length > 0 && !childrenStudentIds.includes(n.studentId)) {
+        return false;
+      }
+      if (childrenFirstNames.length > 0) {
+        const combinedText = `${n.title || ''} ${n.message || ''}`.toLowerCase();
+        const congratMatch = combinedText.match(/congratulations!\s+([a-z0-9_\s]+?)\s+\(/i) ||
+                             combinedText.match(/congratulations!\s+([a-z0-9_\s]+?)\s+won/i) ||
+                             combinedText.match(/official certificate for\s+([a-z0-9_\s]+?)\s+\(/i);
+        if (congratMatch && congratMatch[1]) {
+          const mentionedName = congratMatch[1].trim().toLowerCase().split(" ")[0];
+          const isMyChild = childrenFirstNames.some(cfn => mentionedName.includes(cfn) || cfn.includes(mentionedName));
+          if (!isMyChild) return false;
+        }
+      }
+
       // 1. Filter by specific child
       const matchesChild = selectedChildId === "ALL" || !n.studentId || n.studentId === selectedChildId;
       
@@ -474,7 +493,7 @@ export default function NotificationsPage() {
       const timeB = new Date(b.createdAt).getTime();
       return sortOrder === "NEWEST" ? timeB - timeA : timeA - timeB;
     });
-  }, [notifications, selectedChildId, filterCategory, filterStatus, dateFilter, searchQuery, sortOrder, matchNotifType]);
+  }, [notifications, children, selectedChildId, filterCategory, filterStatus, dateFilter, searchQuery, sortOrder, matchNotifType]);
 
   // Reset pagination on filter changes
   useEffect(() => {

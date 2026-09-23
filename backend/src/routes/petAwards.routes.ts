@@ -35,17 +35,33 @@ router.use(requireMinRole('PET'));
 
 async function dispatchAwardNotification(award: any, isCertificateUpdate: boolean = false) {
   try {
-    let parentUsers = await prisma.user.findMany({
-      where: { role: 'PARENT' }
+    const studentNameClean = (award.student || '').trim().toLowerCase();
+    const studentFirstName = studentNameClean.split(' ')[0];
+
+    const links = await prisma.parentStudentLink.findMany({
+      include: {
+        parent: true,
+        student: { include: { user: true } }
+      }
     });
 
-    if (parentUsers.length === 0) {
-      parentUsers = await prisma.user.findMany({
-        take: 50
-      });
+    const targetLinks = links.filter((l) => {
+      const sName = (l.student.user?.name || '').trim().toLowerCase();
+      const sFirst = sName.split(' ')[0];
+      return sFirst.includes(studentFirstName) || studentFirstName.includes(sFirst);
+    });
+
+    let targetParentUserIds: string[] = targetLinks
+      .map((l) => l.parent.userId)
+      .filter((id): id is string => Boolean(id));
+
+    // Fallback: if no link matches, lookup parent users directly
+    if (targetParentUserIds.length === 0) {
+      const allParents = await prisma.user.findMany({ where: { role: 'PARENT' } });
+      targetParentUserIds = allParents.map(p => p.id);
     }
 
-    if (parentUsers.length === 0) return;
+    if (targetParentUserIds.length === 0) return;
 
     const title = isCertificateUpdate 
       ? `📜 Certificate ${award.certificateIssued ? 'Issued' : 'Updated'}`
@@ -55,8 +71,8 @@ async function dispatchAwardNotification(award: any, isCertificateUpdate: boolea
       ? `Official certificate for ${award.student} (${award.sport} - ${award.event}) is now ${award.certificateIssued ? 'Issued' : 'Pending'}.`
       : `Congratulations! ${award.student} (${award.class || ''}) won ${award.medal} medal in ${award.sport} at ${award.event} (${award.level} level).`;
 
-    const notificationsData = parentUsers.map((p) => ({
-      userId: p.id,
+    const notificationsData = targetParentUserIds.map((userId) => ({
+      userId,
       title,
       message,
       type: 'sports',
