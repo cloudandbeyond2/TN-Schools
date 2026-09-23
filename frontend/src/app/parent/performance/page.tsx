@@ -223,6 +223,94 @@ const AcademicTrendsChart = ({ points }: { points: { exam: string; avg: number }
   );
 };
 
+// ─── Preloader Component ─────────────────────────────────────────────
+function PerformancePreloader({ studentName, studentClass }: { studentName?: string; studentClass?: string }) {
+  const [progress, setProgress] = useState(20);
+  const [statusText, setStatusText] = useState("Connecting to TN Schools EMIS Database...");
+
+  useEffect(() => {
+    const t1 = setTimeout(() => {
+      setProgress(50);
+      setStatusText("Retrieving Academic Marks & Exam Scores...");
+    }, 350);
+
+    const t2 = setTimeout(() => {
+      setProgress(80);
+      setStatusText("Generating AI Counseling Insights & Recommendations...");
+    }, 850);
+
+    const t3 = setTimeout(() => {
+      setProgress(95);
+      setStatusText("Formatting Subject Performance & Progression Trends...");
+    }, 1350);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-[520px] flex flex-col items-center justify-center p-8 glass rounded-3xl border border-emerald-500/20 my-6 relative overflow-hidden bg-slate-900/80 shadow-2xl backdrop-blur-xl fade-in">
+      {/* Glow Effects */}
+      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-24 right-10 w-72 h-72 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
+        {/* Animated Badge & Spinner */}
+        <div className="relative w-24 h-24 mb-6 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-ping opacity-30" />
+          <div
+            className="absolute inset-0 rounded-full border-4 border-t-emerald-500 border-r-teal-400 border-b-emerald-600 border-l-transparent animate-spin"
+            style={{ animationDuration: "1.1s" }}
+          />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          </div>
+        </div>
+
+        {/* Active Child Tag if present */}
+        {studentName && (
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-extrabold mb-4 shadow-sm">
+            <User className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Loading profile for <strong>{studentName}</strong> {studentClass ? `· Class ${studentClass}` : ""}</span>
+          </div>
+        )}
+
+        <h3 className="text-xl font-black text-white tracking-tight mb-1">
+          Preparing Performance Dashboard
+        </h3>
+        <p className="text-xs text-slate-400 font-medium mb-6">
+          Tamil Nadu Smart Parent Portal Academic Engine
+        </p>
+
+        {/* Progress Bar Container */}
+        <div className="w-full bg-slate-950/80 rounded-full h-3 mb-4 overflow-hidden border border-slate-800 p-0.5 shadow-inner">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Status Message */}
+        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-400 h-6">
+          <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400 shrink-0" />
+          <span>{statusText}</span>
+        </div>
+
+        {/* Decorative Skeletons Preview */}
+        <div className="w-full grid grid-cols-4 gap-3 mt-8 opacity-20">
+          <div className="h-14 bg-slate-700 rounded-xl animate-pulse" />
+          <div className="h-14 bg-slate-700 rounded-xl animate-pulse" />
+          <div className="h-14 bg-slate-700 rounded-xl animate-pulse" />
+          <div className="h-14 bg-slate-700 rounded-xl animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PerformancePage() {
   const { parentId, children, activeChild, setActiveChild, childrenLoading } = useParentChildren();
 
@@ -235,6 +323,7 @@ export default function PerformancePage() {
   const [summaryData, setSummaryData] = useState<PerformanceSummary | null>(null);
   const [loading, setLoading]     = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [langMode, setLangMode]   = useState<"en" | "ta">("en");
 
   // Filters for detailed records
@@ -301,6 +390,7 @@ export default function PerformancePage() {
     } finally { 
       setLoading(false); 
       setSummaryLoading(false);
+      setInitialLoaded(true);
     }
   }, [parentId]);
 
@@ -358,6 +448,8 @@ export default function PerformancePage() {
     };
   }).filter(pt => pt.avg > 0);
 
+  const isPageLoading = childrenLoading || loading || summaryLoading || !initialLoaded;
+
   return (
     <PortalLayout>
       {/* sibling selector */}
@@ -365,7 +457,14 @@ export default function PerformancePage() {
 
       <ParentPortalBanner pageKey="performance" />
 
-      {/* KPI Cards Row */}
+      {isPageLoading ? (
+        <PerformancePreloader
+          studentName={activeChild?.name}
+          studentClass={activeChild?.class ? `${activeChild.class}${activeChild.section || ''}` : undefined}
+        />
+      ) : (
+        <>
+          {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           { label: "Overall Average", value: summaryData ? `${summaryData.overallAvg}%` : `${avgPct}%`, icon: <TrendingUp className="w-5 h-5 text-emerald-400" />, color: "text-emerald-400" },
@@ -843,6 +942,8 @@ export default function PerformancePage() {
           </div>
         );
       })()}
+        </>
+      )}
     </PortalLayout>
   );
 }
