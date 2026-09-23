@@ -369,8 +369,8 @@ export default function ParentDashboard() {
         </div>
       )}
 
-      {/* ── Parent Digital Portfolio Banner ── */}
-      {activeChild && (
+      {/* ── Parent Digital Portfolio Banner (Hidden) ── */}
+      {/* {activeChild && (
         <div className="bg-white dark:bg-slate-900/60 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-5 md:p-6 mb-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 border border-purple-500/20">
@@ -397,7 +397,7 @@ export default function ParentDashboard() {
             <i className="fi fi-rr-arrow-right text-xs"></i>
           </Link>
         </div>
-      )}
+      )} */}
 
       {/* ── Screen Time & Digital Wellness Banner ── */}
       {activeChild && (
