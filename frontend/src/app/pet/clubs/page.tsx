@@ -5,6 +5,7 @@ import PETPortalBanner from "@/components/PETPortalBanner";
 import { Users, Tent, Plus, MapPin, Search, UserPlus, Trash2, WifiOff, Clock, Landmark } from "lucide-react";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
   PET_API_BASE,
@@ -230,7 +231,12 @@ export default function ClubsPage() {
       );
       const missing = SCHOOL_UNITS.filter((u) => !existing.has(u.name.toLowerCase()));
       if (missing.length === 0) {
-        alert("All standard school units already exist.");
+        Swal.fire({
+          title: "All Units Active",
+          text: "All standard school units (NCC, NSS, JRC, Scouts & Guides, Green Corps, RSP, Red Ribbon & Sports Club) already exist.",
+          icon: "info",
+          confirmButtonColor: "#3b82f6"
+        });
         return;
       }
       if (mode === "api") {
@@ -270,13 +276,27 @@ export default function ClubsPage() {
         }));
         saveLocalClubs([...localClubs, ...created]);
       }
+      Swal.fire({
+        title: "School Units Added!",
+        text: `Successfully added ${missing.length} standard school units.`,
+        icon: "success",
+        confirmButtonColor: "#10b981"
+      });
     } finally {
       setSeedingUnits(false);
     }
   };
 
   const handleDeleteClub = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? Members and events of this club will also be removed.`)) return;
+    const confirmRes = await Swal.fire({
+      title: `Delete "${name}"?`,
+      text: "Members and events of this club will also be removed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: "Yes, delete"
+    });
+    if (!confirmRes.isConfirmed) return;
     if (mode === "api") {
       try {
         const res = await fetch(`${PET_API_BASE}/api/activities/clubs/${id}`, { method: "DELETE" });
@@ -284,7 +304,7 @@ export default function ClubsPage() {
         if (!json.success) throw new Error(json.error || "Failed to delete club");
         setApiClubs((prev) => prev.filter((c) => c.id !== id));
       } catch (err) {
-        alert(String(err instanceof Error ? err.message : err));
+        Swal.fire("Error", String(err instanceof Error ? err.message : err), "error");
       }
     } else {
       saveLocalClubs(localClubs.filter((c) => c.id !== id));
@@ -380,7 +400,7 @@ export default function ClubsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
               <i className="fi fi-sr-camping text-emerald-500 text-lg flex items-center" />
@@ -397,15 +417,6 @@ export default function ClubsPage() {
             <div>
               <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Total Student Participants</div>
               <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{mode === "loading" ? "…" : totalMembers}</div>
-            </div>
-          </div>
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
-              <i className="fi fi-sr-database text-violet-500 text-lg flex items-center" />
-            </div>
-            <div>
-              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Data Source Connection</div>
-              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{mode === "api" ? "Live Data" : "Local Demo"}</div>
             </div>
           </div>
         </div>
@@ -532,7 +543,14 @@ export default function ClubsPage() {
         )}
       </div>
 
-      {showCreate && <CreateClubModal onClose={() => setShowCreate(false)} onCreate={handleCreateClub} />}
+      {showCreate && (
+        <CreateClubModal
+          onClose={() => setShowCreate(false)}
+          onCreate={handleCreateClub}
+          onAddSchoolUnits={handleAddSchoolUnits}
+          seedingUnits={seedingUnits}
+        />
+      )}
 
       {manageClubId && mode === "api" && (
         <ApiMembersModal
@@ -562,9 +580,13 @@ export default function ClubsPage() {
 function CreateClubModal({
   onClose,
   onCreate,
+  onAddSchoolUnits,
+  seedingUnits,
 }: {
   onClose: () => void;
   onCreate: (form: { name: string; category: string; icon: string; meetingTime: string; description: string }) => Promise<void>;
+  onAddSchoolUnits: () => Promise<void>;
+  seedingUnits: boolean;
 }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Sports");
@@ -589,38 +611,89 @@ function CreateClubModal({
   };
 
   return (
-    <ModalShell title="Create New Club" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4 text-left">
-        <Field label="Club Name">
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Athletics Club" className={inputCls} />
-        </Field>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Category">
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-              {CLUB_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Icon Visual">
-            <select value={icon} onChange={(e) => setIcon(e.target.value)} className={inputCls}>
-              {CLUB_ICONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </Field>
+    <ModalShell title="Create & Add School Clubs" onClose={onClose}>
+      <div className="space-y-5">
+        {/* Centered Top Both Buttons Section */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700/60 text-center">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">
+            Quickly seed standard school units or create a custom club below:
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={async () => {
+                await onAddSchoolUnits();
+                onClose();
+              }}
+              disabled={seedingUnits}
+              className="flex-1 min-w-[160px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/10"
+            >
+              <Landmark size={16} /> {seedingUnits ? "Adding Units..." : "Add School Units"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const formEl = document.getElementById("custom-club-form");
+                formEl?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="flex-1 min-w-[160px] px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-600/10"
+            >
+              <Plus size={16} /> Create Custom Club
+            </button>
+          </div>
         </div>
-        <Field label="Meeting Time">
-          <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} placeholder="e.g. Mon & Thu, 4–5 PM" className={inputCls} />
-        </Field>
-        <Field label="About the Club">
-          <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the club's activities and goals..." className={inputCls} />
-        </Field>
-        {error && <div className="text-sm text-red-500 font-semibold">{error}</div>}
-        <button type="submit" disabled={submitting} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md shadow-blue-500/10">
-          {submitting ? "Creating..." : "Create Club"}
-        </button>
-      </form>
+
+        {/* Custom Club Form */}
+        <form id="custom-club-form" onSubmit={handleSubmit} className="space-y-4 text-left border-t border-slate-200 dark:border-slate-800 pt-4">
+          <div className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+            Custom Club Details
+          </div>
+          <Field label="Club Name">
+            <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Athletics Club" className={inputCls} />
+          </Field>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Category">
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+                {CLUB_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Icon Visual">
+              <select value={icon} onChange={(e) => setIcon(e.target.value)} className={inputCls}>
+                {CLUB_ICONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <Field label="Meeting Time">
+            <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} placeholder="e.g. Mon & Thu, 4–5 PM" className={inputCls} />
+          </Field>
+          <Field label="About the Club">
+            <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the club's activities and goals..." className={inputCls} />
+          </Field>
+          {error && <div className="text-sm text-red-500 font-semibold">{error}</div>}
+
+          {/* Centered Bottom Form Action Buttons */}
+          <div className="flex items-center justify-center gap-3 pt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md shadow-blue-500/10 flex items-center justify-center gap-2"
+            >
+              {submitting ? "Creating..." : "Save & Create Club"}
+            </button>
+          </div>
+        </form>
+      </div>
     </ModalShell>
   );
 }
