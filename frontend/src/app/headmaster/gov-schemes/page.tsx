@@ -441,7 +441,9 @@ export default function GovSchemesPage() {
           color: "#ffffff",
         }}
       >
-        <div className="absolute -right-6 -bottom-6 text-9xl opacity-10 select-none">🏛️</div>
+        <div className="absolute -right-6 -bottom-6 opacity-10 select-none text-white pointer-events-none">
+          <i className="fi fi-rr-bank text-9xl" />
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="text-xl sm:text-2xl font-black uppercase tracking-wider !text-white drop-shadow-sm" style={{ color: "#ffffff" }}>
@@ -456,7 +458,7 @@ export default function GovSchemesPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleResetAll}
-              className="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all hover:scale-105 shadow-md"
+              className="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all hover:scale-105 shadow-md flex items-center gap-2"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.2)",
                 color: "#ffffff",
@@ -464,7 +466,7 @@ export default function GovSchemesPage() {
               }}
               title="Reset all class allocations back to Eligible"
             >
-              🔄 Reset All Allocations
+              <i className="fi fi-rr-refresh" /> Reset All Allocations
             </button>
             <div className="flex gap-2 text-center">
               <div
@@ -510,19 +512,19 @@ export default function GovSchemesPage() {
       <div className="flex gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl mb-6 w-fit text-xs font-bold">
         <button
           onClick={() => setActiveTab("schemes")}
-          className={`px-4 py-2 rounded-xl transition-all ${
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
             activeTab === "schemes" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
           }`}
         >
-          🏛️ Schemes & Class Allocations
+          <i className="fi fi-rr-bank text-sm" /> Schemes & Class Allocations
         </button>
         <button
           onClick={() => setActiveTab("beneficiaries")}
-          className={`px-4 py-2 rounded-xl transition-all ${
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
             activeTab === "beneficiaries" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
           }`}
         >
-          👥 Student Beneficiaries Log
+          <i className="fi fi-rr-users text-sm" /> Student Beneficiaries Log
         </button>
       </div>
 
@@ -532,7 +534,7 @@ export default function GovSchemesPage() {
           {/* Search & Category Filter Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
             <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2">
-              <span className="text-slate-400 text-xs">🔍</span>
+              <i className="fi fi-rr-search text-slate-400 text-xs shrink-0" />
               <input
                 type="text"
                 value={schemeSearchQuery}
@@ -541,7 +543,9 @@ export default function GovSchemesPage() {
                 className="w-full bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 font-medium"
               />
               {schemeSearchQuery && (
-                <button onClick={() => setSchemeSearchQuery("")} className="text-xs text-slate-400 hover:text-white px-1">✕</button>
+                <button onClick={() => setSchemeSearchQuery("")} className="text-xs text-slate-400 hover:text-white px-1 flex items-center">
+                  <i className="fi fi-rr-cross-small text-xs" />
+                </button>
               )}
             </div>
             <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
@@ -564,10 +568,10 @@ export default function GovSchemesPage() {
 
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <span>📋</span> Active Master Schemes ({filteredSchemes.length})
+              <i className="fi fi-rr-clipboards text-blue-400 text-base" /> Active Master Schemes ({filteredSchemes.length})
             </h2>
-            <span className="text-xs text-slate-400 font-medium">
-              💡 Click class buttons to toggle **Disbursed** status for students in real time.
+            <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+              <i className="fi fi-rr-bulb text-amber-400 text-xs" /> Click class buttons to toggle **Disbursed** status for students in real time.
             </span>
           </div>
 
@@ -589,8 +593,9 @@ export default function GovSchemesPage() {
                       {lang === "தமிழ்" ? scheme.nameTa : scheme.name}
                     </h3>
                     <p className="text-xs text-slate-400 mb-3">{scheme.description}</p>
-                    <div className="text-[11px] text-slate-300 font-semibold mb-4 bg-slate-900 p-2.5 rounded-xl border border-slate-850">
-                      🎁 <span className="text-slate-400">Benefit:</span> {scheme.benefit}
+                    <div className="text-[11px] text-slate-300 font-semibold mb-4 bg-slate-900 p-2.5 rounded-xl border border-slate-850 flex items-center gap-2">
+                      <i className="fi fi-rr-gift text-amber-400 text-sm shrink-0" />
+                      <div><span className="text-slate-400">Benefit:</span> {scheme.benefit}</div>
                     </div>
                   </div>
 
@@ -630,7 +635,7 @@ export default function GovSchemesPage() {
                     {/* Official Link Management */}
                     <div className="flex items-center justify-between pt-1 text-xs">
                       <div className="flex items-center gap-1.5 text-slate-400 font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[70%]">
-                        <span>🔗</span>
+                        <i className="fi fi-rr-link-alt text-blue-400 text-xs shrink-0" />
                         <span className="text-slate-500">Link:</span>
                         {scheme.link ? (
                           <a
@@ -650,9 +655,9 @@ export default function GovSchemesPage() {
                           setEditingSchemeId(scheme.id);
                           setInputLink(scheme.link || "");
                         }}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 transition-colors"
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 transition-colors flex items-center gap-1"
                       >
-                        ✏️ Edit Link
+                        <i className="fi fi-rr-edit text-[10px]" /> Edit Link
                       </button>
                     </div>
                   </div>
@@ -672,13 +677,13 @@ export default function GovSchemesPage() {
         <div className="glass rounded-2xl p-5 border border-slate-800 bg-slate-950/60 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <span>👥</span> Student Distribution Register ({filteredBeneficiaries.length})
+              <i className="fi fi-rr-users text-blue-400 text-base" /> Student Distribution Register ({filteredBeneficiaries.length})
             </h2>
 
             {/* Filters & Search Controls */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white flex-1 min-w-[180px]">
-                <span className="text-slate-400">🔍</span>
+                <i className="fi fi-rr-search text-slate-400 text-xs shrink-0" />
                 <input
                   type="text"
                   value={benSearchQuery}
@@ -687,7 +692,9 @@ export default function GovSchemesPage() {
                   className="bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 w-full"
                 />
                 {benSearchQuery && (
-                  <button onClick={() => setBenSearchQuery("")} className="text-slate-400 hover:text-white text-xs">✕</button>
+                  <button onClick={() => setBenSearchQuery("")} className="text-slate-400 hover:text-white text-xs flex items-center">
+                    <i className="fi fi-rr-cross-small text-xs" />
+                  </button>
                 )}
               </div>
 
@@ -774,9 +781,9 @@ export default function GovSchemesPage() {
                 <button
                   disabled={benPage === 1}
                   onClick={() => setBenPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold text-white"
+                  className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold text-white flex items-center gap-1"
                 >
-                  ← Previous
+                  <i className="fi fi-rr-angle-left" /> Previous
                 </button>
                 <span className="px-3 py-1 bg-slate-900 rounded-lg text-xs font-bold text-blue-400 border border-slate-800">
                   Page {benPage} of {totalBenPages}
@@ -784,9 +791,9 @@ export default function GovSchemesPage() {
                 <button
                   disabled={benPage >= totalBenPages}
                   onClick={() => setBenPage((p) => Math.min(totalBenPages, p + 1))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold text-white"
+                  className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs font-bold text-white flex items-center gap-1"
                 >
-                  Next →
+                  Next <i className="fi fi-rr-angle-right" />
                 </button>
               </div>
             </div>
@@ -798,7 +805,9 @@ export default function GovSchemesPage() {
       {editingSchemeId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="glass w-full max-w-md rounded-2xl border border-slate-700 p-6 bg-slate-950 text-white space-y-4">
-            <h3 className="text-base font-bold">🔗 Attach / Edit Official Portal Link</h3>
+            <h3 className="text-base font-bold flex items-center gap-2">
+              <i className="fi fi-rr-link-alt text-blue-400" /> Attach / Edit Official Portal Link
+            </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Add an application or registration URL (e.g. TNEA portal, Penkalvi portal, Bus Pass info). Students will see an **Apply Now** button leading directly to this link.
             </p>
