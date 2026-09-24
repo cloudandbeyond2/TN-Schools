@@ -466,7 +466,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Other Activities", href: "#", icon: "" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "Languages" },
-      { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
+      // { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
 
       // ===================== CAREER & SCHOOL =====================
       { label: "---", href: "#", icon: "" },
