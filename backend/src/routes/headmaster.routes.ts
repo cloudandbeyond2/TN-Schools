@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { authenticate } from '../middleware/auth.middleware';
+import { syncLeaveApprovalToAttendance } from '../services/leaveAttendance.service';
 
 const router = Router();
 router.use(authenticate);
@@ -1717,64 +1718,22 @@ router.delete('/profile/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/headmaster/leave/:id — Approve or Reject a leave request
+// PUT /api/headmaster/leave/:id — Approve or Reject a leave request (auto-syncs to Attendance)
 router.put('/leave/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, approvedById } = req.body;
 
-    if (!['Approved', 'Rejected'].includes(status)) {
-      return res.status(400).json({ success: false, error: 'Invalid status. Must be Approved or Rejected.' });
+    if (!['Approved', 'Rejected', 'Pending'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status. Must be Approved, Rejected, or Pending.' });
     }
 
-    const leave = await prisma.leaveRequest.update({
-      where: { id },
-      data: { status, approvedById: approvedById || null },
-    });
-
-    // Handle Teacher Notification
-    if (leave.staffId) {
-      try {
-        const { resolveUserId } = await import('../config/userResolver');
-        const resolvedId = await resolveUserId(leave.staffId);
-        if (resolvedId) {
-          await prisma.notification.create({
-            data: {
-              userId: resolvedId,
-              message: `Your leave request for ${leave.duration} has been ${status}.`,
-            } as any
-          });
-        }
-      } catch (notifErr) {
-        console.error('[Leave Approval Notification Error]', notifErr);
-      }
-    }
-
-    // Handle Student Notification
-    if (leave.studentId) {
-      try {
-        const student = await prisma.student.findFirst({
-          where: {
-            OR: [
-              { id: leave.studentId },
-              { rollNumber: { equals: leave.studentId, mode: 'insensitive' } },
-              { admissionNumber: { equals: leave.studentId, mode: 'insensitive' } },
-              { emisNumber: { equals: leave.studentId, mode: 'insensitive' } }
-            ]
-          }
-        });
-        if (student && student.userId) {
-          await prisma.notification.create({
-            data: {
-              userId: student.userId,
-              message: `Your leave request for ${leave.duration} has been ${status}.`,
-            } as any
-          });
-        }
-      } catch (notifErr) {
-        console.error('[Leave Approval Notification Error - Student]', notifErr);
-      }
-    }
+    const leave = await syncLeaveApprovalToAttendance(
+      id,
+      status as any,
+      approvedById || (req as any).user?.id,
+      'Headmaster'
+    );
 
     res.json({ success: true, data: leave });
   } catch (err) {

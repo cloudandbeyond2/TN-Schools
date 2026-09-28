@@ -1,5 +1,5 @@
 "use client";
-import { Building2, Users, File, Clipboard, User, School, Calendar, FileText } from "lucide-react";
+import { Building2, Users, File, Clipboard, User, School, Calendar, FileText, CheckCircle2, XCircle, Check, X } from "lucide-react";
 
 
 import React, { useState, useEffect } from "react";
@@ -178,6 +178,72 @@ export default function LeaveRequestsPage() {
         title: "Error",
         text: "An unexpected network error occurred.",
         confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleAction = async (id: string, status: "Approved" | "Rejected") => {
+    const isApproved = status === "Approved";
+
+    const result = await Swal.fire({
+      title: isApproved
+        ? (lang === "தமிழ்" ? 'விடுப்பை அனுமதிக்கவா?' : 'Approve Student Leave?')
+        : (lang === "தமிழ்" ? 'விடுப்பை நிராகரிக்கவா?' : 'Reject Student Leave?'),
+      text: isApproved
+        ? (lang === "தமிழ்" ? "இந்த விடுப்பு கோரிக்கையை அனுமதித்து வருகைப் பதிவேட்டில் சேர்க்க உறுதிசெய்கிறீர்களா?" : "Are you sure you want to approve this leave? It will automatically be marked in the Attendance sheet.")
+        : (lang === "தமிழ்" ? "இந்த விடுப்பு கோரிக்கையை நிராகரிக்க உறுதிசெய்கிறீர்களா?" : "Are you sure you want to reject this leave request?"),
+      icon: isApproved ? 'question' : 'warning',
+      showCancelButton: true,
+      confirmButtonColor: isApproved ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: isApproved
+        ? (lang === "தமிழ்" ? 'ஆம், அனுமதி' : 'Yes, Approve')
+        : (lang === "தமிழ்" ? 'ஆம், நிராகரி' : 'Yes, Reject'),
+      cancelButtonText: lang === "தமிழ்" ? 'ரத்து' : 'Cancel',
+      background: 'var(--bg-card)',
+      color: 'var(--text-heading)',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/leave/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, approvedById: teacherId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+        Swal.fire({
+          title: lang === "தமிழ்" ? 'வெற்றி!' : 'Success!',
+          text: lang === "தமிழ்"
+            ? `விடுப்பு நிலை மாற்றப்பட்டது மற்றும் வருகைப் பதிவேட்டில் புதுப்பிக்கப்பட்டது.`
+            : `Leave request has been ${status.toLowerCase()} and attendance records updated.`,
+          icon: 'success',
+          confirmButtonColor: '#3b82f6',
+          background: 'var(--bg-card)',
+          color: 'var(--text-heading)',
+          timer: 1800,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: data.error || 'Failed to update leave status.',
+          icon: 'error',
+          background: 'var(--bg-card)',
+          color: 'var(--text-heading)',
+        });
+      }
+    } catch (error) {
+      console.error("Error updating leave status", error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'An unexpected network error occurred.',
+        icon: 'error',
+        background: 'var(--bg-card)',
+        color: 'var(--text-heading)',
       });
     }
   };
@@ -605,6 +671,9 @@ export default function LeaveRequestsPage() {
                           <th className="p-3.5">{lang === "தமிழ்" ? "காரணம்" : "Reason"}</th>
                           <th className="p-3.5">{lang === "தமிழ்" ? "பெயர்" : "Name"}</th>
                           <th className="p-3.5 text-center">{lang === "தமிழ்" ? "நிலை" : "Status"}</th>
+                          {activeTab === "Student" && recordTab === "Pending" && (
+                            <th className="p-3.5 text-center">{lang === "தமிழ்" ? "செயல்" : "Action"}</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border)]">
@@ -638,6 +707,26 @@ export default function LeaveRequestsPage() {
                                 {req.status === "Approved" ? (lang === "தமிழ்" ? "அனுமதிக்கப்பட்டது" : "Approved") : req.status === "Rejected" ? (lang === "தமிழ்" ? "நிராகரிக்கப்பட்டது" : "Rejected") : (lang === "தமிழ்" ? "நிலுவை" : "Pending")}
                               </span>
                             </td>
+                            {activeTab === "Student" && recordTab === "Pending" && (
+                              <td className="p-3.5 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    onClick={() => handleAction(req.id, "Approved")}
+                                    className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg transition-colors border border-emerald-500/20 text-xs flex items-center gap-1 font-bold"
+                                    title="Approve & sync to attendance"
+                                  >
+                                    <Check className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "அனுமதி" : "Approve"}
+                                  </button>
+                                  <button
+                                    onClick={() => handleAction(req.id, "Rejected")}
+                                    className="p-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 text-xs flex items-center gap-1 font-bold"
+                                    title="Reject leave"
+                                  >
+                                    <X className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "நிராகரி" : "Reject"}
+                                  </button>
+                                </div>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -678,6 +767,22 @@ export default function LeaveRequestsPage() {
                              {req.status === "Approved" ? (lang === "தமிழ்" ? "அனுமதிக்கப்பட்டது" : "Approved") : req.status === "Rejected" ? (lang === "தமிழ்" ? "நிராகரிக்கப்பட்டது" : "Rejected") : (lang === "தமிழ்" ? "நிலுவை" : "Pending")}
                           </span>
                         </div>
+                        {activeTab === "Student" && recordTab === "Pending" && (
+                          <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-[var(--border)]">
+                            <button
+                              onClick={() => handleAction(req.id, "Approved")}
+                              className="flex-1 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg transition-colors border border-emerald-500/20 text-xs flex items-center justify-center gap-1 font-bold"
+                            >
+                              <Check className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "அனுமதி" : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => handleAction(req.id, "Rejected")}
+                              className="flex-1 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-colors border border-red-500/20 text-xs flex items-center justify-center gap-1 font-bold"
+                            >
+                              <X className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "நிராகரி" : "Reject"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

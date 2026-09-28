@@ -12,6 +12,7 @@ import { uploadBuffer } from '../services/storage.service';
 import { LibraryProgress } from '../models/mongo';
 
 import { authenticate } from '../middleware/auth.middleware';
+import { syncLeaveApprovalToAttendance } from '../services/leaveAttendance.service';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
@@ -925,6 +926,30 @@ router.post('/leave', async (req: Request, res: Response) => {
     }
     res.status(201).json({ success: true, data: leave });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/teacher/leave/:id — Approve or Reject a student leave request (auto-syncs to Attendance)
+router.put('/leave/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, approvedById } = req.body;
+
+    if (!['Approved', 'Rejected', 'Pending'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status. Must be Approved, Rejected, or Pending.' });
+    }
+
+    const leave = await syncLeaveApprovalToAttendance(
+      id,
+      status as any,
+      approvedById || (req as any).user?.id,
+      'Class Teacher'
+    );
+
+    res.json({ success: true, data: leave });
+  } catch (err) {
+    console.error('Error updating teacher leave status:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
