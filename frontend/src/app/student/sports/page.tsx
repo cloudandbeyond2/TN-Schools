@@ -15,6 +15,7 @@ type ClassLevel = "Primary (Class 1-5)" | "Middle (Class 6-8)" | "High School (C
 interface StudentSportsData {
   studentId: string;
   studentName: string;
+  schoolName?: string;
   className: string;
   rollNumber: string;
   gender: StudentGender;
@@ -249,6 +250,7 @@ export default function StudentSportsPortal() {
   const awardsPerPage = 6;
   const [awardsPageData, setAwardsPageData] = useState<any[]>([]);
   const [selectedCertificateModal, setSelectedCertificateModal] = useState<any | null>(null);
+  const [certModalLang, setCertModalLang] = useState<"English" | "தமிழ்" | null>(null);
 
   // Log Workout Modal State
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -1167,39 +1169,246 @@ export default function StudentSportsPortal() {
 
       {/* CERTIFICATE MODAL */}
       {selectedCertificateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4 text-center">
-            <div className="flex justify-end"><button onClick={() => setSelectedCertificateModal(null)} className="p-2 text-slate-400"><i className="fi fi-sr-cross-small flex items-center" /></button></div>
-            <div className="border-4 border-amber-400 p-6 rounded-2xl bg-amber-50/30 dark:bg-slate-800/50 space-y-3">
-              <i className="fi fi-sr-trophy mx-auto text-amber-500 flex items-center" />
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest block">
-                {currentLang === "தமிழ்" ? "பள்ளிப் பள்ளிக் கல்வித் துறை · தமிழ்நாடு அரசு" : "Department of School Education · Tamil Nadu"}
-              </span>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                {currentLang === "தமிழ்" ? "விளையாட்டுச் சாதனைச் சான்றிதழ்" : "Certificate of Athletic Excellence"}
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                {currentLang === "தமிழ்" ? (
-                  <span>
-                    <strong className="text-slate-900 dark:text-white">{currentData.studentName}</strong> ({selectedGender === "Female" ? "மாணவி" : "மாணவர்"}){" "}
-                    <strong>{selectedCertificateModal.event}</strong> ({selectedCertificateModal.sport}) போட்டியில்{" "}
-                    <strong className="text-amber-600">{selectedCertificateModal.medal} பதக்கம்</strong> பெற்றுள்ளார் எனச் சான்றளிக்கப்படுகிறது.
-                  </span>
-                ) : (
-                  <span>
-                    This certifies that <strong className="text-slate-900 dark:text-white">{currentData.studentName}</strong> ({selectedGender === "Female" ? "Female Student" : "Male Student"}) has achieved{" "}
-                    <strong className="text-amber-600">{selectedCertificateModal.medal} Medal</strong> in{" "}
-                    <strong>{selectedCertificateModal.event}</strong> ({selectedCertificateModal.sport}).
-                  </span>
-                )}
-              </p>
-              <div className="text-[10px] font-bold text-slate-400 pt-2 border-t border-amber-200">
-                Official {selectedCertificateModal.quotaForm || "Form-III"} Verified Certificate
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6 overflow-y-auto print:p-0 print:static print:bg-white">
+          <div className="bg-slate-900 text-slate-100 rounded-3xl max-w-3xl w-full border border-slate-800 shadow-2xl overflow-hidden my-auto print:max-w-none print:shadow-none print:border-none print:bg-white print:text-black">
+            
+            {/* Modal Control Toolbar */}
+            <div className="bg-slate-900 border-b border-slate-800 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[11px] font-black uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  EMIS VERIFIED E-CERTIFICATE
+                </span>
+                <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+                  Ref: TN-SPORTS-2026-{(selectedCertificateModal.id || "0489").toUpperCase()}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Language Switcher */}
+                <div className="bg-slate-800/80 p-0.5 rounded-xl flex items-center border border-slate-700">
+                  <button
+                    onClick={() => setCertModalLang("English")}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      (certModalLang || currentLang) === "English"
+                        ? "bg-amber-500 text-slate-950 shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    onClick={() => setCertModalLang("தமிழ்")}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      (certModalLang || currentLang) === "தமிழ்"
+                        ? "bg-amber-500 text-slate-950 shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    தமிழ்
+                  </button>
+                </div>
+
+                {/* Print Button */}
+                <button
+                  onClick={() => window.print()}
+                  className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-colors text-xs font-bold flex items-center gap-1.5"
+                  title="Print Certificate"
+                >
+                  <i className="fi fi-sr-print flex items-center text-amber-400" />
+                  <span className="hidden sm:inline">Print</span>
+                </button>
+
+                {/* Copy Link Button */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://emis.tn.gov.in/sports/certificate/verify/${selectedCertificateModal.id || '2026-0489'}`);
+                    showToast((certModalLang || currentLang) === "தமிழ்" ? "சரிபார்ப்பு இணைப்பு நகலெடுக்கப்பட்டது!" : "Verification link copied to clipboard!");
+                  }}
+                  className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-colors text-xs font-bold flex items-center gap-1.5"
+                  title="Share / Copy Link"
+                >
+                  <i className="fi fi-sr-share flex items-center text-cyan-400" />
+                </button>
+
+                {/* Download PDF Button */}
+                <button
+                  onClick={() => {
+                    showToast((certModalLang || currentLang) === "தமிழ்" ? "அதிகாரப்பூர்வ இ-சான்றிதழ் பதிவிறக்கப்பட்டது!" : "Downloaded Official Verified E-Certificate!");
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                >
+                  <i className="fi fi-sr-download flex items-center" />
+                  <span>{dict.downloadCert}</span>
+                </button>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    setSelectedCertificateModal(null);
+                    setCertModalLang(null);
+                  }}
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                >
+                  <i className="fi fi-sr-cross-small flex items-center text-lg" />
+                </button>
               </div>
             </div>
-            <button onClick={() => { showToast(currentLang === "தமிழ்" ? "சான்றிதழ் பதிவிறக்கப்பட்டது!" : "Downloaded E-Certificate!"); setSelectedCertificateModal(null); }} className="px-5 py-2.5 bg-cyan-600 text-white rounded-2xl text-xs font-extrabold flex items-center gap-2 mx-auto">
-              <i className="fi fi-sr-download flex items-center" /> {dict.downloadCert}
-            </button>
+
+            {/* CERTIFICATE DOCUMENT CANVAS */}
+            <div className="p-4 sm:p-6 bg-slate-950">
+              <div className="relative border-4 border-amber-500/80 rounded-2xl p-6 sm:p-10 bg-gradient-to-br from-amber-50/95 via-white to-amber-100/90 text-slate-900 shadow-2xl overflow-hidden print:border-4 print:border-amber-600 print:bg-white print:text-black">
+                
+                {/* Decorative Corner Ornaments */}
+                <div className="absolute top-2 left-2 w-7 h-7 border-t-2 border-l-2 border-amber-600 rounded-tl-sm pointer-events-none" />
+                <div className="absolute top-2 right-2 w-7 h-7 border-t-2 border-r-2 border-amber-600 rounded-tr-sm pointer-events-none" />
+                <div className="absolute bottom-2 left-2 w-7 h-7 border-b-2 border-l-2 border-amber-600 rounded-bl-sm pointer-events-none" />
+                <div className="absolute bottom-2 right-2 w-7 h-7 border-b-2 border-r-2 border-amber-600 rounded-br-sm pointer-events-none" />
+
+                {/* Watermark Logo Background */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none select-none">
+                  <i className="fi fi-sr-trophy text-[220px] text-amber-700" />
+                </div>
+
+                {/* Top Header & Emblem */}
+                <div className="text-center space-y-2 relative z-10 border-b border-amber-200/80 pb-5 mb-6">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-0.5 shadow-md flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-amber-50 flex items-center justify-center border border-amber-300">
+                      <i className="fi fi-sr-diploma text-2xl text-amber-700" />
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] font-black tracking-widest text-amber-800 uppercase">
+                    {(certModalLang || currentLang) === "தமிழ்"
+                      ? "தமிழ்நாடு அரசு · பள்ளிப் பள்ளிக் கல்வி एवं உடற்கல்வித் துறை"
+                      : "GOVERNMENT OF TAMIL NADU · DEPARTMENT OF SCHOOL EDUCATION"}
+                  </p>
+                  <p className="text-[9px] font-extrabold tracking-wider text-slate-500 uppercase">
+                    Sports Development Authority of Tamil Nadu (SDAT) & Fit India Movement
+                  </p>
+                </div>
+
+                {/* Title Section */}
+                <div className="text-center relative z-10 space-y-2 mb-6">
+                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    {(selectedCertificateModal.quotaForm || "Form-III").toUpperCase()} ATHLETIC RECOGNITION
+                  </span>
+                  
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-serif">
+                    {(certModalLang || currentLang) === "தமிழ்"
+                      ? "விளையாட்டுச் சாதனைச் சான்றிதழ்"
+                      : "CERTIFICATE OF ATHLETIC EXCELLENCE"}
+                  </h2>
+                  <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto rounded-full" />
+                </div>
+
+                {/* Certificate Body Paragraph */}
+                <div className="relative z-10 text-center space-y-4 max-w-2xl mx-auto my-6 text-sm sm:text-base leading-relaxed text-slate-700">
+                  {(certModalLang || currentLang) === "தமிழ்" ? (
+                    <p>
+                      இச்சான்றிதழ் <strong className="text-slate-900 underline decoration-amber-400 underline-offset-4 font-extrabold">{currentData?.studentName || "மாணவர்"}</strong> (
+                      {selectedGender === "Female" ? "மாணவி" : "மாணவர்"}, வகுப்பு {currentData?.className || "10-A"}) பெற்றோருக்கு உரித்தானது. இவர்{" "}
+                      <strong>{selectedCertificateModal.event}</strong> ({selectedCertificateModal.sport}) விளையாட்டில்{" "}
+                      <strong className="text-amber-700 font-extrabold">{selectedCertificateModal.medal} பதக்கம்</strong> பெற்று சாதனை படைத்துள்ளார் என இதன்மூலம் சான்றளிக்கப்படுகிறது.
+                    </p>
+                  ) : (
+                    <p>
+                      This is to officially certify that <strong className="text-slate-900 underline decoration-amber-400 underline-offset-4 font-extrabold">{currentData?.studentName || "Student"}</strong> (
+                      {selectedGender === "Female" ? "Female Student" : "Male Student"}, {currentData?.className || "Class 10 - A"}), representing{" "}
+                      <strong className="text-slate-800 font-bold">{currentData?.schoolName || "Sara - E.R Higher Secondary School"}</strong> (EMIS ID: 321654987), has achieved{" "}
+                      <strong className="text-amber-700 font-extrabold">{selectedCertificateModal.medal} Medal</strong> in{" "}
+                      <strong className="text-slate-900 font-bold">{selectedCertificateModal.event}</strong> ({selectedCertificateModal.sport}).
+                    </p>
+                  )}
+                </div>
+
+                {/* Key Metrics / Highlights Grid inside Certificate */}
+                <div className="grid grid-cols-3 gap-3 relative z-10 max-w-xl mx-auto my-6 text-center">
+                  <div className="p-3 rounded-xl bg-white/80 border border-amber-200 shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                      {(certModalLang || currentLang) === "தமிழ்" ? "பதக்கம்" : "Medal Achieved"}
+                    </span>
+                    <span className="text-xs sm:text-sm font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-0.5">
+                      <i className="fi fi-sr-trophy text-amber-500" />
+                      {selectedCertificateModal.medal || "Gold"}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/80 border border-amber-200 shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                      {(certModalLang || currentLang) === "தமிழ்" ? "போட்டி நிலை" : "Event Level"}
+                    </span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-800 mt-0.5 block">
+                      {selectedCertificateModal.level || "District / Zonal"}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/80 border border-amber-200 shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                      {(certModalLang || currentLang) === "தமிழ்" ? "சேர்க்கை ஒதுக்கீடு" : "Sports Quota"}
+                    </span>
+                    <span className="text-xs sm:text-sm font-extrabold text-emerald-700 mt-0.5 block">
+                      TNEA / Med Quota
+                    </span>
+                  </div>
+                </div>
+
+                {/* Official Stamp & Signatures Footer */}
+                <div className="pt-6 border-t border-amber-200/80 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 mt-8">
+                  
+                  {/* Left: QR Code & Verification */}
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-14 h-14 bg-white p-1 rounded-lg border border-amber-300 shadow-sm shrink-0 flex items-center justify-center">
+                      {/* Stylized QR Code */}
+                      <div className="w-full h-full bg-slate-900 rounded p-1 flex flex-col justify-between">
+                        <div className="flex justify-between">
+                          <div className="w-3 h-3 bg-white rounded-sm" />
+                          <div className="w-3 h-3 bg-amber-400 rounded-sm" />
+                        </div>
+                        <div className="flex justify-between items-end">
+                          <div className="w-3 h-3 bg-amber-400 rounded-sm" />
+                          <div className="w-3 h-3 bg-white rounded-sm" />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold text-slate-900 flex items-center gap-1">
+                        <i className="fi fi-sr-check-circle text-emerald-600" /> Digitally Signed
+                      </span>
+                      <p className="text-[9px] text-slate-500 font-mono">EMIS ID: 321654987</p>
+                      <p className="text-[9px] text-amber-700 font-bold">Issue Date: 2026-09-22</p>
+                    </div>
+                  </div>
+
+                  {/* Center: Official Embossed Seal Graphic */}
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-600 p-0.5 shadow-lg flex items-center justify-center">
+                      <div className="w-full h-full rounded-full border border-dashed border-amber-900/40 bg-amber-400/90 flex items-center justify-center text-center p-1">
+                        <span className="text-[7px] font-black text-amber-950 uppercase leading-tight tracking-tighter">
+                          GOVT OF TAMIL NADU<br />★ SEAL ★<br />SPORTS DEPT
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Signatures */}
+                  <div className="text-center sm:text-right space-y-1">
+                    <div className="font-serif italic font-bold text-slate-800 text-sm tracking-wide border-b border-slate-300 pb-0.5 inline-block">
+                      Dr. K. Arulmani, M.P.Ed.
+                    </div>
+                    <p className="text-[10px] font-extrabold text-slate-600 block">
+                      {(certModalLang || currentLang) === "தமிழ்"
+                        ? "மாவட்ட உடற்கல்வி ஆய்வாளர் / தலைமை ஆசிரியர்"
+                        : "District Physical Education Officer / Headmaster"}
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-semibold">Department of School Education, TN</p>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </div>
       )}
