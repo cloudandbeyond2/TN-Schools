@@ -62,7 +62,7 @@ type TabType = "requests" | "events" | "ground" | "fitness";
 function HeadmasterSportsDeskContent() {
   const { lang } = usePortalLanguage();
   const searchParams = useSearchParams();
-  const initialTab = (searchParams.get("tab") as TabType) || "requests";
+  const initialTab = (searchParams.get("tab") as TabType) || "fitness";
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [requests, setRequests] = useState<EquipmentRequest[]>([]);
@@ -368,10 +368,10 @@ function HeadmasterSportsDeskContent() {
         {/* ── Segmented Tabs Navigation ────────────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm flex overflow-x-auto gap-2 no-scrollbar">
           {[
-            { key: "requests", label: "Equipment Requests", icon: Package, count: pendingRequestsCount > 0 ? pendingRequestsCount : requests.length },
-            { key: "events", label: "Sports Events", icon: Trophy, count: events.length },
-            { key: "ground", label: "Ground Condition", icon: MapPin, count: facilities.length },
             { key: "fitness", label: "Student Fitness", icon: Activity, count: records.length },
+            { key: "events", label: "Sports Events", icon: Trophy, count: events.length },
+            { key: "requests", label: "Equipment Requests", icon: Package, count: pendingRequestsCount > 0 ? pendingRequestsCount : requests.length },
+            { key: "ground", label: "Ground Condition", icon: MapPin, count: facilities.length },
           ].map(({ key, label, icon: Icon, count }) => (
             <button
               key={key}

@@ -1,10 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import PortalLayout from '@/components/PortalLayout';
-import { 
-  BarChart2, Clock, Calendar, Shield, Award, Users, Download, 
-  Loader2, CheckCircle2, TrendingUp, HelpCircle, Heart, Star, Leaf
-} from 'lucide-react';
+// Icons: Flaticon UIcons (uicons-regular-rounded / uicons-solid-rounded loaded globally)
 import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 import { usePortalLanguage } from '@/lib/usePortalLanguage';
@@ -128,7 +125,7 @@ export default function HeadmasterSocialActivitiesPage() {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="flex items-start sm:items-center gap-3.5">
               <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 rounded-xl shrink-0 border border-emerald-100 dark:border-emerald-900/50">
-                <BarChart2 className="w-5 h-5 text-emerald-500" />
+                <i className="fi fi-rr-chart-histogram w-5 h-5 text-emerald-500" />
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -143,24 +140,24 @@ export default function HeadmasterSocialActivitiesPage() {
               onClick={handleDownloadReport}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2 self-start md:self-auto shrink-0"
             >
-              <Download className="w-4 h-4" /> Download Social Report
+              <i className="fi fi-rr-download w-4 h-4" /> Download Social Report
             </button>
           </div>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
+            <i className="fi fi-rr-spinner w-10 h-10 animate-spin text-emerald-600 text-4xl" />
           </div>
         ) : (
           <>
             {/* Dashboard Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total School Hours", value: `${analytics?.totalHours || 0} hrs`, sub: "Verified service hours", icon: Clock, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-250/30" },
-                { label: "Community Actions", value: analytics?.totalActivities || 0, sub: "Completed projects", icon: CheckCircle2, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/20 border-blue-250/30" },
-                { label: "Active Student Ratio", value: `${Math.round((analytics?.totalActivities || 0) * 1.5)}%`, sub: "School-wide participation", icon: Users, color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-250/30" },
-                { label: "Pending Reviews", value: analytics?.pendingApprovals || 0, sub: "Action required by teachers", icon: Shield, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border-amber-250/30" }
+                { label: "Total School Hours", value: `${analytics?.totalHours || 0} hrs`, sub: "Verified service hours", icon: "fi-rr-clock", color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-250/30" },
+                { label: "Community Actions", value: analytics?.totalActivities || 0, sub: "Completed projects", icon: "fi-rr-check-circle", color: "text-blue-500 bg-blue-50 dark:bg-blue-950/20 border-blue-250/30" },
+                { label: "Active Student Ratio", value: `${Math.round((analytics?.totalActivities || 0) * 1.5)}%`, sub: "School-wide participation", icon: "fi-rr-users", color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-250/30" },
+                { label: "Pending Reviews", value: analytics?.pendingApprovals || 0, sub: "Action required by teachers", icon: "fi-rr-shield-check", color: "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border-amber-250/30" }
               ].map((stat, idx) => (
                 <div key={idx} className={`p-5 rounded-3xl border bg-white dark:bg-slate-900 flex justify-between items-center text-left ${stat.color}`}>
                   <div>
@@ -168,7 +165,7 @@ export default function HeadmasterSocialActivitiesPage() {
                     <span className="text-2xl font-black text-black dark:text-white mt-1 block leading-none">{stat.value}</span>
                     <span className="text-[10px] text-slate-450 font-semibold mt-2 block">{stat.sub}</span>
                   </div>
-                  <stat.icon className="w-8 h-8 shrink-0 opacity-80" />
+                  <i className={`fi ${stat.icon} text-3xl shrink-0 opacity-80`} />
                 </div>
               ))}
             </div>
@@ -176,18 +173,20 @@ export default function HeadmasterSocialActivitiesPage() {
             {/* Environmental Impact Metrics */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
               <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                <Leaf className="w-5 h-5 text-emerald-500" /> Environmental Sustainability Impact
+                <i className="fi fi-rr-leaf text-xl text-emerald-500" /> Environmental Sustainability Impact
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
-                  { title: "Trees Planted", value: treesPlanted, icon: "🌳", desc: "Saplings planted & nurtured by students in school / villages." },
-                  { title: "Clean Campus Actions", value: cleanupCampaigns, icon: "🧹", desc: "Swachh Bharat cleanup activities inside the school grounds." },
-                  { title: "Waste Recycled Hours", value: `${recyclingCampHours} hrs`, icon: "♻️", desc: "Recycling & waste segregation campaigns completed." }
+                  { title: "Trees Planted", value: treesPlanted, iconCls: "fi fi-sr-tree", color: "text-green-600", bg: "bg-green-50 dark:bg-green-950/20", desc: "Saplings planted & nurtured by students in school / villages." },
+                  { title: "Clean Campus Actions", value: cleanupCampaigns, iconCls: "fi fi-sr-broom", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20", desc: "Swachh Bharat cleanup activities inside the school grounds." },
+                  { title: "Waste Recycled Hours", value: `${recyclingCampHours} hrs`, iconCls: "fi fi-sr-recycle", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/20", desc: "Recycling & waste segregation campaigns completed." }
                 ].map((item, idx) => (
                   <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-800 text-left">
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl">{item.icon}</span>
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.bg}`}>
+                        <i className={`${item.iconCls} text-2xl ${item.color}`} />
+                      </div>
                       <div>
                         <span className="text-[10px] text-slate-550 font-bold block">{item.title}</span>
                         <span className="text-xl font-black text-black dark:text-white block mt-0.5">{item.value}</span>
@@ -205,7 +204,7 @@ export default function HeadmasterSocialActivitiesPage() {
               {/* Class Participation Leaderboard */}
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
                 <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                  <BarChart2 className="w-5 h-5 text-emerald-600" /> Class Service Leaderboard
+                  <i className="fi fi-rr-chart-histogram text-xl text-emerald-600" /> Class Service Leaderboard
                 </h3>
                 <div className="space-y-4">
                   {analytics?.classLeaderboard.map((item, idx) => (
@@ -226,7 +225,7 @@ export default function HeadmasterSocialActivitiesPage() {
               {/* Top Student Volunteers */}
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
                 <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" /> Top Volunteer Changemakers
+                  <i className="fi fi-rr-medal text-xl text-purple-600" /> Top Volunteer Changemakers
                 </h3>
                 <div className="space-y-4">
                   {analytics?.topActiveStudents.map((item, idx) => (
@@ -250,7 +249,7 @@ export default function HeadmasterSocialActivitiesPage() {
               {/* Category Breakdown */}
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
                 <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-amber-500" /> Category Breakdown
+                  <i className="fi fi-rr-star text-xl text-amber-500" /> Category Breakdown
                 </h3>
                 <div className="space-y-4">
                   {analytics?.categoryStats.map((item, idx) => (
