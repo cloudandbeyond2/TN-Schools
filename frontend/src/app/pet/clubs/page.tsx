@@ -2,6 +2,7 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import PETPortalBanner from "@/components/PETPortalBanner";
+import Link from "next/link";
 import { Users, Tent, Plus, MapPin, Search, UserPlus, Trash2, WifiOff, Clock, Landmark } from "lucide-react";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -477,12 +478,12 @@ export default function ClubsPage() {
                   </div>
 
                   <div className="flex gap-2 relative z-10">
-                    <button
-                      onClick={() => setManageClubId(club.id)}
+                    <Link
+                      href={`/pet/clubs/${club.id}`}
                       className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 group-hover:border-transparent border border-slate-200 dark:border-slate-700 shadow-sm"
                     >
                       <UserPlus size={14} /> Manage
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all shadow-sm"
