@@ -13,13 +13,13 @@ interface AttendanceStudent {
   rollNo: string;
   className: string;
   section: string;
-  status: "Present" | "Absent" | "Late";
+  status: "Present" | "Absent" | "Late" | "Leave";
 }
 
 interface WeeklyRecord {
   date: string;
   dayOfWeek: number;
-  status: "PRESENT" | "ABSENT" | "LATE";
+  status: "PRESENT" | "ABSENT" | "LATE" | "LEAVE";
 }
 
 interface WeeklyStudent {
@@ -169,11 +169,12 @@ export default function AttendancePage() {
         const studentList = resultRoster.data.map((s: any, idx: number) => {
           // Find if there is a saved record for this student
           const saved = savedRecords.find((r: any) => r.studentId === s.id);
-          let status: "Present" | "Absent" | "Late" = "Present"; // default to Present if no saved record
+          let status: "Present" | "Absent" | "Late" | "Leave" = "Present"; // default to Present if no saved record
           if (saved) {
             if (saved.status === "PRESENT") status = "Present";
             else if (saved.status === "ABSENT") status = "Absent";
             else if (saved.status === "LATE") status = "Late";
+            else if (saved.status === "LEAVE") status = "Leave";
           }
           return {
             id: s.id,
@@ -320,6 +321,7 @@ export default function AttendancePage() {
   const presentCount = students.filter((s) => s.status === "Present").length;
   const absentCount = students.filter((s) => s.status === "Absent").length;
   const lateCount = students.filter((s) => s.status === "Late").length;
+  const leaveCount = students.filter((s) => s.status === "Leave").length;
   const attendanceRate = students.length > 0 ? Math.round(((presentCount + lateCount) / students.length) * 100) : 0;
 
   // Helper to get status indicators for weekly grid
@@ -354,6 +356,14 @@ export default function AttendancePage() {
       return (
         <span className="w-6 h-6 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[10px] font-black border border-amber-200 dark:border-amber-900/50" title={`Late (${rec.date})`}>
           L
+        </span>
+      );
+    }
+
+    if (rec.status === "LEAVE") {
+      return (
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 text-[10px] font-black border border-purple-200 dark:border-purple-900/50" title={`Approved Leave (${rec.date})`}>
+          LV
         </span>
       );
     }
@@ -668,7 +678,7 @@ export default function AttendancePage() {
                             <td className="p-4 font-semibold text-gray-500 dark:text-slate-400 text-xs">{student.className} - {student.section}</td>
                             <td className="p-4">
                               <div className="flex justify-center">
-                                <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 max-w-[280px] w-full items-center relative">
+                                <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 max-w-[340px] w-full items-center relative gap-0.5">
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Present")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
@@ -696,6 +706,16 @@ export default function AttendancePage() {
                                   >
                                     LATE
                                   </button>
+                                  <button
+                                    onClick={() => handleStatusChange(student.id, "Leave")}
+                                    className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Leave"
+                                        ? "bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.4)] border border-purple-700 !text-white"
+                                        : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                      }`}
+                                    title="Approved Leave"
+                                  >
+                                    LEAVE
+                                  </button>
                                 </div>
                               </div>
                             </td>
@@ -718,7 +738,7 @@ export default function AttendancePage() {
                             <span className="font-semibold text-gray-800 dark:text-slate-200 text-base">{student.name}</span>
                           </div>
                         </div>
-                        <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 w-full sm:w-auto max-w-[320px] items-center relative">
+                        <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 w-full sm:w-auto max-w-[360px] items-center relative gap-0.5">
                           <button
                             onClick={() => handleStatusChange(student.id, "Present")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
@@ -745,6 +765,16 @@ export default function AttendancePage() {
                               }`}
                           >
                             LATE
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(student.id, "Leave")}
+                            className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Leave"
+                                ? "bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.4)] border border-purple-700 !text-white"
+                                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                              }`}
+                            title="Approved Leave"
+                          >
+                            LEAVE
                           </button>
                         </div>
                       </div>

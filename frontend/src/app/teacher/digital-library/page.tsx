@@ -6,6 +6,7 @@ import { Upload, CheckCircle2, AlertCircle, BookOpen, Trash2, Edit3, X, Loader2,
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { apiFetch } from "@/lib/api";
 
 const CATEGORIES = [
   "E-books",
@@ -16,6 +17,18 @@ const CATEGORIES = [
   "Competitive examination resources"
 ];
 const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
+const ALL_SUBJECTS = [
+  "English",
+  "Tamil",
+  "Mathematics",
+  "Science",
+  "Social Science",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Computer Science",
+  "General Knowledge"
+];
 
 export default function TeacherDigitalLibraryPage() {
   const { lang } = usePortalLanguage();
@@ -35,7 +48,7 @@ export default function TeacherDigitalLibraryPage() {
   const [classroomsLoaded, setClassroomsLoaded] = useState(false);
 
   const teacherClasses = Array.from(new Set(classrooms.map((c) => c.className))).sort();
-  const finalClasses = teacherClasses;
+  const finalClasses = Array.from(new Set([...teacherClasses, ...CLASSES])).sort((a, b) => parseInt(a) - parseInt(b));
 
   const activeSubjects = Array.from(
     new Set(
@@ -45,21 +58,13 @@ export default function TeacherDigitalLibraryPage() {
         .filter(Boolean)
     )
   ).sort();
-  const finalSubjects = activeSubjects as string[];
+  const finalSubjects = Array.from(new Set([...activeSubjects, ...ALL_SUBJECTS])) as string[];
 
   const handleClassChange = (newClass: string) => {
-    const newSubjects = Array.from(
-      new Set(
-        classrooms
-          .filter((c) => c.className === newClass)
-          .map((c) => c.subject)
-          .filter(Boolean)
-      )
-    ).sort() as string[];
     setFormData((prev) => ({
       ...prev,
       class: newClass,
-      subject: newSubjects.includes(prev.subject) ? prev.subject : (newSubjects[0] || "")
+      subject: finalSubjects.includes(prev.subject) ? prev.subject : (finalSubjects[0] || "")
     }));
   };
 
@@ -69,26 +74,12 @@ export default function TeacherDigitalLibraryPage() {
       const teacherId = (session?.user as any)?.id;
       if (!schoolId || !teacherId) return;
       try {
-        const getApiUrl = () => {
-          if (typeof window !== "undefined") {
-            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-              return "http://localhost:5000";
-            }
-          }
-          return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        };
-        const API_URL = getApiUrl();
-        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+        const res = await apiFetch(`/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
         if (res.ok) {
           const json = await res.json();
           if (json && json.success && Array.isArray(json.data)) {
             setClassrooms(json.data);
             setClassroomsLoaded(true);
-            if (!editingId && json.data.length > 0) {
-              // Placeholders will be shown until the user explicitly selects a class/subject
-            } else {
-              setClassroomsLoaded(true);
-            }
           }
         }
       } catch (err) {
@@ -102,24 +93,14 @@ export default function TeacherDigitalLibraryPage() {
   const fetchItems = async () => {
     if (!session?.user) return;
     try {
-      const getApiUrl = () => {
-        if (typeof window !== "undefined") {
-          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-            return "http://localhost:5000";
-          }
-        }
-        return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      };
-      const API_URL = getApiUrl();
       const schoolId = (session.user as any).schoolId;
       const teacherId = (session.user as any).id;
 
       if (schoolId) {
-        const res = await fetch(`${API_URL}/api/digital-library-upload/school/${schoolId}`);
+        const res = await apiFetch(`/api/digital-library-upload/school/${schoolId}`);
         if (res.ok) {
           const resData = await res.json();
           if (resData.success && Array.isArray(resData.data)) {
-            // Filter to show only items uploaded by this specific teacher
             const teacherItems = resData.data.filter((item: any) => item.uploadedById === teacherId);
             setItems(teacherItems);
           }
@@ -169,23 +150,13 @@ export default function TeacherDigitalLibraryPage() {
         submitData.append("file", selectedFile);
       }
 
-      const getApiUrl = () => {
-        if (typeof window !== "undefined") {
-          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-            return "http://localhost:5000";
-          }
-        }
-        return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      };
-      const API_URL = getApiUrl();
-
       const url = editingId 
-        ? `${API_URL}/api/digital-library-upload/${editingId}`
-        : `${API_URL}/api/digital-library-upload`;
+        ? `/api/digital-library-upload/${editingId}`
+        : `/api/digital-library-upload`;
 
       const method = editingId ? "PUT" : "POST";
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: method,
         body: submitData
       });
@@ -286,16 +257,7 @@ export default function TeacherDigitalLibraryPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const getApiUrl = () => {
-        if (typeof window !== "undefined") {
-          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-            return "http://localhost:5000";
-          }
-        }
-        return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      };
-      const API_URL = getApiUrl();
-      const res = await fetch(`${API_URL}/api/digital-library-upload/${id}`, {
+      const res = await apiFetch(`/api/digital-library-upload/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {

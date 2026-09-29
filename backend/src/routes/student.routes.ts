@@ -462,6 +462,47 @@ router.get('/:id/leave', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/students/:id/leave — Submit leave request for a student
+router.post('/:id/leave', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { type, duration, reason, startDate, endDate } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [{ id }, { userId: id }]
+      },
+      include: { user: true }
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found' });
+    }
+
+    let durationStr = duration;
+    if (!durationStr && startDate) {
+      durationStr = (!endDate || startDate === endDate) ? `${startDate} (1 Day)` : `${startDate} to ${endDate}`;
+    }
+
+    const leave = await prisma.leaveRequest.create({
+      data: {
+        type: type || 'Personal Leave',
+        duration: durationStr || new Date().toISOString().slice(0, 10),
+        reason: reason || 'Personal Reason',
+        studentName: student.user?.name || 'Student',
+        studentId: student.id,
+        status: 'Pending',
+        schoolId: student.schoolId || null,
+      } as any,
+    });
+
+    res.status(201).json({ success: true, data: leave });
+  } catch (err) {
+    console.error('Error in student leave request submission:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // GET /api/students/:id/homework — Get homework for a student
 router.get('/:id/homework', async (req: Request, res: Response) => {
   try {
