@@ -4,29 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
-import {
-  Award,
-  Calendar,
-  CheckCircle,
-  FileText,
-  AlertTriangle,
-  Info,
-  ExternalLink,
-  Bell,
-  Clock,
-  Check,
-  Upload,
-  User,
-  ShieldCheck,
-  Search,
-  Filter,
-  Calculator,
-  ChevronRight,
-  Sparkles,
-  Zap,
-  TrendingUp,
-  DollarSign
-} from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -98,6 +75,64 @@ interface HubProps {
   accentColor: string;
   themeClass: string;
 }
+
+// ---------------------------------------------------------------------------
+// Flaticon Renderer Helper
+// ---------------------------------------------------------------------------
+const renderFlaticon = (iconStr: string, sizeClass = "text-xl", colorClass = "text-indigo-600", idHint?: string) => {
+  const s = iconStr || "";
+  if (s.startsWith("fi ")) {
+    return <i className={`${s} ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+
+  // Scheme ID / notification ID hints (guarantees correct icon even if emoji parsing varies)
+  if (idHint === "tngovt-merit" || idHint === "notif-6") {
+    return <i className={`fi fi-rr-landmark-alt ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "nmms" || idHint === "notif-1") {
+    return <i className={`fi fi-rr-flag ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "inspire") {
+    return <i className={`fi fi-rr-flask ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "sports-scholarship" || idHint === "notif-2") {
+    return <i className={`fi fi-rr-medal ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "sc-st-prepost" || idHint === "notif-3") {
+    return <i className={`fi fi-rr-handshake ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "moovalur" || idHint === "pudhumai-penn" || idHint === "notif-4") {
+    return <i className={`fi fi-rr-graduation-cap ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+  if (idHint === "obc-scholarship" || idHint === "notif-5") {
+    return <i className={`fi fi-rr-diploma ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  }
+
+  // Emoji checks (using includes to handle multi-byte variation selectors)
+  if (s.includes("🏛")) return <i className={`fi fi-rr-landmark-alt ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🇮🇳")) return <i className={`fi fi-rr-flag ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🔬")) return <i className={`fi fi-rr-flask ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🎓") || s.includes("👩‍🎓")) return <i className={`fi fi-rr-graduation-cap ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🏅") || s.includes("🏆")) return <i className={`fi fi-rr-medal ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🤝")) return <i className={`fi fi-rr-handshake ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🤲")) return <i className={`fi fi-rr-diploma ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🌟") || s.includes("⭐")) return <i className={`fi fi-rr-star ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🏫")) return <i className={`fi fi-rr-school ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("💰") || s.includes("💵")) return <i className={`fi fi-rr-sack-dollar ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("💡")) return <i className={`fi fi-rr-bulb ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("📣") || s.includes("📢")) return <i className={`fi fi-rr-megaphone ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🔔")) return <i className={`fi fi-rr-bell ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("📝") || s.includes("✍")) return <i className={`fi fi-rr-edit ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("📚")) return <i className={`fi fi-rr-books ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("👧") || s.includes("👩")) return <i className={`fi fi-rr-woman-head ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🎯")) return <i className={`fi fi-rr-bullseye-arrow ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("⏰") || s.includes("⏱")) return <i className={`fi fi-rr-clock ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("📅") || s.includes("🗓")) return <i className={`fi fi-rr-calendar ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("🌱")) return <i className={`fi fi-rr-leaf ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+  if (s.includes("⚠️")) return <i className={`fi fi-rr-triangle-warning ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+
+  return <i className={`fi fi-rr-diploma ${sizeClass} ${colorClass} flex items-center justify-center`} />;
+};
 
 export default function ScholarshipTrackingHub({
   classLevel,
@@ -460,7 +495,7 @@ export default function ScholarshipTrackingHub({
 
         {status === "REJECTED" ? (
           <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3 flex gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <i className="fi fi-rr-triangle-warning text-sm text-red-500 shrink-0 mt-0.5 flex items-center" />
             <div className="text-xs text-red-700 dark:text-red-300 font-medium">
               <strong>{t("Remarks:", "குறிப்புகள்:")}</strong>{" "}
               {remarks || t("Document mismatch. Upload clear Tahsildar Income Certificate.", "சான்றிதழ் பொருந்தவில்லை.")}
@@ -484,7 +519,7 @@ export default function ScholarshipTrackingHub({
                       ${isCompleted ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-600'}
                       ${isCurrent ? 'ring-4 ring-indigo-500/30 font-black' : ''}`}
                     >
-                      {isCompleted ? <Check className="h-3 w-3 text-white" /> : <span className="text-[10px] font-bold">{i + 1}</span>}
+                      {isCompleted ? <i className="fi fi-rr-check text-[10px] text-white flex items-center" /> : <span className="text-[10px] font-bold">{i + 1}</span>}
                     </div>
                     <span className={`text-[9px] font-black tracking-wide ${isCurrent ? 'text-slate-900 dark:text-white font-black' : 'text-slate-500'}`}>
                       {step.label}
@@ -505,7 +540,8 @@ export default function ScholarshipTrackingHub({
       {/* Top Header Bar */}
       <div className="flex justify-between items-center">
         <Link href={dashboardLink} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white flex items-center gap-2 transition-colors w-fit">
-          <span>←</span> {t("Back to Dashboard", "முகப்பு பலகைக்குச் செல்")}
+          <i className="fi fi-rr-arrow-left text-xs" />
+          <span>{t("Back to Dashboard", "முகப்பு பலகைக்குச் செல்")}</span>
         </Link>
         
         <div className="flex items-center gap-2">
@@ -518,7 +554,7 @@ export default function ScholarshipTrackingHub({
             }}
             className="text-xs font-bold px-3.5 py-1.5 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all flex items-center gap-1.5 shadow-sm"
           >
-            <span>🌐</span>
+            <i className="fi fi-rr-globe text-xs text-indigo-500" />
             <span>{lang === "EN" ? "தமிழ்" : "English"}</span>
           </button>
         </div>
@@ -527,33 +563,30 @@ export default function ScholarshipTrackingHub({
       {/* Interactive Tabs */}
       <div className="flex bg-slate-100 dark:bg-slate-950/60 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 w-full overflow-x-auto gap-1 shadow-sm">
         {[
-          { key: "discovery", label: t("Eligible Scholarships", "உதவித்தொகைகள்"), icon: Award },
-          { key: "calculator", label: t("Eligibility Calculator", "தகுதி கணிப்பான்"), icon: Calculator },
-          { key: "tracking", label: t("Application Tracker", "விண்ணப்பக் கண்காணிப்பு"), icon: Clock },
-          { key: "documents", label: t("e-Sanad Locker", "மின்-சன்னத் லாக்கர்"), icon: FileText },
-          { key: "notifications", label: t("Govt Bulletins", "அரசு அறிவிப்புகள்"), icon: Bell }
-        ].map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ${
-                activeTab === tab.key
-                  ? "bg-indigo-600 text-white shadow-md scale-105"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-900/50"
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {tab.label}
-              {tab.key === "notifications" && notifications.length > 0 && (
-                <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse ml-0.5">
-                  {notifications.length}
-                </span>
-              )}
-            </button>
-          );
-        })}
+          { key: "discovery", label: t("Eligible Scholarships", "உதவித்தொகைகள்"), icon: "fi fi-rr-diploma" },
+          { key: "calculator", label: t("Eligibility Calculator", "தகுதி கணிப்பான்"), icon: "fi fi-rr-calculator" },
+          { key: "tracking", label: t("Application Tracker", "விண்ணப்பக் கண்காணிப்பு"), icon: "fi fi-rr-time-past" },
+          { key: "documents", label: t("e-Sanad Locker", "மின்-சன்னத் லாக்கர்"), icon: "fi fi-rr-document" },
+          { key: "notifications", label: t("Govt Bulletins", "அரசு அறிவிப்புகள்"), icon: "fi fi-rr-bell" }
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ${
+              activeTab === tab.key
+                ? "bg-indigo-600 text-white shadow-md scale-105"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-900/50"
+            }`}
+          >
+            <i className={`${tab.icon} text-sm shrink-0 flex items-center justify-center`} />
+            {tab.label}
+            {tab.key === "notifications" && notifications.length > 0 && (
+              <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse ml-0.5">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Main Grid Layout */}
@@ -564,9 +597,11 @@ export default function ScholarshipTrackingHub({
           
           {/* EMIS Profile Card */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-md">
-            <div className="absolute right-4 top-4 text-4xl opacity-10">🎓</div>
+            <div className="absolute right-4 top-4 text-5xl opacity-10">
+              <i className="fi fi-rr-graduation-cap" />
+            </div>
             <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <i className="fi fi-rr-user text-sm text-indigo-600 dark:text-indigo-400 flex items-center" />
               {t("EMIS Verified Profile", "சரிபார்க்கப்பட்ட EMIS விவரம்")}
             </h3>
             
@@ -598,7 +633,7 @@ export default function ScholarshipTrackingHub({
             )}
             
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <i className="fi fi-rr-shield-check text-sm text-emerald-500 flex items-center" />
               {t("Linked with National Scholarship Portal (NSP)", "தேசிய உதவித்தொகை போர்ட்டலுடன் இணைக்கப்பட்டுள்ளது")}
             </div>
           </div>
@@ -606,7 +641,7 @@ export default function ScholarshipTrackingHub({
           {/* Quick Stats Summary Widget */}
           <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-slate-50 dark:from-indigo-900/40 dark:via-purple-900/30 dark:to-slate-900 text-slate-900 dark:text-white rounded-3xl p-6 border border-indigo-200 dark:border-indigo-500/30 space-y-4 shadow-md">
             <h4 className="text-xs font-black uppercase tracking-wider text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-amber-500" />
+              <i className="fi fi-rr-arrow-trend-up text-sm text-amber-500 flex items-center" />
               {t("Financial Aid Estimator", "நிதி உதவித் தொகை கணிப்பு")}
             </h4>
             
@@ -625,7 +660,7 @@ export default function ScholarshipTrackingHub({
               onClick={() => setActiveTab("calculator")}
               className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-md"
             >
-              <Calculator className="h-3.5 w-3.5" />
+              <i className="fi fi-rr-calculator text-xs flex items-center" />
               <span>{t("Launch Calculator Widget", "கணிப்பானைத் தொடங்கு")}</span>
             </button>
           </div>
@@ -642,7 +677,7 @@ export default function ScholarshipTrackingHub({
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                   <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                    <i className="fi fi-rr-diploma text-lg text-indigo-600 dark:text-indigo-400 animate-pulse flex items-center" />
                     {t("Eligible Government Scholarships", "உங்களுக்குத் தகுதியான உதவித்தொகைகள்")}
                   </h3>
                   <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
@@ -654,7 +689,7 @@ export default function ScholarshipTrackingHub({
               {/* Search & Category Filter */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="sm:col-span-2 flex gap-2 bg-slate-50 dark:bg-slate-950/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                  <Search className="h-4 w-4 text-slate-400 self-center ml-2" />
+                  <i className="fi fi-rr-search text-xs text-slate-400 self-center ml-2 flex items-center" />
                   <input
                     type="text"
                     placeholder={t("Search by scholarship title, benefit, or criteria...", "தேடுக...")}
@@ -691,14 +726,14 @@ export default function ScholarshipTrackingHub({
                       >
                         {s.isUrgent && (
                           <div className="absolute right-0 top-0 bg-red-600 text-white text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl flex items-center gap-1 shadow-md">
-                            <Clock className="h-3 w-3" />
+                            <i className="fi fi-rr-clock text-[10px] flex items-center" />
                             {t(`${s.daysLeft} days left`, `${s.daysLeft} நாட்கள் மீதமுள்ளன`)}
                           </div>
                         )}
 
                         <div className="flex gap-4 items-start">
-                          <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm">
-                            {s.emoji}
+                          <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm">
+                            {renderFlaticon(s.emoji, "text-2xl", s.textColor || "text-indigo-600", s.id)}
                           </div>
                           <div className="space-y-2 w-full">
                             <div>
@@ -715,24 +750,24 @@ export default function ScholarshipTrackingHub({
                             </p>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-black">
-                                <span>💰</span>
+                              <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-black">
+                                <i className="fi fi-rr-sack-dollar text-xs" />
                                 <span>{t("Benefit:", "உதவித் தொகை:")} {t(s.amount, s.amountTA)}</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <span>⏰</span>
+                              <div className="flex items-center gap-1.5">
+                                <i className="fi fi-rr-calendar-clock text-xs text-slate-400" />
                                 <span>{t("Deadline:", "கடைசி தேதி:")} {new Date(s.deadline).toLocaleDateString()}</span>
                               </div>
-                              <div className="flex items-center gap-1 col-span-1 sm:col-span-2">
-                                <span>🎯</span>
+                              <div className="flex items-center gap-1.5 col-span-1 sm:col-span-2">
+                                <i className="fi fi-rr-bullseye-arrow text-xs text-indigo-500" />
                                 <span>{t("Eligibility:", "தகுதி:")} {t(s.eligibility, s.eligibilityTA)}</span>
                               </div>
                             </div>
 
                             {/* Action Buttons */}
                             <div className="pt-4 flex flex-wrap justify-between items-center gap-3 border-t border-slate-200 dark:border-slate-800/80">
-                              <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
-                                <span>🌐</span> {t(s.applicationMode, s.applicationModeTA)}
+                              <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1.5">
+                                <i className="fi fi-rr-globe text-xs" /> {t(s.applicationMode, s.applicationModeTA)}
                               </span>
 
                               <div className="flex gap-2">
@@ -741,15 +776,15 @@ export default function ScholarshipTrackingHub({
                                     href={s.applicationLink} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="p-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors shadow-sm"
+                                    className="p-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors shadow-sm flex items-center justify-center"
                                   >
-                                    <ExternalLink className="h-4 w-4" />
+                                    <i className="fi fi-rr-arrow-up-right-from-square text-xs flex items-center" />
                                   </a>
                                 )}
                                 <button
                                   onClick={() => handleApply(s)}
                                   disabled={alreadyApplied || submittingId === s.id}
-                                  className={`px-5 py-2 rounded-xl text-xs font-black shadow-md transition-all ${
+                                  className={`px-5 py-2 rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-1.5 ${
                                     alreadyApplied
                                       ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 cursor-default"
                                       : submittingId === s.id
@@ -757,7 +792,16 @@ export default function ScholarshipTrackingHub({
                                       : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
                                   }`}
                                 >
-                                  {alreadyApplied ? t("✓ Applied", "✓ விண்ணப்பிக்கப்பட்டது") : submittingId === s.id ? t("Applying...", "விண்ணப்பிக்கிறது...") : t("1-Click Apply", "1-கிளிக் விண்ணப்பம்")}
+                                  {alreadyApplied ? (
+                                    <>
+                                      <i className="fi fi-rr-check text-xs" />
+                                      <span>{t("Applied", "விண்ணப்பிக்கப்பட்டது")}</span>
+                                    </>
+                                  ) : submittingId === s.id ? (
+                                    t("Applying...", "விண்ணப்பிக்கிறது...")
+                                  ) : (
+                                    t("1-Click Apply", "1-கிளிக் விண்ணப்பம்")
+                                  )}
                                 </button>
                               </div>
                             </div>
@@ -784,7 +828,7 @@ export default function ScholarshipTrackingHub({
               
               <div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-amber-500" />
+                  <i className="fi fi-rr-calculator text-lg text-amber-500 flex items-center" />
                   {t("Interactive Scholarship & Financial Aid Calculator", "உதவித்தொகை தகுதி கணிப்பான்")}
                 </h3>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
@@ -874,7 +918,7 @@ export default function ScholarshipTrackingHub({
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md"
                 >
                   <span>{t("View Matched Schemes", "திட்டங்களைக் காண்க")}</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <i className="fi fi-rr-angle-right text-xs flex items-center" />
                 </button>
               </div>
 
@@ -908,7 +952,7 @@ export default function ScholarshipTrackingHub({
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 min-h-full space-y-6 shadow-md">
               
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <i className="fi fi-rr-time-past text-lg text-indigo-600 dark:text-indigo-400 flex items-center" />
                 {t("Track Application Status", "விண்ணப்பக் கண்காணிப்பு")}
               </h3>
 
@@ -934,12 +978,16 @@ export default function ScholarshipTrackingHub({
                   ))
                 ) : (
                   <div className="text-center py-16 text-slate-500 text-xs space-y-3 font-bold">
-                    <p>✨ {t("You haven't submitted any scholarship applications yet.", "நீங்கள் இன்னும் எந்த உதவித்தொகைக்கும் விண்ணப்பிக்கவில்லை.")}</p>
+                    <p className="flex items-center justify-center gap-1.5">
+                      <i className="fi fi-rr-sparkles text-amber-500 text-sm" />
+                      <span>{t("You haven't submitted any scholarship applications yet.", "நீங்கள் இன்னும் எந்த உதவித்தொகைக்கும் விண்ணப்பிக்கவில்லை.")}</span>
+                    </p>
                     <button
                       onClick={() => setActiveTab("discovery")}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-md"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-md inline-flex items-center gap-1.5"
                     >
-                      {t("Discover Available Scholarships", "தகுதியான உதவித்தொகைகளைக் காண்க")}
+                      <i className="fi fi-rr-search text-xs" />
+                      <span>{t("Discover Available Scholarships", "தகுதியான உதவித்தொகைகளைக் காண்க")}</span>
                     </button>
                   </div>
                 )}
@@ -954,7 +1002,7 @@ export default function ScholarshipTrackingHub({
               
               <div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  <i className="fi fi-rr-document text-lg text-indigo-600 dark:text-indigo-400 flex items-center" />
                   {t("e-Sanad Document Locker", "மின்-சன்னத் ஆவண பெட்டகம்")}
                 </h3>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
@@ -986,26 +1034,29 @@ export default function ScholarshipTrackingHub({
                         </span>
                         {uploaded ? (
                           <span className="text-[10px] text-slate-600 dark:text-slate-400 flex items-center gap-1 font-bold">
-                            <span className="text-emerald-500">✓</span> {uploaded.file}
+                            <i className="fi fi-rr-check text-xs text-emerald-500" />
+                            <span>{uploaded.file}</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] text-red-600 dark:text-red-400 font-bold">
-                            ⚠️ {t("Missing Document", "ஆவணம் பதிவேற்றப்படவில்லை")}
+                          <span className="text-[10px] text-red-600 dark:text-red-400 font-bold flex items-center gap-1">
+                            <i className="fi fi-rr-triangle-warning text-xs text-red-500" />
+                            <span>{t("Missing Document", "ஆவணம் பதிவேற்றப்படவில்லை")}</span>
                           </span>
                         )}
                       </div>
 
                       {uploaded ? (
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10">
-                          {t("Verified", "சரிபார்க்கப்பட்டது")}
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 flex items-center gap-1">
+                          <i className="fi fi-rr-shield-check text-xs" />
+                          <span>{t("Verified", "சரிபார்க்கப்பட்டது")}</span>
                         </span>
                       ) : (
                         <button
                           onClick={() => handleUploadSimulated(docName)}
                           className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-md transition-all"
                         >
-                          <Upload className="h-3 w-3" />
-                          {t("Upload", "பதிவேற்று")}
+                          <i className="fi fi-rr-upload text-xs flex items-center" />
+                          <span>{t("Upload", "பதிவேற்று")}</span>
                         </button>
                       )}
                     </div>
@@ -1021,7 +1072,7 @@ export default function ScholarshipTrackingHub({
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 min-h-full space-y-6 shadow-md">
               
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Bell className="h-5 w-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                <i className="fi fi-rr-bell text-lg text-indigo-600 dark:text-indigo-400 animate-pulse flex items-center" />
                 {t("Govt Scholarship Bulletins", "அரசு உதவித்தொகை அறிவிப்புகள்")}
               </h3>
 
@@ -1037,8 +1088,10 @@ export default function ScholarshipTrackingHub({
                       }`}></div>
 
                       <div className="flex gap-3">
-                        <span className="text-2xl shrink-0 mt-0.5">{notif.emoji}</span>
-                        <div className="space-y-1.5">
+                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm mt-0.5">
+                          {renderFlaticon(notif.emoji, "text-xl", "text-indigo-600", notif.id)}
+                        </div>
+                        <div className="space-y-1.5 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="text-xs font-black text-slate-900 dark:text-white">
                               {t(notif.title, notif.titleTA)}
@@ -1059,15 +1112,18 @@ export default function ScholarshipTrackingHub({
                           </p>
 
                           <div className="flex justify-between items-center pt-2 text-[9px] font-bold text-slate-500">
-                            <span>📅 {new Date(notif.date).toLocaleDateString()}</span>
+                            <span className="flex items-center gap-1">
+                              <i className="fi fi-rr-calendar text-[10px]" /> {new Date(notif.date).toLocaleDateString()}
+                            </span>
                             {notif.link && (
                               <a 
-                                href={notif.link}
-                                target="_blank"
+                                href={notif.link} 
+                                target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-bold"
                               >
-                                {t("Official Portal", "அதிகாரப்பூர்வ தளம்")} <ExternalLink className="h-3 w-3" />
+                                <span>{t("Official Portal", "அதிகாரப்பூர்வ தளம்")}</span>
+                                <i className="fi fi-rr-arrow-up-right-from-square text-[10px] flex items-center" />
                               </a>
                             )}
                           </div>
