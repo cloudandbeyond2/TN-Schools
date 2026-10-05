@@ -76,6 +76,21 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
+// ─── Vercel Path Normalization ───────────────────────────────────────
+// In serverless environments like Vercel with rewrites, req.url may arrive as
+// '/src/index.ts'. Restore the original requested path from Vercel headers.
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  const matchedPath =
+    (req.headers['x-matched-path'] as string) ||
+    (req.headers['x-invoke-path'] as string) ||
+    (req.headers['x-now-route-matches'] as string);
+
+  if (matchedPath && (req.url.startsWith('/src/index.ts') || req.url === '/src/index.ts')) {
+    req.url = matchedPath;
+  }
+  next();
+});
+
 // ─── CORS Configuration ──────────────────────────────────────────────
 // Define allowed origins based on environment
 const allowedOrigins = [
@@ -228,16 +243,20 @@ const PUBLIC_PATHS = [
 
 // ─── Global Authentication Guard (Fail-Closed) ─────────────────
 app.use((req: Request, res: Response, next: NextFunction) => {
-  if (
-    req.path === '/' ||
-    req.path.startsWith('/uploads/') ||
-    req.path.startsWith('/api/portfolio') ||
-    req.path.startsWith('/api/counsellor') ||
-    req.path.startsWith('/api/superadmin/academics') ||
-    req.path.startsWith('/api/centralized-content') ||
-    req.method === 'OPTIONS' ||
-    PUBLIC_PATHS.includes(req.path)
-  ) {
+  const currentPath = req.path;
+  const originalPath = req.originalUrl ? req.originalUrl.split('?')[0] : currentPath;
+
+  const isPublic = (p: string) =>
+    p === '/' ||
+    p.startsWith('/uploads/') ||
+    p.startsWith('/audio_cache/') ||
+    p.startsWith('/api/portfolio') ||
+    p.startsWith('/api/counsellor') ||
+    p.startsWith('/api/superadmin/academics') ||
+    p.startsWith('/api/centralized-content') ||
+    PUBLIC_PATHS.includes(p);
+
+  if (req.method === 'OPTIONS' || isPublic(currentPath) || isPublic(originalPath)) {
     return next();
   }
   return authenticate(req, res, next);
