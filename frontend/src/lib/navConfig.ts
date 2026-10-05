@@ -528,17 +528,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "Science Labs", href: "/teacher/labs", icon: "fi fi-rr-flask" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "fi fi-rr-stats" },
 
-      // Academics & Guidance
-      { label: "Academics & Guidance", href: "#", icon: "" },
-      { label: "Academics Hub", href: "/teacher/academics", icon: "fi fi-rr-book-alt" },
-      { label: "SSLC Board Prep", href: "/teacher/sslc-prep", icon: "fi fi-rr-target" },
-      { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "fi fi-rr-microscope" },
-      { label: "Digital Library", href: "/teacher/digital-library", icon: "fi fi-rr-book" },
-      { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-map" },
-      { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "fi fi-rr-trophy" },
-
-      
-
       // AI Content Studio — 20 subject-adaptive content skills. The hub holds
       // all of them; the six group entries open it pre-filtered.
       { label: "AI Content Studio", href: "#", icon: "" },
@@ -551,6 +540,19 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Feedback & Rubric", href: "/teacher/ai-studio/feedback", icon: "fi fi-rr-comment-check" },
       { label: "Plan & Organise", href: "/teacher/ai-studio/plan", icon: "fi fi-rr-clipboard-list" },
       { label: "My AI Content", href: "/teacher/ai-studio/library", icon: "fi fi-rr-folder" },
+
+      // Academics & Guidance
+      { label: "Academics & Guidance", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/teacher/academics", icon: "fi fi-rr-book-alt" },
+      { label: "SSLC Board Prep", href: "/teacher/sslc-prep", icon: "fi fi-rr-target" },
+      { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "fi fi-rr-microscope" },
+      { label: "Digital Library", href: "/teacher/digital-library", icon: "fi fi-rr-book" },
+      { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-map" },
+      { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "fi fi-rr-trophy" },
+
+      
+
+      
 
       // Common Menu & Tools
       { label: "Admin & Tools", href: "#", icon: "" },
