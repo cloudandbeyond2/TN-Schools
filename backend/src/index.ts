@@ -242,9 +242,10 @@ const PUBLIC_PATHS = [
 ];
 
 // ─── Global Authentication Guard (Fail-Closed) ─────────────────
+// NOTE: On Vercel with rewrites, req.path may reflect the rewritten destination.
+// We check both req.originalUrl (true incoming client path) and req.path.
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const currentPath = req.path;
-  const originalPath = req.originalUrl ? req.originalUrl.split('?')[0] : currentPath;
+  const requestPath = req.originalUrl ? req.originalUrl.split('?')[0] : req.path;
 
   const isPublic = (p: string) =>
     p === '/' ||
@@ -256,7 +257,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     p.startsWith('/api/centralized-content') ||
     PUBLIC_PATHS.includes(p);
 
-  if (req.method === 'OPTIONS' || isPublic(currentPath) || isPublic(originalPath)) {
+  if (req.method === 'OPTIONS' || isPublic(req.path) || isPublic(requestPath)) {
     return next();
   }
   return authenticate(req, res, next);
