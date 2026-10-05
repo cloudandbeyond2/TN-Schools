@@ -260,6 +260,28 @@ export default function TeacherCulturalEventsPage() {
     }
   };
 
+  const isEventClosed = (eventDateStr: string, status?: string) => {
+    if (status && (status.toLowerCase().includes("closed") || status.toLowerCase().includes("completed"))) {
+      return true;
+    }
+    if (!eventDateStr) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dateOnly = eventDateStr.includes("T") ? eventDateStr.split("T")[0] : eventDateStr;
+    const parts = dateOnly.split("-");
+    let evtDate: Date;
+    if (parts.length === 3) {
+      evtDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    } else {
+      evtDate = new Date(eventDateStr);
+    }
+    evtDate.setHours(0, 0, 0, 0);
+
+    return evtDate.getTime() < today.getTime();
+  };
+
   const handleDeleteEvent = async (id: string, title: string) => {
     const result = await Swal.fire({
       title: lang === "தமிழ்" ? "நிகழ்வை ரத்து செய்யவா?" : "Cancel Event?",
@@ -605,6 +627,10 @@ export default function TeacherCulturalEventsPage() {
                 const category = getEventCategory(evt.title, evt.description, evt.location);
                 const theme = THEMES[category] || THEMES["General"];
                 const loc = parseLocation(evt.location);
+                const isClosed = isEventClosed(evt.eventDate, evt.status);
+                const displayStatus = isClosed
+                  ? (lang === "தமிழ்" ? "நிகழ்வு முடிந்தது" : "Event Closed")
+                  : evt.status;
 
                 return (
                   <div
@@ -619,8 +645,14 @@ export default function TeacherCulturalEventsPage() {
 
                       {/* Top-right Controls: Status Badge + Edit/Delete Buttons */}
                       <div className="flex items-center gap-1">
-                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-lg border ${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText} shadow-sm`}>
-                          {evt.status}
+                        <span
+                          className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-lg border shadow-sm ${
+                            isClosed
+                              ? "border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-black"
+                              : `${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText}`
+                          }`}
+                        >
+                          {displayStatus}
                         </span>
                         <button
                           onClick={() => handleOpenEdit(evt)}
@@ -685,7 +717,11 @@ export default function TeacherCulturalEventsPage() {
                     <div className="px-4 pb-4 pt-1.5 border-t border-slate-100 dark:border-slate-800 mt-auto bg-slate-50/20 dark:bg-slate-900/10 flex flex-col gap-2">
                       <button
                         onClick={() => openRegistrationsModal(evt)}
-                        className={`w-full py-2.5 rounded-xl text-xs font-black ${theme.btnBg} !text-white shadow-md hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 active:scale-95 border-b-4 border-black/20`}
+                        className={`w-full py-2.5 rounded-xl text-xs font-black ${
+                          isClosed
+                            ? "bg-slate-600 hover:bg-slate-700 text-white"
+                            : `${theme.btnBg} !text-white`
+                        } shadow-md hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 active:scale-95 border-b-4 border-black/20`}
                         style={{ color: "#ffffff" }}
                       >
                         <i className="fi fi-rr-users text-xs !text-white" style={{ color: "#ffffff" }} />
@@ -694,8 +730,19 @@ export default function TeacherCulturalEventsPage() {
                         </span>
                       </button>
                       <div className="text-center text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5 flex items-center justify-center gap-1 flex-wrap">
-                        <i className="fi fi-rr-info text-indigo-500 text-xs" />
-                        <span>Managed on Student Portal</span>
+                        {isClosed ? (
+                          <>
+                            <i className="fi fi-rr-lock text-rose-500 text-xs" />
+                            <span className="text-rose-500 dark:text-rose-400 font-bold">
+                              {lang === "தமிழ்" ? "நிகழ்வு முடிந்தது" : "Event Closed"}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="fi fi-rr-info text-indigo-500 text-xs" />
+                            <span>{lang === "தமிழ்" ? "மாணவர் போர்ட்டலில் நிர்வகிக்கப்படுகிறது" : "Managed on Student Portal"}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -791,6 +838,8 @@ export default function TeacherCulturalEventsPage() {
                   <option value="Upcoming">Upcoming</option>
                   <option value="Planning">Planning</option>
                   <option value="Open Now!">Open Now!</option>
+                  <option value="Event Closed">Event Closed</option>
+                  <option value="Completed">Completed</option>
                 </select>
               </div>
               <div className="pt-4 flex gap-3">
@@ -821,7 +870,14 @@ export default function TeacherCulturalEventsPage() {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl mb-4 border border-slate-100 dark:border-slate-800 shrink-0">
               <div className="space-y-0.5">
-                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Registered Participants</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Registered Participants</span>
+                  {isEventClosed(activeEventForReg.eventDate, activeEventForReg.status) && (
+                    <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+                      {lang === "தமிழ்" ? "நிகழ்வு முடிந்தது" : "Event Closed"}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-base font-black text-indigo-600 dark:text-indigo-400 truncate max-w-xs">
                   {activeEventForReg.title}
                 </h3>
