@@ -268,8 +268,8 @@ export default function AIContentLibraryPage() {
                     {row.subject && (
                       <span className="px-1.5 py-0.5 rounded border border-[var(--border)]">{row.subject}</span>
                     )}
-                    <span className="px-1.5 py-0.5 rounded border border-[var(--border)]">
-                      {pack.icon} {pack.label}
+                    <span className="px-1.5 py-0.5 rounded border border-[var(--border)] inline-flex items-center gap-1">
+                      <i className={pack.icon} /> {pack.label}
                     </span>
                     <span className="px-1.5 py-0.5 rounded border border-[var(--border)]">
                       {OUTPUT_KIND_LABEL[row.outputKind] || row.outputKind}

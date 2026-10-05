@@ -365,8 +365,8 @@ export default function StudentAIStudioPage() {
                                   <i className={badge.icon} />
                                   {badge.label}
                                 </span>
-                                <span className="text-base leading-none" title={pack.label}>
-                                  {pack.icon}
+                                <span className="text-base leading-none text-slate-500 dark:text-slate-400" title={pack.label}>
+                                  <i className={pack.icon} />
                                 </span>
                               </div>
 
